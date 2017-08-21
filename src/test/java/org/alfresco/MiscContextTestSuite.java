@@ -33,7 +33,9 @@ public class MiscContextTestSuite
     public static Test suite()
     {
         TestSuite suite = new TestSuite();
+        AllRepositoryTestsCatalogue.minimalContext(suite);
         AllRepositoryTestsCatalogue.miscContext(suite);
+        AllRepositoryTestsCatalogue.applicationContext_testThumnailContext(suite);
         return suite;
     }
 }

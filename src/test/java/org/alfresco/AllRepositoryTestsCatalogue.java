@@ -240,15 +240,20 @@ public class AllRepositoryTestsCatalogue
         // needs a clean DB to run
         suite.addTest(new JUnit4TestAdapter(org.alfresco.repo.calendar.CalendarServiceImplTest.class));
 
+        suite.addTest(new JUnit4TestAdapter(RepositoryStartupTest.class));
         suite.addTestSuite(ContentStoreCleanerTest.class);
         suite.addTestSuite(RoutingContentServiceTest.class);
+        suite.addTestSuite(org.alfresco.repo.exporter.ExporterComponentTest.class);
+        suite.addTest(new JUnit4TestAdapter(PublishingQueueImplTest.class));
+        suite.addTest(new JUnit4TestAdapter(PublishingIntegratedTest.class));
+        suite.addTestSuite(org.alfresco.repo.lock.LockBehaviourImplTest.class);
+        suite.addTestSuite(org.alfresco.repo.node.archive.LargeArchiveAndRestoreTest.class);
         suite.addTestSuite(org.alfresco.repo.copy.CopyServiceImplTest.class);
         suite.addTestSuite(org.alfresco.repo.descriptor.DescriptorServiceTest.class);
         suite.addTestSuite(org.alfresco.repo.dictionary.DictionaryModelTypeTest.class);
         suite.addTestSuite(org.alfresco.repo.dictionary.DictionaryRepositoryBootstrapTest.class);
         suite.addTest(new JUnit4TestAdapter(org.alfresco.repo.dictionary.ModelValidatorTest.class));
         suite.addTestSuite(org.alfresco.repo.dictionary.types.period.PeriodTest.class);
-        suite.addTestSuite(org.alfresco.repo.exporter.ExporterComponentTest.class);
         suite.addTestSuite(org.alfresco.repo.exporter.RepositoryExporterComponentTest.class);
         suite.addTestSuite(org.alfresco.repo.i18n.MessageServiceImplTest.class);
         suite.addTestSuite(org.alfresco.repo.importer.FileImporterTest.class);
@@ -257,65 +262,34 @@ public class AllRepositoryTestsCatalogue
         suite.addTestSuite(org.alfresco.repo.jscript.RhinoScriptTest.class);
         // needs a clean DB to run
         suite.addTest(new JUnit4TestAdapter(org.alfresco.repo.links.LinksServiceImplTest.class));
-
         suite.addTestSuite(org.alfresco.repo.lock.JobLockServiceTest.class);
-        suite.addTestSuite(org.alfresco.repo.lock.LockBehaviourImplTest.class);
         suite.addTestSuite(org.alfresco.repo.lock.LockServiceImplTest.class);
         suite.addTest(new JUnit4TestAdapter(org.alfresco.repo.lock.mem.LockStoreImplTxTest.class));
         suite.addTest(new JUnit4TestAdapter(org.alfresco.repo.lock.mem.LockableAspectInterceptorTest.class));
         suite.addTestSuite(org.alfresco.repo.management.JmxDumpUtilTest.class);
-    }
-
-    // [classpath:alfresco/application-context.xml] - part 4
-    static void applicationContext_04(TestSuite suite)
-    {
-        suite.addTestSuite(org.alfresco.repo.module.ModuleComponentHelperTest.class);
         suite.addTestSuite(org.alfresco.repo.node.ConcurrentNodeServiceSearchTest.class);
         suite.addTestSuite(org.alfresco.repo.node.ConcurrentNodeServiceTest.class);
         suite.addTestSuite(org.alfresco.repo.node.FullNodeServiceTest.class);
         suite.addTestSuite(org.alfresco.repo.node.NodeRefPropertyMethodInterceptorTest.class);
         suite.addTestSuite(org.alfresco.repo.node.PerformanceNodeServiceTest.class);
         suite.addTestSuite(org.alfresco.repo.node.archive.ArchiveAndRestoreTest.class);
-        suite.addTest(new JUnit4TestAdapter(org.alfresco.repo.node.cleanup.TransactionCleanupTest.class));
         suite.addTest(new JUnit4TestAdapter(ChannelServiceImplIntegratedTest.class));
-        suite.addTest(new JUnit4TestAdapter(PublishingRootObjectTest.class));
-        suite.addTest(new JUnit4TestAdapter(PublishingQueueImplTest.class));
         suite.addTest(new JUnit4TestAdapter(PublishingPackageSerializerTest.class));
-        suite.addTest(new JUnit4TestAdapter(PublishingIntegratedTest.class));
+        suite.addTest(new JUnit4TestAdapter(PublishingRootObjectTest.class));
+
+        // the following two tests fail on windows
+        suite.addTest(new JUnit4TestAdapter(org.alfresco.repo.rendition.MultiUserRenditionTest.class));
+        suite.addTestSuite(org.alfresco.repo.rendition.RenditionServiceIntegrationTest.class);
+
+        // there is a test that fails in the next test class. if I move it up, other fails
+        suite.addTestSuite(org.alfresco.repo.node.db.DbNodeServiceImplTest.class);
+
+        suite.addTest(new JUnit4TestAdapter(org.alfresco.repo.node.cleanup.TransactionCleanupTest.class));
+        suite.addTestSuite(org.alfresco.repo.node.db.DbNodeServiceImplPropagationTest.class);
     }
 
-    // [classpath:alfresco/application-context.xml] - part 5
-    static void applicationContext_05(TestSuite suite)
-    {
-        suite.addTest(new JUnit4TestAdapter(org.alfresco.repo.client.config.ClientAppConfigTest.class));
-        suite.addTestSuite(org.alfresco.repo.rendition.StandardRenditionLocationResolverTest.class);
-        suite.addTestSuite(org.alfresco.repo.rendition.executer.HTMLRenderingEngineTest.class);
-        suite.addTestSuite(org.alfresco.repo.rendition.executer.XSLTFunctionsTest.class); // fails if with previous tests
-        suite.addTestSuite(org.alfresco.repo.rendition.executer.XSLTRenderingEngineTest.class);
-        suite.addTestSuite(org.alfresco.repo.replication.ReplicationServiceIntegrationTest.class);
-        suite.addTestSuite(org.alfresco.repo.template.XSLTProcessorTest.class);
-        suite.addTestSuite(QueryRegisterComponentTest.class);
-        suite.addTestSuite(SearchServiceTest.class);
-        suite.addTestSuite(ALF947Test.class);
-        suite.addTestSuite(LuceneIndexBackupComponentTest.class);
-        suite.addTestSuite(org.alfresco.repo.tagging.UpdateTagScopesActionExecuterTest.class);
-        suite.addTestSuite(org.alfresco.repo.thumbnail.conditions.NodeEligibleForRethumbnailingEvaluatorTest.class);
-        suite.addTest(new JUnit4TestAdapter(org.alfresco.repo.transaction.ConnectionPoolOverloadTest.class));
-        suite.addTestSuite(org.alfresco.repo.transfer.NodeCrawlerTest.class);
-        suite.addTestSuite(org.alfresco.repo.transfer.TransferServiceCallbackTest.class);
-        suite.addTestSuite(org.alfresco.repo.transfer.TransferServiceImplTest.class);
-        suite.addTestSuite(org.alfresco.repo.transfer.TransferServiceToBeRefactoredTest.class);
-        suite.addTestSuite(org.alfresco.repo.transfer.TransferVersionCheckerImplTest.class);
-        suite.addTestSuite(org.alfresco.repo.transfer.manifest.ManifestIntegrationTest.class);
-        suite.addTestSuite(org.alfresco.repo.transfer.script.ScriptTransferServiceTest.class);
-        // does not want to work in the same test suite as org.alfresco.repo.rule.* tests
-        suite.addTestSuite(org.alfresco.opencmis.search.OpenCmisQueryTest.class);
-
-        suite.addTestSuite(org.alfresco.repo.action.scheduled.CronScheduledQueryBasedTemplateActionDefinitionTest.class);
-    }
-
-    // [classpath:alfresco/application-context.xml] - part 6
-    static void applicationContext_06(TestSuite suite)
+    // [classpath:alfresco/application-context.xml] - part 4
+    static void applicationContext_04(TestSuite suite)
     {
         suite.addTest(org.alfresco.repo.usage.UsageTestSuite.suite());
         suite.addTestSuite(VersionServiceImplTest.class);
@@ -331,38 +305,20 @@ public class AllRepositoryTestsCatalogue
         // This test opens, closes and again opens the alfresco application context.
         suite.addTest(new JUnit4TestAdapter(org.alfresco.repo.dictionary.CustomModelRepoRestartTest.class));
 
-        suite.addTest(new JUnit4TestAdapter(org.alfresco.util.schemacomp.DbToXMLTest.class));
-        suite.addTest(new JUnit4TestAdapter(org.alfresco.util.schemacomp.ExportDbTest.class));
-        suite.addTest(new JUnit4TestAdapter(org.alfresco.util.schemacomp.SchemaReferenceFileTest.class));
-    }
-
-    // [classpath:alfresco/application-context.xml] - part 7
-    static void applicationContext_07(TestSuite suite)
-    {
-        suite.addTest(new JUnit4TestAdapter(RepositoryStartupTest.class));
-        suite.addTest(new JUnit4TestAdapter(org.alfresco.util.CronTriggerBeanSystemTest.class));
-        suite.addTest(new JUnit4TestAdapter(org.alfresco.filesys.auth.cifs.CifsAuthenticatorPassthruTest.class));
-        // the following fails locally - on windows
-        suite.addTestSuite(org.alfresco.repo.content.transform.DifferrentMimeTypeTest.class);
-
-        suite.addTest(new JUnit4TestAdapter(org.alfresco.repo.attributes.PropTablesCleanupJobIntegrationTest.class));
-        suite.addTest(new JUnit4TestAdapter(org.alfresco.service.ServiceRegistryTest.class));
-        suite.addTestSuite(org.alfresco.repo.node.archive.LargeArchiveAndRestoreTest.class);
-        suite.addTestSuite(org.alfresco.repo.node.db.DbNodeServiceImplTest.class);
-        suite.addTestSuite(org.alfresco.repo.node.db.DbNodeServiceImplPropagationTest.class);
-    }
-
-    // [classpath:alfresco/application-context.xml] - part 8
-    static void applicationContext_08(TestSuite suite)
-    {
-        suite.addTestSuite(org.alfresco.repo.node.getchildren.GetChildrenCannedQueryTest.class);
-        suite.addTestSuite(org.alfresco.repo.node.index.FullIndexRecoveryComponentTest.class);
-        suite.addTestSuite(org.alfresco.repo.node.index.IndexTransactionTrackerTest.class);
-    }
-
-    // [classpath:alfresco/application-context.xml] - part 9
-    static void applicationContext_09(TestSuite suite)
-    {
+        suite.addTestSuite(org.alfresco.repo.rendition.StandardRenditionLocationResolverTest.class);
+        suite.addTestSuite(org.alfresco.repo.rendition.executer.HTMLRenderingEngineTest.class);
+        suite.addTestSuite(org.alfresco.repo.rendition.executer.XSLTFunctionsTest.class); // fails if with previous tests
+        suite.addTestSuite(org.alfresco.repo.rendition.executer.XSLTRenderingEngineTest.class);
+        suite.addTestSuite(org.alfresco.repo.replication.ReplicationServiceIntegrationTest.class);
+        suite.addTestSuite(org.alfresco.repo.template.XSLTProcessorTest.class);
+        suite.addTestSuite(QueryRegisterComponentTest.class);
+        suite.addTestSuite(SearchServiceTest.class);
+        suite.addTestSuite(ALF947Test.class);
+        suite.addTestSuite(LuceneIndexBackupComponentTest.class);
+        suite.addTestSuite(org.alfresco.repo.tagging.UpdateTagScopesActionExecuterTest.class);
+        suite.addTestSuite(org.alfresco.repo.thumbnail.conditions.NodeEligibleForRethumbnailingEvaluatorTest.class);
+        suite.addTest(new JUnit4TestAdapter(org.alfresco.repo.transaction.ConnectionPoolOverloadTest.class));
+        suite.addTestSuite(org.alfresco.repo.action.scheduled.CronScheduledQueryBasedTemplateActionDefinitionTest.class);
         suite.addTestSuite(org.alfresco.repo.node.index.MissingContentReindexComponentTest.class);
         suite.addTestSuite(org.alfresco.repo.node.integrity.IncompleteNodeTaggerTest.class);
         suite.addTestSuite(org.alfresco.repo.node.integrity.IntegrityTest.class);
@@ -373,6 +329,29 @@ public class AllRepositoryTestsCatalogue
         suite.addTestSuite(org.alfresco.repo.imap.ImapServiceImplTest.class);
         suite.addTest(new JUnit4TestAdapter(org.alfresco.repo.bulkimport.impl.BulkImportTest.class));
         suite.addTest(new JUnit4TestAdapter(org.alfresco.repo.discussion.DiscussionServiceImplTest.class));
+        suite.addTestSuite(org.alfresco.repo.transfer.NodeCrawlerTest.class);
+        suite.addTestSuite(org.alfresco.repo.transfer.TransferServiceCallbackTest.class);
+        suite.addTestSuite(org.alfresco.repo.transfer.TransferServiceImplTest.class);
+        suite.addTestSuite(org.alfresco.repo.transfer.TransferServiceToBeRefactoredTest.class);
+        suite.addTestSuite(org.alfresco.repo.transfer.TransferVersionCheckerImplTest.class);
+        suite.addTestSuite(org.alfresco.repo.transfer.manifest.ManifestIntegrationTest.class);
+        suite.addTestSuite(org.alfresco.repo.transfer.script.ScriptTransferServiceTest.class);
+        suite.addTest(new JUnit4TestAdapter(org.alfresco.util.schemacomp.DbToXMLTest.class));
+        suite.addTest(new JUnit4TestAdapter(org.alfresco.util.schemacomp.ExportDbTest.class));
+        suite.addTest(new JUnit4TestAdapter(org.alfresco.util.schemacomp.SchemaReferenceFileTest.class));
+        suite.addTestSuite(org.alfresco.repo.module.ModuleComponentHelperTest.class);
+        suite.addTestSuite(org.alfresco.repo.node.getchildren.GetChildrenCannedQueryTest.class);
+        suite.addTestSuite(org.alfresco.repo.node.index.FullIndexRecoveryComponentTest.class);
+        suite.addTestSuite(org.alfresco.repo.node.index.IndexTransactionTrackerTest.class);
+        suite.addTest(new JUnit4TestAdapter(org.alfresco.util.CronTriggerBeanSystemTest.class));
+        suite.addTest(new JUnit4TestAdapter(org.alfresco.filesys.auth.cifs.CifsAuthenticatorPassthruTest.class));
+        // the following test fails locally - on windows
+        suite.addTestSuite(org.alfresco.repo.content.transform.DifferrentMimeTypeTest.class);
+
+        suite.addTest(new JUnit4TestAdapter(org.alfresco.repo.attributes.PropTablesCleanupJobIntegrationTest.class));
+        suite.addTest(new JUnit4TestAdapter(org.alfresco.service.ServiceRegistryTest.class));
+        // does not want to work in the same test suite as org.alfresco.repo.rule.* tests
+        suite.addTestSuite(org.alfresco.opencmis.search.OpenCmisQueryTest.class);
 
     }
 
@@ -442,13 +421,6 @@ public class AllRepositoryTestsCatalogue
         suite.addTest(new JUnit4TestAdapter(org.alfresco.repo.blog.BlogServiceImplTest.class));
     }
 
-    // [classpath:alfresco/application-context.xml] - part 12
-    static void applicationContext_12(TestSuite suite)
-    {
-        suite.addTest(new JUnit4TestAdapter(org.alfresco.repo.rendition.MultiUserRenditionTest.class));
-        suite.addTestSuite(org.alfresco.repo.rendition.RenditionServiceIntegrationTest.class);
-    }
-
     // [classpath:alfresco/application-context.xml, classpath:cache-test/cache-test-context.xml]
     static void applicationContext_cacheTestContext(TestSuite suite)
     {
@@ -469,6 +441,10 @@ public class AllRepositoryTestsCatalogue
         // classpath:org/alfresco/util/test/junitrules/dummy1-context.xml,
         // classpath:org/alfresco/util/test/junitrules/dummy2-context.xml]
         suite.addTest(new JUnit4TestAdapter(org.alfresco.util.test.junitrules.ApplicationContextInitTest.class));
+
+        // [classpath:alfresco/application-context.xml,
+        // classpath:org/alfresco/repo/client/config/test-repo-clients-apps-context.xml]
+        suite.addTest(new JUnit4TestAdapter(org.alfresco.repo.client.config.ClientAppConfigTest.class));
 
         // [classpath:alfresco/application-context.xml,
         // classpath:org/alfresco/repo/policy/annotation/test-qname-type-editor-context.xml]

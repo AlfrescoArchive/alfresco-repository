@@ -35,6 +35,14 @@ public class AppContextExtra01TestSuite extends TestSuite
         TestSuite suite = new TestSuite();
         AllRepositoryTestsCatalogue.applicationContext_globalIntegrationTestContext(suite);
         AllRepositoryTestsCatalogue.applicationContext_extra(suite);
+        // any other order may lead to failing tests
+        AllRepositoryTestsCatalogue.applicationContext_virtualizationTestContext(suite);
+        AllRepositoryTestsCatalogue.applicationContext_testSubscriptionsContext(suite);
+        AllRepositoryTestsCatalogue.applicationContext_openCmisContext(suite);
+        AllRepositoryTestsCatalogue.applicationContext_cacheTestContext(suite);
+        AllRepositoryTestsCatalogue.applicationContext_mtAllContext(suite);
+
+        
         return suite;
     }
 }
