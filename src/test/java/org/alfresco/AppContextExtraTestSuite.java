@@ -28,7 +28,7 @@ package org.alfresco;
 import junit.framework.Test;
 import junit.framework.TestSuite;
 
-public class AppContextExtra01TestSuite extends TestSuite
+public class AppContextExtraTestSuite extends TestSuite
 {
     public static Test suite()
     {
@@ -42,7 +42,6 @@ public class AppContextExtra01TestSuite extends TestSuite
         AllRepositoryTestsCatalogue.applicationContext_cacheTestContext(suite);
         AllRepositoryTestsCatalogue.applicationContext_mtAllContext(suite);
 
-        
         return suite;
     }
 }

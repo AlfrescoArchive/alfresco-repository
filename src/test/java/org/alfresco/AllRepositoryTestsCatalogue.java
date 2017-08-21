@@ -262,6 +262,7 @@ public class AllRepositoryTestsCatalogue
         suite.addTestSuite(org.alfresco.repo.jscript.RhinoScriptTest.class);
         // needs a clean DB to run
         suite.addTest(new JUnit4TestAdapter(org.alfresco.repo.links.LinksServiceImplTest.class));
+
         suite.addTestSuite(org.alfresco.repo.lock.JobLockServiceTest.class);
         suite.addTestSuite(org.alfresco.repo.lock.LockServiceImplTest.class);
         suite.addTest(new JUnit4TestAdapter(org.alfresco.repo.lock.mem.LockStoreImplTxTest.class));
@@ -307,7 +308,7 @@ public class AllRepositoryTestsCatalogue
 
         suite.addTestSuite(org.alfresco.repo.rendition.StandardRenditionLocationResolverTest.class);
         suite.addTestSuite(org.alfresco.repo.rendition.executer.HTMLRenderingEngineTest.class);
-        suite.addTestSuite(org.alfresco.repo.rendition.executer.XSLTFunctionsTest.class); // fails if with previous tests
+        suite.addTestSuite(org.alfresco.repo.rendition.executer.XSLTFunctionsTest.class);
         suite.addTestSuite(org.alfresco.repo.rendition.executer.XSLTRenderingEngineTest.class);
         suite.addTestSuite(org.alfresco.repo.replication.ReplicationServiceIntegrationTest.class);
         suite.addTestSuite(org.alfresco.repo.template.XSLTProcessorTest.class);
@@ -355,8 +356,8 @@ public class AllRepositoryTestsCatalogue
 
     }
 
-    // [classpath:alfresco/application-context.xml] - part 10
-    static void applicationContext_10(TestSuite suite)
+    // [classpath:alfresco/application-context.xml] - part 5
+    static void applicationContext_05(TestSuite suite)
     {
         suite.addTest(new JUnit4TestAdapter(NodeDAOTest.class));
         suite.addTestSuite(AuthenticationBootstrapTest.class);
@@ -402,8 +403,8 @@ public class AllRepositoryTestsCatalogue
         suite.addTestSuite(org.alfresco.repo.transfer.RepoTransferReceiverImplTest.class);
     }
 
-    // [classpath:alfresco/application-context.xml] - part 11
-    static void applicationContext_11(TestSuite suite)
+    // [classpath:alfresco/application-context.xml] - part 6
+    static void applicationContext_06(TestSuite suite)
     {
         suite.addTestSuite(org.alfresco.repo.solr.SOLRTrackingComponentTest.class);
         suite.addTestSuite(org.alfresco.repo.tagging.TaggingServiceImplTest.class);
@@ -522,6 +523,8 @@ public class AllRepositoryTestsCatalogue
         suite.addTestSuite(org.alfresco.repo.subscriptions.SubscriptionServiceImplTest.class);
     }
 
+    // These tests can be extracted in a separate test suite
+    // if/when we decide to move the transformations in a separate component
     static void applicationContext_testThumnailContext(TestSuite suite)
     {
         // [classpath:alfresco/application-context.xml, classpath:org/alfresco/repo/thumbnail/test-thumbnail-context.xml]

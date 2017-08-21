@@ -35,6 +35,8 @@ public class MiscContextTestSuite
         TestSuite suite = new TestSuite();
         AllRepositoryTestsCatalogue.minimalContext(suite);
         AllRepositoryTestsCatalogue.miscContext(suite);
+        // the following tests can be extracted in a separate test suite 
+        // if/when we decide to move the transformations in a separate component
         AllRepositoryTestsCatalogue.applicationContext_testThumnailContext(suite);
         return suite;
     }
