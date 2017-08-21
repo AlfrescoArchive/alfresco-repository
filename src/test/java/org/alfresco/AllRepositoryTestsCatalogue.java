@@ -244,6 +244,11 @@ public class AllRepositoryTestsCatalogue
         suite.addTestSuite(ContentStoreCleanerTest.class);
         suite.addTestSuite(RoutingContentServiceTest.class);
         suite.addTestSuite(org.alfresco.repo.exporter.ExporterComponentTest.class);
+        
+        // the following two tests fail on windows
+        suite.addTest(new JUnit4TestAdapter(org.alfresco.repo.rendition.MultiUserRenditionTest.class));
+        suite.addTestSuite(org.alfresco.repo.rendition.RenditionServiceIntegrationTest.class);
+        
         suite.addTest(new JUnit4TestAdapter(PublishingQueueImplTest.class));
         suite.addTest(new JUnit4TestAdapter(PublishingIntegratedTest.class));
         suite.addTestSuite(org.alfresco.repo.lock.LockBehaviourImplTest.class);
@@ -262,7 +267,6 @@ public class AllRepositoryTestsCatalogue
         suite.addTestSuite(org.alfresco.repo.jscript.RhinoScriptTest.class);
         // needs a clean DB to run
         suite.addTest(new JUnit4TestAdapter(org.alfresco.repo.links.LinksServiceImplTest.class));
-
         suite.addTestSuite(org.alfresco.repo.lock.JobLockServiceTest.class);
         suite.addTestSuite(org.alfresco.repo.lock.LockServiceImplTest.class);
         suite.addTest(new JUnit4TestAdapter(org.alfresco.repo.lock.mem.LockStoreImplTxTest.class));
@@ -277,10 +281,6 @@ public class AllRepositoryTestsCatalogue
         suite.addTest(new JUnit4TestAdapter(ChannelServiceImplIntegratedTest.class));
         suite.addTest(new JUnit4TestAdapter(PublishingPackageSerializerTest.class));
         suite.addTest(new JUnit4TestAdapter(PublishingRootObjectTest.class));
-
-        // the following two tests fail on windows
-        suite.addTest(new JUnit4TestAdapter(org.alfresco.repo.rendition.MultiUserRenditionTest.class));
-        suite.addTestSuite(org.alfresco.repo.rendition.RenditionServiceIntegrationTest.class);
 
         // there is a test that fails in the next test class. if I move it up, other fails
         suite.addTestSuite(org.alfresco.repo.node.db.DbNodeServiceImplTest.class);
