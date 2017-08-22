@@ -281,10 +281,7 @@ public class AllRepositoryTestsCatalogue
         suite.addTest(new JUnit4TestAdapter(ChannelServiceImplIntegratedTest.class));
         suite.addTest(new JUnit4TestAdapter(PublishingPackageSerializerTest.class));
         suite.addTest(new JUnit4TestAdapter(PublishingRootObjectTest.class));
-
-        // there is a test that fails in the next test class. if I move it up, other fails
         suite.addTestSuite(org.alfresco.repo.node.db.DbNodeServiceImplTest.class);
-
         suite.addTest(new JUnit4TestAdapter(org.alfresco.repo.node.cleanup.TransactionCleanupTest.class));
         suite.addTestSuite(org.alfresco.repo.node.db.DbNodeServiceImplPropagationTest.class);
     }
