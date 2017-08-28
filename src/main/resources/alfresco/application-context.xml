@@ -58,5 +58,6 @@
     <import resource="classpath*:alfresco/deprecated-context.xml"/>
 
     <import resource="classpath*:alfresco/extension/dev-context.xml" />
-
+<!-- do not merge this. this is just for tests-->
+<bean id="testsContextMonitor" class="org.alfresco.TestsContextMonitor" />
 </beans>
