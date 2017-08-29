@@ -59,4 +59,6 @@
 
     <import resource="classpath*:alfresco/extension/dev-context.xml" />
 
+<bean id="testsContextMonitor" class="org.alfresco.TestsContextMonitor" />
+
 </beans>
