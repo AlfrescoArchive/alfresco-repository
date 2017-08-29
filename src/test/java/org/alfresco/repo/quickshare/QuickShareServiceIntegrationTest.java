@@ -853,9 +853,10 @@ public class QuickShareServiceIntegrationTest
         }
     }
 
-    //Test SharedLink deletion by admin user based on REPO-2819
+    // Test SharedLink deletion by admin user based on REPO-2819 - test does not relay on whether a sharedLink
+    // exists or not.
     @Test
-    public void testCanDeleteSharedLinkWithAdminUserForAPrivateNode() throws Exception
+    public void testCanDeleteSharedLinkWithAdminUserForPrivateNodes() throws Exception
     {
         String currentUser = AuthenticationUtil.getFullyAuthenticatedUser();
         try
@@ -867,18 +868,22 @@ public class QuickShareServiceIntegrationTest
             siteService.createSite("site-dashboard", siteName, "Title for " + siteName,
                     "Description for " + siteName, SiteVisibility.PRIVATE);
 
-            // Create a node on the private site
+            // Create a node on the private site and user home
             String nodeName = "testNode" + randomUUID;
-            NodeRef createdNodeRef = testNodes.createNode(
-                    siteService.getSite(siteName).getNodeRef(), nodeName, ContentModel.TYPE_CONTENT,
-                    user1.getUsername());
+            NodeRef nodeRefOnPrivateSite = testNodes.createNode(siteService.getSite(siteName).getNodeRef(), nodeName,
+                    ContentModel.TYPE_CONTENT, user1.getUsername());
+            NodeRef nodeRefOnUserHome = testNodes.createNode(userHome, nodeName + "userHome",
+                    ContentModel.TYPE_CONTENT, user1.getUsername());
 
-            // Verify if the admin user "canDeleteSharedLink"
+            // Verify if the admin user "canDeleteSharedLink" on the nodes
             AuthenticationUtil.setFullyAuthenticatedUser("admin");
-            boolean canDeleteSharedLink = userCanDeleteSharedLink(createdNodeRef,user1.getUsername());
+            boolean canDeleteSharedLink = userCanDeleteSharedLink(nodeRefOnPrivateSite,user1.getUsername());
+            assertEquals(true, canDeleteSharedLink);
+            canDeleteSharedLink = userCanDeleteSharedLink(nodeRefOnUserHome, user1.getUsername());
             assertEquals(true, canDeleteSharedLink);
 
             // Clean up
+            nodeService.deleteNode(nodeRefOnUserHome);
             siteService.deleteSite(siteName);
         }
         finally
