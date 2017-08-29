@@ -892,6 +892,10 @@ public class QuickShareServiceIntegrationTest
             {
                 AuthenticationUtil.setFullyAuthenticatedUser(currentUser);
             }
+            else 
+                {
+                AuthenticationUtil.clearCurrentSecurityContext();
+                }
         }
     }
 
