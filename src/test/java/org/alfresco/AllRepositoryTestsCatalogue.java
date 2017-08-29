@@ -153,7 +153,6 @@ import org.alfresco.repo.workflow.activiti.ActivitiSpringTransactionTest;
 import org.alfresco.repo.workflow.activiti.ActivitiTimerExecutionTest;
 import org.alfresco.repo.workflow.activiti.ActivitiWorkflowServiceIntegrationTest;
 import org.alfresco.repo.workflow.activiti.WorklfowObjectFactoryTest;
-import org.alfresco.rest.api.tests.SharedLinkApiTest;
 import org.alfresco.service.cmr.repository.TemporalSourceOptionsTest;
 import org.alfresco.service.cmr.repository.TransformationOptionLimitsTest;
 import org.alfresco.service.cmr.repository.TransformationOptionPairTest;
@@ -167,7 +166,6 @@ public class AllRepositoryTestsCatalogue
     // [classpath:alfresco/application-context.xml] - part 1
     static void applicationContext_01(TestSuite suite)
     {
-        suite.addTestSuite(SharedLinkApiTest.class);
         suite.addTestSuite(IsSubTypeEvaluatorTest.class);
         suite.addTestSuite(ComparePropertyValueEvaluatorTest.class);
         suite.addTestSuite(CompareMimeTypeEvaluatorTest.class);
