@@ -133,4 +133,9 @@ public interface Descriptor
      */
     public String getDescriptor(String key);
     
+    /**
+     * added just for tests
+     * @return some random letter
+     */
+    public String getTrailingMinor();
 }

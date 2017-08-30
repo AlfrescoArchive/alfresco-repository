@@ -175,5 +175,11 @@ public class ServerDescriptorDAOImpl implements DescriptorDAO
         {
             return LicenseMode.UNKNOWN;
         }
+
+        @Override
+        public String getTrailingMinor()
+        {
+           return "C";
+        }
     }
 }

@@ -556,5 +556,11 @@ public class RepositoryDescriptorDAOImpl implements DescriptorDAO
             String licenseModeStr = getDescriptor("sys:licenseMode");
             return licenseModeStr == null ? LicenseMode.UNKNOWN : LicenseMode.valueOf(licenseModeStr);
         }
+
+        @Override
+        public String getTrailingMinor()
+        {
+           return "B";
+        }
     }
 }

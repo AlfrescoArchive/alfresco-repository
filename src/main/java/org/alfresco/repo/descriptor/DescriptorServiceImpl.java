@@ -575,6 +575,12 @@ public class DescriptorServiceImpl extends AbstractLifecycleBean
         {
             return LicenseMode.UNKNOWN;
         }
+
+        @Override
+        public String getTrailingMinor()
+        {
+           return "A";
+        }
     }
 
     /**
