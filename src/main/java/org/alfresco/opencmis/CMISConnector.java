@@ -3098,12 +3098,10 @@ public class CMISConnector implements ApplicationContextAware, ApplicationListen
                 }
             }
 
-            Updatability updatability = propDef.getPropertyDefinition().getUpdatability();
-            if ((updatability == Updatability.READONLY)
-                    || (updatability == Updatability.WHENCHECKEDOUT && !checkOutCheckInService.isWorkingCopy(nodeRef)))
+            if (isUpdatable(propertyId, nodeRef, type))
             {
-                throw new CmisInvalidArgumentException("Property " + property.getId() + " is read-only!");
             }
+
             TypeDefinitionWrapper propType = propDef.getOwningType();
             Serializable value = getValue(property, propDef.getPropertyDefinition().getCardinality() == Cardinality.MULTI);
             Pair<TypeDefinitionWrapper, Serializable> pair = new Pair<TypeDefinitionWrapper, Serializable>(propType, value);
@@ -3129,7 +3127,7 @@ public class CMISConnector implements ApplicationContextAware, ApplicationListen
 
         for (String propertyId : propsMap.keySet())
         {
-            if(propertyId.equals(PropertyIds.SECONDARY_OBJECT_TYPE_IDS))
+            if (propertyId.equals(PropertyIds.SECONDARY_OBJECT_TYPE_IDS))
             {
                 // already handled above
                 continue;
@@ -3226,26 +3224,6 @@ public class CMISConnector implements ApplicationContextAware, ApplicationListen
         for(QName aspectQName : toAdd)
         {
             nodeService.addAspect(nodeRef, aspectQName, null);
-            
-            // get aspect properties
-            AspectDefinition aspectDef = dictionaryService.getAspect(aspectQName);
-            Map<QName, org.alfresco.service.cmr.dictionary.PropertyDefinition> aspectPropDefs = aspectDef.getProperties();
-            TypeDefinitionWrapper w = getOpenCMISDictionaryService().findNodeType(aspectQName);
-            // for each aspect property...
-            for(QName propQName : aspectPropDefs.keySet())
-            {
-                // find CMIS property id
-                PropertyDefinitionWrapper property = w.getPropertyByQName(propQName);
-                String propertyId = property.getPropertyId();
-                if(!propsToAdd.containsKey(propertyId))
-                {
-                    TypeDefinitionWrapper propType = property.getOwningType();
-                    // CMIS 1.1 secondary types specification requires that all secondary type properties are set
-                    // property not included in propsToAdd, add it with null value
-                    Pair<TypeDefinitionWrapper, Serializable> pair = new Pair<TypeDefinitionWrapper, Serializable>(propType, null);
-                    propsToAdd.put(propertyId, pair);
-                }
-            }
         }
     }
 
@@ -3580,11 +3558,8 @@ public class CMISConnector implements ApplicationContextAware, ApplicationListen
             throw new CmisInvalidArgumentException("Property " + propertyId + " is unknown!");
         }
 
-        Updatability updatability = propDef.getPropertyDefinition().getUpdatability();
-        if ((updatability == Updatability.READONLY)
-                || (updatability == Updatability.WHENCHECKEDOUT && !checkOutCheckInService.isWorkingCopy(nodeRef)))
+        if(isUpdatable(propertyId, nodeRef, type))
         {
-            throw new CmisInvalidArgumentException("Property " + propertyId + " is read-only!");
         }
 
         if(propDef.getPropertyId().equals(PropertyIds.SECONDARY_OBJECT_TYPE_IDS))
@@ -4109,5 +4084,18 @@ public class CMISConnector implements ApplicationContextAware, ApplicationListen
             singletonCache.put(KEY_CMIS_RENDITION_MAPPING_NODEREF, renditionMapping);
         }
         return renditionMapping;
+    }
+
+    private boolean isUpdatable(String propertyId, NodeRef nodeRef, TypeDefinitionWrapper type)
+    {
+        PropertyDefinitionWrapper propDef = type.getPropertyById(propertyId);
+        Updatability updatability = propDef.getPropertyDefinition().getUpdatability();
+        if ((updatability == Updatability.READONLY)
+                || (updatability == Updatability.WHENCHECKEDOUT && !checkOutCheckInService.isWorkingCopy(nodeRef)))
+        {
+            throw new CmisInvalidArgumentException("Property " + propertyId + " is read-only!");
+        }
+        
+        return true;
     }
 }
