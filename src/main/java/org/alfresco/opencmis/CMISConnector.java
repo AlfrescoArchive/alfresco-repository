@@ -3098,8 +3098,10 @@ public class CMISConnector implements ApplicationContextAware, ApplicationListen
                 }
             }
 
-            if (isUpdatable(propertyId, nodeRef, type))
+            Updatability updatability = propDef.getPropertyDefinition().getUpdatability();
+            if (!isUpdatable(updatability, nodeRef))
             {
+                throw new CmisInvalidArgumentException("Property " + propertyId + " is read-only!");
             }
 
             TypeDefinitionWrapper propType = propDef.getOwningType();
@@ -3558,8 +3560,10 @@ public class CMISConnector implements ApplicationContextAware, ApplicationListen
             throw new CmisInvalidArgumentException("Property " + propertyId + " is unknown!");
         }
 
-        if(isUpdatable(propertyId, nodeRef, type))
+        Updatability updatability = propDef.getPropertyDefinition().getUpdatability();
+        if(!isUpdatable(updatability, nodeRef))
         {
+            throw new CmisInvalidArgumentException("Property " + propertyId + " is read-only!");
         }
 
         if(propDef.getPropertyId().equals(PropertyIds.SECONDARY_OBJECT_TYPE_IDS))
@@ -4086,16 +4090,16 @@ public class CMISConnector implements ApplicationContextAware, ApplicationListen
         return renditionMapping;
     }
 
-    private boolean isUpdatable(String propertyId, NodeRef nodeRef, TypeDefinitionWrapper type)
+    private boolean isUpdatable(Updatability updatability, NodeRef nodeRef)
     {
-        PropertyDefinitionWrapper propDef = type.getPropertyById(propertyId);
-        Updatability updatability = propDef.getPropertyDefinition().getUpdatability();
         if ((updatability == Updatability.READONLY)
                 || (updatability == Updatability.WHENCHECKEDOUT && !checkOutCheckInService.isWorkingCopy(nodeRef)))
         {
-            throw new CmisInvalidArgumentException("Property " + propertyId + " is read-only!");
+            return false;
         }
-        
-        return true;
+        else
+        {
+            return true;
+        }
     }
 }
