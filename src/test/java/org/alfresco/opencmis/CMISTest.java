@@ -168,8 +168,6 @@ import org.junit.Test;
 import org.springframework.context.ApplicationContext;
 import org.springframework.extensions.webscripts.GUID;
 
-import com.sun.tools.xjc.model.Aspect;
-
 /**
  * OpenCMIS tests.
  * 

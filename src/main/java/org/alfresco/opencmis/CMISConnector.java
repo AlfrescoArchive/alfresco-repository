@@ -3098,8 +3098,9 @@ public class CMISConnector implements ApplicationContextAware, ApplicationListen
                 }
             }
 
+            boolean isOnWorkingCopy = checkOutCheckInService.isWorkingCopy(nodeRef);
             Updatability updatability = propDef.getPropertyDefinition().getUpdatability();
-            if (!isUpdatable(updatability, nodeRef))
+            if (!isUpdatable(updatability, isOnWorkingCopy))
             {
                 throw new CmisInvalidArgumentException("Property " + propertyId + " is read-only!");
             }
@@ -3561,7 +3562,7 @@ public class CMISConnector implements ApplicationContextAware, ApplicationListen
         }
 
         Updatability updatability = propDef.getPropertyDefinition().getUpdatability();
-        if(!isUpdatable(updatability, nodeRef))
+        if(!isUpdatable(updatability))
         {
             throw new CmisInvalidArgumentException("Property " + propertyId + " is read-only!");
         }
@@ -4090,10 +4091,22 @@ public class CMISConnector implements ApplicationContextAware, ApplicationListen
         return renditionMapping;
     }
 
-    private boolean isUpdatable(Updatability updatability, NodeRef nodeRef)
+    private boolean isUpdatable(Updatability updatability, boolean isOnWorkingCopy)
     {
         if ((updatability == Updatability.READONLY)
-                || (updatability == Updatability.WHENCHECKEDOUT && !checkOutCheckInService.isWorkingCopy(nodeRef)))
+                || (updatability == Updatability.WHENCHECKEDOUT && !isOnWorkingCopy))
+        {
+            return false;
+        }
+        else
+        {
+            return true;
+        }
+    }
+
+    private boolean isUpdatable(Updatability updatability)
+    {
+        if ((updatability == Updatability.READONLY) || updatability == Updatability.WHENCHECKEDOUT )
         {
             return false;
         }
