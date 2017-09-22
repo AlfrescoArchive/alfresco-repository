@@ -3098,7 +3098,7 @@ public class CMISConnector implements ApplicationContextAware, ApplicationListen
                 }
             }
 
-            boolean isOnWorkingCopy = checkOutCheckInService.isWorkingCopy(nodeRef);
+            Boolean isOnWorkingCopy = checkOutCheckInService.isWorkingCopy(nodeRef);
             Updatability updatability = propDef.getPropertyDefinition().getUpdatability();
             if (!isUpdatable(updatability, isOnWorkingCopy))
             {
@@ -3561,8 +3561,9 @@ public class CMISConnector implements ApplicationContextAware, ApplicationListen
             throw new CmisInvalidArgumentException("Property " + propertyId + " is unknown!");
         }
 
+        Boolean isOnWorkingCopy = checkOutCheckInService.isWorkingCopy(nodeRef);
         Updatability updatability = propDef.getPropertyDefinition().getUpdatability();
-        if(!isUpdatable(updatability))
+        if (!isUpdatable(updatability, isOnWorkingCopy))
         {
             throw new CmisInvalidArgumentException("Property " + propertyId + " is read-only!");
         }
@@ -3590,7 +3591,7 @@ public class CMISConnector implements ApplicationContextAware, ApplicationListen
                 {
                     String newName = value.toString();
                     // If the node is checked out and the name property is set on the working copy, make sure the new name has the working copy format
-                    if (checkOutCheckInService.isWorkingCopy(nodeRef))
+                    if (isOnWorkingCopy)
                     {
                         String wcLabel = (String)this.nodeService.getProperty(nodeRef, ContentModel.PROP_WORKING_COPY_LABEL);
                         if (wcLabel == null)
@@ -4091,22 +4092,16 @@ public class CMISConnector implements ApplicationContextAware, ApplicationListen
         return renditionMapping;
     }
 
-    private boolean isUpdatable(Updatability updatability, boolean isOnWorkingCopy)
+    /**
+     * Verify if a property is updatable. 
+     * @param updatability
+     * @param isOnWorkingCopy
+     * @return
+     */
+    private boolean isUpdatable(Updatability updatability, Boolean isOnWorkingCopy)
     {
         if ((updatability == Updatability.READONLY)
                 || (updatability == Updatability.WHENCHECKEDOUT && !isOnWorkingCopy))
-        {
-            return false;
-        }
-        else
-        {
-            return true;
-        }
-    }
-
-    private boolean isUpdatable(Updatability updatability)
-    {
-        if ((updatability == Updatability.READONLY) || updatability == Updatability.WHENCHECKEDOUT )
         {
             return false;
         }
