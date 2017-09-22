@@ -44,8 +44,8 @@ public class AuthenticationServiceImpl extends AbstractAuthenticationService imp
     AuthenticationComponent authenticationComponent;
     TicketComponent ticketComponent;
 
-    /** a uuid identifying this unique instance */
-    private String uuid;
+    /** a serviceInstanceId identifying this unique instance */
+    private String serviceInstanceId;
 
     private String domain;
     private boolean allowsUserCreation = true;
@@ -90,7 +90,7 @@ public class AuthenticationServiceImpl extends AbstractAuthenticationService imp
     {
         super();
 
-        this.uuid = GUID.generate();
+        this.serviceInstanceId = GUID.generate();
     }
     
     public void setTicketComponent(TicketComponent ticketComponent)
@@ -199,9 +199,12 @@ public class AuthenticationServiceImpl extends AbstractAuthenticationService imp
         }
     }
 
-    private String getProtectedUserKey(String userName)
+    /**
+     * Creates a key by combining the service instance ID with the username. This are the type of keys maintained by protectedUsersCache map.
+     */
+    public String getProtectedUserKey(String userName)
     {
-        return uuid + userName;
+        return serviceInstanceId + "@@" + userName;
     }
 
     public String getCurrentUserName() throws AuthenticationException
