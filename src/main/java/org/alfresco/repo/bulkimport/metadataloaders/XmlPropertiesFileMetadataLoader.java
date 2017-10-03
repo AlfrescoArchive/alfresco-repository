@@ -33,8 +33,10 @@ import java.io.Serializable;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
 
 import org.alfresco.repo.bulkimport.MetadataLoader;
 import org.alfresco.repo.bulkimport.impl.FileUtils;
@@ -97,6 +99,16 @@ public final class XmlPropertiesFileMetadataLoader extends AbstractMapBasedMetad
 {
     private final static Log log = LogFactory.getLog(XmlPropertiesFileMetadataLoader.class);
     private final static String METADATA_FILE_EXTENSION = "properties.xml";
+    private final static String PROP_VERSION_LABEL = "cm:versionLabel";
+    // MNT-18001
+    // list of properties to be ignored from the metadata files
+    private final static Set<String> ignoredProperties;
+    static
+    {
+        ignoredProperties = new HashSet<String>();
+        // add the properties to be ignored
+        ignoredProperties.add(PROP_VERSION_LABEL);
+    }
     
     public XmlPropertiesFileMetadataLoader(final ServiceRegistry serviceRegistry)
     {
@@ -121,6 +133,9 @@ public final class XmlPropertiesFileMetadataLoader extends AbstractMapBasedMetad
             Properties props = new Properties();
             props.loadFromXML(new BufferedInputStream(Files.newInputStream(metadataFile)));
             result = new HashMap<String,Serializable>((Map)props);
+            // MNT-18001 fix
+            // parse the result and remove the ignored properties
+            removeIgnoredProperties(result);
         }
         catch (final IOException ioe)
         {
@@ -130,4 +145,17 @@ public final class XmlPropertiesFileMetadataLoader extends AbstractMapBasedMetad
         return(result);
     }
 
+    /**
+     * Iterates through the list of ignoredProperties and removes all
+     * occurrences in the props map
+     *
+     * @param props Map with the properties from metadata file
+     */
+    private void removeIgnoredProperties(Map<String,Serializable> props)
+    {
+        for (String ignoredProperty : ignoredProperties)
+        {
+            props.remove(ignoredProperty);
+        }
+    }
 }
