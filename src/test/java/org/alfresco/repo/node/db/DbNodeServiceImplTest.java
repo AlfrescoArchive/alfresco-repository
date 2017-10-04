@@ -62,6 +62,7 @@ import org.alfresco.service.namespace.RegexQNamePattern;
 import org.alfresco.service.transaction.TransactionService;
 import org.alfresco.test_category.OwnJVMTestsCategory;
 import org.alfresco.util.Pair;
+import org.alfresco.util.testing.category.DBTests;
 import org.hibernate.dialect.Dialect;
 import org.hibernate.dialect.MySQLInnoDBDialect;
 import org.junit.Test;
@@ -75,7 +76,7 @@ import org.springframework.extensions.surf.util.I18NUtil;
  * @author Derek Hulley
  */
 @SuppressWarnings("unused")
-@Category(OwnJVMTestsCategory.class)
+@Category({OwnJVMTestsCategory.class, DBTests.class})
 public class DbNodeServiceImplTest extends BaseNodeServiceTest
 {
     private TransactionService txnService;
