@@ -27,7 +27,17 @@ package org.alfresco;
 
 import junit.framework.Test;
 import junit.framework.TestSuite;
+import org.alfresco.util.testing.category.DBTests;
+import org.junit.experimental.categories.Categories;
+import org.junit.runner.RunWith;
 
+/**
+ * Repository project tests using the various application contexts including the minimal context
+ * alfresco/minimal-context.xml but not the main one alfresco/application-context.xml.
+ * Tests marked as DBTests are automatically excluded and are run as part of {@link AllDBTestsTestSuite}.
+ */
+@RunWith(Categories.class)
+@Categories.ExcludeCategory(DBTests.class)
 public class MiscContextTestSuite
 {
     public static Test suite()

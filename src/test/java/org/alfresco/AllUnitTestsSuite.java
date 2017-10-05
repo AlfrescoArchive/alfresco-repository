@@ -27,10 +27,16 @@ package org.alfresco;
 
 import junit.framework.Test;
 import junit.framework.TestSuite;
+import org.alfresco.util.testing.category.DBTests;
+import org.junit.experimental.categories.Categories;
+import org.junit.runner.RunWith;
 
 /**
- * All Repository project UNIT test classes should be added to this test suite.
+ * All Repository project UNIT test classes (no application context) should be added to this test suite.
+ * Tests marked as DBTests are automatically excluded and are run as part of {@link AllDBTestsTestSuite}.
  */
+@RunWith(Categories.class)
+@Categories.ExcludeCategory(DBTests.class)
 public class AllUnitTestsSuite extends TestSuite
 {
 
