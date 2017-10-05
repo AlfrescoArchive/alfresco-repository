@@ -692,7 +692,7 @@ public class BulkImportTest extends AbstractBulkImportTests
         assertEquals(1, bulkImporter.getStatus().getNumberOfContentNodesCreated());
 
         checkFiles(folderNode, null, 0, 1, 
-                   new ExpectedFile[] { new ExpectedFile(fileName, MimetypeMap.MIMETYPE_TEXT_PLAIN)},
+                   new ExpectedFile[] { new ExpectedFile(fileName, MimetypeMap.MIMETYPE_TEXT_PLAIN)}, 
                    null);
 
          Files.deleteIfExists(destFile);
