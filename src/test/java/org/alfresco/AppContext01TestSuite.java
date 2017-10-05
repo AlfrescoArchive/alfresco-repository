@@ -25,11 +25,25 @@
  */
 package org.alfresco;
 
-import junit.framework.Test;
 import junit.framework.TestSuite;
+import org.alfresco.repo.action.ActionTrackingServiceImplTest;
+import org.alfresco.repo.action.evaluator.CompareMimeTypeEvaluatorTest;
+import org.alfresco.repo.action.evaluator.ComparePropertyValueEvaluatorTest;
+import org.alfresco.repo.action.evaluator.HasAspectEvaluatorTest;
+import org.alfresco.repo.action.evaluator.IsSubTypeEvaluatorTest;
+import org.alfresco.repo.action.executer.AddFeaturesActionExecuterTest;
+import org.alfresco.repo.action.executer.ContentMetadataEmbedderTest;
+import org.alfresco.repo.action.executer.ContentMetadataExtracterTagMappingTest;
+import org.alfresco.repo.action.executer.ContentMetadataExtracterTest;
+import org.alfresco.repo.action.executer.RemoveFeaturesActionExecuterTest;
+import org.alfresco.repo.action.executer.SetPropertyValueActionExecuterTest;
+import org.alfresco.repo.action.executer.SpecialiseTypeActionExecuterTest;
+import org.alfresco.repo.security.authentication.AuthenticationTest;
 import org.alfresco.util.testing.category.DBTests;
+import org.alfresco.util.testing.category.NonBuildTests;
 import org.junit.experimental.categories.Categories;
 import org.junit.runner.RunWith;
+import org.junit.runners.Suite;
 
 /**
  * Repository project tests using the main context alfresco/application-context.xml.
@@ -37,13 +51,37 @@ import org.junit.runner.RunWith;
  * Tests marked as DBTests are automatically excluded and are run as part of {@link AllDBTestsTestSuite}.
  */
 @RunWith(Categories.class)
-@Categories.ExcludeCategory(DBTests.class)
+@Categories.ExcludeCategory({DBTests.class, NonBuildTests.class})
+@Suite.SuiteClasses({
+    IsSubTypeEvaluatorTest.class,
+    ComparePropertyValueEvaluatorTest.class,
+    CompareMimeTypeEvaluatorTest.class,
+    HasAspectEvaluatorTest.class,
+    SetPropertyValueActionExecuterTest.class,
+    AddFeaturesActionExecuterTest.class,
+    ContentMetadataExtracterTest.class,
+    ContentMetadataExtracterTagMappingTest.class,
+    ContentMetadataEmbedderTest.class,
+    org.alfresco.repo.rule.RuleLinkTest.class,
+    org.alfresco.repo.rule.RuleServiceCoverageTest.class,
+    org.alfresco.repo.rule.RuleServiceImplTest.class,
+    org.alfresco.repo.rule.RuleTypeImplTest.class,
+    org.alfresco.repo.rule.ruletrigger.RuleTriggerTest.class,
+    AuthenticationTest.class,
+    SpecialiseTypeActionExecuterTest.class,
+    RemoveFeaturesActionExecuterTest.class,
+    ActionTrackingServiceImplTest.class,
+    org.alfresco.email.server.EmailServiceImplTest.class,
+    org.alfresco.email.server.EmailServerTest.class,
+
+    // FTPServerTest fails when run from Eclipse
+    org.alfresco.filesys.FTPServerTest.class,
+    org.alfresco.filesys.repo.CifsIntegrationTest.class,
+    org.alfresco.filesys.repo.ContentDiskDriverTest.class,
+    org.alfresco.filesys.repo.LockKeeperImplTest.class,
+    org.alfresco.repo.activities.ActivityServiceImplTest.class,
+    org.alfresco.repo.admin.registry.RegistryServiceImplTest.class,
+})
 public class AppContext01TestSuite extends TestSuite
 {
-    public static Test suite()
-    {
-        TestSuite suite = new TestSuite();
-        AllRepositoryTestsCatalogue.applicationContext_01(suite);
-        return suite;
-    }
 }

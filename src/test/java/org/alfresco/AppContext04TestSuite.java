@@ -40,6 +40,7 @@ import org.alfresco.repo.workflow.activiti.ActivitiSpringTransactionTest;
 import org.alfresco.repo.workflow.activiti.ActivitiTimerExecutionTest;
 import org.alfresco.repo.workflow.activiti.ActivitiWorkflowServiceIntegrationTest;
 import org.alfresco.util.testing.category.DBTests;
+import org.alfresco.util.testing.category.NonBuildTests;
 import org.junit.experimental.categories.Categories;
 import org.junit.runner.RunWith;
 import org.junit.runners.Suite;
@@ -50,7 +51,7 @@ import org.junit.runners.Suite;
  * Tests marked as DBTests are automatically excluded and are run as part of {@link AllDBTestsTestSuite}.
  */
 @RunWith(Categories.class)
-@Categories.ExcludeCategory(DBTests.class)
+@Categories.ExcludeCategory({DBTests.class, NonBuildTests.class})
 @Suite.SuiteClasses({
     RepoUsageComponentTest.class,
     UserUsageTest.class,
@@ -65,6 +66,7 @@ import org.junit.runners.Suite;
     org.alfresco.repo.invitation.ActivitiInvitationServiceImplTests.class,
     org.alfresco.repo.search.impl.solr.facet.SolrFacetConfigTest.class,
     org.alfresco.repo.doclink.DocumentLinkServiceImplTest.class,
+
     // This test opens, closes and again opens the alfresco application context.
     org.alfresco.repo.dictionary.CustomModelRepoRestartTest.class,
 
@@ -108,11 +110,13 @@ import org.junit.runners.Suite;
     org.alfresco.repo.node.index.IndexTransactionTrackerTest.class,
     org.alfresco.util.CronTriggerBeanSystemTest.class,
     org.alfresco.filesys.auth.cifs.CifsAuthenticatorPassthruTest.class,
+
     // the following test fails locally - on windows
     org.alfresco.repo.content.transform.DifferrentMimeTypeTest.class,
 
     org.alfresco.repo.attributes.PropTablesCleanupJobIntegrationTest.class,
     org.alfresco.service.ServiceRegistryTest.class,
+
     // does not want to work in the same test suite as org.alfresco.repo.rule.* tests
     org.alfresco.opencmis.search.OpenCmisQueryTest.class
     })

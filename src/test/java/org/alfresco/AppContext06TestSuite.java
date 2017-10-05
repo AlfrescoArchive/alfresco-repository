@@ -27,9 +27,15 @@ package org.alfresco;
 
 import junit.framework.Test;
 import junit.framework.TestSuite;
+import org.alfresco.heartbeat.RepositoryDataCollectorTest;
+import org.alfresco.repo.search.SearcherComponentTest;
+import org.alfresco.repo.search.impl.lucene.ADMLuceneCategoryTest;
+import org.alfresco.repo.search.impl.lucene.ADMLuceneTest;
 import org.alfresco.util.testing.category.DBTests;
+import org.alfresco.util.testing.category.NonBuildTests;
 import org.junit.experimental.categories.Categories;
 import org.junit.runner.RunWith;
+import org.junit.runners.Suite;
 
 /**
  * Repository project tests using the main context alfresco/application-context.xml.
@@ -37,13 +43,24 @@ import org.junit.runner.RunWith;
  * Tests marked as DBTests are automatically excluded and are run as part of {@link AllDBTestsTestSuite}.
  */
 @RunWith(Categories.class)
-@Categories.ExcludeCategory(DBTests.class)
+@Categories.ExcludeCategory({DBTests.class, NonBuildTests.class})
+@Suite.SuiteClasses({
+    org.alfresco.repo.solr.SOLRTrackingComponentTest.class,
+    org.alfresco.repo.tagging.TaggingServiceImplTest.class,
+    org.alfresco.repo.transaction.AlfrescoTransactionSupportTest.class,
+    org.alfresco.repo.transaction.RetryingTransactionHelperTest.class,
+    org.alfresco.repo.transaction.TransactionAwareSingletonTest.class,
+    org.alfresco.repo.transaction.TransactionServiceImplTest.class,
+    org.alfresco.repo.oauth1.OAuth1CredentialsStoreServiceTest.class,
+    org.alfresco.repo.oauth2.OAuth2CredentialsStoreServiceTest.class,
+    org.alfresco.repo.template.TemplateServiceImplTest.class,
+    org.alfresco.repo.tenant.MultiTServiceImplTest.class,
+    SearcherComponentTest.class,
+    ADMLuceneCategoryTest.class,
+    ADMLuceneTest.class,
+    org.alfresco.repo.blog.BlogServiceImplTest.class,
+    RepositoryDataCollectorTest.class,
+})
 public class AppContext06TestSuite extends TestSuite
 {
-    public static Test suite()
-    {
-        TestSuite suite = new TestSuite();
-        AllRepositoryTestsCatalogue.applicationContext_06(suite);
-        return suite;
-    }
 }

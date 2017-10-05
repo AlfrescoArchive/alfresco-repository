@@ -49,35 +49,40 @@ import org.alfresco.util.schemacomp.DbToXMLTest;
 import org.alfresco.util.schemacomp.ExportDbTest;
 import org.alfresco.util.schemacomp.SchemaReferenceFileTest;
 import org.alfresco.util.testing.category.DBTests;
+import org.alfresco.util.testing.category.NonBuildTests;
 import org.junit.experimental.categories.Categories;
 import org.junit.runner.RunWith;
 import org.junit.runners.Suite;
 
+/**
+ * Repository project database tests.
+ */
 @RunWith(Categories.class)
 @Categories.IncludeCategory(DBTests.class)
+@Categories.ExcludeCategory(NonBuildTests.class)
 @Suite.SuiteClasses({DbToXMLTest.class,
-        ExportDbTest.class,
-        SchemaReferenceFileTest.class,
-        AuditDAOTest.class,
-        ContentDataDAOTest.class,
-        EncodingDAOTest.class,
-        LocaleDAOTest.class,
-        LockDAOTest.class,
-        MimetypeDAOTest.class,
-        NodeDAOTest.class,
-        AppliedPatchDAOTest.class,
-        AclCrudDAOTest.class,
-        PropertyValueCleanupTest.class,
-        PropertyValueDAOTest.class,
-        QNameDAOTest.class,
-        CannedQueryDAOTest.class,
-        SOLRDAOTest.class,
-        TenantAdminDAOTest.class,
-        UsageDAOTest.class,
-        AclDaoComponentTest.class,
-        RepoDictionaryDAOTest.class,
-        DbNodeServiceImplPropagationTest.class,
-        DbNodeServiceImplTest.class,})
+    ExportDbTest.class,
+    SchemaReferenceFileTest.class,
+    AuditDAOTest.class,
+    ContentDataDAOTest.class,
+    EncodingDAOTest.class,
+    LocaleDAOTest.class,
+    LockDAOTest.class,
+    MimetypeDAOTest.class,
+    NodeDAOTest.class,
+    AppliedPatchDAOTest.class,
+    AclCrudDAOTest.class,
+    PropertyValueCleanupTest.class,
+    PropertyValueDAOTest.class,
+    QNameDAOTest.class,
+    CannedQueryDAOTest.class,
+    SOLRDAOTest.class,
+    TenantAdminDAOTest.class,
+    UsageDAOTest.class,
+    AclDaoComponentTest.class,
+    RepoDictionaryDAOTest.class,
+    DbNodeServiceImplPropagationTest.class,
+    DbNodeServiceImplTest.class,})
 public class AllDBTestsTestSuite
 {
 }
