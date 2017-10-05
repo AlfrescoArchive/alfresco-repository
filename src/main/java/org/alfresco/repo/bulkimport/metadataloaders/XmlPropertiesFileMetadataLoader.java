@@ -34,6 +34,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
@@ -51,8 +52,8 @@ import org.apache.commons.logging.LogFactory;
  * the same name and extension as the file for whom it is storing metadata, but
  * with the suffix ".metadata.properties.xml".  So for example, if there is a file
  * called "IMG_1967.jpg", the "shadow" metadata file for it would be called
- * "IMG_1967.jpg.metadata.properties.xml". 
- * 
+ * "IMG_1967.jpg.metadata.properties.xml".
+ *
  * The metadata file itself follows the usual rules for Java properties XML
  * files, with a property with the key "type" containing the qualified name of
  * the content type to use for the file, a property with the key "aspects"
@@ -60,9 +61,9 @@ import org.apache.commons.logging.LogFactory;
  * attach to the file, and then one Java property per metadata property, with
  * the key being the Alfresco property QName and the value being the value of
  * that property.
- * 
+ *
  * For example (note escaping rules for namespace separator!):
- * 
+ *
  * <code>
  * <?xml version="1.0" encoding="UTF-8"?>
  * <!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
@@ -77,7 +78,7 @@ import org.apache.commons.logging.LogFactory;
  *   <entry key="custom:aDateProperty">2001-01-01T12:00:00.000+01:00</entry>
  * </properties>
  * </code>
- * 
+ *
  * Notes:
  * <ul>
  *   <li>Java XML properties files fully support Unicode characters (unlike the
@@ -92,29 +93,28 @@ import org.apache.commons.logging.LogFactory;
  * </ul>
  *
  * @since 4.0
- * 
+ *
  * @see MetadataLoader
  */
 public final class XmlPropertiesFileMetadataLoader extends AbstractMapBasedMetadataLoader
 {
     private final static Log log = LogFactory.getLog(XmlPropertiesFileMetadataLoader.class);
     private final static String METADATA_FILE_EXTENSION = "properties.xml";
-    private final static String PROP_VERSION_LABEL = "cm:versionLabel";
     // MNT-18001
     // list of properties to be ignored from the metadata files
-    private final static Set<String> ignoredProperties;
-    static
+    private final Set<String> protectedProperties = new HashSet<>();
+
+    public void setProtectedProperties(List<String> protectedProperties)
     {
-        ignoredProperties = new HashSet<String>();
-        // add the properties to be ignored
-        ignoredProperties.add(PROP_VERSION_LABEL);
+        this.protectedProperties.clear();
+        this.protectedProperties.addAll(protectedProperties);
     }
-    
+
     public XmlPropertiesFileMetadataLoader(final ServiceRegistry serviceRegistry)
     {
         super(serviceRegistry, METADATA_FILE_EXTENSION);
     }
-    
+
     public XmlPropertiesFileMetadataLoader(final ServiceRegistry serviceRegistry, final String multiValuedSeparator)
     {
         super(serviceRegistry, multiValuedSeparator, METADATA_FILE_EXTENSION);
@@ -127,35 +127,31 @@ public final class XmlPropertiesFileMetadataLoader extends AbstractMapBasedMetad
     protected Map<String,Serializable> loadMetadataFromFile(Path metadataFile)
     {
         Map<String,Serializable> result = null;
-        
+
         try
         {
             Properties props = new Properties();
             props.loadFromXML(new BufferedInputStream(Files.newInputStream(metadataFile)));
             result = new HashMap<String,Serializable>((Map)props);
-            // MNT-18001 fix
-            // parse the result and remove the ignored properties
-            removeIgnoredProperties(result);
+
+            // MNT-18001
+            removeProtectedProperties(result);
         }
         catch (final IOException ioe)
         {
             if (log.isWarnEnabled()) log.warn("Metadata file '" + FileUtils.getFileName(metadataFile) + "' could not be read.", ioe);
         }
-        
+
         return(result);
     }
 
     /**
-     * Iterates through the list of ignoredProperties and removes all
-     * occurrences in the props map
+     * Removes protected properties from the map supplied
      *
      * @param props Map with the properties from metadata file
      */
-    private void removeIgnoredProperties(Map<String,Serializable> props)
+    private void removeProtectedProperties(Map<String,Serializable> props)
     {
-        for (String ignoredProperty : ignoredProperties)
-        {
-            props.remove(ignoredProperty);
-        }
+        props.keySet().removeAll(protectedProperties);
     }
 }

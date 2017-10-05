@@ -692,11 +692,44 @@ public class BulkImportTest extends AbstractBulkImportTests
         assertEquals(1, bulkImporter.getStatus().getNumberOfContentNodesCreated());
 
         checkFiles(folderNode, null, 0, 1, 
-                   new ExpectedFile[] { new ExpectedFile(fileName, MimetypeMap.MIMETYPE_TEXT_PLAIN)}, 
+                   new ExpectedFile[] { new ExpectedFile(fileName, MimetypeMap.MIMETYPE_TEXT_PLAIN)},
                    null);
 
          Files.deleteIfExists(destFile);
          Files.deleteIfExists(dest);
+    }
+
+    /**
+     * MNT-18001: Presence of versionLabel in metadata file throws error in bulk importer
+     */
+    @Test
+    public void testImportFilesWithVersionLabel() throws Throwable
+    {
+        txn = transactionService.getUserTransaction();
+        txn.begin();
+
+        // Get metadata file with versionLabel property
+        NodeRef folderNode = topLevelFolder.getNodeRef();
+        NodeImporter nodeImporter = streamingNodeImporterFactory.getNodeImporter(ResourceUtils.getFile("classpath:bulkimport6"));
+
+        // Set parameters for bulk import: Target space, Disable rule processing, Replace existing files, Batch size:1, Number of threads:1
+        BulkImportParameters bulkImportParameters = new BulkImportParameters();
+        bulkImportParameters.setTarget(folderNode);
+        bulkImportParameters.setDisableRulesService(true);
+        bulkImportParameters.setExistingFileMode(BulkImportParameters.ExistingFileMode.REPLACE);
+        bulkImportParameters.setBatchSize(1);
+        bulkImportParameters.setNumThreads(1);
+
+        bulkImporter.bulkImport(bulkImportParameters, nodeImporter);
+
+        List<FileInfo> files = getFiles(folderNode, null);
+        assertNotNull(files);
+        FileInfo file = files.get(0);
+        assertNotNull(file);
+
+        VersionHistory history = versionService.getVersionHistory(file.getNodeRef());
+        assertEquals(1, bulkImporter.getStatus().getNumberOfContentNodesCreated());
+        assertEquals("Imported file should have 3 versions:", 3, history.getAllVersions().size());
     }
 
     /**
