@@ -39,49 +39,55 @@ import org.junit.runners.Suite;
 @RunWith(Categories.class)
 @Categories.ExcludeCategory({DBTests.class, NonBuildTests.class})
 @Suite.SuiteClasses({
-    org.alfresco.repo.domain.node.NodeDAOTest.class,
-    org.alfresco.repo.security.authentication.AuthenticationBootstrapTest.class,
-    org.alfresco.repo.security.authority.AuthorityServiceTest.class,
-    org.alfresco.repo.security.authority.DuplicateAuthorityTest.class,
-    org.alfresco.repo.security.authority.ExtendedPermissionServiceTest.class,
-    org.alfresco.repo.security.permissions.dynamic.LockOwnerDynamicAuthorityTest.class,
-    org.alfresco.repo.security.permissions.impl.AclDaoComponentTest.class,
-    org.alfresco.repo.security.permissions.impl.PermissionServiceTest.class,
-    org.alfresco.repo.security.permissions.impl.acegi.ACLEntryAfterInvocationTest.class,
-    org.alfresco.repo.security.permissions.impl.acegi.ACLEntryVoterTest.class,
-    org.alfresco.repo.security.permissions.impl.model.PermissionModelTest.class,
-    org.alfresco.repo.security.person.PersonTest.class,
-    org.alfresco.repo.ownable.impl.OwnableServiceTest.class,
-    org.alfresco.repo.security.permissions.impl.ReadPermissionTest.class,
-    org.alfresco.repo.security.authentication.UpgradePasswordHashTest.class,
-    org.alfresco.repo.security.authority.AuthorityBridgeTableAsynchronouslyRefreshedCacheTest.class,
-    org.alfresco.repo.security.person.HomeFolderProviderSynchronizerTest.class,
-    org.alfresco.repo.domain.permissions.FixedAclUpdaterTest.class,
-    org.alfresco.repo.security.authentication.external.DefaultRemoteUserMapperTest.class,
-    org.alfresco.repo.security.authentication.subsystems.SubsystemChainingFtpAuthenticatorTest.class,
-    org.alfresco.repo.security.authentication.external.LocalAuthenticationServiceTest.class,
-    org.alfresco.repo.domain.contentdata.ContentDataDAOTest.class,
-    org.alfresco.repo.domain.encoding.EncodingDAOTest.class,
-    org.alfresco.repo.domain.locks.LockDAOTest.class,
-    org.alfresco.repo.domain.mimetype.MimetypeDAOTest.class,
-    org.alfresco.repo.domain.locale.LocaleDAOTest.class,
-    org.alfresco.repo.domain.qname.QNameDAOTest.class,
-    org.alfresco.repo.domain.propval.PropertyValueDAOTest.class,
-    org.alfresco.repo.domain.patch.AppliedPatchDAOTest.class,
-    org.alfresco.repo.domain.permissions.AclCrudDAOTest.class,
-    org.alfresco.repo.domain.usage.UsageDAOTest.class,
-    org.alfresco.repo.domain.solr.SOLRDAOTest.class,
-    org.alfresco.repo.domain.tenant.TenantAdminDAOTest.class,
 
-    // REOPO-1012 : run AuditDAOTest and PropertyValueCleanupTest near the end
-    // because their failure can cause other tests to fail on MS SQL
-    // AuditDAOTest fails if it runs after CannedQueryDAOTest so this order is a compromise
-    // CannedQueryDAOTest will fail on MS SQL if either AuditDAOTest or PropertyValueCleanupTest fail
-    org.alfresco.repo.domain.propval.PropertyValueCleanupTest.class,
-    org.alfresco.repo.domain.audit.AuditDAOTest.class,
-    org.alfresco.repo.model.ModelTestSuite.class,
-    org.alfresco.repo.tenant.MultiTNodeServiceInterceptorTest.class,
-    org.alfresco.repo.transfer.RepoTransferReceiverImplTest.class,
+    // needs a clean DB to run
+    org.alfresco.repo.calendar.CalendarServiceImplTest.class,
+
+    org.alfresco.RepositoryStartupTest.class,
+    org.alfresco.repo.content.cleanup.ContentStoreCleanerTest.class,
+    org.alfresco.repo.content.RoutingContentServiceTest.class,
+    org.alfresco.repo.exporter.ExporterComponentTest.class,
+
+    // the following two tests fail on windows
+    org.alfresco.repo.rendition.MultiUserRenditionTest.class,
+    org.alfresco.repo.rendition.RenditionServiceIntegrationTest.class,
+
+    org.alfresco.repo.publishing.PublishingQueueImplTest.class,
+    org.alfresco.repo.publishing.PublishingIntegratedTest.class,
+    org.alfresco.repo.lock.LockBehaviourImplTest.class,
+    org.alfresco.repo.node.archive.LargeArchiveAndRestoreTest.class,
+    org.alfresco.repo.copy.CopyServiceImplTest.class,
+    org.alfresco.repo.descriptor.DescriptorServiceTest.class,
+    org.alfresco.repo.dictionary.DictionaryModelTypeTest.class,
+    org.alfresco.repo.dictionary.DictionaryRepositoryBootstrapTest.class,
+    org.alfresco.repo.dictionary.ModelValidatorTest.class,
+    org.alfresco.repo.dictionary.types.period.PeriodTest.class,
+    org.alfresco.repo.exporter.RepositoryExporterComponentTest.class,
+    org.alfresco.repo.i18n.MessageServiceImplTest.class,
+    org.alfresco.repo.importer.FileImporterTest.class,
+    org.alfresco.repo.importer.ImporterComponentTest.class,
+    org.alfresco.repo.jscript.PeopleTest.class,
+    org.alfresco.repo.jscript.RhinoScriptTest.class,
+
+    // needs a clean DB to run
+    org.alfresco.repo.links.LinksServiceImplTest.class,
+    org.alfresco.repo.lock.JobLockServiceTest.class,
+    org.alfresco.repo.lock.LockServiceImplTest.class,
+    org.alfresco.repo.lock.mem.LockStoreImplTxTest.class,
+    org.alfresco.repo.lock.mem.LockableAspectInterceptorTest.class,
+    org.alfresco.repo.management.JmxDumpUtilTest.class,
+    org.alfresco.repo.node.ConcurrentNodeServiceSearchTest.class,
+    org.alfresco.repo.node.ConcurrentNodeServiceTest.class,
+    org.alfresco.repo.node.FullNodeServiceTest.class,
+    org.alfresco.repo.node.NodeRefPropertyMethodInterceptorTest.class,
+    org.alfresco.repo.node.PerformanceNodeServiceTest.class,
+    org.alfresco.repo.node.archive.ArchiveAndRestoreTest.class,
+    org.alfresco.repo.publishing.ChannelServiceImplIntegratedTest.class,
+    org.alfresco.repo.publishing.PublishingPackageSerializerTest.class,
+    org.alfresco.repo.publishing.PublishingRootObjectTest.class,
+    org.alfresco.repo.node.db.DbNodeServiceImplTest.class,
+    org.alfresco.repo.node.cleanup.TransactionCleanupTest.class,
+    org.alfresco.repo.node.db.DbNodeServiceImplPropagationTest.class,
 })
 public class AppContext03TestSuite
 {
