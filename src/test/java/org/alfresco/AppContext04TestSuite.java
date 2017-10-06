@@ -25,20 +25,6 @@
  */
 package org.alfresco;
 
-import org.alfresco.repo.search.QueryRegisterComponentTest;
-import org.alfresco.repo.search.SearchServiceTest;
-import org.alfresco.repo.search.impl.lucene.ALF947Test;
-import org.alfresco.repo.search.impl.lucene.LuceneIndexBackupComponentTest;
-import org.alfresco.repo.usage.RepoUsageComponentTest;
-import org.alfresco.repo.usage.UserUsageTest;
-import org.alfresco.repo.usage.UserUsageTrackingComponentTest;
-import org.alfresco.repo.version.ContentServiceImplTest;
-import org.alfresco.repo.version.NodeServiceImplTest;
-import org.alfresco.repo.version.VersionServiceImplTest;
-import org.alfresco.repo.workflow.StartWorkflowActionExecuterTest;
-import org.alfresco.repo.workflow.activiti.ActivitiSpringTransactionTest;
-import org.alfresco.repo.workflow.activiti.ActivitiTimerExecutionTest;
-import org.alfresco.repo.workflow.activiti.ActivitiWorkflowServiceIntegrationTest;
 import org.alfresco.util.testing.category.DBTests;
 import org.alfresco.util.testing.category.NonBuildTests;
 import org.junit.experimental.categories.Categories;
@@ -53,16 +39,16 @@ import org.junit.runners.Suite;
 @RunWith(Categories.class)
 @Categories.ExcludeCategory({DBTests.class, NonBuildTests.class})
 @Suite.SuiteClasses({
-    RepoUsageComponentTest.class,
-    UserUsageTest.class,
-    UserUsageTrackingComponentTest.class,
-    VersionServiceImplTest.class,
-    NodeServiceImplTest.class,
-    ContentServiceImplTest.class,
-    StartWorkflowActionExecuterTest.class,
-    ActivitiWorkflowServiceIntegrationTest.class,
-    ActivitiSpringTransactionTest.class,
-    ActivitiTimerExecutionTest.class,
+    org.alfresco.repo.usage.RepoUsageComponentTest.class,
+    org.alfresco.repo.usage.UserUsageTest.class,
+    org.alfresco.repo.usage.UserUsageTrackingComponentTest.class,
+    org.alfresco.repo.version.VersionServiceImplTest.class,
+    org.alfresco.repo.version.NodeServiceImplTest.class,
+    org.alfresco.repo.version.ContentServiceImplTest.class,
+    org.alfresco.repo.workflow.StartWorkflowActionExecuterTest.class,
+    org.alfresco.repo.workflow.activiti.ActivitiWorkflowServiceIntegrationTest.class,
+    org.alfresco.repo.workflow.activiti.ActivitiSpringTransactionTest.class,
+    org.alfresco.repo.workflow.activiti.ActivitiTimerExecutionTest.class,
     org.alfresco.repo.invitation.ActivitiInvitationServiceImplTests.class,
     org.alfresco.repo.search.impl.solr.facet.SolrFacetConfigTest.class,
     org.alfresco.repo.doclink.DocumentLinkServiceImplTest.class,
@@ -76,10 +62,10 @@ import org.junit.runners.Suite;
     org.alfresco.repo.rendition.executer.XSLTRenderingEngineTest.class,
     org.alfresco.repo.replication.ReplicationServiceIntegrationTest.class,
     org.alfresco.repo.template.XSLTProcessorTest.class,
-    QueryRegisterComponentTest.class,
-    SearchServiceTest.class,
-    ALF947Test.class,
-    LuceneIndexBackupComponentTest.class,
+    org.alfresco.repo.search.QueryRegisterComponentTest.class,
+    org.alfresco.repo.search.SearchServiceTest.class,
+    org.alfresco.repo.search.impl.lucene.ALF947Test.class,
+    org.alfresco.repo.search.impl.lucene.LuceneIndexBackupComponentTest.class,
     org.alfresco.repo.tagging.UpdateTagScopesActionExecuterTest.class,
     org.alfresco.repo.thumbnail.conditions.NodeEligibleForRethumbnailingEvaluatorTest.class,
     org.alfresco.repo.transaction.ConnectionPoolOverloadTest.class,

@@ -25,48 +25,6 @@
  */
 package org.alfresco;
 
-import org.alfresco.heartbeat.HeartBeatTest;
-import org.alfresco.repo.content.caching.FullTest;
-import org.alfresco.repo.content.caching.cleanup.CachedContentCleanupJobTest;
-import org.alfresco.repo.content.caching.quota.StandardQuotaStrategyTest;
-import org.alfresco.repo.content.caching.test.ConcurrentCachingStoreTest;
-import org.alfresco.repo.content.caching.test.SlowContentStoreTest;
-import org.alfresco.repo.content.metadata.ConcurrencyPdfBoxMetadataExtracterTest;
-import org.alfresco.repo.content.metadata.DWGMetadataExtracterTest;
-import org.alfresco.repo.content.metadata.HtmlMetadataExtracterTest;
-import org.alfresco.repo.content.metadata.MP3MetadataExtracterTest;
-import org.alfresco.repo.content.metadata.MailMetadataExtracterTest;
-import org.alfresco.repo.content.metadata.OfficeMetadataExtracterTest;
-import org.alfresco.repo.content.metadata.OpenDocumentMetadataExtracterTest;
-import org.alfresco.repo.content.metadata.OpenOfficeMetadataExtracterTest;
-import org.alfresco.repo.content.metadata.PdfBoxMetadataExtracterTest;
-import org.alfresco.repo.content.metadata.PoiMetadataExtracterTest;
-import org.alfresco.repo.content.metadata.RFC822MetadataExtracterTest;
-import org.alfresco.repo.content.metadata.TikaAutoMetadataExtracterTest;
-import org.alfresco.repo.content.transform.AbstractContentTransformerLimitsTest;
-import org.alfresco.repo.content.transform.AppleIWorksContentTransformerTest;
-import org.alfresco.repo.content.transform.ArchiveContentTransformerTest;
-import org.alfresco.repo.content.transform.BinaryPassThroughContentTransformerTest;
-import org.alfresco.repo.content.transform.ComplexContentTransformerTest;
-import org.alfresco.repo.content.transform.ContentTransformerRegistryTest;
-import org.alfresco.repo.content.transform.EMLTransformerTest;
-import org.alfresco.repo.content.transform.HtmlParserContentTransformerTest;
-import org.alfresco.repo.content.transform.MailContentTransformerTest;
-import org.alfresco.repo.content.transform.MediaWikiContentTransformerTest;
-import org.alfresco.repo.content.transform.OpenOfficeContentTransformerTest;
-import org.alfresco.repo.content.transform.PdfBoxContentTransformerTest;
-import org.alfresco.repo.content.transform.PoiContentTransformerTest;
-import org.alfresco.repo.content.transform.PoiHssfContentTransformerTest;
-import org.alfresco.repo.content.transform.PoiOOXMLContentTransformerTest;
-import org.alfresco.repo.content.transform.RuntimeExecutableContentTransformerTest;
-import org.alfresco.repo.content.transform.StringExtractingContentTransformerTest;
-import org.alfresco.repo.content.transform.TextMiningContentTransformerTest;
-import org.alfresco.repo.content.transform.TextToPdfContentTransformerTest;
-import org.alfresco.repo.content.transform.TikaAutoContentTransformerTest;
-import org.alfresco.repo.content.transform.magick.ImageMagickContentTransformerTest;
-import org.alfresco.repo.domain.query.CannedQueryDAOTest;
-import org.alfresco.repo.publishing.ChannelServiceImplTest;
-import org.alfresco.repo.publishing.PublishingEventHelperTest;
 import org.alfresco.util.ApplicationContextHelper;
 import org.alfresco.util.testing.category.DBTests;
 import org.alfresco.util.testing.category.NonBuildTests;
@@ -89,43 +47,43 @@ import org.springframework.context.ApplicationContext;
     // ----------------------------------------------------------------------
 
     // Limits
-    AbstractContentTransformerLimitsTest.class,
+    org.alfresco.repo.content.transform.AbstractContentTransformerLimitsTest.class,
 
     // Transform tests
-    BinaryPassThroughContentTransformerTest.class,
-    ComplexContentTransformerTest.class,
-    ContentTransformerRegistryTest.class,
-    HtmlParserContentTransformerTest.class,
-    MailContentTransformerTest.class,
-    EMLTransformerTest.class,
-    MediaWikiContentTransformerTest.class,
-    OpenOfficeContentTransformerTest.class,
-    PdfBoxContentTransformerTest.class,
-    PoiContentTransformerTest.class,
-    PoiHssfContentTransformerTest.class,
-    PoiOOXMLContentTransformerTest.class,
-    RuntimeExecutableContentTransformerTest.class,
-    StringExtractingContentTransformerTest.class,
-    TextMiningContentTransformerTest.class,
-    TextToPdfContentTransformerTest.class,
-    TikaAutoContentTransformerTest.class,
-    ImageMagickContentTransformerTest.class,
-    AppleIWorksContentTransformerTest.class,
-    ArchiveContentTransformerTest.class,
+    org.alfresco.repo.content.transform.BinaryPassThroughContentTransformerTest.class,
+    org.alfresco.repo.content.transform.ComplexContentTransformerTest.class,
+    org.alfresco.repo.content.transform.ContentTransformerRegistryTest.class,
+    org.alfresco.repo.content.transform.HtmlParserContentTransformerTest.class,
+    org.alfresco.repo.content.transform.MailContentTransformerTest.class,
+    org.alfresco.repo.content.transform.EMLTransformerTest.class,
+    org.alfresco.repo.content.transform.MediaWikiContentTransformerTest.class,
+    org.alfresco.repo.content.transform.OpenOfficeContentTransformerTest.class,
+    org.alfresco.repo.content.transform.PdfBoxContentTransformerTest.class,
+    org.alfresco.repo.content.transform.PoiContentTransformerTest.class,
+    org.alfresco.repo.content.transform.PoiHssfContentTransformerTest.class,
+    org.alfresco.repo.content.transform.PoiOOXMLContentTransformerTest.class,
+    org.alfresco.repo.content.transform.RuntimeExecutableContentTransformerTest.class,
+    org.alfresco.repo.content.transform.StringExtractingContentTransformerTest.class,
+    org.alfresco.repo.content.transform.TextMiningContentTransformerTest.class,
+    org.alfresco.repo.content.transform.TextToPdfContentTransformerTest.class,
+    org.alfresco.repo.content.transform.TikaAutoContentTransformerTest.class,
+    org.alfresco.repo.content.transform.magick.ImageMagickContentTransformerTest.class,
+    org.alfresco.repo.content.transform.AppleIWorksContentTransformerTest.class,
+    org.alfresco.repo.content.transform.ArchiveContentTransformerTest.class,
 
     // Metadata tests
-    DWGMetadataExtracterTest.class,
-    HtmlMetadataExtracterTest.class,
-    MailMetadataExtracterTest.class,
-    MP3MetadataExtracterTest.class,
-    OfficeMetadataExtracterTest.class,
-    OpenDocumentMetadataExtracterTest.class,
-    OpenOfficeMetadataExtracterTest.class,
-    PdfBoxMetadataExtracterTest.class,
-    ConcurrencyPdfBoxMetadataExtracterTest.class,
-    PoiMetadataExtracterTest.class,
-    RFC822MetadataExtracterTest.class,
-    TikaAutoMetadataExtracterTest.class,
+    org.alfresco.repo.content.metadata.DWGMetadataExtracterTest.class,
+    org.alfresco.repo.content.metadata.HtmlMetadataExtracterTest.class,
+    org.alfresco.repo.content.metadata.MailMetadataExtracterTest.class,
+    org.alfresco.repo.content.metadata.MP3MetadataExtracterTest.class,
+    org.alfresco.repo.content.metadata.OfficeMetadataExtracterTest.class,
+    org.alfresco.repo.content.metadata.OpenDocumentMetadataExtracterTest.class,
+    org.alfresco.repo.content.metadata.OpenOfficeMetadataExtracterTest.class,
+    org.alfresco.repo.content.metadata.PdfBoxMetadataExtracterTest.class,
+    org.alfresco.repo.content.metadata.ConcurrencyPdfBoxMetadataExtracterTest.class,
+    org.alfresco.repo.content.metadata.PoiMetadataExtracterTest.class,
+    org.alfresco.repo.content.metadata.RFC822MetadataExtracterTest.class,
+    org.alfresco.repo.content.metadata.TikaAutoMetadataExtracterTest.class,
 
     org.alfresco.repo.content.metadata.MappingMetadataExtracterTest.class,
 
@@ -138,7 +96,7 @@ import org.springframework.context.ApplicationContext;
 
     // [classpath*:alfresco/ibatis/ibatis-test-context.xml, classpath:alfresco/application-context.xml,
     // classpath:alfresco/test/global-integration-test-context.xml]
-    CannedQueryDAOTest.class,
+    org.alfresco.repo.domain.query.CannedQueryDAOTest.class,
     // REPO-2783 only passes on a dirty DB. fails to pass on a clean DB - testConcurrentArchive
     org.alfresco.repo.node.NodeServiceTest.class,
 
@@ -146,17 +104,17 @@ import org.springframework.context.ApplicationContext;
     org.alfresco.RepositoryStartStopTest.class,
 
     // [classpath:cachingstore/test-context.xml]
-    FullTest.class,
+    org.alfresco.repo.content.caching.FullTest.class,
 
     // [classpath:cachingstore/test-cleaner-context.xml]
-    CachedContentCleanupJobTest.class,
+    org.alfresco.repo.content.caching.cleanup.CachedContentCleanupJobTest.class,
 
     // [classpath:cachingstore/test-std-quota-context.xml]
-    StandardQuotaStrategyTest.class,
+    org.alfresco.repo.content.caching.quota.StandardQuotaStrategyTest.class,
 
     // [classpath:cachingstore/test-slow-context.xml]
-    SlowContentStoreTest.class,
-    ConcurrentCachingStoreTest.class,
+    org.alfresco.repo.content.caching.test.SlowContentStoreTest.class,
+    org.alfresco.repo.content.caching.test.ConcurrentCachingStoreTest.class,
 
     // [classpath:org/alfresco/repo/jscript/test-context.xml]
     org.alfresco.repo.jscript.ScriptBehaviourTest.class,
@@ -166,14 +124,14 @@ import org.springframework.context.ApplicationContext;
 
     // TODO can we remove this? Was it EOLed?
     // [classpath:test/alfresco/test-web-publishing-context.xml]
-    ChannelServiceImplTest.class,
-    PublishingEventHelperTest.class,
+    org.alfresco.repo.publishing.ChannelServiceImplTest.class,
+    org.alfresco.repo.publishing.PublishingEventHelperTest.class,
 
     // [alfresco/scheduler-core-context.xml, org/alfresco/util/test-scheduled-jobs-context.xml]
     org.alfresco.util.CronTriggerBeanTest.class,
 
     // [alfresco/scheduler-core-context.xml, org/alfresco/heartbeat/test-heartbeat-context.xml]
-    HeartBeatTest.class,
+    org.alfresco.heartbeat.HeartBeatTest.class,
 
     // ----------------------------------------------------------------------
     // Transformer/Rendition contexts
@@ -181,7 +139,6 @@ import org.springframework.context.ApplicationContext;
     // The following tests can be extracted in a separate test suite
     // if/when we decide to move the transformations in a separate component
     // ----------------------------------------------------------------------
-
 
     // [classpath:alfresco/application-context.xml, classpath:org/alfresco/repo/thumbnail/test-thumbnail-context.xml]
     // some tests fail locally - on windows

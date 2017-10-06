@@ -25,12 +25,6 @@
  */
 package org.alfresco;
 
-import junit.framework.Test;
-import junit.framework.TestSuite;
-import org.alfresco.heartbeat.RepositoryDataCollectorTest;
-import org.alfresco.repo.search.SearcherComponentTest;
-import org.alfresco.repo.search.impl.lucene.ADMLuceneCategoryTest;
-import org.alfresco.repo.search.impl.lucene.ADMLuceneTest;
 import org.alfresco.util.testing.category.DBTests;
 import org.alfresco.util.testing.category.NonBuildTests;
 import org.junit.experimental.categories.Categories;
@@ -55,12 +49,12 @@ import org.junit.runners.Suite;
     org.alfresco.repo.oauth2.OAuth2CredentialsStoreServiceTest.class,
     org.alfresco.repo.template.TemplateServiceImplTest.class,
     org.alfresco.repo.tenant.MultiTServiceImplTest.class,
-    SearcherComponentTest.class,
-    ADMLuceneCategoryTest.class,
-    ADMLuceneTest.class,
+    org.alfresco.repo.search.SearcherComponentTest.class,
+    org.alfresco.repo.search.impl.lucene.ADMLuceneCategoryTest.class,
+    org.alfresco.repo.search.impl.lucene.ADMLuceneTest.class,
     org.alfresco.repo.blog.BlogServiceImplTest.class,
-    RepositoryDataCollectorTest.class,
+    org.alfresco.heartbeat.RepositoryDataCollectorTest.class,
 })
-public class AppContext06TestSuite extends TestSuite
+public class AppContext06TestSuite
 {
 }

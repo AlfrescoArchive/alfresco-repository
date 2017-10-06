@@ -25,30 +25,6 @@
  */
 package org.alfresco;
 
-import junit.framework.TestSuite;
-import org.alfresco.repo.action.ActionServiceImpl2Test;
-import org.alfresco.repo.action.ActionServiceImplTest;
-import org.alfresco.repo.action.executer.ImporterActionExecuterTest;
-import org.alfresco.repo.action.executer.MailActionExecuterTest;
-import org.alfresco.repo.security.authentication.ResetPasswordServiceImplTest;
-import org.alfresco.repo.virtual.bundle.FileInfoPropsComparatorTest;
-import org.alfresco.repo.virtual.bundle.VirtualCheckOutCheckInServiceExtensionTest;
-import org.alfresco.repo.virtual.bundle.VirtualFileFolderServiceExtensionTest;
-import org.alfresco.repo.virtual.bundle.VirtualLockableAspectInterceptorExtensionTest;
-import org.alfresco.repo.virtual.bundle.VirtualNodeServiceExtensionTest;
-import org.alfresco.repo.virtual.bundle.VirtualPermissionServiceExtensionTest;
-import org.alfresco.repo.virtual.bundle.VirtualPreferenceServiceExtensionTest;
-import org.alfresco.repo.virtual.bundle.VirtualRatingServiceExtensionTest;
-import org.alfresco.repo.virtual.bundle.VirtualVersionServiceExtensionTest;
-import org.alfresco.repo.virtual.config.NodeRefPathExpressionTest;
-import org.alfresco.repo.virtual.model.SystemTemplateLocationsConstraintTest;
-import org.alfresco.repo.virtual.store.SystemVirtualizationMethodTest;
-import org.alfresco.repo.virtual.store.TypeVirtualizationMethodTest;
-import org.alfresco.repo.virtual.store.VirtualStoreImplTest;
-import org.alfresco.repo.virtual.template.ApplyTemplateMethodTest;
-import org.alfresco.repo.virtual.template.TemplateFilingRuleTest;
-import org.alfresco.repo.virtual.template.TemplateResourceProcessorTest;
-import org.alfresco.repo.workflow.activiti.ActivitiMultitenantWorkflowTest;
 import org.alfresco.util.testing.category.DBTests;
 import org.alfresco.util.testing.category.NonBuildTests;
 import org.junit.experimental.categories.Categories;
@@ -66,9 +42,9 @@ import org.junit.runners.Suite;
     // globalIntegrationTestContext [classpath:alfresco/application-context.xml, classpath:alfresco/test/global-integration-test-context.xml]
     // ----------------------------------------------------------------------
 
-    MailActionExecuterTest.class,
-    ActionServiceImpl2Test.class,
-    ImporterActionExecuterTest.class,
+    org.alfresco.repo.action.executer.MailActionExecuterTest.class,
+    org.alfresco.repo.action.ActionServiceImpl2Test.class,
+    org.alfresco.repo.action.executer.ImporterActionExecuterTest.class,
     org.alfresco.repo.dictionary.CustomModelServiceImplTest.class,
     org.alfresco.repo.dictionary.ValueDataTypeValidatorImplTest.class,
     org.alfresco.repo.download.DownloadServiceIntegrationTest.class,
@@ -77,7 +53,7 @@ import org.junit.runners.Suite;
     org.alfresco.repo.preference.PreferenceServiceImplTest.class,
     org.alfresco.repo.rule.MiscellaneousRulesTest.class,
     org.alfresco.repo.rule.RuleServiceIntegrationTest.class,
-    ResetPasswordServiceImplTest.class,
+    org.alfresco.repo.security.authentication.ResetPasswordServiceImplTest.class,
     org.alfresco.repo.subscriptions.SubscriptionServiceActivitiesTest.class,
     org.alfresco.util.test.junitrules.AlfrescoPersonTest.class,
 
@@ -124,7 +100,7 @@ import org.junit.runners.Suite;
     org.alfresco.opencmis.CMISTest.class,
 
     // [classpath:alfresco/application-context.xml, classpath:org/alfresco/repo/action/test-action-services-context.xml]
-    ActionServiceImplTest.class,
+    org.alfresco.repo.action.ActionServiceImplTest.class,
 
     // [classpath:alfresco/application-context.xml, classpath:alfresco/test/global-integration-test-context.xml,
     // classpath:ratings/test-RatingServiceIntegrationTest-context.xml]
@@ -145,23 +121,23 @@ import org.junit.runners.Suite;
     // ----------------------------------------------------------------------
     // virtualizationTestContext [classpath:**/virtualization-test-context.xml, classpath:alfresco/application-context.xml]
     // ----------------------------------------------------------------------
-    VirtualPreferenceServiceExtensionTest.class,
-    VirtualLockableAspectInterceptorExtensionTest.class,
-    VirtualVersionServiceExtensionTest.class,
-    VirtualRatingServiceExtensionTest.class,
-    VirtualCheckOutCheckInServiceExtensionTest.class,
-    VirtualPermissionServiceExtensionTest.class,
-    VirtualNodeServiceExtensionTest.class,
-    VirtualFileFolderServiceExtensionTest.class,
-    ApplyTemplateMethodTest.class,
-    SystemTemplateLocationsConstraintTest.class,
-    SystemVirtualizationMethodTest.class,
-    TypeVirtualizationMethodTest.Integration.class,
-    TemplateResourceProcessorTest.class,
-    VirtualStoreImplTest.class,
-    NodeRefPathExpressionTest.class,
-    TemplateFilingRuleTest.class,
-    FileInfoPropsComparatorTest.class,
+    org.alfresco.repo.virtual.bundle.VirtualPreferenceServiceExtensionTest.class,
+    org.alfresco.repo.virtual.bundle.VirtualLockableAspectInterceptorExtensionTest.class,
+    org.alfresco.repo.virtual.bundle.VirtualVersionServiceExtensionTest.class,
+    org.alfresco.repo.virtual.bundle.VirtualRatingServiceExtensionTest.class,
+    org.alfresco.repo.virtual.bundle.VirtualCheckOutCheckInServiceExtensionTest.class,
+    org.alfresco.repo.virtual.bundle.VirtualPermissionServiceExtensionTest.class,
+    org.alfresco.repo.virtual.bundle.VirtualNodeServiceExtensionTest.class,
+    org.alfresco.repo.virtual.bundle.VirtualFileFolderServiceExtensionTest.class,
+    org.alfresco.repo.virtual.template.ApplyTemplateMethodTest.class,
+    org.alfresco.repo.virtual.model.SystemTemplateLocationsConstraintTest.class,
+    org.alfresco.repo.virtual.store.SystemVirtualizationMethodTest.class,
+    org.alfresco.repo.virtual.store.TypeVirtualizationMethodTest.Integration.class,
+    org.alfresco.repo.virtual.template.TemplateResourceProcessorTest.class,
+    org.alfresco.repo.virtual.store.VirtualStoreImplTest.class,
+    org.alfresco.repo.virtual.config.NodeRefPathExpressionTest.class,
+    org.alfresco.repo.virtual.template.TemplateFilingRuleTest.class,
+    org.alfresco.repo.virtual.bundle.FileInfoPropsComparatorTest.class,
 
     // ----------------------------------------------------------------------
     // testSubscriptionsContext  [classpath:alfresco/application-context.xml, classpath:test/alfresco/test-subscriptions-context.xml]
@@ -183,8 +159,8 @@ import org.junit.runners.Suite;
     // mtAllContext [classpath:alfresco/application-context.xml, classpath:tenant/mt-*context.xml]
     // ----------------------------------------------------------------------
     org.alfresco.repo.tenant.MultiTDemoTest.class,
-    ActivitiMultitenantWorkflowTest.class
+    org.alfresco.repo.workflow.activiti.ActivitiMultitenantWorkflowTest.class
 })
-public class AppContextExtraTestSuite extends TestSuite
+public class AppContextExtraTestSuite
 {
 }

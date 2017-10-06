@@ -25,20 +25,6 @@
  */
 package org.alfresco;
 
-import junit.framework.TestSuite;
-import org.alfresco.repo.action.ActionTrackingServiceImplTest;
-import org.alfresco.repo.action.evaluator.CompareMimeTypeEvaluatorTest;
-import org.alfresco.repo.action.evaluator.ComparePropertyValueEvaluatorTest;
-import org.alfresco.repo.action.evaluator.HasAspectEvaluatorTest;
-import org.alfresco.repo.action.evaluator.IsSubTypeEvaluatorTest;
-import org.alfresco.repo.action.executer.AddFeaturesActionExecuterTest;
-import org.alfresco.repo.action.executer.ContentMetadataEmbedderTest;
-import org.alfresco.repo.action.executer.ContentMetadataExtracterTagMappingTest;
-import org.alfresco.repo.action.executer.ContentMetadataExtracterTest;
-import org.alfresco.repo.action.executer.RemoveFeaturesActionExecuterTest;
-import org.alfresco.repo.action.executer.SetPropertyValueActionExecuterTest;
-import org.alfresco.repo.action.executer.SpecialiseTypeActionExecuterTest;
-import org.alfresco.repo.security.authentication.AuthenticationTest;
 import org.alfresco.util.testing.category.DBTests;
 import org.alfresco.util.testing.category.NonBuildTests;
 import org.junit.experimental.categories.Categories;
@@ -53,24 +39,24 @@ import org.junit.runners.Suite;
 @RunWith(Categories.class)
 @Categories.ExcludeCategory({DBTests.class, NonBuildTests.class})
 @Suite.SuiteClasses({
-    IsSubTypeEvaluatorTest.class,
-    ComparePropertyValueEvaluatorTest.class,
-    CompareMimeTypeEvaluatorTest.class,
-    HasAspectEvaluatorTest.class,
-    SetPropertyValueActionExecuterTest.class,
-    AddFeaturesActionExecuterTest.class,
-    ContentMetadataExtracterTest.class,
-    ContentMetadataExtracterTagMappingTest.class,
-    ContentMetadataEmbedderTest.class,
+    org.alfresco.repo.action.evaluator.IsSubTypeEvaluatorTest.class,
+    org.alfresco.repo.action.evaluator.ComparePropertyValueEvaluatorTest.class,
+    org.alfresco.repo.action.evaluator.CompareMimeTypeEvaluatorTest.class,
+    org.alfresco.repo.action.evaluator.HasAspectEvaluatorTest.class,
+    org.alfresco.repo.action.executer.SetPropertyValueActionExecuterTest.class,
+    org.alfresco.repo.action.executer.AddFeaturesActionExecuterTest.class,
+    org.alfresco.repo.action.executer.ContentMetadataExtracterTest.class,
+    org.alfresco.repo.action.executer.ContentMetadataExtracterTagMappingTest.class,
+    org.alfresco.repo.action.executer.ContentMetadataEmbedderTest.class,
     org.alfresco.repo.rule.RuleLinkTest.class,
     org.alfresco.repo.rule.RuleServiceCoverageTest.class,
     org.alfresco.repo.rule.RuleServiceImplTest.class,
     org.alfresco.repo.rule.RuleTypeImplTest.class,
     org.alfresco.repo.rule.ruletrigger.RuleTriggerTest.class,
-    AuthenticationTest.class,
-    SpecialiseTypeActionExecuterTest.class,
-    RemoveFeaturesActionExecuterTest.class,
-    ActionTrackingServiceImplTest.class,
+    org.alfresco.repo.security.authentication.AuthenticationTest.class,
+    org.alfresco.repo.action.executer.SpecialiseTypeActionExecuterTest.class,
+    org.alfresco.repo.action.executer.RemoveFeaturesActionExecuterTest.class,
+    org.alfresco.repo.action.ActionTrackingServiceImplTest.class,
     org.alfresco.email.server.EmailServiceImplTest.class,
     org.alfresco.email.server.EmailServerTest.class,
 
@@ -82,6 +68,6 @@ import org.junit.runners.Suite;
     org.alfresco.repo.activities.ActivityServiceImplTest.class,
     org.alfresco.repo.admin.registry.RegistryServiceImplTest.class,
 })
-public class AppContext01TestSuite extends TestSuite
+public class AppContext01TestSuite
 {
 }

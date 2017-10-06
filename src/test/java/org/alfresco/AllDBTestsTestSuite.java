@@ -25,29 +25,7 @@
  */
 package org.alfresco;
 
-import org.alfresco.repo.dictionary.RepoDictionaryDAOTest;
-import org.alfresco.repo.domain.audit.AuditDAOTest;
-import org.alfresco.repo.domain.contentdata.ContentDataDAOTest;
-import org.alfresco.repo.domain.encoding.EncodingDAOTest;
-import org.alfresco.repo.domain.locale.LocaleDAOTest;
-import org.alfresco.repo.domain.locks.LockDAOTest;
-import org.alfresco.repo.domain.mimetype.MimetypeDAOTest;
-import org.alfresco.repo.domain.node.NodeDAOTest;
-import org.alfresco.repo.domain.patch.AppliedPatchDAOTest;
-import org.alfresco.repo.domain.permissions.AclCrudDAOTest;
-import org.alfresco.repo.domain.propval.PropertyValueCleanupTest;
-import org.alfresco.repo.domain.propval.PropertyValueDAOTest;
-import org.alfresco.repo.domain.qname.QNameDAOTest;
-import org.alfresco.repo.domain.query.CannedQueryDAOTest;
-import org.alfresco.repo.domain.solr.SOLRDAOTest;
-import org.alfresco.repo.domain.tenant.TenantAdminDAOTest;
-import org.alfresco.repo.domain.usage.UsageDAOTest;
-import org.alfresco.repo.node.db.DbNodeServiceImplPropagationTest;
-import org.alfresco.repo.node.db.DbNodeServiceImplTest;
-import org.alfresco.repo.security.permissions.impl.AclDaoComponentTest;
 import org.alfresco.util.schemacomp.DbToXMLTest;
-import org.alfresco.util.schemacomp.ExportDbTest;
-import org.alfresco.util.schemacomp.SchemaReferenceFileTest;
 import org.alfresco.util.testing.category.DBTests;
 import org.alfresco.util.testing.category.NonBuildTests;
 import org.junit.experimental.categories.Categories;
@@ -61,28 +39,28 @@ import org.junit.runners.Suite;
 @Categories.IncludeCategory(DBTests.class)
 @Categories.ExcludeCategory(NonBuildTests.class)
 @Suite.SuiteClasses({DbToXMLTest.class,
-    ExportDbTest.class,
-    SchemaReferenceFileTest.class,
-    AuditDAOTest.class,
-    ContentDataDAOTest.class,
-    EncodingDAOTest.class,
-    LocaleDAOTest.class,
-    LockDAOTest.class,
-    MimetypeDAOTest.class,
-    NodeDAOTest.class,
-    AppliedPatchDAOTest.class,
-    AclCrudDAOTest.class,
-    PropertyValueCleanupTest.class,
-    PropertyValueDAOTest.class,
-    QNameDAOTest.class,
-    CannedQueryDAOTest.class,
-    SOLRDAOTest.class,
-    TenantAdminDAOTest.class,
-    UsageDAOTest.class,
-    AclDaoComponentTest.class,
-    RepoDictionaryDAOTest.class,
-    DbNodeServiceImplPropagationTest.class,
-    DbNodeServiceImplTest.class,})
+    org.alfresco.util.schemacomp.ExportDbTest.class,
+    org.alfresco.util.schemacomp.SchemaReferenceFileTest.class,
+    org.alfresco.repo.domain.audit.AuditDAOTest.class,
+    org.alfresco.repo.domain.contentdata.ContentDataDAOTest.class,
+    org.alfresco.repo.domain.encoding.EncodingDAOTest.class,
+    org.alfresco.repo.domain.locale.LocaleDAOTest.class,
+    org.alfresco.repo.domain.locks.LockDAOTest.class,
+    org.alfresco.repo.domain.mimetype.MimetypeDAOTest.class,
+    org.alfresco.repo.domain.node.NodeDAOTest.class,
+    org.alfresco.repo.domain.patch.AppliedPatchDAOTest.class,
+    org.alfresco.repo.domain.permissions.AclCrudDAOTest.class,
+    org.alfresco.repo.domain.propval.PropertyValueCleanupTest.class,
+    org.alfresco.repo.domain.propval.PropertyValueDAOTest.class,
+    org.alfresco.repo.domain.qname.QNameDAOTest.class,
+    org.alfresco.repo.domain.query.CannedQueryDAOTest.class,
+    org.alfresco.repo.domain.solr.SOLRDAOTest.class,
+    org.alfresco.repo.domain.tenant.TenantAdminDAOTest.class,
+    org.alfresco.repo.domain.usage.UsageDAOTest.class,
+    org.alfresco.repo.security.permissions.impl.AclDaoComponentTest.class,
+    org.alfresco.repo.dictionary.RepoDictionaryDAOTest.class,
+    org.alfresco.repo.node.db.DbNodeServiceImplPropagationTest.class,
+    org.alfresco.repo.node.db.DbNodeServiceImplTest.class,})
 public class AllDBTestsTestSuite
 {
 }
