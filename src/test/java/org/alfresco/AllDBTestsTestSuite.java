@@ -40,16 +40,16 @@ import org.junit.runners.Suite;
 @Suite.SuiteClasses({
 
 	// From AllUnitTestsSuite
-//    org.alfresco.repo.dictionary.RepoDictionaryDAOTest.class,
+    org.alfresco.repo.dictionary.RepoDictionaryDAOTest.class,
 
 	// From AppContext03TestSuite
-//    org.alfresco.repo.node.db.DbNodeServiceImplTest.class,
-//    org.alfresco.repo.node.db.DbNodeServiceImplPropagationTest.class,
+    org.alfresco.repo.node.db.DbNodeServiceImplTest.class,
+    org.alfresco.repo.node.db.DbNodeServiceImplPropagationTest.class,
 
 	// From AppContext04TestSuite
-//	org.alfresco.util.schemacomp.DbToXMLTest.class,
-//    org.alfresco.util.schemacomp.ExportDbTest.class,
-//    org.alfresco.util.schemacomp.SchemaReferenceFileTest.class,
+	org.alfresco.util.schemacomp.DbToXMLTest.class,
+    org.alfresco.util.schemacomp.ExportDbTest.class,
+    org.alfresco.util.schemacomp.SchemaReferenceFileTest.class,
 
 	// From AppContext05TestSuite
     org.alfresco.repo.domain.node.NodeDAOTest.class,
