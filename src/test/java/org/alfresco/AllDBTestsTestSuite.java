@@ -67,9 +67,12 @@ import org.junit.runners.Suite;
     org.alfresco.repo.domain.solr.SOLRDAOTest.class,
     org.alfresco.repo.domain.tenant.TenantAdminDAOTest.class,
 
-	// Comment out for now, as we had a hang earlier
-//    org.alfresco.repo.domain.propval.PropertyValueCleanupTest.class,
-//    org.alfresco.repo.domain.audit.AuditDAOTest.class,
+    // REOPO-1012 : run AuditDAOTest and PropertyValueCleanupTest near the end
+    // because their failure can cause other tests to fail on MS SQL
+    // AuditDAOTest fails if it runs after CannedQueryDAOTest.
+    // CannedQueryDAOTest will fail on MS SQL if either AuditDAOTest or PropertyValueCleanupTest fail
+    org.alfresco.repo.domain.propval.PropertyValueCleanupTest.class,
+    org.alfresco.repo.domain.audit.AuditDAOTest.class,
 
 	// From MiscContextTestSuite
 //    org.alfresco.repo.domain.query.CannedQueryDAOTest.class,
