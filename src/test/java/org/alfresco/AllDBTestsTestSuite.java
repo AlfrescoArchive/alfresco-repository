@@ -71,8 +71,10 @@ import org.junit.runners.Suite;
     // because their failure can cause other tests to fail on MS SQL
     // AuditDAOTest fails if it runs after CannedQueryDAOTest.
     // CannedQueryDAOTest will fail on MS SQL if either AuditDAOTest or PropertyValueCleanupTest fail
-    org.alfresco.repo.domain.propval.PropertyValueCleanupTest.class,
+//    org.alfresco.repo.domain.propval.PropertyValueCleanupTest.class,
+//    org.alfresco.repo.domain.audit.AuditDAOTest.class,
     org.alfresco.repo.domain.audit.AuditDAOTest.class,
+    org.alfresco.repo.domain.propval.PropertyValueCleanupTest.class,
 
 	// From MiscContextTestSuite
 //    org.alfresco.repo.domain.query.CannedQueryDAOTest.class,
