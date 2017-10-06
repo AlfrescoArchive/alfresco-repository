@@ -38,12 +38,20 @@ import org.junit.runners.Suite;
 @Categories.IncludeCategory(DBTests.class)
 @Categories.ExcludeCategory(NonBuildTests.class)
 @Suite.SuiteClasses({
-    org.alfresco.repo.dictionary.RepoDictionaryDAOTest.class,
-    org.alfresco.repo.node.db.DbNodeServiceImplTest.class,
-    org.alfresco.repo.node.db.DbNodeServiceImplPropagationTest.class,
-	org.alfresco.util.schemacomp.DbToXMLTest.class,
-    org.alfresco.util.schemacomp.ExportDbTest.class,
-    org.alfresco.util.schemacomp.SchemaReferenceFileTest.class,
+
+	// From AllUnitTestsSuite
+//    org.alfresco.repo.dictionary.RepoDictionaryDAOTest.class,
+
+	// From AppContext03TestSuite
+//    org.alfresco.repo.node.db.DbNodeServiceImplTest.class,
+//    org.alfresco.repo.node.db.DbNodeServiceImplPropagationTest.class,
+
+	// From AppContext04TestSuite
+//	org.alfresco.util.schemacomp.DbToXMLTest.class,
+//    org.alfresco.util.schemacomp.ExportDbTest.class,
+//    org.alfresco.util.schemacomp.SchemaReferenceFileTest.class,
+
+	// From AppContext05TestSuite
     org.alfresco.repo.domain.node.NodeDAOTest.class,
     org.alfresco.repo.security.permissions.impl.AclDaoComponentTest.class,
     org.alfresco.repo.domain.contentdata.ContentDataDAOTest.class,
@@ -59,15 +67,29 @@ import org.junit.runners.Suite;
     org.alfresco.repo.domain.solr.SOLRDAOTest.class,
     org.alfresco.repo.domain.tenant.TenantAdminDAOTest.class,
 
-// Running in a different order to the main tests, as PropertyValueCleanupTest.InsertSerializableAttributes.run()
-// is still running when AuditDAOTest.testAuditQueryCombos() starts and hangs in AuditDAOTest.doAuditEntryImpl().
-// The main test order is:
+	// Comment out for now, as we had a hang earlier
 //    org.alfresco.repo.domain.propval.PropertyValueCleanupTest.class,
 //    org.alfresco.repo.domain.audit.AuditDAOTest.class,
+
+	// From MiscContextTestSuite
 //    org.alfresco.repo.domain.query.CannedQueryDAOTest.class,
-    org.alfresco.repo.domain.query.CannedQueryDAOTest.class,
-    org.alfresco.repo.domain.audit.AuditDAOTest.class,
-    org.alfresco.repo.domain.propval.PropertyValueCleanupTest.class,
+
+
+
+
+
+
+
+	// Running this order did not hang but resulted in lots of errors
+//// Running in a different order to the main tests, as PropertyValueCleanupTest.InsertSerializableAttributes.run()
+//// is still running when AuditDAOTest.testAuditQueryCombos() starts and hangs in AuditDAOTest.doAuditEntryImpl().
+//// The main test order is:
+////    org.alfresco.repo.domain.propval.PropertyValueCleanupTest.class,
+////    org.alfresco.repo.domain.audit.AuditDAOTest.class,
+////    org.alfresco.repo.domain.query.CannedQueryDAOTest.class,
+//    org.alfresco.repo.domain.query.CannedQueryDAOTest.class,         // From MiscContextTestSuite
+//    org.alfresco.repo.domain.audit.AuditDAOTest.class,               // From AppContext05TestSuite
+//    org.alfresco.repo.domain.propval.PropertyValueCleanupTest.class, // From AppContext05TestSuite
 })
 public class AllDBTestsTestSuite
 {
