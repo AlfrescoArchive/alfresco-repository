@@ -52,6 +52,7 @@ import org.alfresco.test_category.OwnJVMTestsCategory;
 import org.alfresco.util.ApplicationContextHelper;
 import org.alfresco.util.Pair;
 import org.alfresco.util.testing.category.DBTests;
+import org.alfresco.util.testing.category.LuceneTests;
 import org.junit.Assert;
 import org.junit.experimental.categories.Category;
 import org.springframework.context.ApplicationContext;
@@ -64,7 +65,7 @@ import org.springframework.context.ApplicationContext;
  * @author Derek Hulley
  * @since 3.4
  */
-@Category({OwnJVMTestsCategory.class, DBTests.class})
+@Category({OwnJVMTestsCategory.class, DBTests.class, LuceneTests.class})
 public class NodeDAOTest extends TestCase
 {
     private ApplicationContext ctx = ApplicationContextHelper.getApplicationContext();
