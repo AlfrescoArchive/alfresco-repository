@@ -43,11 +43,12 @@ import org.junit.runners.Suite;
     org.alfresco.repo.dictionary.RepoDictionaryDAOTest.class,
 
 	// From AppContext03TestSuite
-    org.alfresco.repo.node.db.DbNodeServiceImplTest.class,
-    org.alfresco.repo.node.db.DbNodeServiceImplPropagationTest.class,
+// TODO Create JIRA When DbNodeServiceImplTest follows RepoDictionaryDAOTest in the same build testNodeCleanupRegistry hangs ("An exclusive lock exists:")
+//    org.alfresco.repo.node.db.DbNodeServiceImplTest.class,
+//    org.alfresco.repo.node.db.DbNodeServiceImplPropagationTest.class,
 
-	// From AppContext04TestSuite
-	org.alfresco.util.schemacomp.DbToXMLTest.class,
+//	// From AppContext04TestSuite
+    org.alfresco.util.schemacomp.DbToXMLTest.class,
     org.alfresco.util.schemacomp.ExportDbTest.class,
     org.alfresco.util.schemacomp.SchemaReferenceFileTest.class,
 
@@ -71,30 +72,11 @@ import org.junit.runners.Suite;
     // because their failure can cause other tests to fail on MS SQL
     // AuditDAOTest fails if it runs after CannedQueryDAOTest.
     // CannedQueryDAOTest will fail on MS SQL if either AuditDAOTest or PropertyValueCleanupTest fail
-//    org.alfresco.repo.domain.propval.PropertyValueCleanupTest.class,
-//    org.alfresco.repo.domain.audit.AuditDAOTest.class,
-    org.alfresco.repo.domain.audit.AuditDAOTest.class,
     org.alfresco.repo.domain.propval.PropertyValueCleanupTest.class,
+    org.alfresco.repo.domain.audit.AuditDAOTest.class,
 
 	// From MiscContextTestSuite
 //    org.alfresco.repo.domain.query.CannedQueryDAOTest.class,
-
-
-
-
-
-
-
-	// Running this order did not hang but resulted in lots of errors
-//// Running in a different order to the main tests, as PropertyValueCleanupTest.InsertSerializableAttributes.run()
-//// is still running when AuditDAOTest.testAuditQueryCombos() starts and hangs in AuditDAOTest.doAuditEntryImpl().
-//// The main test order is:
-////    org.alfresco.repo.domain.propval.PropertyValueCleanupTest.class,
-////    org.alfresco.repo.domain.audit.AuditDAOTest.class,
-////    org.alfresco.repo.domain.query.CannedQueryDAOTest.class,
-//    org.alfresco.repo.domain.query.CannedQueryDAOTest.class,         // From MiscContextTestSuite
-//    org.alfresco.repo.domain.audit.AuditDAOTest.class,               // From AppContext05TestSuite
-//    org.alfresco.repo.domain.propval.PropertyValueCleanupTest.class, // From AppContext05TestSuite
 })
 public class AllDBTestsTestSuite
 {
