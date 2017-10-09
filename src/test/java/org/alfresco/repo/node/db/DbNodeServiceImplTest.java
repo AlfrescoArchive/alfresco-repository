@@ -112,11 +112,6 @@ public class DbNodeServiceImplTest extends BaseNodeServiceTest
      */
     public void testCallWithoutTxn()
     {
-        if (skipTest())
-        {
-            // See ALF-16888.  DB2 fails this test persistently.
-            return;
-        }
         setComplete();
         endTransaction();
         
@@ -239,12 +234,6 @@ public class DbNodeServiceImplTest extends BaseNodeServiceTest
      */
     public void testLazyLoadIssue() throws Exception
     {
-        // See REPO-2963
-        if (skipTest())
-        {
-            return;
-        }
-
         Map<QName, ChildAssociationRef> assocRefs = buildNodeGraph();
         // commit results
         setComplete();
@@ -291,12 +280,6 @@ public class DbNodeServiceImplTest extends BaseNodeServiceTest
      */
     public void testNodeStatus() throws Throwable
     {
-        // See REPO-2963
-        if (skipTest())
-        {
-            return;
-        }
-
         Map<QName, ChildAssociationRef> assocRefs = buildNodeGraph();
         // get the node to play with
         ChildAssociationRef n6pn8Ref = assocRefs.get(QName.createQName(BaseNodeServiceTest.NAMESPACE, "n6_p_n8"));
@@ -479,12 +462,6 @@ public class DbNodeServiceImplTest extends BaseNodeServiceTest
     
     public void testMLTextValues() throws Exception
     {
-        // See REPO-2963
-        if (skipTest())
-        {
-            return;
-        }
-
         // Set the server default locale
         Locale.setDefault(Locale.ENGLISH);
         
@@ -521,12 +498,6 @@ public class DbNodeServiceImplTest extends BaseNodeServiceTest
     @SuppressWarnings("unchecked")
     public void testStringIntoMLTextProperty() throws Exception
     {
-        // See REPO-2963
-        if (skipTest())
-        {
-            return;
-        }
-
         String text = "Hello";
         nodeService.setProperty(rootNodeRef, PROP_QNAME_ML_TEXT_VALUE, text);
         Serializable mlTextCheck = nodeService.getProperty(rootNodeRef, PROP_QNAME_ML_TEXT_VALUE);
@@ -559,12 +530,6 @@ public class DbNodeServiceImplTest extends BaseNodeServiceTest
     @SuppressWarnings("unchecked")
     public void testSingleStringMLTextProperty() throws Exception
     {
-        // See REPO-2963
-        if (skipTest())
-        {
-            return;
-        }
-
         // Set the property with single-value MLText
         MLText mlText = new MLText();
         mlText.addValue(Locale.GERMAN, "Sehr gut!");
@@ -580,12 +545,6 @@ public class DbNodeServiceImplTest extends BaseNodeServiceTest
      */
     public void testInTransactionCreateAndDelete() throws Exception
     {
-        // See REPO-2963
-        if (skipTest())
-        {
-            return;
-        }
-
         // Create a node
         NodeRef nodeRef = nodeService.createNode(
                 rootNodeRef,
@@ -598,12 +557,6 @@ public class DbNodeServiceImplTest extends BaseNodeServiceTest
     
     public void testAspectRemovalWithCommit() throws Throwable
     {
-        // See REPO-2963
-        if (skipTest())
-        {
-            return;
-        }
-
        // Create a node to add the aspect to
        NodeRef sourceNodeRef = nodeService.createNode(
                rootNodeRef,
@@ -674,12 +627,6 @@ public class DbNodeServiceImplTest extends BaseNodeServiceTest
      */
     public void testGetChildAssocsByPropertyValue() throws Exception
     {
-        // See REPO-2963
-        if (skipTest())
-        {
-            return;
-        }
-
         Map<QName, ChildAssociationRef> assocRefs;
         
         assocRefs = buildNodeGraph();
@@ -799,12 +746,6 @@ public class DbNodeServiceImplTest extends BaseNodeServiceTest
     @SuppressWarnings("deprecation")
     public void testMySQLInnoDBNodeStringLengthWorker() throws Exception
     {
-        // See REPO-2963
-        if (skipTest())
-        {
-            return;
-        }
-
         setComplete();
         endTransaction();
         
@@ -881,12 +822,6 @@ public class DbNodeServiceImplTest extends BaseNodeServiceTest
 
     @Test
     public void testMNT15655() throws Exception {
-        // See REPO-2963
-        if (skipTest())
-        {
-            return;
-        }
-
     	class TestData
     	{
     		NodeRef rootFolderNodeRef;
