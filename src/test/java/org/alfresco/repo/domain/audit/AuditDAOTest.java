@@ -719,7 +719,7 @@ public class AuditDAOTest extends TestCase
         Dialect dialect = (Dialect) ctx.getBean("dialect");
         if (dialect instanceof AlfrescoMySQLClusterNDBDialect)
         {
-            throw new Exception("TODO review this test case with NDB - note: throw exeception here else causes later tests to fail (when running via DomainTestSuite)");
+            throw new Exception("TODO review this test case with NDB - note: throw exeception here else causes later tests to fail (when running via AllDBTestTestSuite)");
         }
         
         // single test
