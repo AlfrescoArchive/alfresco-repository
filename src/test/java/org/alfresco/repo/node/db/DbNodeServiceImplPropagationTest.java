@@ -48,6 +48,7 @@ import org.alfresco.service.namespace.QName;
 import org.alfresco.service.transaction.TransactionService;
 import org.alfresco.util.BaseSpringTest;
 import org.alfresco.util.testing.category.DBTests;
+import org.hibernate.dialect.Dialect;
 import org.junit.experimental.categories.Category;
 import org.springframework.context.ApplicationContext;
 
@@ -66,6 +67,7 @@ public class DbNodeServiceImplPropagationTest extends BaseSpringTest
     protected DictionaryService dictionaryService;
 
     private UserTransaction txn = null;
+    private Dialect dialect;
 
     @Override
     protected void onSetUpInTransaction() throws Exception
@@ -73,6 +75,7 @@ public class DbNodeServiceImplPropagationTest extends BaseSpringTest
         super.onSetUpInTransaction();
         txnService = (TransactionService) applicationContext.getBean("transactionComponent");
         nodeDAO = (NodeDAO) applicationContext.getBean("nodeDAO");
+        dialect = (Dialect) applicationContext.getBean("dialect");
         nodeService = (NodeService) applicationContext.getBean("dbNodeService");
         
         authenticationComponent = (AuthenticationComponent) applicationContext.getBean("authenticationComponent");
@@ -113,6 +116,12 @@ public class DbNodeServiceImplPropagationTest extends BaseSpringTest
         super.onTearDownInTransaction();
     }
     
+    protected boolean skipTest()
+    {
+        // REPO-2963 Skip tests when run from DbNodeServiceImplTest
+        return dialect.getClass().getName().contains("PostgreSQL");
+    }
+
     /**
      * Loads the test model required for building the node graphs
      */
@@ -144,6 +153,12 @@ public class DbNodeServiceImplPropagationTest extends BaseSpringTest
     @SuppressWarnings("deprecation")
     public void testAuditablePropagation() throws Exception
     {
+        // See REPO-2963
+        if (skipTest())
+        {
+            return;
+        }
+
         String fullyAuthenticatedUser = AuthenticationUtil.getFullyAuthenticatedUser();
 
         final QName TYPE_NOT_AUDITABLE = ContentModel.TYPE_CONTAINER;

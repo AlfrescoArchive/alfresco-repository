@@ -43,9 +43,8 @@ import org.junit.runners.Suite;
     org.alfresco.repo.dictionary.RepoDictionaryDAOTest.class,
 
 	// From AppContext03TestSuite
-// TODO Create JIRA When DbNodeServiceImplTest follows RepoDictionaryDAOTest in the same build testNodeCleanupRegistry hangs ("An exclusive lock exists:")
-//    org.alfresco.repo.node.db.DbNodeServiceImplTest.class,
-//    org.alfresco.repo.node.db.DbNodeServiceImplPropagationTest.class,
+    org.alfresco.repo.node.db.DbNodeServiceImplTest.class,
+    org.alfresco.repo.node.db.DbNodeServiceImplPropagationTest.class,
 
 //	// From AppContext04TestSuite
     org.alfresco.util.schemacomp.DbToXMLTest.class,
@@ -68,7 +67,7 @@ import org.junit.runners.Suite;
     org.alfresco.repo.domain.solr.SOLRDAOTest.class,
     org.alfresco.repo.domain.tenant.TenantAdminDAOTest.class,
 
-    // REOPO-1012 : run AuditDAOTest and PropertyValueCleanupTest near the end
+    // REPO-1012 : run AuditDAOTest and PropertyValueCleanupTest near the end
     // because their failure can cause other tests to fail on MS SQL
     // AuditDAOTest fails if it runs after CannedQueryDAOTest.
     // CannedQueryDAOTest will fail on MS SQL if either AuditDAOTest or PropertyValueCleanupTest fail

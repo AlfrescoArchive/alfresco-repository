@@ -73,7 +73,7 @@ import org.junit.runners.Suite;
     org.alfresco.repo.domain.solr.SOLRDAOTest.class,
     org.alfresco.repo.domain.tenant.TenantAdminDAOTest.class,
 
-    // REOPO-1012 : run AuditDAOTest and PropertyValueCleanupTest near the end
+    // REPO-1012 : run AuditDAOTest and PropertyValueCleanupTest near the end
     // because their failure can cause other tests to fail on MS SQL
     // AuditDAOTest fails if it runs after CannedQueryDAOTest so this order is a compromise
     // CannedQueryDAOTest will fail on MS SQL if either AuditDAOTest or PropertyValueCleanupTest fail
