@@ -2,7 +2,7 @@
     <modelVersion>4.0.0</modelVersion>
     <artifactId>alfresco-repository</artifactId>
     <name>Alfresco Repository</name>
-    <version>6.6_fix_REPO-2025_cat_tests-SNAPSHOT</version>
+    <version>6.7-SNAPSHOT</version>
     <packaging>jar</packaging>
 
     <parent>
@@ -779,6 +779,11 @@
             <version>${dependency.alfresco-data-model.version}</version>
             <classifier>tests</classifier>
             <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.alfresco</groupId>
+            <artifactId>alfresco-data-model</artifactId>
+            <version>${dependency.alfresco-data-model.version}</version>
         </dependency>
         <dependency>
             <groupId>org.alfresco</groupId>

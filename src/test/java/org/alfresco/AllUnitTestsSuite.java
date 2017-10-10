@@ -187,6 +187,7 @@ import org.junit.runners.Suite;
     org.alfresco.repo.workflow.activiti.WorklfowObjectFactoryTest.class,
     org.alfresco.repo.workflow.WorkflowSuiteContextShutdownTest.class,
     org.alfresco.repo.search.impl.lucene.analysis.PathTokenFilterTest.class,
+    org.alfresco.heartbeat.HBDataCollectorServiceImplTest.class,
     org.alfresco.heartbeat.HBDataCollectorServiceImplTest.class
 })
 public class AllUnitTestsSuite

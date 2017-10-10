@@ -147,7 +147,10 @@ import org.springframework.context.ApplicationContext;
     // [classpath:/test/alfresco/test-renditions-context.xml, classpath:alfresco/application-context.xml,
     // classpath:alfresco/test/global-integration-test-context.xml]
     // this does NOT passes locally
-    org.alfresco.repo.rendition.RenditionServicePermissionsTest.class
+    org.alfresco.repo.rendition.RenditionServicePermissionsTest.class,
+
+    // [alfresco/scheduler-core-context.xml, org/alfresco/heartbeat/test-heartbeat-context.xml]
+    org.alfresco.heartbeat.HeartBeatTest.class,
 })
 public class MiscContextTestSuite
 {
