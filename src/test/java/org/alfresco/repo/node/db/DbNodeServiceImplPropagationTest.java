@@ -116,7 +116,7 @@ public class DbNodeServiceImplPropagationTest extends BaseSpringTest
         super.onTearDownInTransaction();
     }
     
-    protected boolean skipTest()
+    protected boolean skipTestRepo2963()
     {
         // REPO-2963 Skip tests when run from DbNodeServiceImplTest
         return dialect.getClass().getName().contains("PostgreSQL");
@@ -154,7 +154,7 @@ public class DbNodeServiceImplPropagationTest extends BaseSpringTest
     public void testAuditablePropagation() throws Exception
     {
         // See REPO-2963
-        if (skipTest())
+        if (skipTestRepo2963())
         {
             return;
         }
