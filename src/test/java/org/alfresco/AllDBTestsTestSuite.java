@@ -43,6 +43,7 @@ import org.junit.runners.Suite;
     org.alfresco.repo.dictionary.RepoDictionaryDAOTest.class,
 
 	// From AppContext03TestSuite
+    org.alfresco.repo.lock.JobLockServiceTest.class,
     org.alfresco.repo.node.db.DbNodeServiceImplTest.class,
     org.alfresco.repo.node.db.DbNodeServiceImplPropagationTest.class,
 
