@@ -56,6 +56,7 @@
         <dependency.activiti-engine.version>5.22.0</dependency.activiti-engine.version>
         <dependency.activiti.version>5.22.0</dependency.activiti.version>
         <dependency.postgresql.version>9.4.1212</dependency.postgresql.version>
+        <dependency.mariadb.version>2.0.1</dependency.mariadb.version>
         <dependency.antlr.version>3.5.2</dependency.antlr.version>
 
     </properties>
@@ -795,6 +796,12 @@
             <groupId>mysql</groupId>
             <artifactId>mysql-connector-java</artifactId>
             <version>${dependency.mysql.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.mariadb.jdbc</groupId>
+            <artifactId>mariadb-java-client</artifactId>
+            <version>${dependency.mariadb.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
