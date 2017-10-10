@@ -100,10 +100,8 @@ public class DbNodeServiceImplTest extends BaseNodeServiceTest
         dictionaryService = (DictionaryService) applicationContext.getBean("dictionaryService");
     }
 
-    @Override
-    protected boolean skipTest()
+    protected boolean skipTestRepo2963()
     {
-        // REPO-2963 Skip tests when run from DbNodeServiceImplTest
         return dialect.getClass().getName().contains("PostgreSQL");
     }
 
@@ -124,7 +122,7 @@ public class DbNodeServiceImplTest extends BaseNodeServiceTest
     public void testNodeCleanupRegistry() throws Exception
     {
         // See REPO-2963
-        if (skipTest())
+        if (skipTestRepo2963())
         {
             return;
         }
@@ -141,7 +139,7 @@ public class DbNodeServiceImplTest extends BaseNodeServiceTest
     public synchronized void testTxnCommitTime() throws Exception
     {
         // See REPO-2963
-        if (skipTest())
+        if (skipTestRepo2963())
         {
             return;
         }

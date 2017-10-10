@@ -236,11 +236,6 @@ public abstract class BaseNodeServiceTest extends BaseSpringTest
         IntegrityChecker.setWarnInTransaction();
     }
     
-    protected boolean skipTest()
-    {
-        return false;
-    }
-
     @Override
     protected void onTearDownInTransaction() throws Exception
     {
@@ -297,12 +292,6 @@ public abstract class BaseNodeServiceTest extends BaseSpringTest
     
     public void testSetUp() throws Exception
     {
-        // See REPO-2963
-        if (skipTest())
-        {
-            return;
-        }
-
         assertNotNull("StoreService not set", nodeService);
         assertNotNull("NodeService not set", nodeService);
         assertNotNull("rootNodeRef not created", rootNodeRef);
@@ -479,12 +468,6 @@ public abstract class BaseNodeServiceTest extends BaseSpringTest
     
     public void testCreateStore() throws Exception
     {
-        // See REPO-2963
-        if (skipTest())
-        {
-            return;
-        }
-
         StoreRef storeRef = createStore();
         
         // check that it exists
@@ -502,12 +485,6 @@ public abstract class BaseNodeServiceTest extends BaseSpringTest
     
     public void testGetStores() throws Exception
     {
-        // See REPO-2963
-        if (skipTest())
-        {
-            return;
-        }
-
         StoreRef storeRef = createStore();
         
         // get all stores
@@ -519,12 +496,6 @@ public abstract class BaseNodeServiceTest extends BaseSpringTest
     
     public void testDeleteStore() throws Exception
     {
-        // See REPO-2963
-        if (skipTest())
-        {
-            return;
-        }
-
         StoreRef storeRef = createStore();
         NodeRef rootNodeRef = nodeService.getRootNode(storeRef);
 
@@ -583,12 +554,6 @@ public abstract class BaseNodeServiceTest extends BaseSpringTest
     
     public void testExists() throws Exception
     {
-        // See REPO-2963
-        if (skipTest())
-        {
-            return;
-        }
-
         StoreRef storeRef = createStore();
         boolean exists = nodeService.exists(storeRef);
         assertEquals("Exists failed", true, exists);
@@ -600,12 +565,6 @@ public abstract class BaseNodeServiceTest extends BaseSpringTest
     
     public void testGetRootNode() throws Exception
     {
-        // See REPO-2963
-        if (skipTest())
-        {
-            return;
-        }
-
         StoreRef storeRef = createStore();
         // get the root node
         NodeRef rootNodeRef = nodeService.getRootNode(storeRef);
@@ -617,12 +576,6 @@ public abstract class BaseNodeServiceTest extends BaseSpringTest
     
     public void testCreateNode() throws Exception
     {
-        // See REPO-2963
-        if (skipTest())
-        {
-            return;
-        }
-
         ChildAssociationRef assocRef = nodeService.createNode(rootNodeRef,
                 ASSOC_TYPE_QNAME_TEST_CHILDREN,
                 QName.createQName("pathA"),
@@ -636,12 +589,6 @@ public abstract class BaseNodeServiceTest extends BaseSpringTest
 
     public void testCreateWithTooLongPathLocalname() throws Exception
     {
-        // See REPO-2963
-        if (skipTest())
-        {
-            return;
-        }
-
         try
         {
             ChildAssociationRef assocRef = nodeService.createNode(rootNodeRef, ASSOC_TYPE_QNAME_TEST_CHILDREN,
@@ -663,12 +610,6 @@ public abstract class BaseNodeServiceTest extends BaseSpringTest
      */
     public void testCreateNodeWithId() throws Exception
     {
-        // See REPO-2963
-        if (skipTest())
-        {
-            return;
-        }
-
         String uuid = GUID.generate();
         // create a node with an explicit UUID
         Map<QName, Serializable> properties = new HashMap<QName, Serializable>(5);
@@ -687,12 +628,6 @@ public abstract class BaseNodeServiceTest extends BaseSpringTest
 
     public void testGetType() throws Exception
     {
-        // See REPO-2963
-        if (skipTest())
-        {
-            return;
-        }
-
         ChildAssociationRef assocRef = nodeService.createNode(
                 rootNodeRef,
                 ASSOC_TYPE_QNAME_TEST_CHILDREN,
@@ -706,12 +641,6 @@ public abstract class BaseNodeServiceTest extends BaseSpringTest
     
     public void testSetType() throws Exception
     {
-        // See REPO-2963
-        if (skipTest())
-        {
-            return;
-        }
-
         NodeRef nodeRef = nodeService.createNode(
                 rootNodeRef,
                 ASSOC_TYPE_QNAME_TEST_CHILDREN,
@@ -788,12 +717,6 @@ public abstract class BaseNodeServiceTest extends BaseSpringTest
      */
     public void testAspects() throws Exception
     {
-        // See REPO-2963
-        if (skipTest())
-        {
-            return;
-        }
-
         // create a regular base node
         ChildAssociationRef assocRef = nodeService.createNode(
                 rootNodeRef,
@@ -840,12 +763,6 @@ public abstract class BaseNodeServiceTest extends BaseSpringTest
     
     public void testAspectsAddedAutomatically() throws Exception
     {
-        // See REPO-2963
-        if (skipTest())
-        {
-            return;
-        }
-
         // Add the test:titled properties
         Map<QName, Serializable> properties = new HashMap<QName, Serializable>(20);
         fillProperties(BaseNodeServiceTest.ASPECT_QNAME_TEST_TITLED, properties);
@@ -917,12 +834,6 @@ public abstract class BaseNodeServiceTest extends BaseSpringTest
     
     public void testAspectRemoval() throws Exception
     {
-        // See REPO-2963
-        if (skipTest())
-        {
-            return;
-        }
-
         // Create a node to add the aspect to
         NodeRef sourceNodeRef = nodeService.createNode(
                 rootNodeRef,
@@ -986,12 +897,6 @@ public abstract class BaseNodeServiceTest extends BaseSpringTest
      */
     public void testAspectRemovalCascadeDelete() throws Exception
     {
-        // See REPO-2963
-        if (skipTest())
-        {
-            return;
-        }
-
         // Create a node to add the aspect to
         NodeRef sourceNodeRef = nodeService.createNode(
                 rootNodeRef,
@@ -1023,12 +928,6 @@ public abstract class BaseNodeServiceTest extends BaseSpringTest
     private static final QName PROP_QNAME_TEST_RENDITION_PAGE_CONTENT = QName.createQName(NAMESPACE, "rendition-page-content");
     public void testAspectWithChildAssociationsCreationAndRetrieval() throws Exception
     {
-        // See REPO-2963
-        if (skipTest())
-        {
-            return;
-        }
-
         // Create a folder.  This is like the user's home folder, say.
         NodeRef folderNodeRef = nodeService.createNode(
                 rootNodeRef,
@@ -1114,12 +1013,6 @@ public abstract class BaseNodeServiceTest extends BaseSpringTest
     
     public void testCreateNodeNoProperties() throws Exception
     {
-        // See REPO-2963
-        if (skipTest())
-        {
-            return;
-        }
-
         // flush to ensure that the pure JDBC query will work
         ChildAssociationRef assocRef = nodeService.createNode(rootNodeRef,
                 ASSOC_TYPE_QNAME_TEST_CHILDREN,
@@ -1131,12 +1024,6 @@ public abstract class BaseNodeServiceTest extends BaseSpringTest
     
     public void testLargeStrings() throws Exception
     {
-        // See REPO-2963
-        if (skipTest())
-        {
-            return;
-        }
-
         StringBuilder sb = new StringBuilder(2056);
         for (int i = 0; i < 1024; i++)
         {
@@ -1175,12 +1062,6 @@ public abstract class BaseNodeServiceTest extends BaseSpringTest
      */
     public void testCreateNodeWithProperties() throws Exception
     {
-        // See REPO-2963
-        if (skipTest())
-        {
-            return;
-        }
-
         Map<QName, Serializable> properties = new HashMap<QName, Serializable>(5);
         // fill properties
         fillProperties(TYPE_QNAME_TEST_CONTENT, properties);
@@ -1201,12 +1082,6 @@ public abstract class BaseNodeServiceTest extends BaseSpringTest
     
     public void testCascadeDelete() throws Exception
     {
-        // See REPO-2963
-        if (skipTest())
-        {
-            return;
-        }
-
         // build the node and commit the node graph
         Map<QName, ChildAssociationRef> assocRefs = buildNodeGraph(nodeService, rootNodeRef);
         NodeRef n3Ref = assocRefs.get(QName.createQName(BaseNodeServiceTest.NAMESPACE, "n1_p_n3")).getChildRef();
@@ -1329,12 +1204,6 @@ public abstract class BaseNodeServiceTest extends BaseSpringTest
     
     public void testDelete() throws Exception
     {
-        // See REPO-2963
-        if (skipTest())
-        {
-            return;
-        }
-
         final List<NodeRef> beforeDeleteNodeRefs = new ArrayList<NodeRef>(5);
         final List<NodeRef> deletedNodeRefs = new ArrayList<NodeRef>(5);
         
@@ -1396,12 +1265,6 @@ public abstract class BaseNodeServiceTest extends BaseSpringTest
      */
     public void testDeleteWithBadlyBehavedOnDeletePolicies() throws Exception
     {
-        // See REPO-2963
-        if (skipTest())
-        {
-            return;
-        }
-
         final List<NodeRef> beforeDeleteNodeRefs = new ArrayList<NodeRef>(5);
         final List<NodeRef> deletedNodeRefs = new ArrayList<NodeRef>(5);
         BadOnDeleteNodePolicy nasty = new BadOnDeleteNodePolicy(nodeService, beforeDeleteNodeRefs, deletedNodeRefs);
@@ -1462,12 +1325,6 @@ public abstract class BaseNodeServiceTest extends BaseSpringTest
      */
     public void testDeleteWithBadlyBehavedBeforeDeletePolicies() throws Exception
     {
-        // See REPO-2963
-        if (skipTest())
-        {
-            return;
-        }
-
         final List<NodeRef> beforeDeleteNodeRefs = new ArrayList<NodeRef>(5);
         final List<NodeRef> deletedNodeRefs = new ArrayList<NodeRef>(5);
         BadOnDeleteNodePolicy nasty = new BadOnDeleteNodePolicy(nodeService, beforeDeleteNodeRefs, deletedNodeRefs);
@@ -1524,12 +1381,6 @@ public abstract class BaseNodeServiceTest extends BaseSpringTest
     
     public void testAddBogusChild() throws Exception
     {
-        // See REPO-2963
-        if (skipTest())
-        {
-            return;
-        }
-
         // create a bogus reference
         NodeRef bogusChildRef = new NodeRef(rootNodeRef.getStoreRef(), "BOGUS");
         try
@@ -1545,12 +1396,6 @@ public abstract class BaseNodeServiceTest extends BaseSpringTest
     
     public void testAddChild() throws Exception
     {
-        // See REPO-2963
-        if (skipTest())
-        {
-            return;
-        }
-
         NodeRef childNodeRef1 = nodeService.createNode(
                 rootNodeRef,
                 ASSOC_TYPE_QNAME_TEST_CHILDREN,
@@ -1593,12 +1438,6 @@ public abstract class BaseNodeServiceTest extends BaseSpringTest
 
     public void testRemoveSpecificChild() throws Exception
     {
-        // See REPO-2963
-        if (skipTest())
-        {
-            return;
-        }
-
         ChildAssociationRef pathPrimaryRef = nodeService.createNode(
                 rootNodeRef,
                 ASSOC_TYPE_QNAME_TEST_CHILDREN,
@@ -1647,12 +1486,6 @@ public abstract class BaseNodeServiceTest extends BaseSpringTest
 
     public void testRemoveChildPolicyFires() throws Exception
     {
-        // See REPO-2963
-        if (skipTest())
-        {
-            return;
-        }
-
         ChildAssociationRef pathPrimaryRef = nodeService.createNode(
                 rootNodeRef,
                 ASSOC_TYPE_QNAME_TEST_CHILDREN,
@@ -1692,12 +1525,6 @@ public abstract class BaseNodeServiceTest extends BaseSpringTest
     
     public void testRemoveChildByRef() throws Exception
     {
-        // See REPO-2963
-        if (skipTest())
-        {
-            return;
-        }
-
         NodeRef parentRef = nodeService.createNode(
                 rootNodeRef,
                 ASSOC_TYPE_QNAME_TEST_CHILDREN,
@@ -1732,12 +1559,6 @@ public abstract class BaseNodeServiceTest extends BaseSpringTest
     
     public void testProperties() throws Exception
     {
-        // See REPO-2963
-        if (skipTest())
-        {
-            return;
-        }
-
         // create a node to play with
         ChildAssociationRef assocRef = nodeService.createNode(
                 rootNodeRef,
@@ -1813,12 +1634,6 @@ public abstract class BaseNodeServiceTest extends BaseSpringTest
     
     public void testAddProperties() throws Exception
     {
-        // See REPO-2963
-        if (skipTest())
-        {
-            return;
-        }
-
         Map<QName, Serializable> properties = nodeService.getProperties(rootNodeRef);
         // Add an aspect with a default value
         nodeService.addAspect(rootNodeRef, ASPECT_QNAME_TEST_TITLED, null);
