@@ -32,7 +32,7 @@
     <properties>
         <licenseName>community</licenseName>
 
-        <index.subsystem.name>buildonly</index.subsystem.name>
+        <index.subsystem.name>noindex</index.subsystem.name>
         <dir.root>${project.build.directory}/alf_data</dir.root>
         <img.exe>convert</img.exe>
 
