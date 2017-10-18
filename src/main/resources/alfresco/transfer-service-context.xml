@@ -127,6 +127,7 @@
 		<property name="behaviourFilter" ref="policyBehaviourFilter" />
 		<property name="progressMonitor" ref="transferProgressMonitor" />
 		<property name="policyComponent" ref="policyComponent" />
+		<property name="namespaceService" ref="namespaceService" />
 	</bean>
 
 	<bean id="transferProgressMonitor"
