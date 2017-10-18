@@ -170,8 +170,6 @@ import org.junit.runners.Suite;
     org.alfresco.repo.domain.propval.PropertyTypeConverterTest.class,
     org.alfresco.repo.search.MLAnaysisModeExpansionTest.class,
     org.alfresco.repo.search.DocumentNavigatorTest.class,
-    org.alfresco.repo.search.impl.lucene.MultiReaderTest.class,
-    org.alfresco.repo.search.impl.lucene.index.IndexInfoTest.class,
     org.alfresco.util.NumericEncodingTest.class,
     org.alfresco.repo.search.impl.parsers.CMIS_FTSTest.class,
     org.alfresco.repo.search.impl.parsers.CMISTest.class,
