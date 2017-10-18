@@ -70,7 +70,6 @@ import org.junit.runners.Suite;
     org.alfresco.repo.thumbnail.conditions.NodeEligibleForRethumbnailingEvaluatorTest.class,
     org.alfresco.repo.transaction.ConnectionPoolOverloadTest.class,
     org.alfresco.repo.action.scheduled.CronScheduledQueryBasedTemplateActionDefinitionTest.class,
-    org.alfresco.repo.node.index.MissingContentReindexComponentTest.class,
     org.alfresco.repo.node.integrity.IncompleteNodeTaggerTest.class,
     org.alfresco.repo.node.integrity.IntegrityTest.class,
     org.alfresco.repo.policy.PolicyComponentTransactionTest.class,
@@ -92,8 +91,6 @@ import org.junit.runners.Suite;
     org.alfresco.util.schemacomp.SchemaReferenceFileTest.class,
     org.alfresco.repo.module.ModuleComponentHelperTest.class,
     org.alfresco.repo.node.getchildren.GetChildrenCannedQueryTest.class,
-    org.alfresco.repo.node.index.FullIndexRecoveryComponentTest.class,
-    org.alfresco.repo.node.index.IndexTransactionTrackerTest.class,
     org.alfresco.util.CronTriggerBeanSystemTest.class,
     org.alfresco.filesys.auth.cifs.CifsAuthenticatorPassthruTest.class,
 
