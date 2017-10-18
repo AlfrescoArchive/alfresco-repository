@@ -30,8 +30,6 @@ import junit.framework.TestSuite;
 
 import org.alfresco.repo.search.impl.lucene.ADMLuceneCategoryTest;
 import org.alfresco.repo.search.impl.lucene.ADMLuceneTest;
-import org.alfresco.repo.search.impl.lucene.ALF947Test;
-import org.alfresco.repo.search.impl.lucene.LuceneIndexBackupComponentTest;
 import org.alfresco.repo.search.impl.lucene.MultiReaderTest;
 import org.alfresco.repo.search.impl.lucene.index.IndexInfoTest;
 import org.alfresco.repo.search.impl.parsers.CMISTest;
@@ -61,8 +59,6 @@ public class SearchTestSuite extends TestSuite
         suite.addTestSuite(DocumentNavigatorTest.class);
         suite.addTestSuite(ADMLuceneCategoryTest.class);
         suite.addTestSuite(ADMLuceneTest.class);
-        suite.addTestSuite(ALF947Test.class);
-        suite.addTestSuite(LuceneIndexBackupComponentTest.class);
         suite.addTestSuite(MultiReaderTest.class);
         suite.addTestSuite(NumericEncodingTest.class);
         suite.addTestSuite(IndexInfoTest.class);

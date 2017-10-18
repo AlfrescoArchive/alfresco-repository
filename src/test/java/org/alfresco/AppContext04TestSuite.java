@@ -64,8 +64,6 @@ import org.junit.runners.Suite;
     org.alfresco.repo.template.XSLTProcessorTest.class,
     org.alfresco.repo.search.QueryRegisterComponentTest.class,
     org.alfresco.repo.search.SearchServiceTest.class,
-    org.alfresco.repo.search.impl.lucene.ALF947Test.class,
-    org.alfresco.repo.search.impl.lucene.LuceneIndexBackupComponentTest.class,
     org.alfresco.repo.tagging.UpdateTagScopesActionExecuterTest.class,
     org.alfresco.repo.thumbnail.conditions.NodeEligibleForRethumbnailingEvaluatorTest.class,
     org.alfresco.repo.transaction.ConnectionPoolOverloadTest.class,
