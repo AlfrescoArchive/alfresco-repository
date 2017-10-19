@@ -41,12 +41,14 @@ import org.alfresco.service.cmr.repository.StoreRef;
 import org.alfresco.service.cmr.search.ResultSet;
 import org.alfresco.service.cmr.search.SearchParameters;
 import org.alfresco.util.testing.category.LuceneTests;
+import org.alfresco.util.testing.category.RedundantTests;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 
 @Category(LuceneTests.class)
 public class ApplyTemplateMethodTest extends VirtualizationIntegrationTest
 {
+    @Category(RedundantTests.class)
     @Test
     public void testExecute_vanillaISO9075ActualPath() throws Exception
     {
