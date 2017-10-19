@@ -167,6 +167,7 @@
             <ref bean="global-properties" />
         </property>
         <property name="fileFolderService" ref="FileFolderService"/>
+		<property name="namespaceService" ref="namespaceService" />
 	</bean>
 
 	<bean id="transferNodeResolverFactory"
