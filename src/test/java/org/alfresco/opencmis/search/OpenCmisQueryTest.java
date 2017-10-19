@@ -256,9 +256,6 @@ public class OpenCmisQueryTest extends BaseCMISTest
         cmisConnector.setStore(storeRef.toString());
         cmisConnector.setRootPath("/");
 
-        // If FTS kicks in at the wrong moment, it can skew the test results. Temporarily disable it during the test
-        this.luceneFTS.pause();
-
         DataTypeDefinition dataType = dictionaryService.getDataType(DataTypeDefinition.DATETIME);
         String analyserClassName = dataType.resolveAnalyserClassName();
         usesDateTimeAnalyser = analyserClassName.equals(DateTimeAnalyser.class.getCanonicalName());
@@ -523,7 +520,6 @@ public class OpenCmisQueryTest extends BaseCMISTest
         {
             authenticationService.deleteAuthentication("cmis");
         }
-        this.luceneFTS.resume();
 
         AuthenticationUtil.clearCurrentSecurityContext();
     }
