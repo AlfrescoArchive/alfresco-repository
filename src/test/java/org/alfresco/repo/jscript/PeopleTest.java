@@ -277,7 +277,7 @@ public class PeopleTest extends TestCase
      * <br />
      * This test is also valid for SOLR1 and SOLR4!
      */
-    @Category({RedundantTests.class}) // This test is checking that canned queries and Solr searches return the same. We no longer test SOLR.
+    @Category(RedundantTests.class) // This test is checking that canned queries and Solr searches return the same. We no longer test SOLR.
     public void testGetPeopleByPatternIndexedAndCQ() throws Exception
     {
         ScriptPagingDetails paging = new ScriptPagingDetails(0, 0);
