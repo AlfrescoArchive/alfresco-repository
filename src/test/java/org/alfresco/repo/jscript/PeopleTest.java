@@ -40,7 +40,6 @@ import org.alfresco.test_category.OwnJVMTestsCategory;
 import org.alfresco.util.ApplicationContextHelper;
 import org.alfresco.util.PropertyMap;
 import org.alfresco.util.ScriptPagingDetails;
-import org.alfresco.util.testing.category.LuceneTests;
 import org.alfresco.util.testing.category.RedundantTests;
 import org.junit.experimental.categories.Category;
 import org.mockito.ArgumentCaptor;
@@ -68,14 +67,11 @@ import static org.mockito.Mockito.when;
 
 /**
  * Unit tests for {@link org.alfresco.repo.jscript.People}
- * <p>
- * Note that this class currently works with Lucene only. In other words, it
- * won't work with Solr.
- * 
+ *
  * @author Jamal Kaabi-Mofrad
  * @since 4.2
  */
-@Category({OwnJVMTestsCategory.class, LuceneTests.class})
+@Category({OwnJVMTestsCategory.class})
 public class PeopleTest extends TestCase
 {
     private static final String SIMPLE_FILTER = "a";
