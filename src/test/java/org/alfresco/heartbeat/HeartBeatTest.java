@@ -25,19 +25,37 @@
  */
 package org.alfresco.heartbeat;
 
+import org.alfresco.repo.lock.JobLockService;
+import org.alfresco.repo.lock.LockAcquisitionException;
 import org.alfresco.service.cmr.repository.HBDataCollectorService;
 import org.alfresco.service.license.LicenseDescriptor;
 import org.alfresco.service.license.LicenseService;
+import org.alfresco.service.namespace.QName;
+import org.apache.log4j.AppenderSkeleton;
+import org.apache.log4j.Level;
+import org.apache.log4j.Logger;
+import org.apache.log4j.spi.LoggingEvent;
 import org.junit.Before;
 import org.junit.Test;
+import org.quartz.JobDataMap;
+import org.quartz.JobDetail;
+import org.quartz.JobExecutionContext;
 import org.quartz.Scheduler;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
+
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
+
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Matchers.anyLong;
+import static org.mockito.Matchers.isA;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -53,6 +71,7 @@ public class HeartBeatTest
     private ApplicationContext context;
 
     LicenseService mockLicenseService;
+    JobLockService mockJobLockService;
     HBDataCollectorService mockDataCollectorService;
 
     @Before
@@ -63,13 +82,88 @@ public class HeartBeatTest
 
         // Add services to context
         mockLicenseService = mock(LicenseService.class);
+        mockJobLockService = mock(JobLockService.class);
         mockDataCollectorService = mock(HBDataCollectorService.class);
+
         ((ConfigurableApplicationContext) context).getBeanFactory().registerSingleton("licenseService",mockLicenseService);
+        ((ConfigurableApplicationContext) context).getBeanFactory().registerSingleton("jobLockService",mockJobLockService);
         ((ConfigurableApplicationContext) context).getBeanFactory().registerSingleton("hbDataCollectorService",mockDataCollectorService);
     }
 
+    private class LogAppender extends AppenderSkeleton
+    {
+
+        private final List<LoggingEvent> log = new ArrayList<LoggingEvent>();
+
+        @Override
+        public boolean requiresLayout()
+        {
+            return false;
+        }
+
+        @Override
+        protected void append(final LoggingEvent loggingEvent)
+        {
+            log.add(loggingEvent);
+        }
+
+        @Override
+        public void close()
+        {
+        }
+
+        public List<LoggingEvent> getLog()
+        {
+            return new ArrayList<LoggingEvent>(log);
+        }
+    }
+
     @Test
-    public void testHBRegistersWithLicenceService()
+    public void testInCluster() throws Exception
+    {
+        // Enable heartbeat in data collector service ( as if set in prop file)
+        when(mockDataCollectorService.isEnabledByDefault()).thenReturn(true);
+
+        // initialise heartBeat with static jobLockService
+        HeartBeat heartBeat = new HeartBeat(context, true);
+
+        // mock the job context
+        JobExecutionContext mockJobExecutionContext = mock(JobExecutionContext.class);
+        JobDetail mockJobDetail = mock(JobDetail.class);
+        when(mockJobExecutionContext.getJobDetail()).thenReturn(mockJobDetail);
+
+        JobDataMap jobDataMap = new JobDataMap();
+        jobDataMap.put("heartBeat", heartBeat);
+        when(mockJobDetail.getJobDataMap()).thenReturn(jobDataMap);
+
+        // scenario 1:
+        // collector job is not locked from an other collector
+        HeartBeat.HeartBeatJob hbjob = new HeartBeat.HeartBeatJob();
+        hbjob.execute(mockJobExecutionContext);
+        verify(mockDataCollectorService, times(1)).collectAndSendData();
+
+        // scenario 2:
+        // collector job is locked from an other collector and will throw the lock exception
+        when(mockJobLockService.getLock(isA(QName.class),anyLong())).thenThrow(new LockAcquisitionException("", ""));
+
+        // additional we check the log output
+        Logger.getLogger(HeartBeat.class).setLevel(Level.DEBUG);
+        // Add the log appender to the root logger
+        LogAppender logAppender = new LogAppender();
+        Logger.getRootLogger().addAppender(logAppender);
+
+        hbjob = new HeartBeat.HeartBeatJob();
+        hbjob.execute(mockJobExecutionContext);
+        // we still have the one call from scenario 1
+        verify(mockDataCollectorService, times(1)).collectAndSendData();
+
+        assertEquals(1, logAppender.getLog().size());
+        String debugMsg = (String) logAppender.getLog().get(0).getMessage();
+        assertTrue("Debug message didn't contains 'Skipping': " + debugMsg, debugMsg.contains("Skipping"));
+    }
+
+    @Test
+    public void testHBRegistersWithLicenceService() throws Exception
     {
         HeartBeat heartbeat = new HeartBeat(context,false);
 

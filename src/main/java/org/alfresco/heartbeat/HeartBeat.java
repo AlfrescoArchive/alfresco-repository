@@ -25,14 +25,19 @@
  */
 package org.alfresco.heartbeat;
 
-import java.util.Date;
+import java.text.ParseException;
 
+import org.alfresco.repo.lock.JobLockService;
+import org.alfresco.repo.lock.LockAcquisitionException;
 import org.alfresco.service.cmr.repository.HBDataCollectorService;
 import org.alfresco.service.license.LicenseDescriptor;
 import org.alfresco.service.license.LicenseService;
 import org.alfresco.service.license.LicenseService.LicenseChangeHandler;
+import org.alfresco.service.namespace.NamespaceService;
+import org.alfresco.service.namespace.QName;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.quartz.CronTrigger;
 import org.quartz.Job;
 import org.quartz.JobDataMap;
 import org.quartz.JobDetail;
@@ -40,8 +45,6 @@ import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
 import org.quartz.Scheduler;
 import org.quartz.SchedulerException;
-import org.quartz.SimpleTrigger;
-import org.quartz.Trigger;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.context.ApplicationContext;
 
@@ -58,12 +61,16 @@ public class HeartBeat implements LicenseChangeHandler
     private static final Log logger = LogFactory.getLog(HeartBeat.class);
 
     private LicenseService licenseService;
+    private static JobLockService jobLockService;
 
     private Scheduler scheduler;
 
     private boolean testMode = true;
 
-    private final String JOB_NAME = "heartbeat";
+    private static final String JOB_NAME = "heartbeat";
+    private static final int interval = 2; // every 2 minutes collecting data
+    private static final long LOCK_TTL = 30000L;  // lock live for 30 seconds
+    private static final QName LOCK_QNAME = QName.createQName(NamespaceService.SYSTEM_MODEL_1_0_URI, JOB_NAME);
 
     private HBDataCollectorService dataCollectorService;
 
@@ -120,7 +127,18 @@ public class HeartBeat implements LicenseChangeHandler
             }
             this.licenseService = licenseService;
 
-            // We force the job to be scheduled regardless of the potential state of the licenses
+            JobLockService jobLockService = null;
+            try
+            {
+                jobLockService = (JobLockService) context.getBean("jobLockService");
+            }
+            catch (NoSuchBeanDefinitionException e)
+            {
+                logger.error("jobLockService not found", e);
+            }
+            this.jobLockService = jobLockService;
+
+            // We force the job to be scheduled regardless of the potential state of the services
             scheduleJob();
         }
         catch (final RuntimeException e)
@@ -225,10 +243,21 @@ public class HeartBeat implements LicenseChangeHandler
             
             // Ensure the job wasn't already scheduled in an earlier retry of this transaction
             scheduler.unscheduleJob(triggerName, Scheduler.DEFAULT_GROUP);
-            final Trigger trigger = new SimpleTrigger(triggerName, Scheduler.DEFAULT_GROUP, new Date(), null,
-                    //SimpleTrigger.REPEAT_INDEFINITELY, testMode ? 1000 : 4 * 60 * 60 * 1000);
-                    SimpleTrigger.REPEAT_INDEFINITELY, testMode ? 1000 : 2 * 60 * 1000);
-            scheduler.scheduleJob(jobDetail, trigger);
+
+            String cronExpression = "0 " + interval + " * * * ?";
+            CronTrigger cronTrigger = null;
+            try
+            {
+                cronTrigger = new CronTrigger(triggerName , Scheduler.DEFAULT_GROUP, cronExpression);
+            }
+            catch (ParseException e)
+            {
+                if (logger.isDebugEnabled())
+                {
+                    logger.debug("Invalid cron expression " + cronExpression);
+                }
+            }
+            scheduler.scheduleJob(jobDetail, cronTrigger);
         }
         else
         {
@@ -246,6 +275,38 @@ public class HeartBeat implements LicenseChangeHandler
     public static class HeartBeatJob implements Job
     {
         public void execute(final JobExecutionContext jobexecutioncontext) throws JobExecutionException
+        {
+            String lockToken = null;
+            try
+            {
+                // Get a lock
+                lockToken = jobLockService.getLock(LOCK_QNAME, LOCK_TTL);
+                collectAndSendDataLocked(jobexecutioncontext);
+            }
+            catch (LockAcquisitionException e)
+            {
+                if (logger.isDebugEnabled())
+                {
+                    logger.debug("Skipping collect and send data (could not get lock): " + e.getMessage());
+                }
+            }
+            finally
+            {
+                if (lockToken != null)
+                {
+                    try
+                    {
+                        jobLockService.releaseLock(lockToken, LOCK_QNAME);
+                    }
+                    catch (LockAcquisitionException e)
+                    {
+                        // Ignore
+                    }
+                }
+            }
+        }
+
+        private void collectAndSendDataLocked(final JobExecutionContext jobexecutioncontext) throws JobExecutionException
         {
             final JobDataMap dataMap = jobexecutioncontext.getJobDetail().getJobDataMap();
             final HeartBeat heartBeat = (HeartBeat) dataMap.get("heartBeat");
