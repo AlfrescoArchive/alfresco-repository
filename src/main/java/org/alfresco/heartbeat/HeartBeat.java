@@ -68,7 +68,7 @@ public class HeartBeat implements LicenseChangeHandler
     private boolean testMode = true;
 
     private static final String JOB_NAME = "heartbeat";
-    private static final int interval = 2; // every 2 minutes collecting data
+    private static final int JOB_INTERVAL = 2; // every 2 minutes collecting data
     private static final long LOCK_TTL = 30000L;  // lock live for 30 seconds
     private static final QName LOCK_QNAME = QName.createQName(NamespaceService.SYSTEM_MODEL_1_0_URI, JOB_NAME);
 
@@ -244,7 +244,7 @@ public class HeartBeat implements LicenseChangeHandler
             // Ensure the job wasn't already scheduled in an earlier retry of this transaction
             scheduler.unscheduleJob(triggerName, Scheduler.DEFAULT_GROUP);
 
-            String cronExpression = "0 " + interval + " * * * ?";
+            String cronExpression = "0 " + JOB_INTERVAL + " * * * ?";
             CronTrigger cronTrigger = null;
             try
             {
