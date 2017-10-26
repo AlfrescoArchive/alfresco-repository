@@ -28,9 +28,11 @@ package org.alfresco.heartbeat;
 import java.text.ParseException;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.alfresco.heartbeat.datasender.HBData;
 import org.alfresco.heartbeat.datasender.HBDataSenderService;
+import org.alfresco.repo.content.cleanup.ContentStoreCleaner;
 import org.alfresco.repo.lock.JobLockService;
 import org.alfresco.repo.lock.LockAcquisitionException;
 import org.alfresco.service.cmr.repository.HBDataCollectorService;
@@ -184,7 +186,7 @@ public class HBDataCollectorServiceImpl implements HBDataCollectorService, Licen
         {
             for(HBBaseDataCollector collector : collectors)
             {
-                collectAndSendData(collector);
+                scheduleCollector(collector);
             }
         }
         catch (Exception e)
@@ -281,8 +283,9 @@ public class HBDataCollectorServiceImpl implements HBDataCollectorService, Licen
             String lockToken = null;
             try
             {
-                // Get a lock
-                lockToken = jobLockService.getLock(qName, LOCK_TTL);
+                // Get a dynamic lock
+                LockCallback lockCallback = new LockCallback(qName);
+                lockToken = acquireLock(lockCallback, qName);
                 collectAndSendDataLocked(jobexecutioncontext);
             }
             catch (LockAcquisitionException e)
@@ -329,6 +332,49 @@ public class HBDataCollectorServiceImpl implements HBDataCollectorService, Licen
                     logger.warn(e.toString());
                     throw new JobExecutionException(e);
                 }
+            }
+        }
+    }
+
+    private String acquireLock(JobLockService.JobLockRefreshCallback lockCallback, QName lockQname)
+    {
+        // Get lock
+        String lockToken = jobLockService.getLock(lockQname, LOCK_TTL);
+
+        // Register the refresh callback which will keep the lock alive
+        jobLockService.refreshLock(lockToken, lockQname, LOCK_TTL, lockCallback);
+
+        if (logger.isDebugEnabled())
+        {
+            logger.debug("lock acquired: " + lockQname + ": " + lockToken);
+        }
+
+        return lockToken;
+    }
+
+    private class LockCallback implements JobLockService.JobLockRefreshCallback
+    {
+        final AtomicBoolean running = new AtomicBoolean(true);
+        private QName lockQname;
+
+        public LockCallback(QName lockQname)
+        {
+            this.lockQname = lockQname;
+        }
+
+        @Override
+        public boolean isActive()
+        {
+            return running.get();
+        }
+
+        @Override
+        public void lockReleased()
+        {
+            running.set(false);
+            if (logger.isDebugEnabled())
+            {
+                logger.debug("Lock release notification: " + lockQname);
             }
         }
     }
