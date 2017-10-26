@@ -60,7 +60,6 @@ public class HBDataCollectorServiceImpl implements HBDataCollectorService, Licen
     /** The service responsible for sending the collected data */
     private HBDataSenderService hbDataSenderService;
     private JobLockService jobLockService;
-    private LicenseService licenseService;
 
     /** The default enable state */
     private final boolean defaultHbState;
@@ -83,7 +82,6 @@ public class HBDataCollectorServiceImpl implements HBDataCollectorService, Licen
     public HBDataCollectorServiceImpl (boolean defaultHeartBeatState)
     {
         this.defaultHbState = defaultHeartBeatState;
-        licenseService.registerOnLicenseChange(this);
     }
 
     public void setHbDataSenderService(HBDataSenderService hbDataSenderService)
@@ -94,11 +92,6 @@ public class HBDataCollectorServiceImpl implements HBDataCollectorService, Licen
     public void setJobLockService(JobLockService jobLockService)
     {
         this.jobLockService = jobLockService;
-    }
-
-    public void setLicenseService(LicenseService licenseService)
-    {
-        this.licenseService = licenseService;
     }
 
     public void setScheduler(Scheduler scheduler)
