@@ -23,7 +23,7 @@
 
     <!-- HeartBeat abstract data collector -->
     <bean id="hbBaseDataCollector" class="org.alfresco.heartbeat.HBBaseDataCollector" abstract="true">
-        <property name="cronExpression" value="0 60 * * * ?"/> <!-- every hour -->
+        <property name="cronExpression" value="0 0 0/1 * * ?"/> <!-- every hour -->
         <property name="hbDataCollectorService" ref="hbDataCollectorService"/>
     </bean>
 
