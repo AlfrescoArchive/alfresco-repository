@@ -37,6 +37,7 @@ import org.alfresco.repo.usage.RepoUsageComponent;
 import org.alfresco.service.cmr.admin.RepoUsage;
 import org.alfresco.service.cmr.admin.RepoUsage.LicenseMode;
 import org.alfresco.service.cmr.admin.RepoUsage.UsageType;
+import org.alfresco.service.cmr.repository.HBDataCollectorService;
 import org.alfresco.service.descriptor.Descriptor;
 import org.alfresco.service.descriptor.DescriptorService;
 import org.alfresco.service.license.LicenseDescriptor;
@@ -68,6 +69,7 @@ public class DescriptorServiceImpl extends AbstractLifecycleBean
     private TransactionService transactionService;
     private LicenseService licenseService;
     private RepoUsageComponent repoUsageComponent;
+    private HBDataCollectorService hbDataCollectorService;
     @SuppressWarnings("unused")
     private Object heartBeat;
     
@@ -125,6 +127,11 @@ public class DescriptorServiceImpl extends AbstractLifecycleBean
     public void setTransactionService(TransactionService transactionService)
     {
         this.transactionService = transactionService;
+    }
+
+    public void setHbDataCollectorService(HBDataCollectorService hbDataCollectorService)
+    {
+        this.hbDataCollectorService = hbDataCollectorService;
     }
 
     public void setRepoUsageComponent(RepoUsageComponent repoUsageComponent)
@@ -306,7 +313,7 @@ public class DescriptorServiceImpl extends AbstractLifecycleBean
 
         // Load heart-beat special service (even if disabled at the moment)
         heartBeat = constructSpecialService("org.alfresco.heartbeat.HeartBeat");
-        
+
         // Now listen for future license changes
         licenseService.registerOnLicenseChange(this);
         

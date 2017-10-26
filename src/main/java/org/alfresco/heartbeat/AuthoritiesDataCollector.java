@@ -54,6 +54,11 @@ public class AuthoritiesDataCollector extends HBBaseDataCollector
     /** The authority service. */
     private AuthorityService authorityService;
 
+    public AuthoritiesDataCollector(String collectorId)
+    {
+        super(collectorId);
+    }
+
     public void setCurrentRepoDescriptorDAO(DescriptorDAO currentRepoDescriptorDAO)
     {
         this.currentRepoDescriptorDAO = currentRepoDescriptorDAO;

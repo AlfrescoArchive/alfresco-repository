@@ -115,7 +115,8 @@ public class HBDataCollectorServiceImplTest
 
         public DummyCollector (HBData testData)
         {
-         this.data = testData;
+            super("dummy.collector.id");
+            this.data = testData;
         }
 
         @Override

@@ -86,6 +86,11 @@ public class RepositoryDataCollector extends HBBaseDataCollector
     /** Provides information about custom models */
     private CustomModelService customModelService;
 
+    public RepositoryDataCollector(String collectorId)
+    {
+        super(collectorId);
+    }
+
     public void setCurrentRepoDescriptorDAO(DescriptorDAO currentRepoDescriptorDAO) 
     {
         this.currentRepoDescriptorDAO = currentRepoDescriptorDAO;

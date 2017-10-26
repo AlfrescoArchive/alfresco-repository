@@ -69,7 +69,7 @@ public class RepositoryDataCollectorTest
         CustomModelService customModelService = mock(CustomModelService.class);
         when(customModelService.getCustomModelsInfo()).thenReturn(mockCustomModelsInfo);
 
-        repoCollector = new RepositoryDataCollector();
+        repoCollector = new RepositoryDataCollector("");
         repoCollector.setCurrentRepoDescriptorDAO(descriptorDAO);
         repoCollector.setCustomModelService(customModelService);
         repoCollector.setServerDescriptorDAO(descriptorDAO);

@@ -161,10 +161,10 @@ public class HeartBeat implements LicenseChangeHandler
      *  Delegates data collection and sending to HBDataCollectorService.
      *
      */
-    public void collectAndSendData()
-    {
-        this.dataCollectorService.collectAndSendData();
-    }
+//    public void collectAndSendData()
+//    {
+//        this.dataCollectorService.collectAndSendData();
+//    }
 
     /**
      * Listens for license changes.  If a license is change or removed, the heartbeat job is rescheduled.
@@ -240,7 +240,7 @@ public class HeartBeat implements LicenseChangeHandler
             }
             final JobDetail jobDetail = new JobDetail(JOB_NAME, Scheduler.DEFAULT_GROUP, HeartBeatJob.class);
             jobDetail.getJobDataMap().put("heartBeat", this);
-            
+
             // Ensure the job wasn't already scheduled in an earlier retry of this transaction
             scheduler.unscheduleJob(triggerName, Scheduler.DEFAULT_GROUP);
 
@@ -312,7 +312,7 @@ public class HeartBeat implements LicenseChangeHandler
             final HeartBeat heartBeat = (HeartBeat) dataMap.get("heartBeat");
             try
             {
-                heartBeat.collectAndSendData();
+//                heartBeat.collectAndSendData();
             }
             catch (final Exception e)
             {

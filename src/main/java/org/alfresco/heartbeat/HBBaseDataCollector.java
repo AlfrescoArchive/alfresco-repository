@@ -38,7 +38,31 @@ import org.alfresco.service.cmr.repository.HBDataCollectorService;
  */
 public abstract class HBBaseDataCollector
 {
+    private String collectorId;
+    private static String DEFAULT_INTERVAL_MIN = "60";
+    private String cronExpression = "0 " + DEFAULT_INTERVAL_MIN + " * * * ?";
+
     private HBDataCollectorService hbDataCollectorService;
+
+    public HBBaseDataCollector(String collectorId)
+    {
+        this.collectorId = collectorId;
+    }
+
+    public String getCollectorId()
+    {
+        return collectorId;
+    }
+
+    public void setCronExpression(String cronExpression)
+    {
+        this.cronExpression = cronExpression;
+    }
+
+    public String getCronExpression()
+    {
+        return this.cronExpression;
+    }
 
     /**
      * This method will register this collector with the provided {@link HBDataCollectorService}
