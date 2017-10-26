@@ -143,7 +143,7 @@ import org.junit.runners.Suite;
     org.alfresco.repo.virtual.ref.StoredPathHasherTest.class,
 
     org.alfresco.repo.virtual.template.VirtualQueryImplTest.class,
-    org.alfresco.repo.virtual.store.TypeVirtualizationMethodTest.Unit.class,
+    org.alfresco.repo.virtual.store.TypeVirtualizationMethodUnitTest.class,
 
     org.alfresco.repo.security.authentication.AuthenticationServiceImplTest.class,
     org.alfresco.util.EmailHelperTest.class,
