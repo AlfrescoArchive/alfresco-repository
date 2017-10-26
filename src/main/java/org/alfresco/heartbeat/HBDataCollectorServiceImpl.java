@@ -297,17 +297,7 @@ public class HBDataCollectorServiceImpl implements HBDataCollectorService, Licen
             }
             finally
             {
-                if (lockToken != null)
-                {
-                    try
-                    {
-                        releaseLock(lockCallback, lockToken, qName);
-                    }
-                    catch (LockAcquisitionException e)
-                    {
-                        // Ignore
-                    }
-                }
+                releaseLock(lockCallback, lockToken, qName);
             }
         }
 
