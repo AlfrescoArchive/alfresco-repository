@@ -29,6 +29,7 @@ import java.io.InputStream;
 import java.lang.reflect.Constructor;
 
 import org.alfresco.error.AlfrescoRuntimeException;
+import org.alfresco.heartbeat.HBDataCollectorServiceImpl;
 import org.alfresco.repo.security.authentication.AuthenticationUtil;
 import org.alfresco.repo.security.authentication.AuthenticationUtil.RunAsWork;
 import org.alfresco.repo.transaction.RetryingTransactionHelper;
@@ -313,6 +314,8 @@ public class DescriptorServiceImpl extends AbstractLifecycleBean
 
         // Load heart-beat special service (even if disabled at the moment)
         heartBeat = constructSpecialService("org.alfresco.heartbeat.HeartBeat");
+
+        licenseService.registerOnLicenseChange((HBDataCollectorServiceImpl) applicationContext.getBean("hbDataCollectorService"));
 
         // Now listen for future license changes
         licenseService.registerOnLicenseChange(this);
