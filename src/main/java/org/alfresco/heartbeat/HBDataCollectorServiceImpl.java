@@ -281,10 +281,10 @@ public class HBDataCollectorServiceImpl implements HBDataCollectorService, Licen
             String jobName = jobexecutioncontext.getJobDetail().getName();
             QName qName = QName.createQName(NamespaceService.SYSTEM_MODEL_1_0_URI, jobName);
             String lockToken = null;
+            LockCallback lockCallback = new LockCallback(qName);
             try
             {
                 // Get a dynamic lock
-                LockCallback lockCallback = new LockCallback(qName);
                 lockToken = acquireLock(lockCallback, qName);
                 collectAndSendDataLocked(jobexecutioncontext);
             }
@@ -301,7 +301,7 @@ public class HBDataCollectorServiceImpl implements HBDataCollectorService, Licen
                 {
                     try
                     {
-                        jobLockService.releaseLock(lockToken, qName);
+                        releaseLock(lockCallback, lockToken, qName);
                     }
                     catch (LockAcquisitionException e)
                     {
@@ -375,6 +375,23 @@ public class HBDataCollectorServiceImpl implements HBDataCollectorService, Licen
             if (logger.isDebugEnabled())
             {
                 logger.debug("Lock release notification: " + lockQname);
+            }
+        }
+    }
+
+    private void releaseLock(LockCallback lockCallback, String lockToken, QName lockQname)
+    {
+        if (lockCallback != null)
+        {
+            lockCallback.running.set(false);
+        }
+
+        if (lockToken != null)
+        {
+            jobLockService.releaseLock(lockToken, lockQname);
+            if (logger.isDebugEnabled())
+            {
+                logger.debug("Lock released: " + lockQname + ": " + lockToken);
             }
         }
     }
