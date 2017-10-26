@@ -114,13 +114,25 @@ public class HBDataCollectorServiceImpl implements HBDataCollectorService, Licen
     /**
      *
      * Register data collector with this service and start the schedule.
-     * The registered collectors will be called to provide heartbeat data.
+     * The registered collector will be called to provide heartbeat data.
      *
      * @param collector collector to register
      */
     @Override
     public void registerCollector(HBBaseDataCollector collector)
     {
+        // collectors are unique
+        for(HBBaseDataCollector col : collectors)
+        {
+            if(col.getCollectorId().equals(collector.getCollectorId()))
+            {
+                if (logger.isDebugEnabled())
+                {
+                    logger.debug("Didn't register collector because it already exists: " + collector.getCollectorId());
+                }
+                return;
+            }
+        }
         this.collectors.add(collector);
         try
         {
