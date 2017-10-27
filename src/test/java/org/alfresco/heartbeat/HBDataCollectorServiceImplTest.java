@@ -101,7 +101,7 @@ public class HBDataCollectorServiceImplTest
     }
 
     @Test
-    public void testScheduler() throws Exception
+    public void testRegisterAndScheduleCollectors() throws Exception
     {
         LicenseDescriptor mockLicenseDescriptor = mock(LicenseDescriptor.class);
         when(mockLicenseDescriptor.isHeartBeatDisabled()).thenReturn(false);
