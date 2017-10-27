@@ -28,25 +28,16 @@ package org.alfresco.heartbeat;
 import java.text.ParseException;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicBoolean;
 
-import org.alfresco.heartbeat.datasender.HBData;
 import org.alfresco.heartbeat.datasender.HBDataSenderService;
 import org.alfresco.repo.lock.JobLockService;
-import org.alfresco.repo.lock.LockAcquisitionException;
 import org.alfresco.service.cmr.repository.HBDataCollectorService;
 import org.alfresco.service.license.LicenseDescriptor;
 import org.alfresco.service.license.LicenseService;
-import org.alfresco.service.namespace.NamespaceService;
-import org.alfresco.service.namespace.QName;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.quartz.CronTrigger;
-import org.quartz.Job;
-import org.quartz.JobDataMap;
 import org.quartz.JobDetail;
-import org.quartz.JobExecutionContext;
-import org.quartz.JobExecutionException;
 import org.quartz.Scheduler;
 import org.quartz.SchedulerException;
 
@@ -71,9 +62,6 @@ public class HBDataCollectorServiceImpl implements HBDataCollectorService, Licen
 
     /** Current enabled state */
     private boolean enabled = false;
-
-    /** The heart beat job will be locked for max 30 seconds */
-    private static final long LOCK_TTL = 30000L;
 
     /**
      *
@@ -254,149 +242,4 @@ public class HBDataCollectorServiceImpl implements HBDataCollectorService, Licen
         this.hbDataSenderService.enable(enabled);
     }
 
-    /**
-     * The scheduler job responsible for triggering a heartbeat on a regular basis.
-     */
-    public static class HeartBeatJob implements Job
-    {
-        public void execute(final JobExecutionContext jobexecutioncontext) throws JobExecutionException
-        {
-            final JobDataMap dataMap = jobexecutioncontext.getJobDetail().getJobDataMap();
-            final HBBaseDataCollector collector = (HBBaseDataCollector) dataMap.get("collector");
-            final HBDataSenderService hbDataSenderService = (HBDataSenderService) dataMap.get("hbDataSenderService");
-            final JobLockService jobLockService = (JobLockService) dataMap.get("jobLockService");
-
-            if(collector == null)
-            {
-                if (logger.isDebugEnabled())
-                {
-                    logger.debug("Exit HertBeatJob because there is no assigned HB collector");
-                }
-            }
-            if(hbDataSenderService == null)
-            {
-                if (logger.isDebugEnabled())
-                {
-                    logger.debug("Exit HertBeatJob because there is no HBDataSenderService");
-                }
-            }
-            if(jobLockService == null)
-            {
-                if (logger.isDebugEnabled())
-                {
-                    logger.debug("Exit HeartBeatJob because there is no JobLockService");
-                }
-            }
-            QName qName = QName.createQName(NamespaceService.SYSTEM_MODEL_1_0_URI, collector.getCollectorId());
-            String lockToken = null;
-            LockCallback lockCallback = new LockCallback(qName);
-            try
-            {
-                // Get a dynamic lock
-                lockToken = acquireLock(lockCallback, qName, jobLockService);
-                collectAndSendDataLocked(collector, hbDataSenderService);
-            }
-            catch (LockAcquisitionException e)
-            {
-                if (logger.isDebugEnabled())
-                {
-                    logger.debug("Skipping collect and send data (could not get lock): " + e.getMessage());
-                }
-            }
-            finally
-            {
-                releaseLock(lockCallback, lockToken, qName, jobLockService);
-            }
-        }
-
-        private void collectAndSendDataLocked(final HBBaseDataCollector collector, final HBDataSenderService hbDataSenderService) throws JobExecutionException
-        {
-            try
-            {
-                List<HBData> data = collector.collectData();
-                try
-                {
-                    hbDataSenderService.sendData(data);
-                }
-                catch (Exception e)
-                {
-                    logger.error(e);
-                }
-            }
-            catch (final Exception e)
-            {
-                if (logger.isDebugEnabled())
-                {
-                    // Verbose logging
-                    logger.debug("Heartbeat job failure from collector: " + collector.getCollectorId(), e);
-                }
-                else
-                {
-                    // Heartbeat errors are non-fatal and will show as single line warnings
-                    logger.warn(e.toString());
-                    throw new JobExecutionException(e);
-                }
-            }
-        }
-
-        private String acquireLock(JobLockService.JobLockRefreshCallback lockCallback, QName lockQname, JobLockService jobLockService)
-        {
-            // Get lock
-            String lockToken = jobLockService.getLock(lockQname, LOCK_TTL);
-
-            // Register the refresh callback which will keep the lock alive
-            jobLockService.refreshLock(lockToken, lockQname, LOCK_TTL, lockCallback);
-
-            if (logger.isDebugEnabled())
-            {
-                logger.debug("lock acquired: " + lockQname + ": " + lockToken);
-            }
-
-            return lockToken;
-        }
-
-        private class LockCallback implements JobLockService.JobLockRefreshCallback
-        {
-            final AtomicBoolean running = new AtomicBoolean(true);
-            private QName lockQname;
-
-            public LockCallback(QName lockQname)
-            {
-                this.lockQname = lockQname;
-            }
-
-            @Override
-            public boolean isActive()
-            {
-                return running.get();
-            }
-
-            @Override
-            public void lockReleased()
-            {
-                running.set(false);
-                if (logger.isDebugEnabled())
-                {
-                    logger.debug("Lock release notification: " + lockQname);
-                }
-            }
-        }
-
-        private void releaseLock(LockCallback lockCallback, String lockToken, QName lockQname, JobLockService jobLockService)
-        {
-            if (lockCallback != null)
-            {
-                lockCallback.running.set(false);
-            }
-
-            if (lockToken != null)
-            {
-                jobLockService.releaseLock(lockToken, lockQname);
-                if (logger.isDebugEnabled())
-                {
-                    logger.debug("Lock released: " + lockQname + ": " + lockToken);
-                }
-            }
-        }
-    }
 }
