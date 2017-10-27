@@ -55,6 +55,7 @@ public class RepositoryDataCollectorTest
     @Before
     public void setUp()
     {
+        // TODO check if really necessary to load whole context
         context = ApplicationContextHelper.getApplicationContext();
 
         TransactionService transactionService = (TransactionService) context.getBean("transactionService");

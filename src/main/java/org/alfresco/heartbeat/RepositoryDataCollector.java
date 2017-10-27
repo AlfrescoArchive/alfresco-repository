@@ -44,7 +44,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 /**
- * This class collects repository data for HeartBeat through multiple collector.
+ * This class collects repository data for HBDataCollector through multiple collector.
  * <br>
  * <b>Collector ID: </b> acs.repository.info
  * <br>

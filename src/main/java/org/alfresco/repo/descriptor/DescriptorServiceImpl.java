@@ -246,7 +246,7 @@ public class DescriptorServiceImpl extends AbstractLifecycleBean
     }
     
     /**
-     * On bootstrap load the special services for LicenseComponent and HeartBeat
+     * On bootstrap load the special services for LicenseComponent
      * 
      * Also set installedRepoDescriptor and update current
      */
@@ -312,10 +312,7 @@ public class DescriptorServiceImpl extends AbstractLifecycleBean
                     "licenseService", licenseService);
         }
 
-        // Load heart-beat special service (even if disabled at the moment)
-        heartBeat = constructSpecialService("org.alfresco.heartbeat.HeartBeat");
-
-        licenseService.registerOnLicenseChange((HBDataCollectorServiceImpl) applicationContext.getBean("hbDataCollectorService"));
+        licenseService.registerOnLicenseChange((LicenseChangeHandler) applicationContext.getBean("hbDataCollectorService"));
 
         // Now listen for future license changes
         licenseService.registerOnLicenseChange(this);
