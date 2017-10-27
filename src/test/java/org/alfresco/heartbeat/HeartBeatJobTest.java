@@ -78,7 +78,7 @@ public class HeartBeatJobTest
         public List<HBData> collectData()
         {
             List<HBData> result = new LinkedList<>();
-            result.add(new HBData("systemId2", "collectorId2", "1", new Date()));
+            result.add(new HBData("systemId2", this.getCollectorId(), "1", new Date()));
             return result;
         }
     }

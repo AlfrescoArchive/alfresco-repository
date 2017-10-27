@@ -97,13 +97,13 @@ public class HBDataCollectorServiceImpl implements HBDataCollectorService, Licen
      *
      * Register data collector with this service and start the schedule.
      * The registered collector will be called to provide heartbeat data.
+     * The collector must be unique with using the collector id.
      *
      * @param collector collector to register
      */
     @Override
     public void registerCollector(HBBaseDataCollector collector)
     {
-        // collectors are unique
         for(HBBaseDataCollector col : collectors)
         {
             if(col.getCollectorId().equals(collector.getCollectorId()))
@@ -215,10 +215,13 @@ public class HBDataCollectorServiceImpl implements HBDataCollectorService, Licen
             {
                 if (logger.isDebugEnabled())
                 {
-                    logger.debug("Invalid cron expression " + cronExpression);
+                    logger.debug("Skipping scheduling because of invalid cron expression: " + cronExpression);
                 }
             }
-            scheduler.scheduleJob(jobDetail, cronTrigger);
+            if(cronTrigger != null)
+            {
+                scheduler.scheduleJob(jobDetail, cronTrigger);
+            }
         }
         else
         {
