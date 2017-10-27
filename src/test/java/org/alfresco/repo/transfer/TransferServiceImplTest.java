@@ -110,6 +110,7 @@ import org.alfresco.util.Pair;
 import org.alfresco.util.PropertyMap;
 import org.alfresco.util.TempFileProvider;
 import org.alfresco.util.testing.category.LuceneTests;
+import org.alfresco.util.testing.category.RedundantTests;
 import org.junit.experimental.categories.Category;
 import org.springframework.util.ResourceUtils;
 
@@ -3428,6 +3429,7 @@ public class TransferServiceImplTest extends BaseAlfrescoSpringTest
      * 
      * This is a unit test so it does some shenanigans to send to the same instance of alfresco.
      */
+    @Category(RedundantTests.class)
     public void testCategoriesAndTags() throws Exception
     {
         final String CONTENT_TITLE = "ContentTitle";
