@@ -33,7 +33,7 @@ import org.alfresco.heartbeat.datasender.HBDataSenderService;
 import org.alfresco.repo.lock.JobLockService;
 import org.alfresco.service.cmr.repository.HBDataCollectorService;
 import org.alfresco.service.license.LicenseDescriptor;
-import org.alfresco.service.license.LicenseService;
+import org.alfresco.service.license.LicenseService.LicenseChangeHandler;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.quartz.CronTrigger;
@@ -41,7 +41,7 @@ import org.quartz.JobDetail;
 import org.quartz.Scheduler;
 import org.quartz.SchedulerException;
 
-public class HBDataCollectorServiceImpl implements HBDataCollectorService, LicenseService.LicenseChangeHandler
+public class HBDataCollectorServiceImpl implements HBDataCollectorService, LicenseChangeHandler
 {
     /** The logger. */
     private static final Log logger = LogFactory.getLog(HBDataCollectorServiceImpl.class);
@@ -149,21 +149,6 @@ public class HBDataCollectorServiceImpl implements HBDataCollectorService, Licen
         }
     }
 
-    private void restartAllCollectorSchedules()
-    {
-        try
-        {
-            for(HBBaseDataCollector collector : collectors)
-            {
-                scheduleCollector(collector);
-            }
-        }
-        catch (Exception e)
-        {
-            logger.error("Unable to schedule heart beat", e);
-        }
-    }
-
     /**
      * License load failure resets the heartbeat back to the default state
      */
@@ -179,6 +164,21 @@ public class HBDataCollectorServiceImpl implements HBDataCollectorService, Licen
             }
             this.enabled = newEnabled;
             restartAllCollectorSchedules();
+        }
+    }
+
+    private void restartAllCollectorSchedules()
+    {
+        try
+        {
+            for(HBBaseDataCollector collector : collectors)
+            {
+                scheduleCollector(collector);
+            }
+        }
+        catch (Exception e)
+        {
+            logger.error("Unable to schedule heart beat", e);
         }
     }
 

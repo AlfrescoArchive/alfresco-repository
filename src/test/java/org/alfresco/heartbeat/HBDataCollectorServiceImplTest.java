@@ -28,13 +28,20 @@ package org.alfresco.heartbeat;
 import org.alfresco.heartbeat.datasender.HBDataSenderService;
 import org.alfresco.repo.lock.JobLockService;
 import org.alfresco.service.cmr.repository.HBDataCollectorService;
+import org.alfresco.service.license.LicenseDescriptor;
+import org.alfresco.service.license.LicenseException;
 import org.alfresco.service.license.LicenseService;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Mockito;
 
+import static junit.framework.TestCase.fail;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 
 /**
@@ -55,7 +62,7 @@ public class HBDataCollectorServiceImplTest
         mockLicenseService = mock(LicenseService.class);
         mockJobLockService = mock(JobLockService.class);
 
-        dataCollectorService = new HBDataCollectorServiceImpl(true);
+        dataCollectorService = spy(new HBDataCollectorServiceImpl(true));
         dataCollectorService.setHbDataSenderService(mockDataSenderService);
         dataCollectorService.setJobLockService(mockJobLockService);
 
@@ -63,7 +70,7 @@ public class HBDataCollectorServiceImplTest
     }
 
     @Test
-    public void testInitialEnabledEqualsDefaultState()
+    public void testInitialEnabledEqualsDefaultState() throws Exception
     {
         HBDataCollectorService dataCollectorService = new HBDataCollectorServiceImpl(true);
         assertTrue(dataCollectorService.isEnabledByDefault());
@@ -72,9 +79,8 @@ public class HBDataCollectorServiceImplTest
         assertFalse(dataCollectorService.isEnabledByDefault());
     }
 
-
     @Test
-    public void testHBDataSenderServiceEnabledChange()
+    public void testHBDataSenderServiceEnabledChange() throws Exception
     {
         dataCollectorService.enabled(false);
         verify(mockDataSenderService).enable(false);
@@ -82,4 +88,31 @@ public class HBDataCollectorServiceImplTest
         dataCollectorService.enabled(true);
         verify(mockDataSenderService).enable(true);
     }
+
+//    @Test
+//    public void testOnLicensFail() throws Exception
+//    {
+//        mockLicenseService.registerOnLicenseChange(dataCollectorService);
+//        doThrow(new LicenseException("")).when(mockLicenseService).verifyLicense();
+//
+//        try
+//        {
+//            mockLicenseService.verifyLicense();
+//                        fail("LicenseException should have thrown");
+//        }
+//        catch(LicenseException le)
+//        {
+//            verify(dataCollectorService, Mockito.times(1)).onLicenseFail();
+//        }
+//    }
+//
+//    @Test
+//    public void testOnLicensChange() throws Exception
+//    {
+//        mockLicenseService.registerOnLicenseChange(dataCollectorService);
+//
+//        mockLicenseService.verifyLicense();
+//
+//        verify(dataCollectorService, Mockito.times(1)).onLicenseChange(any(LicenseDescriptor.class));
+//    }
 }

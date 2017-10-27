@@ -58,14 +58,12 @@ public class HeartBeatJobTest
 {
 
     private HBDataSenderService mockDataSenderService;
-    private LicenseService mockLicenseService;
     private JobLockService mockJobLockService;
 
     @Before
     public void setUp()
     {
         mockDataSenderService = mock(HBDataSenderService.class);
-        mockLicenseService = mock(LicenseService.class);
         mockJobLockService = mock(JobLockService.class);
     }
 
@@ -81,7 +79,7 @@ public class HeartBeatJobTest
         {
             List<HBData> result = new LinkedList<>();
             result.add(new HBData("systemId2", "collectorId2", "1", new Date()));
-            return null;
+            return result;
         }
     }
 
