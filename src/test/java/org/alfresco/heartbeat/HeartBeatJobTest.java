@@ -87,16 +87,16 @@ public class HeartBeatJobTest
     {
         // mock the job context
         JobExecutionContext mockJobExecutionContext = mock(JobExecutionContext.class);
-        JobDetail mockJobDetail = mock(JobDetail.class);
-        when(mockJobExecutionContext.getJobDetail()).thenReturn(mockJobDetail);
+        JobDetail jobDetail = new JobDetail();
+        when(mockJobExecutionContext.getJobDetail()).thenReturn(jobDetail);
 
         // create the hb collector
-        SimpleHBDataCollector simpleCollector = spy(new SimpleHBDataCollector("collectorId2"));
+        SimpleHBDataCollector simpleCollector = spy(new SimpleHBDataCollector("simpleCollector"));
         JobDataMap jobDataMap = new JobDataMap();
         jobDataMap.put("collector", simpleCollector);
         jobDataMap.put("hbDataSenderService", mockDataSenderService);
         jobDataMap.put("jobLockService", mockJobLockService);
-        when(mockJobDetail.getJobDataMap()).thenReturn(jobDataMap);
+        jobDetail.setJobDataMap(jobDataMap);
 
         // collector job is not locked from an other collector
         String lockToken = "locked";
@@ -119,16 +119,16 @@ public class HeartBeatJobTest
     {
         // mock the job context
         JobExecutionContext mockJobExecutionContext = mock(JobExecutionContext.class);
-        JobDetail mockJobDetail = mock(JobDetail.class);
-        when(mockJobExecutionContext.getJobDetail()).thenReturn(mockJobDetail);
+        JobDetail jobDetail = new JobDetail();
+        when(mockJobExecutionContext.getJobDetail()).thenReturn(jobDetail);
 
         // create the hb collector
-        SimpleHBDataCollector simpleCollector = spy(new SimpleHBDataCollector("collectorId2"));
+        SimpleHBDataCollector simpleCollector = spy(new SimpleHBDataCollector("simpleCollector"));
         JobDataMap jobDataMap = new JobDataMap();
         jobDataMap.put("collector", simpleCollector);
         jobDataMap.put("hbDataSenderService", mockDataSenderService);
         jobDataMap.put("jobLockService", mockJobLockService);
-        when(mockJobDetail.getJobDataMap()).thenReturn(jobDataMap);
+        jobDetail.setJobDataMap(jobDataMap);
 
         // collector job is locked from an other collector and will throw the lock exception
         String lockToken = "locked";
