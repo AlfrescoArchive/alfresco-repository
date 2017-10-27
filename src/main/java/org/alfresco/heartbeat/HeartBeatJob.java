@@ -66,6 +66,7 @@ public class HeartBeatJob implements Job
             {
                 logger.debug("Exit HeartBeatJob because there is no assigned HB collector");
             }
+            return;
         }
         if(hbDataSenderService == null)
         {
@@ -73,6 +74,7 @@ public class HeartBeatJob implements Job
             {
                 logger.debug("Exit HeartBeatJob because there is no HBDataSenderService");
             }
+            return;
         }
         if(jobLockService == null)
         {
@@ -80,6 +82,7 @@ public class HeartBeatJob implements Job
             {
                 logger.debug("Exit HeartBeatJob because there is no JobLockService");
             }
+            return;
         }
         QName qName = QName.createQName(NamespaceService.SYSTEM_MODEL_1_0_URI, collector.getCollectorId());
         String lockToken = null;

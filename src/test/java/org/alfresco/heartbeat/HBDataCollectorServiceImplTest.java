@@ -27,10 +27,7 @@ package org.alfresco.heartbeat;
 
 import org.alfresco.heartbeat.datasender.HBData;
 import org.alfresco.heartbeat.datasender.HBDataSenderService;
-import org.alfresco.repo.lock.JobLockService;
-import org.alfresco.service.cmr.repository.HBDataCollectorService;
 import org.alfresco.service.license.LicenseDescriptor;
-import org.alfresco.service.license.LicenseService;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
@@ -59,21 +56,14 @@ public class HBDataCollectorServiceImplTest
 
     private HBDataCollectorServiceImpl dataCollectorService;
     private HBDataSenderService mockDataSenderService;
-//    private LicenseService mockLicenseService;
-//    private JobLockService mockJobLockService;
 
     @Before
     public void setUp()
     {
         mockDataSenderService = mock(HBDataSenderService.class);
-//        mockLicenseService = mock(LicenseService.class);
-//        mockJobLockService = mock(JobLockService.class);
 
         dataCollectorService = spy(new HBDataCollectorServiceImpl(true));
         dataCollectorService.setHbDataSenderService(mockDataSenderService);
-//        dataCollectorService.setJobLockService(mockJobLockService);
-
-//        mockLicenseService.registerOnLicenseChange(dataCollectorService);
     }
 
     @Test
@@ -96,44 +86,138 @@ public class HBDataCollectorServiceImplTest
         verify(mockDataSenderService).enable(true);
     }
 
-    @Test
-    public void testRegisterAndScheduleCollectors() throws Exception
+    private void activateHB(HBDataCollectorServiceImpl dataCollectorService, boolean activate)
     {
         LicenseDescriptor mockLicenseDescriptor = mock(LicenseDescriptor.class);
-        when(mockLicenseDescriptor.isHeartBeatDisabled()).thenReturn(false);
-
-        HBDataCollectorServiceImpl dataCollectorService = new HBDataCollectorServiceImpl(true);
-        // activate HB
+        when(mockLicenseDescriptor.isHeartBeatDisabled()).thenReturn(!activate);
         dataCollectorService.onLicenseChange(mockLicenseDescriptor);
+    }
+
+    @Test
+    public void testWrongCronExpression() throws Exception
+    {
+        HBDataCollectorServiceImpl dataCollectorService = new HBDataCollectorServiceImpl(true);
+
+        activateHB(dataCollectorService, true);
+
+        Scheduler scheduler = spy(StdSchedulerFactory.getDefaultScheduler());
+        dataCollectorService.setScheduler(scheduler);
+
+        // try with correct cron expression
+        SimpleHBDataCollector collector1 = new SimpleHBDataCollector("collector1");
+        collector1.setCronExpression("0 0 0/1 * * ?");
+
+        dataCollectorService.registerCollector(collector1);
+
+        verifyNumbersOfUnschedulesAndSchedules(scheduler, 1, 1);
+
+        // try with wrong cron expression
+        SimpleHBDataCollector collector2 = new SimpleHBDataCollector("collector2");
+        collector2.setCronExpression("0 0 0/1 wrong cron expr ?");
+
+        dataCollectorService.registerCollector(collector2);
+
+        verifyNumbersOfUnschedulesAndSchedules(scheduler, 2, 1);
+    }
+
+    @Test
+    public void testSchedulingWithDefaultEnabled() throws Exception
+    {
+        // scenario 1: hb enabled per default
+        HBDataCollectorServiceImpl dataCollectorService = new HBDataCollectorServiceImpl(true);
+        activateHB(dataCollectorService, true);
+
         // Setup scheduler
         Scheduler scheduler = spy(StdSchedulerFactory.getDefaultScheduler());
         dataCollectorService.setScheduler(scheduler);
 
-        SimpleHBDataCollector collector = new SimpleHBDataCollector("collectorId123");
-        collector.setCronExpression("0 0 0/1 * * ?");
+        SimpleHBDataCollector collector1 = new SimpleHBDataCollector("collector1");
+        collector1.setCronExpression("0 0 0/1 * * ?");
 
-        dataCollectorService.registerCollector(collector);
+        dataCollectorService.registerCollector(collector1);
+        verifyNumbersOfUnschedulesAndSchedules(scheduler, 1, 1);
 
-        verify(scheduler, Mockito.times(1)).unscheduleJob(any(String.class), any(String.class));
-        verify(scheduler, Mockito.times(1)).scheduleJob(any(JobDetail.class), any(Trigger.class));
+        // licensing fails and hb is per default enabled but hb was enabled before
+        dataCollectorService.onLicenseFail();
+        verifyNumbersOfUnschedulesAndSchedules(scheduler, 1, 1);
+
+        // deactivate hb via license
+        activateHB(dataCollectorService, false);
+        verifyNumbersOfUnschedulesAndSchedules(scheduler, 2, 1);
+
+        // licensing fails and hb is per default enabled but hb was disabled before
+        dataCollectorService.onLicenseFail();
+        verifyNumbersOfUnschedulesAndSchedules(scheduler, 3, 2);
+
+        // scenario 2: hb not enabled per default
+        dataCollectorService = new HBDataCollectorServiceImpl(false);
+        activateHB(dataCollectorService, true);
+
+        // Setup scheduler
+        scheduler = spy(StdSchedulerFactory.getDefaultScheduler());
+        dataCollectorService.setScheduler(scheduler);
+
+        dataCollectorService.registerCollector(collector1);
+        verifyNumbersOfUnschedulesAndSchedules(scheduler, 1, 1);
+
+        // licensing fails and hb is per default disabled
+        dataCollectorService.onLicenseFail();
+        dataCollectorService.registerCollector(collector1);
+        verifyNumbersOfUnschedulesAndSchedules(scheduler, 2, 1);
+    }
+
+    @Test
+    public void testRegisterAndScheduleCollectors() throws Exception
+    {
+        boolean enabledByDefault = true;
+        HBDataCollectorServiceImpl dataCollectorService = new HBDataCollectorServiceImpl(enabledByDefault);
+        activateHB(dataCollectorService, true);
+
+        // Setup scheduler
+        Scheduler scheduler = spy(StdSchedulerFactory.getDefaultScheduler());
+        dataCollectorService.setScheduler(scheduler);
+
+        SimpleHBDataCollector collector1 = new SimpleHBDataCollector("collector1");
+        collector1.setCronExpression("0 0 0/1 * * ?");
+
+        dataCollectorService.registerCollector(collector1);
+
+        verifyNumbersOfUnschedulesAndSchedules(scheduler, 1, 1);
 
         // try to register the same collector again
-        dataCollectorService.registerCollector(collector);
-        verify(scheduler, Mockito.times(1)).unscheduleJob(any(String.class), any(String.class));
-        verify(scheduler, Mockito.times(1)).scheduleJob(any(JobDetail.class), any(Trigger.class));
+        dataCollectorService.registerCollector(collector1);
+        verifyNumbersOfUnschedulesAndSchedules(scheduler, 1, 1);
 
-        // use wrong cron exp
-        collector.setCronExpression("not correct cron Expr");
-        verify(scheduler, Mockito.times(1)).scheduleJob(any(JobDetail.class), any(Trigger.class));
+        // register collector 2
+        SimpleHBDataCollector collector2 = new SimpleHBDataCollector("collector2");
+        collector2.setCronExpression("0 0 0/1 * * ?");
 
-        // register other collector
-        SimpleHBDataCollector otherCollector = new SimpleHBDataCollector("collectorIdABC");
-        otherCollector.setCronExpression("0 0 0/1 * * ?");
+        dataCollectorService.registerCollector(collector2);
 
-        dataCollectorService.registerCollector(otherCollector);
+        verifyNumbersOfUnschedulesAndSchedules(scheduler, 2, 2);
 
-        verify(scheduler, Mockito.times(2)).unscheduleJob(any(String.class), any(String.class));
-        verify(scheduler, Mockito.times(2)).scheduleJob(any(JobDetail.class), any(Trigger.class));
+        // disable heartbeat
+        activateHB(dataCollectorService, false);
+
+        // all collector jobs should be unscheduled
+        verifyNumbersOfUnschedulesAndSchedules(scheduler, 4, 2);
+
+        // you can not schedule successfully a new collector when heartbeat is disabled
+        SimpleHBDataCollector collector3 = new SimpleHBDataCollector("collector3");
+        collector3.setCronExpression("0 0 0/1 * * ?");
+        dataCollectorService.registerCollector(collector3);
+        verifyNumbersOfUnschedulesAndSchedules(scheduler, 5, 2);
+
+        // HB enabled after license fail because enabled by default is true
+        // as well the already registered collectors are scheduling now again
+        dataCollectorService.onLicenseFail();
+        verifyNumbersOfUnschedulesAndSchedules(scheduler, 8, 5);
+    }
+
+    private void verifyNumbersOfUnschedulesAndSchedules(Scheduler scheduler, int unschedules, int schedules) throws Exception
+    {
+        verify(scheduler, Mockito.times(unschedules)).unscheduleJob(any(String.class), any(String.class));
+        verify(scheduler, Mockito.times(schedules)).scheduleJob(any(JobDetail.class), any(Trigger.class));
     }
 
     private class SimpleHBDataCollector extends HBBaseDataCollector
@@ -151,31 +235,4 @@ public class HBDataCollectorServiceImplTest
             return result;
         }
     }
-
-//    @Test
-//    public void testOnLicensFail() throws Exception
-//    {
-//        mockLicenseService.registerOnLicenseChange(dataCollectorService);
-//        doThrow(new LicenseException("")).when(mockLicenseService).verifyLicense();
-//
-//        try
-//        {
-//            mockLicenseService.verifyLicense();
-//                        fail("LicenseException should have thrown");
-//        }
-//        catch(LicenseException le)
-//        {
-//            verify(dataCollectorService, Mockito.times(1)).onLicenseFail();
-//        }
-//    }
-//
-//    @Test
-//    public void testOnLicensChange() throws Exception
-//    {
-//        mockLicenseService.registerOnLicenseChange(dataCollectorService);
-//
-//        mockLicenseService.verifyLicense();
-//
-//        verify(dataCollectorService, Mockito.times(1)).onLicenseChange(any(LicenseDescriptor.class));
-//    }
 }

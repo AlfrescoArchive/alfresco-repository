@@ -29,7 +29,6 @@ import org.alfresco.heartbeat.datasender.HBData;
 import org.alfresco.heartbeat.datasender.HBDataSenderService;
 import org.alfresco.repo.lock.JobLockService;
 import org.alfresco.repo.lock.LockAcquisitionException;
-import org.alfresco.service.license.LicenseService;
 import org.alfresco.service.namespace.QName;
 import org.junit.Before;
 import org.junit.Test;
