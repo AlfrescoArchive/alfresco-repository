@@ -27,16 +27,36 @@ package org.alfresco.heartbeat;
 
 import org.alfresco.heartbeat.datasender.HBData;
 import org.alfresco.heartbeat.datasender.HBDataSenderService;
+import org.alfresco.repo.lock.JobLockService;
+import org.alfresco.repo.lock.LockAcquisitionException;
 import org.alfresco.service.cmr.repository.HBDataCollectorService;
+import org.alfresco.service.license.LicenseService;
+import org.alfresco.service.namespace.QName;
+import org.apache.log4j.Level;
+import org.apache.log4j.Logger;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Mockito;
+import org.quartz.JobDataMap;
+import org.quartz.JobDetail;
+import org.quartz.JobExecutionContext;
+
 import java.util.Arrays;
+import java.util.Date;
+import java.util.LinkedList;
 import java.util.List;
+
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyLong;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Matchers.isA;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import static org.mockito.internal.verification.VerificationModeFactory.times;
 
 /**
@@ -47,16 +67,101 @@ public class HBDataCollectorServiceImplTest
 
     private HBDataCollectorServiceImpl dataCollectorService;
     private HBDataSenderService mockDataSenderService;
+    private LicenseService mockLicenseService;
+    private JobLockService mockJobLockService;
 
     @Before
     public void setUp()
     {
         mockDataSenderService = mock(HBDataSenderService.class);
+        mockLicenseService = mock(LicenseService.class);
+        mockJobLockService = mock(JobLockService.class);
+
         dataCollectorService = new HBDataCollectorServiceImpl(true);
         dataCollectorService.setHbDataSenderService(mockDataSenderService);
+        dataCollectorService.setJobLockService(mockJobLockService);
+
+        mockLicenseService.registerOnLicenseChange(dataCollectorService);
     }
 
+    private class SimpleHBDataCollector extends HBBaseDataCollector
+    {
 
+        public SimpleHBDataCollector(String collectorId)
+        {
+            super(collectorId);
+        }
+
+        public List<HBData> collectData()
+        {
+            List<HBData> result = new LinkedList<>();
+            result.add(new HBData("systemId2", "collectorId2", "1", new Date()));
+            return null;
+        }
+    }
+
+    @Test
+    public void testClusterNoLock() throws Exception
+    {
+        // mock the job context
+        JobExecutionContext mockJobExecutionContext = mock(JobExecutionContext.class);
+        JobDetail mockJobDetail = mock(JobDetail.class);
+        when(mockJobExecutionContext.getJobDetail()).thenReturn(mockJobDetail);
+
+        // create the hb collector
+        SimpleHBDataCollector simpleCollector = spy(new SimpleHBDataCollector("collectorId2"));
+        JobDataMap jobDataMap = new JobDataMap();
+        jobDataMap.put("collector", simpleCollector);
+        jobDataMap.put("hbDataSenderService", mockDataSenderService);
+        jobDataMap.put("jobLockService", mockJobLockService);
+        when(mockJobDetail.getJobDataMap()).thenReturn(jobDataMap);
+
+        // collector job is not locked from an other collector
+        String lockToken = "locked";
+        when(mockJobLockService.getLock(any(QName.class), anyLong())).thenReturn(lockToken);
+
+        new HBDataCollectorServiceImpl.HeartBeatJob().execute(mockJobExecutionContext);
+
+        // verify that we collected and send data
+        verify(simpleCollector, Mockito.times(1)).collectData();
+        verify(mockDataSenderService, Mockito.times(1)).sendData(any(List.class));
+        verify(mockDataSenderService, Mockito.times(0)).sendData(any(HBData.class));
+        verify(mockJobLockService, Mockito.times(1)).getLock(any(QName.class), anyLong());
+        verify(mockJobLockService, Mockito.times(1)).refreshLock(eq(lockToken), any(QName.class), anyLong(), any(
+                JobLockService.JobLockRefreshCallback.class));
+        verify(mockJobLockService, Mockito.times(1)).releaseLock(eq(lockToken), any(QName.class));
+    }
+
+    @Test
+    public void testClusterLocked() throws Exception
+    {
+        // mock the job context
+        JobExecutionContext mockJobExecutionContext = mock(JobExecutionContext.class);
+        JobDetail mockJobDetail = mock(JobDetail.class);
+        when(mockJobExecutionContext.getJobDetail()).thenReturn(mockJobDetail);
+
+        // create the hb collector
+        SimpleHBDataCollector simpleCollector = spy(new SimpleHBDataCollector("collectorId2"));
+        JobDataMap jobDataMap = new JobDataMap();
+        jobDataMap.put("collector", simpleCollector);
+        jobDataMap.put("hbDataSenderService", mockDataSenderService);
+        jobDataMap.put("jobLockService", mockJobLockService);
+        when(mockJobDetail.getJobDataMap()).thenReturn(jobDataMap);
+
+        // collector job is locked from an other collector and will throw the lock exception
+        String lockToken = "locked";
+        when(mockJobLockService.getLock(isA(QName.class), anyLong())).thenThrow(new LockAcquisitionException("", ""));
+
+        new HBDataCollectorServiceImpl.HeartBeatJob().execute(mockJobExecutionContext);
+
+        // verify that we not collected and send data
+        verify(simpleCollector, Mockito.times(0)).collectData();
+        verify(mockDataSenderService, Mockito.times(0)).sendData(any(List.class));
+        verify(mockDataSenderService, Mockito.times(0)).sendData(any(HBData.class));
+        verify(mockJobLockService, Mockito.times(1)).getLock(any(QName.class), anyLong());
+        verify(mockJobLockService, Mockito.times(0)).refreshLock(eq(lockToken), any(QName.class), anyLong(), any(JobLockService.JobLockRefreshCallback.class));
+        verify(mockJobLockService, Mockito.times(0)).releaseLock(eq(lockToken), any(QName.class));
+    }
 
     @Test
     public void testInitialEnabledEqualsDefaultState()
@@ -78,51 +183,4 @@ public class HBDataCollectorServiceImplTest
         dataCollectorService.enabled(true);
         verify(mockDataSenderService).enable(true);
     }
-
-    @Test
-    public void testCollectAndSendData()
-    {
-        // Set up dummy collector 1
-        HBData c1Data = new HBData("sys", "c1","1.0",null);
-        HBBaseDataCollector c1 = new DummyCollector(c1Data);
-        c1.setHbDataCollectorService(dataCollectorService);
-        c1.register();
-        // Set up dummy collector 2
-        HBData c2Data = new HBData("sys", "c2","1.0",null);
-        HBBaseDataCollector c2 = new DummyCollector(c2Data);
-        c2.setHbDataCollectorService(dataCollectorService);
-        c2.register();
-        // Set up dummy collector 3
-        HBData c3Data = new HBData("sys", "c3","1.0",null);
-        HBBaseDataCollector c3 = new DummyCollector(c3Data);
-        c3.setHbDataCollectorService(dataCollectorService);
-        c3.register();
-
-        // Check that the collector service collects data from registered collectors and passes the data to data sender service
-        dataCollectorService.collectAndSendData();
-
-        // Check data is passed for each collector
-        verify(mockDataSenderService, times(3)).sendData(any(List.class));
-        verify(mockDataSenderService).sendData(c1.collectData());
-        verify(mockDataSenderService).sendData(c2.collectData());
-        verify(mockDataSenderService).sendData(c3.collectData());
-    }
-
-
-    class DummyCollector extends HBBaseDataCollector
-    {
-        private HBData data;
-
-        public DummyCollector (HBData testData)
-        {
-            super("dummy.collector.id");
-            this.data = testData;
-        }
-
-        @Override
-        public List<HBData> collectData() {
-            return Arrays.asList(data);
-        }
-    }
-
 }
