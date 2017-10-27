@@ -63,7 +63,7 @@ import org.springframework.context.ApplicationContext;
  * 
  * @author Derek Hulley
  */
-@Category({OwnJVMTestsCategory.class, LuceneTests.class})
+@Category({OwnJVMTestsCategory.class})
 public class SearcherComponentTest extends TestCase
 {
     private static ApplicationContext ctx = ApplicationContextHelper.getApplicationContext();
