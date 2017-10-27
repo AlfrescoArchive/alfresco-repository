@@ -30,7 +30,6 @@ import org.alfresco.heartbeat.datasender.HBDataSenderService;
 import org.alfresco.repo.lock.JobLockService;
 import org.alfresco.service.cmr.repository.HBDataCollectorService;
 import org.alfresco.service.license.LicenseDescriptor;
-import org.alfresco.service.license.LicenseException;
 import org.alfresco.service.license.LicenseService;
 import org.junit.Before;
 import org.junit.Test;
@@ -44,12 +43,9 @@ import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 
-import static junit.framework.TestCase.fail;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
@@ -63,27 +59,27 @@ public class HBDataCollectorServiceImplTest
 
     private HBDataCollectorServiceImpl dataCollectorService;
     private HBDataSenderService mockDataSenderService;
-    private LicenseService mockLicenseService;
-    private JobLockService mockJobLockService;
+//    private LicenseService mockLicenseService;
+//    private JobLockService mockJobLockService;
 
     @Before
     public void setUp()
     {
         mockDataSenderService = mock(HBDataSenderService.class);
-        mockLicenseService = mock(LicenseService.class);
-        mockJobLockService = mock(JobLockService.class);
+//        mockLicenseService = mock(LicenseService.class);
+//        mockJobLockService = mock(JobLockService.class);
 
         dataCollectorService = spy(new HBDataCollectorServiceImpl(true));
         dataCollectorService.setHbDataSenderService(mockDataSenderService);
-        dataCollectorService.setJobLockService(mockJobLockService);
+//        dataCollectorService.setJobLockService(mockJobLockService);
 
-        mockLicenseService.registerOnLicenseChange(dataCollectorService);
+//        mockLicenseService.registerOnLicenseChange(dataCollectorService);
     }
 
     @Test
     public void testInitialEnabledEqualsDefaultState() throws Exception
     {
-        HBDataCollectorService dataCollectorService = new HBDataCollectorServiceImpl(true);
+        HBDataCollectorServiceImpl dataCollectorService = new HBDataCollectorServiceImpl(true);
         assertTrue(dataCollectorService.isEnabledByDefault());
 
         dataCollectorService = new HBDataCollectorServiceImpl(false);
