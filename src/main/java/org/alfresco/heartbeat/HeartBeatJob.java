@@ -48,7 +48,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class HeartBeatJob implements Job
 {
     /** The logger. */
-    private static final Log logger = LogFactory.getLog(HeartBeat.class);
+    private static final Log logger = LogFactory.getLog(HeartBeatJob.class);
 
     /** The heart beat job will be locked for max 30 seconds */
     private static final long LOCK_TTL = 30000L;
