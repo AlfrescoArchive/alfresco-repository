@@ -31,9 +31,5 @@ public interface HBDataCollectorService
 {
     void registerCollector(HBBaseDataCollector collector);
 
-    void enabled(boolean enabled);
-
     boolean isEnabledByDefault();
-    
-    
 }

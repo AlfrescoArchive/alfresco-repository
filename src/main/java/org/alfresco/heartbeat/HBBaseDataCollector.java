@@ -36,21 +36,29 @@ import org.alfresco.service.cmr.repository.HBDataCollectorService;
   *
  * @author eknizat
  */
-public abstract class HBBaseDataCollector
-{
+public abstract class HBBaseDataCollector {
     private String collectorId;
+    private String collectorVersion;
     private String cronExpression = "0 0 0/1 * * ?";
 
     private HBDataCollectorService hbDataCollectorService;
 
-    public HBBaseDataCollector(String collectorId)
-    {
+    public HBBaseDataCollector(String collectorId) {
         this.collectorId = collectorId;
     }
 
-    public String getCollectorId()
-    {
+    public String getCollectorId() {
         return collectorId;
+    }
+
+    public void setCollectorVersion(String collectorVersion)
+    {
+        this.collectorVersion = collectorVersion;
+    }
+
+    public String getCollectorVersion()
+    {
+        return this.collectorVersion;
     }
 
     public void setCronExpression(String cronExpression)

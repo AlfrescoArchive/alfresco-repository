@@ -27,34 +27,24 @@ package org.alfresco.heartbeat;
 
 import org.alfresco.heartbeat.datasender.HBData;
 import org.alfresco.repo.descriptor.DescriptorDAO;
-import org.alfresco.service.cmr.security.AuthorityService;
-import org.alfresco.service.cmr.security.AuthorityType;
+import org.alfresco.service.descriptor.Descriptor;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
 import java.util.*;
 
-/**
- * This class collects authorities data for HBDataCollectorService.
- * <br>
- * <b>Collector ID:</b> acs.repository.usage.authorities
- * <br>
- * <b>Data points:</b> numUsers, numGroups
- *
- * @author eknizat
- */
-public class AuthoritiesDataCollector extends HBBaseDataCollector
+public class InfoDataCollector extends HBBaseDataCollector
 {
-
     /** The logger. */
-    private static final Log logger = LogFactory.getLog(AuthoritiesDataCollector.class);
+    private static final Log logger = LogFactory.getLog(InfoDataCollector.class);
 
     /** DAO for current repository descriptor. */
     private DescriptorDAO currentRepoDescriptorDAO;
 
-    /** The authority service. */
-    private AuthorityService authorityService;
+    /** DAO for current descriptor. */
+    private DescriptorDAO serverDescriptorDAO;
 
-    public AuthoritiesDataCollector(String collectorId)
+    public InfoDataCollector(String collectorId)
     {
         super(collectorId);
     }
@@ -64,31 +54,31 @@ public class AuthoritiesDataCollector extends HBBaseDataCollector
         this.currentRepoDescriptorDAO = currentRepoDescriptorDAO;
     }
 
-    public void setAuthorityService(AuthorityService authorityService)
+    public void setServerDescriptorDAO(DescriptorDAO serverDescriptorDAO)
     {
-        this.authorityService = authorityService;
+        this.serverDescriptorDAO = serverDescriptorDAO;
     }
 
     @Override
     public List<HBData> collectData()
     {
+        logger.debug("Preparing repository info data...");
 
-        List<HBData> collectedData = new LinkedList<>();
-
-        // Collect repository usage (authorities) data
-        this.logger.debug("Preparing repository usage (authorities) data...");
-        Map<String, Object> authoritiesUsageValues = new HashMap<>();
-        authoritiesUsageValues.put("numUsers", new Integer(this.authorityService.getAllAuthoritiesInZone(
-                AuthorityService.ZONE_APP_DEFAULT, AuthorityType.USER).size()));
-        authoritiesUsageValues.put("numGroups", new Integer(this.authorityService.getAllAuthoritiesInZone(
-                AuthorityService.ZONE_APP_DEFAULT, AuthorityType.GROUP).size()));
-        HBData authoritiesUsageData = new HBData(
+        final Descriptor serverDescriptor = this.serverDescriptorDAO.getDescriptor();
+        Map<String, Object> infoValues = new HashMap<>();
+        infoValues.put("repoName", serverDescriptor.getName());
+        infoValues.put("edition", serverDescriptor.getEdition());
+        infoValues.put("versionMajor", serverDescriptor.getVersionMajor());
+        infoValues.put("versionMinor", serverDescriptor.getVersionMinor());
+        infoValues.put("schema", new Integer(serverDescriptor.getSchema()));
+        HBData infoData = new HBData(
                 this.currentRepoDescriptorDAO.getDescriptor().getId(),
                 this.getCollectorId(),
                 this.getCollectorVersion(),
                 new Date(),
-                authoritiesUsageValues);
-        collectedData.add(authoritiesUsageData);
+                infoValues);
+        List<HBData> collectedData = new LinkedList<>();
+        collectedData.add(infoData);
 
         return collectedData;
     }

@@ -53,7 +53,6 @@ import org.junit.runners.Suite;
     org.alfresco.repo.search.impl.lucene.ADMLuceneCategoryTest.class,
     org.alfresco.repo.search.impl.lucene.ADMLuceneTest.class,
     org.alfresco.repo.blog.BlogServiceImplTest.class,
-    org.alfresco.heartbeat.RepositoryDataCollectorTest.class,
 })
 public class AppContext06TestSuite
 {

@@ -76,16 +76,6 @@ public class HBDataCollectorServiceImplTest
         assertFalse(dataCollectorService.isEnabledByDefault());
     }
 
-    @Test
-    public void testHBDataSenderServiceEnabledChange() throws Exception
-    {
-        dataCollectorService.enabled(false);
-        verify(mockDataSenderService).enable(false);
-
-        dataCollectorService.enabled(true);
-        verify(mockDataSenderService).enable(true);
-    }
-
     private void activateHB(HBDataCollectorServiceImpl dataCollectorService, boolean activate)
     {
         LicenseDescriptor mockLicenseDescriptor = mock(LicenseDescriptor.class);

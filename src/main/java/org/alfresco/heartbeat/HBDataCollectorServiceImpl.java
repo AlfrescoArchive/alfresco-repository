@@ -71,6 +71,7 @@ public class HBDataCollectorServiceImpl implements HBDataCollectorService, Licen
     public HBDataCollectorServiceImpl (boolean defaultHeartBeatState)
     {
         this.defaultHbState = defaultHeartBeatState;
+        this.enabled = defaultHeartBeatState;
     }
 
     public void setHbDataSenderService(HBDataSenderService hbDataSenderService)
@@ -144,7 +145,7 @@ public class HBDataCollectorServiceImpl implements HBDataCollectorService, Licen
             {
                 logger.debug("State change of heartbeat");
             }
-            this.enabled = newEnabled;
+            enable(newEnabled);
             restartAllCollectorSchedules();
         }
     }
@@ -162,7 +163,7 @@ public class HBDataCollectorServiceImpl implements HBDataCollectorService, Licen
             {
                 logger.debug("State change of heartbeat");
             }
-            this.enabled = newEnabled;
+            enable(newEnabled);
             restartAllCollectorSchedules();
         }
     }
@@ -195,7 +196,7 @@ public class HBDataCollectorServiceImpl implements HBDataCollectorService, Licen
         {
             if (logger.isDebugEnabled())
             {
-                logger.debug("heartbeat job scheduled");
+                logger.debug("start heartbeat job scheduling with collector: "  + collector.getCollectorId() + " " + collector.getCollectorVersion() );
             }
             final JobDetail jobDetail = new JobDetail(jobName, Scheduler.DEFAULT_GROUP, HeartBeatJob.class);
             jobDetail.getJobDataMap().put("collector", collector);
@@ -203,7 +204,7 @@ public class HBDataCollectorServiceImpl implements HBDataCollectorService, Licen
             jobDetail.getJobDataMap().put("jobLockService", jobLockService);
 
             // Ensure the job wasn't already scheduled in an earlier retry of this transaction
-            scheduler.unscheduleJob(triggerName, Scheduler.DEFAULT_GROUP);
+            unscheduleJob(triggerName, collector);
 
             String cronExpression = collector.getCronExpression();
             CronTrigger cronTrigger = null;
@@ -225,12 +226,17 @@ public class HBDataCollectorServiceImpl implements HBDataCollectorService, Licen
         }
         else
         {
-            if (logger.isDebugEnabled())
-            {
-                logger.debug("heartbeat job unscheduled");
-            }
-            scheduler.unscheduleJob(triggerName, Scheduler.DEFAULT_GROUP);
+            unscheduleJob(triggerName, collector);
         }
+    }
+
+    private void unscheduleJob(String triggerName, HBBaseDataCollector collector) throws SchedulerException
+    {
+        if (logger.isDebugEnabled())
+        {
+            logger.debug("heartbeat job unscheduled with collector: " + collector.getCollectorId() + " " + collector.getCollectorVersion());
+        }
+        scheduler.unscheduleJob(triggerName, Scheduler.DEFAULT_GROUP);
     }
 
     @Override
@@ -239,10 +245,12 @@ public class HBDataCollectorServiceImpl implements HBDataCollectorService, Licen
         return defaultHbState;
     }
 
-    @Override
-    public synchronized void enabled(boolean enabled)
-    {
-        this.hbDataSenderService.enable(enabled);
+    private void enable(boolean enable) {
+        this.enabled = enable;
+        if (hbDataSenderService != null)
+        {
+            hbDataSenderService.enable(enable);
+        }
     }
 
 }
