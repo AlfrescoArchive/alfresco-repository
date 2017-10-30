@@ -27,6 +27,7 @@
         <constructor-arg type = "java.lang.String" value = "acs.repository.usage.system"/>
         <property name="collectorVersion" value="1.0"/>
         <property name="cronExpression" value="0 0/2 * * * ?"/> <!-- every hour -->
+        <property name="currentRepoDescriptorDAO" ref="currentRepoDescriptorDAO"/>
         <property name="serverDescriptorDAO" ref="serverDescriptorDAO"/>
     </bean>
 

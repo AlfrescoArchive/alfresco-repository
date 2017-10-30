@@ -72,8 +72,7 @@ public class DescriptorServiceImpl extends AbstractLifecycleBean
     private RepoUsageComponent repoUsageComponent;
     private HBDataCollectorService hbDataCollectorService;
     @SuppressWarnings("unused")
-    private Object heartBeat;
-    
+
     private boolean isBootstrapped;
     
     /**

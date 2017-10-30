@@ -89,6 +89,11 @@ public class HBDataCollectorServiceImpl implements HBDataCollectorService, Licen
         this.scheduler = scheduler;
     }
 
+    public boolean isEnabled()
+    {
+        return this.enabled;
+    }
+
     public void setTestMode(boolean testMode)
     {
         this.testMode = testMode;
