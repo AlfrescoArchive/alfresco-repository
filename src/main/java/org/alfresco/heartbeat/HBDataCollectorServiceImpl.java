@@ -122,14 +122,13 @@ public class HBDataCollectorServiceImpl implements HBDataCollectorService, Licen
             }
         }
         this.collectors.add(collector);
-        try
-        {
-            scheduleCollector(collector);
-        }
-        catch (Exception e)
-        {
-            logger.error("Unable to schedule heart beat", e);
-        }
+
+        scheduleCollector(collector);
+    }
+
+    private String collectorInfo(HBBaseDataCollector collector)
+    {
+        return collector.getCollectorId() + " " + collector.getCollectorVersion();
     }
 
     /**
@@ -175,73 +174,73 @@ public class HBDataCollectorServiceImpl implements HBDataCollectorService, Licen
 
     private void restartAllCollectorSchedules()
     {
-        try
+        for(HBBaseDataCollector collector : collectors)
         {
-            for(HBBaseDataCollector collector : collectors)
-            {
-                scheduleCollector(collector);
-            }
-        }
-        catch (Exception e)
-        {
-            logger.error("Unable to schedule heart beat", e);
+            scheduleCollector(collector);
         }
     }
 
     /**
      * Start or stop the hertbeat job depending on whether the heartbeat is enabled or not
-     * @throws SchedulerException
      */
-    private synchronized void scheduleCollector(HBBaseDataCollector collector) throws SchedulerException
+    private synchronized void scheduleCollector(HBBaseDataCollector collector)
     {
-        // Schedule the heart beat to run regularly
-        final String jobName = "heartbeat-" + collector.getCollectorId();
-        final String triggerName = jobName + "-Trigger";
-        if(this.enabled)
+        try
         {
-            if (logger.isDebugEnabled())
-            {
-                logger.debug("start heartbeat job scheduling with collector: "  + collector.getCollectorId() + " " + collector.getCollectorVersion() );
-            }
-            final JobDetail jobDetail = new JobDetail(jobName, Scheduler.DEFAULT_GROUP, HeartBeatJob.class);
-            jobDetail.getJobDataMap().put("collector", collector);
-            jobDetail.getJobDataMap().put("hbDataSenderService", hbDataSenderService);
-            jobDetail.getJobDataMap().put("jobLockService", jobLockService);
-
-            // Ensure the job wasn't already scheduled in an earlier retry of this transaction
-            unscheduleJob(triggerName, collector);
-
-            String cronExpression = collector.getCronExpression();
-            CronTrigger cronTrigger = null;
-            try
-            {
-                cronTrigger = new CronTrigger(triggerName , Scheduler.DEFAULT_GROUP, cronExpression);
-            }
-            catch (ParseException e)
+            // Schedule the heartbeat to run regularly
+            final String jobName = "heartbeat-" + collector.getCollectorId();
+            final String triggerName = jobName + "-Trigger";
+            if(this.enabled)
             {
                 if (logger.isDebugEnabled())
                 {
-                    logger.debug("Skipping scheduling because of invalid cron expression: " + cronExpression);
+                    logger.debug("start heartbeat job scheduling with collector: " + collectorInfo(collector));
+                }
+                final JobDetail jobDetail = new JobDetail(jobName, Scheduler.DEFAULT_GROUP, HeartBeatJob.class);
+                jobDetail.getJobDataMap().put("collector", collector);
+                jobDetail.getJobDataMap().put("hbDataSenderService", hbDataSenderService);
+                jobDetail.getJobDataMap().put("jobLockService", jobLockService);
+
+                // Ensure the job wasn't already scheduled in an earlier retry of this transaction
+                unscheduleJob(triggerName, collector);
+
+                String cronExpression = collector.getCronExpression();
+                CronTrigger cronTrigger = null;
+                try
+                {
+                    cronTrigger = new CronTrigger(triggerName , Scheduler.DEFAULT_GROUP, cronExpression);
+                }
+                catch (ParseException e)
+                {
+                    if (logger.isDebugEnabled())
+                    {
+                        logger.debug("Skipping scheduling because of invalid cron expression: " + cronExpression);
+                    }
+                }
+                if(cronTrigger != null)
+                {
+                    scheduler.scheduleJob(jobDetail, cronTrigger);
                 }
             }
-            if(cronTrigger != null)
+            else
             {
-                scheduler.scheduleJob(jobDetail, cronTrigger);
+                unscheduleJob(triggerName, collector);
             }
         }
-        else
+        catch (SchedulerException se)
         {
-            unscheduleJob(triggerName, collector);
+            logger.error("Unable to schedule heartbeat collector: " + collectorInfo(collector), se);
         }
+
     }
 
     private void unscheduleJob(String triggerName, HBBaseDataCollector collector) throws SchedulerException
     {
+        scheduler.unscheduleJob(triggerName, Scheduler.DEFAULT_GROUP);
         if (logger.isDebugEnabled())
         {
-            logger.debug("heartbeat job unscheduled with collector: " + collector.getCollectorId() + " " + collector.getCollectorVersion());
+            logger.debug("heartbeat job unscheduled with collector: " + collectorInfo(collector));
         }
-        scheduler.unscheduleJob(triggerName, Scheduler.DEFAULT_GROUP);
     }
 
     @Override
@@ -250,7 +249,8 @@ public class HBDataCollectorServiceImpl implements HBDataCollectorService, Licen
         return defaultHbState;
     }
 
-    private void enable(boolean enable) {
+    private void enable(boolean enable)
+    {
         this.enabled = enable;
         if (hbDataSenderService != null)
         {

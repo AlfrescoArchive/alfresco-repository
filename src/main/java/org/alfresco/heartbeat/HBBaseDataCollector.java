@@ -43,11 +43,13 @@ public abstract class HBBaseDataCollector {
 
     private HBDataCollectorService hbDataCollectorService;
 
-    public HBBaseDataCollector(String collectorId) {
+    public HBBaseDataCollector(String collectorId)
+    {
         this.collectorId = collectorId;
     }
 
-    public String getCollectorId() {
+    public String getCollectorId()
+    {
         return collectorId;
     }
 

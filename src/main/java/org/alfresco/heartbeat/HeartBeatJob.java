@@ -117,7 +117,7 @@ public class HeartBeatJob implements Job
             }
             catch (Exception e)
             {
-                logger.error(e);
+                logger.warn(e);
             }
         }
         catch (final Exception e)
