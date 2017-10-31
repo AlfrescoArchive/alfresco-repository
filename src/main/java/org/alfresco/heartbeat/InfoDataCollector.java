@@ -62,6 +62,16 @@ public class InfoDataCollector extends HBBaseDataCollector
     @Override
     public List<HBData> collectData()
     {
+        if(serverDescriptorDAO == null)
+        {
+            logger.debug("Couldn't collect data because server descriptor is null");
+            return null;
+        }
+        if(currentRepoDescriptorDAO == null)
+        {
+            logger.debug("Couldn't collect data because repository descriptor is null");
+            return null;
+        }
         logger.debug("Preparing repository info data...");
 
         final Descriptor serverDescriptor = this.serverDescriptorDAO.getDescriptor();

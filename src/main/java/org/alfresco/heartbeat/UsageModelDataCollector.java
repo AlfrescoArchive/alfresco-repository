@@ -72,6 +72,21 @@ public class UsageModelDataCollector extends HBBaseDataCollector
     @Override
     public List<HBData> collectData()
     {
+        if(transactionService == null)
+        {
+            logger.debug("Couldn't collect data because transaction service is null");
+            return null;
+        }
+        if(customModelService == null)
+        {
+            logger.debug("Couldn't collect data because custom model service is null");
+            return null;
+        }
+        if(currentRepoDescriptorDAO == null)
+        {
+            logger.debug("Couldn't collect data because repository descriptor is null");
+            return null;
+        }
         logger.debug("Preparing repository usage model data...");
 
         final CustomModelsInfo customModelsInfo = transactionService.getRetryingTransactionHelper().doInTransaction(
@@ -83,8 +98,8 @@ public class UsageModelDataCollector extends HBBaseDataCollector
         modelUsageValues.put("numOfActiveAspects", new Integer(customModelsInfo.getNumberOfActiveAspects()));
         HBData modelUsageData = new HBData(
                 this.currentRepoDescriptorDAO.getDescriptor().getId(),
-                this.getCollectorVersion(),
                 this.getCollectorId(),
+                this.getCollectorVersion(),
                 new Date(),
                 modelUsageValues);
 

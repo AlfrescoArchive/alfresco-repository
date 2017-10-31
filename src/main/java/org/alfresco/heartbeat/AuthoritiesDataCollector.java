@@ -72,11 +72,19 @@ public class AuthoritiesDataCollector extends HBBaseDataCollector
     @Override
     public List<HBData> collectData()
     {
+        if(authorityService == null)
+        {
+            logger.debug("Couldn't collect data because authority service is null");
+            return null;
+        }
+        if(currentRepoDescriptorDAO == null)
+        {
+            logger.debug("Couldn't collect data because repository descriptor is null");
+            return null;
+        }
 
-        List<HBData> collectedData = new LinkedList<>();
-
-        // Collect repository usage (authorities) data
         this.logger.debug("Preparing repository usage (authorities) data...");
+
         Map<String, Object> authoritiesUsageValues = new HashMap<>();
         authoritiesUsageValues.put("numUsers", new Integer(this.authorityService.getAllAuthoritiesInZone(
                 AuthorityService.ZONE_APP_DEFAULT, AuthorityType.USER).size()));
@@ -88,6 +96,7 @@ public class AuthoritiesDataCollector extends HBBaseDataCollector
                 this.getCollectorVersion(),
                 new Date(),
                 authoritiesUsageValues);
+        List<HBData> collectedData = new LinkedList<>();
         collectedData.add(authoritiesUsageData);
 
         return collectedData;

@@ -53,6 +53,11 @@ public class UsageSystemDataCollector extends HBBaseDataCollector
     @Override
     public List<HBData> collectData()
     {
+        if(currentRepoDescriptorDAO == null)
+        {
+            logger.debug("Couldn't collect data because repository descriptor is null");
+            return null;
+        }
         logger.debug("Preparing repository usage system data...");
 
         Runtime runtime = Runtime.getRuntime();
