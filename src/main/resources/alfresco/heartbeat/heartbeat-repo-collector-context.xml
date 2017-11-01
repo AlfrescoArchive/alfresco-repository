@@ -23,7 +23,7 @@
     </bean>
 
     <!-- HeartBeat repository usage system data collector -->
-    <bean id="usageSystemDataCollector" class="org.alfresco.heartbeat.InfoDataCollector" parent="hbBaseDataCollector" init-method="register">
+    <bean id="usageSystemDataCollector" class="org.alfresco.heartbeat.UsageModelDataCollector" parent="hbBaseDataCollector" init-method="register">
         <constructor-arg type = "java.lang.String" value = "acs.repository.usage.system"/>
         <property name="collectorVersion" value="1.0"/>
         <property name="cronExpression" value="0 0/2 * * * ?"/> <!-- every hour -->

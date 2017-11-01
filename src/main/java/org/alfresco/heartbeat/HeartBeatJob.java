@@ -146,7 +146,7 @@ public class HeartBeatJob implements Job
 
         if (logger.isDebugEnabled())
         {
-            logger.debug("lock acquired: " + lockQname + ": " + lockToken);
+            logger.debug("Lock acquired: " + lockQname + ": " + lockToken);
         }
 
         return lockToken;
