@@ -36,6 +36,7 @@ import org.mockito.Mockito;
 import org.quartz.JobDataMap;
 import org.quartz.JobDetail;
 import org.quartz.JobExecutionContext;
+import org.quartz.JobExecutionException;
 
 import java.util.Date;
 import java.util.LinkedList;
@@ -83,7 +84,7 @@ public class HeartBeatJobTest
     }
 
     @Test
-    public void testClusterNoLock() throws Exception
+    public void testJobInCluster() throws Exception
     {
         // mock the job context
         JobExecutionContext mockJobExecutionContext = mock(JobExecutionContext.class);
@@ -102,46 +103,40 @@ public class HeartBeatJobTest
         String lockToken = "locked";
         when(mockJobLockService.getLock(any(QName.class), anyLong())).thenReturn(lockToken);
 
-        new HeartBeatJob().execute(mockJobExecutionContext);
+        Runnable t1 = () ->
+        {
+            try
+            {
+                new HeartBeatJob().execute(mockJobExecutionContext);
+            }
+            catch (JobExecutionException e)
+            {
+                //
+            }
+        };
+        Runnable t2 = () ->
+        {
+            try
+            {
+                new HeartBeatJob().execute(mockJobExecutionContext);
+            }
+            catch (JobExecutionException e)
+            {
+                //
+            }
+        };
+        t1.run();
+        // thread 1 keeps the lock
+        when(mockJobLockService.getLock(isA(QName.class), anyLong())).thenThrow(new LockAcquisitionException("", ""));
+        t2.run();
 
-        // verify that we collected and send data
+        // verify that we collected and send data but just one time
         verify(simpleCollector, Mockito.times(1)).collectData();
         verify(mockDataSenderService, Mockito.times(1)).sendData(any(List.class));
         verify(mockDataSenderService, Mockito.times(0)).sendData(any(HBData.class));
-        verify(mockJobLockService, Mockito.times(1)).getLock(any(QName.class), anyLong());
+        verify(mockJobLockService, Mockito.times(2)).getLock(any(QName.class), anyLong());
         verify(mockJobLockService, Mockito.times(1)).refreshLock(eq(lockToken), any(QName.class), anyLong(), any(
                 JobLockService.JobLockRefreshCallback.class));
         verify(mockJobLockService, Mockito.times(1)).releaseLock(eq(lockToken), any(QName.class));
-    }
-
-    @Test
-    public void testClusterLocked() throws Exception
-    {
-        // mock the job context
-        JobExecutionContext mockJobExecutionContext = mock(JobExecutionContext.class);
-        JobDetail jobDetail = new JobDetail();
-        when(mockJobExecutionContext.getJobDetail()).thenReturn(jobDetail);
-
-        // create the hb collector
-        SimpleHBDataCollector simpleCollector = spy(new SimpleHBDataCollector("simpleCollector"));
-        JobDataMap jobDataMap = new JobDataMap();
-        jobDataMap.put("collector", simpleCollector);
-        jobDataMap.put("hbDataSenderService", mockDataSenderService);
-        jobDataMap.put("jobLockService", mockJobLockService);
-        jobDetail.setJobDataMap(jobDataMap);
-
-        // collector job is locked from an other collector and will throw the lock exception
-        String lockToken = "locked";
-        when(mockJobLockService.getLock(isA(QName.class), anyLong())).thenThrow(new LockAcquisitionException("", ""));
-
-        new HeartBeatJob().execute(mockJobExecutionContext);
-
-        // verify that we not collected and send data
-        verify(simpleCollector, Mockito.times(0)).collectData();
-        verify(mockDataSenderService, Mockito.times(0)).sendData(any(List.class));
-        verify(mockDataSenderService, Mockito.times(0)).sendData(any(HBData.class));
-        verify(mockJobLockService, Mockito.times(1)).getLock(any(QName.class), anyLong());
-        verify(mockJobLockService, Mockito.times(0)).refreshLock(eq(lockToken), any(QName.class), anyLong(), any(JobLockService.JobLockRefreshCallback.class));
-        verify(mockJobLockService, Mockito.times(0)).releaseLock(eq(lockToken), any(QName.class));
     }
 }

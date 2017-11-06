@@ -52,6 +52,8 @@ public class HeartBeatJob implements Job
 
     /** The heart beat job will be locked for max 30 seconds */
     private static final long LOCK_TTL = 30000L;
+    /** Addition miliseconds for how much longer the log will be kept */
+    private static final long LOCK_TTL_OFFSET = 30000L;
 
     public void execute(final JobExecutionContext jobexecutioncontext) throws JobExecutionException
     {
@@ -92,6 +94,15 @@ public class HeartBeatJob implements Job
             // Get a dynamic lock
             lockToken = acquireLock(lockCallback, qName, jobLockService);
             collectAndSendDataLocked(collector, hbDataSenderService);
+            // after it finished we want to keep the lock for 30 seconds more
+            try
+            {
+                Thread.sleep(LOCK_TTL_OFFSET);
+            }
+            catch (InterruptedException e)
+            {
+                //
+            }
         }
         catch (LockAcquisitionException e)
         {
