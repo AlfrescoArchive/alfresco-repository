@@ -62,6 +62,7 @@ import org.alfresco.service.cmr.security.PermissionContext;
 import org.alfresco.service.cmr.security.PermissionService;
 import org.alfresco.service.namespace.QName;
 import org.alfresco.test_category.OwnJVMTestsCategory;
+import org.alfresco.util.testing.category.PerformanceTests;
 import org.junit.FixMethodOrder;
 import org.junit.experimental.categories.Category;
 import org.junit.runners.MethodSorters;
@@ -2264,6 +2265,7 @@ public class PermissionServiceTest extends AbstractPermissionTest
         assertFalse(permissionService.hasPermission(rootNodeRef, getPermission(PermissionService.READ_CONTENT)) == AccessStatus.ALLOWED);
     }
 
+    @Category(PerformanceTests.class)
     public void testPerformance() throws Exception
     {
         runAs(AuthenticationUtil.getAdminUserName());
@@ -3251,6 +3253,7 @@ public class PermissionServiceTest extends AbstractPermissionTest
 
     }
 
+    @Category(PerformanceTests.class)
     public void xtestAclInsertionPerformanceShared()
     {
         NodeRef parent = nodeService.createNode(rootNodeRef, ContentModel.ASSOC_CHILDREN, QName.createQName("{namespace}one"), ContentModel.TYPE_FOLDER).getChildRef();
@@ -3265,6 +3268,7 @@ public class PermissionServiceTest extends AbstractPermissionTest
         assertTrue("Time was "+(end - start)/1000000000.0f, end == start);
     }
 
+    @Category(PerformanceTests.class)
     public void xtestAclInsertionPerformanceDefining()
     {
         NodeRef parent = nodeService.createNode(rootNodeRef, ContentModel.ASSOC_CHILDREN, QName.createQName("{namespace}one"), ContentModel.TYPE_FOLDER).getChildRef();
@@ -3280,6 +3284,7 @@ public class PermissionServiceTest extends AbstractPermissionTest
         assertTrue("Time was "+(end - start)/1000000000.0f, end == start);
     }
 
+    @Category(PerformanceTests.class)
     public void xtestAclInsertionPerformanceMixed()
     {
         NodeRef parent = nodeService.createNode(rootNodeRef, ContentModel.ASSOC_CHILDREN, QName.createQName("{namespace}one"), ContentModel.TYPE_FOLDER).getChildRef();
@@ -3385,6 +3390,7 @@ public class PermissionServiceTest extends AbstractPermissionTest
 
     }
 
+    @Category(PerformanceTests.class)
     public void test_DefiningShared_AclUpdatePerformance()
     {
         runAs("admin");
@@ -3409,6 +3415,7 @@ public class PermissionServiceTest extends AbstractPermissionTest
     }
 
 
+    @Category(PerformanceTests.class)
     public void test_DefiningDefining_AclUpdatePerformance()
     {
         runAs("admin");
@@ -3439,7 +3446,7 @@ public class PermissionServiceTest extends AbstractPermissionTest
 
     }
 
-
+    @Category(PerformanceTests.class)
     public void testAclInsertionPerformanceShared()
     {
         NodeRef parent = nodeService.createNode(rootNodeRef, ContentModel.ASSOC_CHILDREN, QName.createQName("{namespace}one"), ContentModel.TYPE_FOLDER).getChildRef();
@@ -3454,6 +3461,7 @@ public class PermissionServiceTest extends AbstractPermissionTest
         //assertTrue("Time was "+(end - start)/1000000000.0f, end == start);
     }
 
+    @Category(PerformanceTests.class)
     public void testAclInsertionPerformanceDefining()
     {
         NodeRef parent = nodeService.createNode(rootNodeRef, ContentModel.ASSOC_CHILDREN, QName.createQName("{namespace}one"), ContentModel.TYPE_FOLDER).getChildRef();
@@ -3469,6 +3477,7 @@ public class PermissionServiceTest extends AbstractPermissionTest
         //assertTrue("Time was "+(end - start)/1000000000.0f, end == start);
     }
 
+    @Category(PerformanceTests.class)
     public void testAclInsertionPerformanceMixed()
     {
         NodeRef parent = nodeService.createNode(rootNodeRef, ContentModel.ASSOC_CHILDREN, QName.createQName("{namespace}one"), ContentModel.TYPE_FOLDER).getChildRef();
