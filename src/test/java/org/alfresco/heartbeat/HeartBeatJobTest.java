@@ -114,21 +114,10 @@ public class HeartBeatJobTest
                 //
             }
         };
-        Runnable t2 = () ->
-        {
-            try
-            {
-                new HeartBeatJob().execute(mockJobExecutionContext);
-            }
-            catch (JobExecutionException e)
-            {
-                //
-            }
-        };
         t1.run();
         // thread 1 keeps the lock
         when(mockJobLockService.getLock(isA(QName.class), anyLong())).thenThrow(new LockAcquisitionException("", ""));
-        t2.run();
+        t1.run();
 
         // verify that we collected and send data but just one time
         verify(simpleCollector, Mockito.times(1)).collectData();
