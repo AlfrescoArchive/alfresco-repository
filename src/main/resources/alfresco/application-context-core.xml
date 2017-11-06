@@ -53,6 +53,4 @@
     <import resource="classpath*:alfresco/enterprise/authorization-context.xml" />
     <import resource="classpath*:alfresco/enterprise/enterprise-usage-services-context.xml" />
     <import resource="classpath:alfresco/heartbeat/heartbeat-context.xml"/>
-    <import resource="classpath:alfresco/heartbeat/heartbeat-repo-collector-context.xml"/>
-    <import resource="classpath*:alfresco/enterprise/heartbeat/heartbeat-enterprise-repo-collector-context.xml" />
 </beans>
