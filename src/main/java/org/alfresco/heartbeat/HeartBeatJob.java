@@ -50,10 +50,10 @@ public class HeartBeatJob implements Job
     /** The logger. */
     private static final Log logger = LogFactory.getLog(HeartBeatJob.class);
 
-    /** The heart beat job will be locked for max 30 seconds */
-    private static final long LOCK_TTL = 30000L;
-    /** Addition miliseconds for how much longer the log will be kept */
-    private static final long LOCK_TTL_OFFSET = 30000L;
+    /** Time to live 5 seconds */
+    private static final long LOCK_TTL = 5000L;
+    /** Additional 5 seconds for how much longer the log will be kept */
+    private static final long LOCK_TTL_OFFSET = 5000L;
 
     public void execute(final JobExecutionContext jobexecutioncontext) throws JobExecutionException
     {

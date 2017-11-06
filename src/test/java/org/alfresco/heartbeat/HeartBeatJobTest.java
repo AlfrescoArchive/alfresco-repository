@@ -136,15 +136,15 @@ public class HeartBeatJobTest
         Thread t2 = new Thread(r2);
 
         t1.start();
-        Thread.sleep(35000);
+        Thread.sleep(6000);
         t2.start();
-        Thread.sleep(35000);
+        Thread.sleep(6000);
 
         // verify that we collected and send data but just one time
         verify(simpleCollector, Mockito.times(2)).collectData();
         verify(mockDataSenderService, Mockito.times(2)).sendData(any(List.class));
         verify(mockDataSenderService, Mockito.times(0)).sendData(any(HBData.class));
-        verify(mockJobLockService, Mockito.times(3)).getLock(any(QName.class), anyLong());
+        verify(mockJobLockService, Mockito.times(2)).getLock(any(QName.class), anyLong());
         verify(mockJobLockService, Mockito.times(2)).refreshLock(eq(lockToken), any(QName.class), anyLong(), any(
                 JobLockService.JobLockRefreshCallback.class));
         verify(mockJobLockService, Mockito.times(2)).releaseLock(eq(lockToken), any(QName.class));
@@ -203,9 +203,9 @@ public class HeartBeatJobTest
         Thread t2 = new Thread(r2);
 
         t1.start();
-        Thread.sleep(20000);
+        Thread.sleep(1000);
         t2.start();
-        Thread.sleep(35000);
+        Thread.sleep(6000);
 
         // verify that we collected and send data but just one time
         verify(simpleCollector, Mockito.times(1)).collectData();
