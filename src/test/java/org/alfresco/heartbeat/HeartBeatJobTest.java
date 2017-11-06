@@ -101,9 +101,26 @@ public class HeartBeatJobTest
 
         // collector job is not locked from an other collector
         String lockToken = "locked";
-        when(mockJobLockService.getLock(any(QName.class), anyLong())).thenReturn(lockToken);
 
-        Runnable t1 = () ->
+        Runnable r1 = () ->
+        {
+            // if a second job tries to get the lock before we finished that will raise the exception
+            when(mockJobLockService.getLock(isA(QName.class), anyLong())).thenReturn(lockToken).thenThrow(new LockAcquisitionException("", ""));
+            try
+            {
+                new HeartBeatJob().execute(mockJobExecutionContext);
+            }
+            catch (JobExecutionException e)
+            {
+                //
+            }
+            finally
+            {
+                // when we are finished an other job can have the lock
+                when(mockJobLockService.getLock(isA(QName.class), anyLong())).thenReturn(lockToken);
+            }
+        };
+        Runnable r2 = () ->
         {
             try
             {
@@ -114,10 +131,14 @@ public class HeartBeatJobTest
                 //
             }
         };
-        t1.run();
-        // thread 1 keeps the lock
-        when(mockJobLockService.getLock(isA(QName.class), anyLong())).thenThrow(new LockAcquisitionException("", ""));
-        t1.run();
+
+        Thread t1 = new Thread(r1);
+        Thread t2 = new Thread(r2);
+
+        t1.start();
+        Thread.sleep(20000);
+        t2.start();
+        Thread.sleep(20000);
 
         // verify that we collected and send data but just one time
         verify(simpleCollector, Mockito.times(1)).collectData();
