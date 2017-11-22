@@ -450,7 +450,7 @@ public abstract class AbstractContentTransformerTest extends TestCase
     protected boolean isOpenOfficeWorkerAvailable() throws InterruptedException
     {
         // workaround for build machines (originally taken from OpenOfficeContentTransformerTest)
-        ContentTransformerWorker ooWorker = (ContentTransformerWorker) ctx.getBean("transformer.worker.OpenOffice");
+        ContentTransformerWorker ooWorker = (ContentTransformerWorker) ctx.getBean("transformer.worker.JodConverter");
 
         if (!ooWorker.isAvailable())
         {

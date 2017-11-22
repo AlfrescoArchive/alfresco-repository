@@ -54,7 +54,7 @@ public class OpenOfficeContentTransformerTest extends AbstractContentTransformer
     {
         super.setUp();
         
-        this.worker = (ContentTransformerWorker) ctx.getBean("transformer.worker.OpenOffice");
+        this.worker = (ContentTransformerWorker) ctx.getBean("transformer.worker.JodConverter");
         transformer = new ProxyContentTransformer();
         transformer.setMimetypeService(mimetypeService);
         transformer.setTransformerDebug(transformerDebug);
