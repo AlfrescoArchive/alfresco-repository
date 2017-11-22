@@ -205,15 +205,8 @@ public abstract class OOoContentTransformerHelper extends ContentTransformerHelp
         // get the family of the target document
         DocumentFamily sourceFamily = sourceFormat.getInputFamily();
         // does the format support the conversion
-        if (formatRegistry.getOutputFormats(sourceFamily).contains(targetFormat)) // if (targetFormat.getStoreProperties(sourceFamily) != null)
-        {
-            // unable to export from source family of documents to the target format
-            return false;
-        }
-        else
-        {
-            return true;
-        }
+        boolean transformable = formatRegistry.getOutputFormats(sourceFamily).contains(targetFormat); // same as: targetFormat.getStoreProperties(sourceFamily) != null
+        return transformable;
     }
     
     @Override
@@ -336,7 +329,7 @@ public abstract class OOoContentTransformerHelper extends ContentTransformerHelp
         // get the family of the target document
         DocumentFamily sourceFamily = sourceFormat.getInputFamily();
         // does the format support the conversion
-        if (formatRegistry.getOutputFormats(sourceFamily).contains(targetFormat)) // if (targetFormat.getStoreProperties(sourceFamily) != null)
+        if (!formatRegistry.getOutputFormats(sourceFamily).contains(targetFormat)) // same as: targetFormat.getStoreProperties(sourceFamily) == null
         {
             throw new ContentIOException(
                     "OpenOffice conversion not supported: \n" +
