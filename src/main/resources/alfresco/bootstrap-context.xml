@@ -311,15 +311,8 @@
         </property>
     </bean>
 
-    <bean id="OOoDirect" class="org.alfresco.repo.management.subsystems.ChildApplicationContextFactory" parent="abstractPropertyBackedBean">
-        <property name="autoStart">
-            <value>true</value>
-        </property>
-    </bean>
-
-
     <!-- Bootstrap any enterprise contexts -->
-    <!-- This is placed at this point because we need the enterprise OOoJodConverter subsystem started
+    <!-- Historically this is placed at this point because we need the enterprise OOoJodConverter subsystem started
          before reindexing begins. -->
     <import resource="classpath*:alfresco/enterprise/bootstrap/*-context.xml" />
 

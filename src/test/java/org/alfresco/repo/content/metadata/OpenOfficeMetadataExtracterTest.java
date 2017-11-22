@@ -68,7 +68,7 @@ public class OpenOfficeMetadataExtracterTest extends AbstractMetadataExtracterTe
     {
         super.setUp();
         
-        OpenOfficeMetadataWorker worker = (OpenOfficeMetadataWorker) ctx.getBean("extracter.worker.OpenOffice");
+        OpenOfficeMetadataWorker worker = (OpenOfficeMetadataWorker) ctx.getBean("extracter.worker.OpenOffice"); // Removed - does not appear to be used any more
         
         extracter = new OpenOfficeMetadataExtracter();
         extracter.setMimetypeService(mimetypeMap);

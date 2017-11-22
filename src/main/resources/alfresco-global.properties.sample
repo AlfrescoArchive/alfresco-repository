@@ -17,8 +17,6 @@
 #
 # External locations
 #-------------
-#ooo.exe=soffice
-#ooo.enabled=false
 #jodconverter.officeHome=./OpenOffice.org
 #jodconverter.portNumbers=8101
 #jodconverter.enabled=true

@@ -37,7 +37,8 @@ import org.alfresco.service.cmr.repository.TransformationOptions;
 import org.alfresco.util.TempFileProvider;
 
 /**
- * @see org.alfresco.repo.content.transform.OpenOfficeContentTransformerWorker
+ * We no longer use ooo.direct in Community. This test class now is connnected up to the JODConverter which was moved
+ * from the Enterprise Edition.
  * 
  * @author Derek Hulley
  */
