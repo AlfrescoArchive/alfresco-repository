@@ -26,7 +26,10 @@
        <property name="enabled">
           <value>${jodconverter.enabled}</value>
        </property>
-       <property name="deprecatedOooPortNumbers">
+       <property name="deprecatedOooExe">
+          <value>${ooo.exe}</value>
+       </property>
+       <property name="deprecatedOooPort">
           <value>${ooo.port}</value>
        </property>
        <property name="deprecatedOooEnabled">

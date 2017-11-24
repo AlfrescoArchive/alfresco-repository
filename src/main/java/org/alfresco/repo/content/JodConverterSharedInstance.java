@@ -52,7 +52,7 @@ public class JodConverterSharedInstance implements InitializingBean, DisposableB
     private static Log logger = LogFactory.getLog(JodConverterSharedInstance.class);
 
     private OfficeManager officeManager;
-    private boolean isAvailable = false;
+    boolean isAvailable = false;
     
     // JodConverter's built-in configuration settings.
     //
@@ -75,6 +75,7 @@ public class JodConverterSharedInstance implements InitializingBean, DisposableB
     private Boolean enabled;
     private Long connectTimeout;
     
+    private String deprecatedOooExe;
     private Boolean deprecatedOooEnabled;
     private int[] deprecatedOooPortNumbers;
 
@@ -89,7 +90,12 @@ public class JodConverterSharedInstance implements InitializingBean, DisposableB
     
     public void setOfficeHome(String officeHome)
     {
-        this.officeHome = officeHome.trim();
+        this.officeHome = officeHome == null ? "" : officeHome.trim();
+    }
+
+    public void setDeprecatedOooExe(String deprecatedOooExe)
+    {
+        this.deprecatedOooExe = deprecatedOooExe == null ? "" : deprecatedOooExe.trim();
     }
 
     public void setPortNumbers(String s)
@@ -97,46 +103,42 @@ public class JodConverterSharedInstance implements InitializingBean, DisposableB
         portNumbers = parsePortNumbers(s, "jodconverter");
     }
 
-    public void setDeprecatedOooPortNumbers(String s)
+    public void setDeprecatedOooPort(String s)
     {
         deprecatedOooPortNumbers = parsePortNumbers(s, "ooo");
     }
 
     private int[] parsePortNumbers(String s, String sys)
     {
-        StringTokenizer tokenizer = new StringTokenizer(s.trim(), ",");
-        int tokenCount = tokenizer.countTokens();
-        int[] portNumbers = new int[tokenCount];
-        for (int i = 0 ; tokenizer.hasMoreTokens(); i++)
+        int[] portNumbers = null;
+        s = s == null ? null : s.trim();
+        if (s != null && !s.isEmpty())
         {
-            try
+            StringTokenizer tokenizer = new StringTokenizer(s, ",");
+            int tokenCount = tokenizer.countTokens();
+            portNumbers = new int[tokenCount];
+            for (int i = 0;tokenizer.hasMoreTokens();i++)
             {
-                portNumbers[i] = Integer.parseInt(tokenizer.nextToken().trim());
-            } catch (NumberFormatException e)
-            {
-                // Logging this as an error as this property would prevent JodConverter & therefore
-                // OOo from starting as specified
-                if (logger.isErrorEnabled())
+                try
                 {
-                    logger.error("Unparseable value for property '"+sys+".portNumbers': " + s);
+                    portNumbers[i] = Integer.parseInt(tokenizer.nextToken().trim());
                 }
-                // We'll not rethrow the exception, instead allowing the problem to be picked up
-                // when the OOoJodConverter subsystem is started.
+                catch (NumberFormatException e)
+                {
+                    // Logging this as an error as this property would prevent JodConverter & therefore
+                    // OOo from starting as specified
+                    if (logger.isErrorEnabled())
+                    {
+                        logger.error("Unparseable value for property '" + sys + ".portNumbers': " + s);
+                    }
+                    // We'll not rethrow the exception, instead allowing the problem to be picked up
+                    // when the OOoJodConverter subsystem is started.
+                }
             }
         }
         return portNumbers;
     }
 
-    // So that Community systems <= Alfresco 6.0.1-ea keep working on upgrade, we may need to use the deprecated
-    // ooo.portNumbers setting rather than the odconverter.portNumbers setting if we don't have any jod setting
-    // as oooDirect was replaced by jodconverter after this release.
-    private int[] getPortNumbers()
-    {
-        return (enabled == null || !enabled) && deprecatedOooEnabled != null && deprecatedOooEnabled
-            ? deprecatedOooPortNumbers
-            : portNumbers;
-    }
-    
     public void setTaskExecutionTimeout(String taskExecutionTimeout)
     {
         this.taskExecutionTimeout = parseStringForLong(taskExecutionTimeout.trim());
@@ -171,32 +173,81 @@ public class JodConverterSharedInstance implements InitializingBean, DisposableB
 
     public void setEnabled(String enabled)
     {
-        boolean wasEnabled = isEnabled();
-        this.enabled = Boolean.parseBoolean(enabled.trim());
+        this.enabled = parseEnabled(enabled);
 
-        if (this.enabled == false && wasEnabled && isEnabled() == false)
+        // If this is a request from the Enterprise Admin console to disable the JodConverter.
+        if (this.enabled == false && (deprecatedOooEnabled == null || deprecatedOooEnabled == false))
         {
-            isAvailable = false;
+            // We need to change isAvailable to false so we don't make calls to a previously started OfficeManger.
+            // In the case of Enterprise it is very unlikely that ooo.enabled will have been set to true.
+            this.isAvailable = false;
         }
     }
 
-    public void setDeprecatedOooEnabled(String enabled)
+    public void setDeprecatedOooEnabled(String deprecatedOooEnabled)
     {
-        boolean wasEnabled = isEnabled();
-        deprecatedOooEnabled = Boolean.parseBoolean(enabled.trim());
+        this.deprecatedOooEnabled = parseEnabled(deprecatedOooEnabled);
+        // No need to worry about isAvailable as this setting cannot be changed via the Admin console.
+    }
 
-        if (deprecatedOooEnabled == false && wasEnabled && isEnabled() == false)
-        {
-            isAvailable = false;
-        }
+    private Boolean parseEnabled(String enabled)
+    {
+        enabled = enabled == null ? "" : enabled.trim();
+        return Boolean.parseBoolean(enabled);
     }
 
     // So that Community systems <= Alfresco 6.0.1-ea keep working on upgrade, we may need to use the deprecated
-    // ooo.enabled setting rather than the jodconverter.enabled setting if we don't have any jod setting as
+    // ooo.exe setting rather than the jodconverter.officeHome setting if we don't have the jod setting as
     // oooDirect was replaced by jodconverter after this release.
-    private boolean isEnabled()
+    String getOfficeHome()
     {
-        return (enabled != null && enabled) || (deprecatedOooEnabled != null && deprecatedOooEnabled);
+        String officeHome = this.officeHome;
+        if ((officeHome == null || officeHome.isEmpty()) && (deprecatedOooExe != null && !deprecatedOooExe.isEmpty()))
+        {
+            // It will only be possible to use the ooo.exe value if it includes a path, which itself has the officeHome
+            // value in it.
+
+            // jodconverter.officeHome=/opt/libreoffice5.4/
+            //                 ooo.exe=/opt/libreoffice5.4/program/soffice.bin
+
+            // jodconverter.officeHome=C:/noscan/installs/521~1.1/LIBREO~1/App/libreoffice
+            //                 ooo.exe=C:/noscan/installs/COMMUN~1.0-E/LIBREO~1/App/libreoffice/program/soffice.exe
+
+            File oooExe = new File(deprecatedOooExe);
+            File parent = oooExe.getParentFile();
+            if (parent != null && "program".equals(parent.getName()))
+            {
+                File grandparent = parent.getParentFile();
+                if (grandparent != null)
+                {
+                    officeHome = grandparent.getPath();
+                }
+            }
+        }
+        return officeHome;
+    }
+
+    // So that Community systems <= Alfresco 6.0.1-ea keep working on upgrade, we may need to use the deprecated
+    // ooo.enabled setting if true rather than the jodconverter.enabled setting as oooDirect was replaced by
+    // jodconverter after this release.
+    //     If ooo.enabled is true the JodConverter will be enabled.
+    //     If ooo.enabled is false or unset the jodconverter.enabled value is used.
+    //     Community set properties via alfresco-global.properties.
+    //     Enterprise may do the same but may also reset jodconverter.enabled them via the Admin console.
+    //     In the case of Enterprise it is very unlikely that ooo.enabled will be set to true.
+    boolean isEnabled()
+    {
+        return (deprecatedOooEnabled != null && deprecatedOooEnabled) || (enabled != null && enabled);
+    }
+
+    // So that Community systems <= Alfresco 6.0.1-ea keep working on upgrade, we may need to use the deprecated
+    // ooo.port setting rather than the jodconverter.portNumbers if ooo.enabled is true and jodconverter.enabled
+    // is false.
+    int[] getPortNumbers()
+    {
+        return (enabled == null || !enabled) && deprecatedOooEnabled != null && deprecatedOooEnabled
+            ? deprecatedOooPortNumbers
+            : portNumbers;
     }
 
     private Long parseStringForLong(String string)
@@ -238,16 +289,19 @@ public class JodConverterSharedInstance implements InitializingBean, DisposableB
     	this.isAvailable = false;
     	
         int[] portNumbers = getPortNumbers();
+        String officeHome = getOfficeHome();
         if (logger.isDebugEnabled())
         {
             logger.debug("JodConverter settings (null settings will be replaced by jodconverter defaults):");
+            logger.debug("  officeHome = " + officeHome);
             logger.debug("  enabled = " + isEnabled());
             logger.debug("  portNumbers = " + getString(portNumbers));
+            logger.debug("    ooo.exe = " + deprecatedOooExe);
             logger.debug("    ooo.enabled = " + deprecatedOooEnabled);
             logger.debug("    ooo.port = " + getString(deprecatedOooPortNumbers));
             logger.debug("    jodConverter.enabled = " + enabled);
             logger.debug("    jodconverter.portNumbers = " + getString(this.portNumbers));
-            logger.debug("  jodconverter.officeHome = " + officeHome);
+            logger.debug("  jodconverter.officeHome = " + this.officeHome);
             logger.debug("  jodconverter.maxTasksPerProcess = " + maxTasksPerProcess);
             logger.debug("  jodconverter.taskExecutionTimeout = " + taskExecutionTimeout);
             logger.debug("  jodconverter.taskQueueTimeout = " + taskQueueTimeout);
@@ -355,8 +409,9 @@ public class JodConverterSharedInstance implements InitializingBean, DisposableB
     	{
     		return;
     	}
-    	
-    	File requestedOfficeHome = new File(this.officeHome);
+
+    	String officeHome = getOfficeHome();
+    	File requestedOfficeHome = new File(officeHome);
     	
     	logger.debug("Some information on soffice* files and their permissions");
 
