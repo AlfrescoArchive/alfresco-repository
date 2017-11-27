@@ -17,7 +17,7 @@
 #
 # External locations
 #-------------
-#jodconverter.officeHome=./OpenOffice.org
+#jodconverter.officeHome=/usr/lib64/libreoffice
 #jodconverter.portNumbers=8101
 #jodconverter.enabled=true
 #img.root=./ImageMagick
