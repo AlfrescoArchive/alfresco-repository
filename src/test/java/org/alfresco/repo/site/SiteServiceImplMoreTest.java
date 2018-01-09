@@ -1239,27 +1239,30 @@ public class SiteServiceImplMoreTest
             }
         });
 
-        // Create site
+        // Create sites to add user to
         final String id = Long.toString(System.currentTimeMillis());
         final String siteShortName = "testsite-" + id;
+        final String secondSiteShortName = "testsite2-" + System.currentTimeMillis();
 
-        log.debug("Creating test site called: " + siteShortName);
+        log.debug("Creating test sites called: " + siteShortName + " " + secondSiteShortName);
 
         perMethodTestSites.createSite("sitePreset", siteShortName, null, null, SiteVisibility.PUBLIC, userSiteOwner);
+        perMethodTestSites.createSite("sitePreset", secondSiteShortName, null, null, SiteVisibility.PUBLIC, userSiteOwner);
 
         // Add Site COLLABORATOR
         TRANSACTION_HELPER.doInTransaction(new RetryingTransactionCallback<Void>()
         {
             public Void execute() throws Throwable
             {
-                // make userSiteCollaborator a member of the site
+                // make userSiteCollaborator a member of both sites
                 SITE_SERVICE.setMembership(siteShortName, userSiteCollaborator, SiteModel.SITE_COLLABORATOR);
+                SITE_SERVICE.setMembership(secondSiteShortName, userSiteCollaborator, SiteModel.SITE_COLLABORATOR);
 
                 return null;
             }
         });
 
-        // Delete site
+        // Delete first site
         TRANSACTION_HELPER.doInTransaction(new RetryingTransactionCallback<Map<String, String>>()
         {
             public Map<String, String> execute() throws Throwable
@@ -1285,10 +1288,16 @@ public class SiteServiceImplMoreTest
         // Check that user membership can be retrieved and user is not a member of existing site
         List<SiteMembership> members = SITE_SERVICE.listSiteMemberships(userSiteCollaborator, 0);
         assertNotNull(members);
-        assertEquals(0, members.size());
+        assertEquals(1, members.size());
+        assertEquals(userSiteCollaborator, members.get(0).getPersonId());
+        assertEquals(SiteModel.SITE_COLLABORATOR, members.get(0).getRole());
+        assertEquals(secondSiteShortName, members.get(0).getSiteInfo().getShortName());
 
         members = SITE_SERVICE.listSiteMemberships(userSiteCollaborator, 50);
         assertNotNull(members);
-        assertEquals(0, members.size());
+        assertEquals(1, members.size());
+        assertEquals(userSiteCollaborator, members.get(0).getPersonId());
+        assertEquals(SiteModel.SITE_COLLABORATOR, members.get(0).getRole());
+        assertEquals(secondSiteShortName, members.get(0).getSiteInfo().getShortName());
     }
 }
