@@ -1527,7 +1527,7 @@ public class AlfrescoCmisServiceImpl extends AbstractCmisService implements Alfr
             throw new CmisStreamNotSupportedException("Document type doesn't allow content!");
         }
 
-        //REPO-2182 - Separated appendContent and objectId.setValue in two different transactions because
+        //ALF-21852 - Separated appendContent and objectId.setValue in two different transactions because
         //after executing appendContent, the new objectId is not visible.
         RetryingTransactionHelper helper = connector.getRetryingTransactionHelper();
         helper.doInTransaction(new RetryingTransactionCallback<Void>()
@@ -1543,14 +1543,16 @@ public class AlfrescoCmisServiceImpl extends AbstractCmisService implements Alfr
                     throw new ContentIOException("", e);
                }
                 return null;
-            }}, false, true);
+           }
+        }, false, true);
 
        String objId = helper.doInTransaction(new RetryingTransactionCallback<String>()
        {
            public String execute() throws Throwable
            {
                return connector.createObjectId(nodeRef);
-       }}, false, true);
+           }
+       }, true, true);
 
        objectId.setValue(objId);
     }
@@ -1587,7 +1589,7 @@ public class AlfrescoCmisServiceImpl extends AbstractCmisService implements Alfr
             throw new CmisInvalidArgumentException("No content!");
         }
 
-        //REPO-2182 - Separated setContent and objectId.setValue in two different transactions because
+        //ALF-21852 - Separated setContent and objectId.setValue in two different transactions because
         //after executing setContent, the new objectId is not visible.
         RetryingTransactionHelper helper = connector.getRetryingTransactionHelper();
         helper.doInTransaction(new RetryingTransactionCallback<Void>()
@@ -1612,14 +1614,16 @@ public class AlfrescoCmisServiceImpl extends AbstractCmisService implements Alfr
 
                 connector.getActivityPoster().postFileFolderUpdated(info.isFolder(), nodeRef);
                 return null;
-            }}, false, true);
+            }
+        }, false, true);
 
         String objId = helper.doInTransaction(new RetryingTransactionCallback<String>()
         {
             public String execute() throws Throwable
             {
                 return connector.createObjectId(nodeRef);
-        }}, false, true);
+            }
+        }, true, true);
 
         objectId.setValue(objId);
     }
@@ -1645,7 +1649,7 @@ public class AlfrescoCmisServiceImpl extends AbstractCmisService implements Alfr
             throw new CmisInvalidArgumentException("Document type requires content!");
         }
 
-        //REPO-2182 - Separated deleteContent and objectId.setValue in two different transactions because
+        //ALF-21852 - Separated deleteContent and objectId.setValue in two different transactions because
         //after executing deleteContent, the new objectId is not visible.
         RetryingTransactionHelper helper = connector.getRetryingTransactionHelper();
         helper.doInTransaction(new RetryingTransactionCallback<Void>()
@@ -1659,14 +1663,16 @@ public class AlfrescoCmisServiceImpl extends AbstractCmisService implements Alfr
 
                 connector.getActivityPoster().postFileFolderUpdated(info.isFolder(), nodeRef);
                 return null;
-            }}, false, true);
+            }
+        }, false, true);
 
         String objId = helper.doInTransaction(new RetryingTransactionCallback<String>()
         {
             public String execute() throws Throwable
             {
                 return connector.createObjectId(nodeRef);
-        }}, false, true);
+            }
+        }, true, true);
 
         objectId.setValue(objId);
     }
