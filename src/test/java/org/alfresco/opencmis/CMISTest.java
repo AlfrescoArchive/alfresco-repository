@@ -3257,7 +3257,7 @@ public class CMISTest
     }
 
     /**
-     * Test auto version behavior for setContentStream, deleteContentStream and appendContentStream according to REPO-2182.
+     * Test auto version behavior for setContentStream, deleteContentStream and appendContentStream according to ALF-21852.
      */
     @Test
     public void testSetDeleteAppendContentStreamVersioning() throws Exception
