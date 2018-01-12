@@ -1,12 +1,8 @@
-<model name="flickr:publishingmodel" xmlns="http://www.alfresco.org/model/dictionary/1.0">
+<model name="twitter:publishingmodel" xmlns="http://www.alfresco.org/model/dictionary/1.0">
 
-    <!--             -->
-    <!--  DEPRECATED -->
-    <!--             -->
-
-   <description>Alfresco Flickr Publishing Content Model</description>
+   <description>Alfresco Twitter Publishing Content Model</description>
    <author>Alfresco</author>
-   <published>2011-07-13</published>
+   <published>2011-06-15</published>
    <version>1.0</version>
 
    <imports>
@@ -17,13 +13,13 @@
    </imports>
 
    <namespaces>
-      <namespace uri="http://www.alfresco.org/model/publishing/flickr/1.0" prefix="flickr" />
+      <namespace uri="http://www.alfresco.org/model/publishing/twitter/1.0" prefix="twitter" />
    </namespaces>
 
    <types>
-      <type name="flickr:DeliveryChannel">
-         <title>Flickr Delivery Channel</title>
-         <description>Node type used to represent Flickr delivery channels</description>
+      <type name="twitter:DeliveryChannel">
+         <title>Twitter Delivery Channel</title>
+         <description>Node type used to represent Twitter delivery channels</description>
          <parent>pub:DeliveryChannel</parent>
          <mandatory-aspects>
             <aspect>pub:OAuth1DeliveryChannelAspect</aspect>
@@ -33,9 +29,9 @@
    </types>
 
    <aspects>
-      <aspect name="flickr:AssetAspect">
-         <title>Flickr Asset</title>
-         <description>Applied to a node that has been published to Flickr</description>
+      <aspect name="twitter:AssetAspect">
+         <title>Twitter Asset</title>
+         <description>Applied to a node that has been published to Twitter</description>
          <parent>pub:AssetAspect</parent>
       </aspect>
    </aspects>

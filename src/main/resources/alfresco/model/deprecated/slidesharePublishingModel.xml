@@ -1,9 +1,5 @@
 <model name="slideshare:publishingmodel" xmlns="http://www.alfresco.org/model/dictionary/1.0">
 
-    <!--             -->
-    <!--  DEPRECATED -->
-    <!--             -->
-
    <description>Alfresco YouTube Publishing Content Model</description>
    <author>Alfresco</author>
    <published>2011-06-15</published>

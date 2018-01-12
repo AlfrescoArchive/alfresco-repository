@@ -1,9 +1,5 @@
 <model name="pub:publishingmodel" xmlns="http://www.alfresco.org/model/dictionary/1.0">
 
-    <!--             -->
-    <!--  DEPRECATED -->
-    <!--             -->
-
     <description>Alfresco Publishing Content Model</description>
     <author>Alfresco</author>
     <published>2011-05-04</published>
