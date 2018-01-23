@@ -53,7 +53,7 @@ public class MetadataExtracterConfigImpl implements MetadataExtracterConfig
             return;
         }
         boolean shouldParseShapes = getBooleanProperty(PARSE_SHAPE_PROP_STRING, TIKA_PARSER_PARSE_SHAPES_DEFAULT_VALUE);
-        metadata.add(TikaMetadataKeys.TIKA_PARSER_PARSE_SHAPES_KEY, Boolean.toString(shouldParseShapes));
+       // metadata.add(TikaMetadataKeys.TIKA_PARSER_PARSE_SHAPES_KEY, Boolean.toString(shouldParseShapes));
         
         if (logger.isDebugEnabled())
         {

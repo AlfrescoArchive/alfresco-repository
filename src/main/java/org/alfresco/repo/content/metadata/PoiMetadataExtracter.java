@@ -31,7 +31,7 @@ import java.util.Set;
 import org.alfresco.repo.content.MimetypeMap;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.poi.patch.AlfrescoPoiPatchUtils;
+//import org.apache.poi.patch.AlfrescoPoiPatchUtils;
 import org.apache.tika.parser.Parser;
 import org.apache.tika.parser.microsoft.ooxml.OOXMLParser;
 import org.springframework.beans.factory.InitializingBean;
@@ -147,12 +147,12 @@ public class PoiMetadataExtracter extends TikaPoweredMetadataExtracter implement
 
         String context = getExtractorContext();
 
-        if (null != poiFootnotesLimit)
-        {
-            AlfrescoPoiPatchUtils.setPoiFootnotesLimit(context, poiFootnotesLimit);
-        }
-
-        AlfrescoPoiPatchUtils.setPoiExtractPropertiesOnly(context, poiExtractPropertiesOnly);
-        AlfrescoPoiPatchUtils.setPoiAllowableXslfRelationshipTypes(context, poiAllowableXslfRelationshipTypes);
+//        if (null != poiFootnotesLimit)
+//        {
+//            AlfrescoPoiPatchUtils.setPoiFootnotesLimit(context, poiFootnotesLimit);
+//        }
+//
+//        AlfrescoPoiPatchUtils.setPoiExtractPropertiesOnly(context, poiExtractPropertiesOnly);
+//        AlfrescoPoiPatchUtils.setPoiAllowableXslfRelationshipTypes(context, poiAllowableXslfRelationshipTypes);
     }
 }
