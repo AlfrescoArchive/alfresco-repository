@@ -25,14 +25,6 @@
  */
 package org.alfresco.repo.preference;
 
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
-
 import org.alfresco.error.AlfrescoRuntimeException;
 import org.alfresco.model.ContentModel;
 import org.alfresco.query.CannedQueryPageDetails;
@@ -46,26 +38,22 @@ import org.alfresco.repo.security.authentication.AuthenticationUtil;
 import org.alfresco.repo.security.authentication.AuthenticationUtil.RunAsWork;
 import org.alfresco.repo.security.permissions.AccessDeniedException;
 import org.alfresco.service.cmr.preference.PreferenceService;
-import org.alfresco.service.cmr.repository.ContentReader;
-import org.alfresco.service.cmr.repository.ContentService;
-import org.alfresco.service.cmr.repository.ContentWriter;
-import org.alfresco.service.cmr.repository.NodeRef;
-import org.alfresco.service.cmr.repository.NodeService;
+import org.alfresco.service.cmr.repository.*;
 import org.alfresco.service.cmr.security.AccessStatus;
 import org.alfresco.service.cmr.security.AuthorityService;
 import org.alfresco.service.cmr.security.PermissionService;
 import org.alfresco.service.cmr.security.PersonService;
-import org.alfresco.traitextender.AJExtender;
-import org.alfresco.traitextender.Extend;
-import org.alfresco.traitextender.ExtendedTrait;
-import org.alfresco.traitextender.Extensible;
-import org.alfresco.traitextender.Trait;
+import org.alfresco.traitextender.*;
 import org.alfresco.util.ISO8601DateFormat;
 import org.alfresco.util.Pair;
+import org.alfresco.util.json.AlfrescoJsonUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import java.io.Serializable;
+import java.util.*;
 
 /**
  * Preference Service Implementation
@@ -196,7 +184,7 @@ public class PreferenceServiceImpl implements PreferenceService, Extensible
             {
                 if(jsonPrefs.has(preferenceName))
                 {
-                    preferenceValue = jsonPrefs.getString(preferenceName);
+                    preferenceValue = AlfrescoJsonUtils.getString(jsonPrefs, preferenceName);
                 }
             }
         }
