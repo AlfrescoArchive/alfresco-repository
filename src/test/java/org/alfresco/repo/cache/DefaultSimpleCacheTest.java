@@ -147,13 +147,13 @@ public class DefaultSimpleCacheTest extends SimpleCacheTestBase<DefaultSimpleCac
         assertFalse(cache.contains(2));
         assertFalse(cache.contains(3));
 
-        sleep(1.5);
+        sleep(1500L);
         cache.put(2, "2");
         assertTrue(cache.contains(1));
         assertTrue(cache.contains(2));
         assertFalse(cache.contains(3));
 
-        sleep(1.5);
+        sleep(1500L);
         cache.put(3, "3");
         assertFalse(cache.contains(1));
         assertTrue(cache.contains(2));
@@ -171,24 +171,24 @@ public class DefaultSimpleCacheTest extends SimpleCacheTestBase<DefaultSimpleCac
         cache.put(1, "1");
         assertEquals("1", cache.get(1));
 
-        sleep(1.0);
+        sleep(1000L);
         // cause zeroing of idle time
         assertEquals("1", cache.get(1));
 
-        sleep(1.0);
+        sleep(1000L);
         // cause zeroing of idle time
         assertEquals("1", cache.get(1));
 
-        sleep(1.0);
+        sleep(1000L);
         // At least 3 seconds have passed, but the item should still be present. 
         assertEquals("1", cache.get(1));
 
-        sleep(2.5);
+        sleep(2500L);
         // time-to-idle now exceeded without access
         assertNotEquals("1", cache.get(1));
     }
 
-    private void sleep(int miliseconds)
+    private void sleep(long miliseconds)
     {
         try
         {
@@ -200,8 +200,4 @@ public class DefaultSimpleCacheTest extends SimpleCacheTestBase<DefaultSimpleCac
         }
     }
 
-    private void sleep(double seconds)
-    {
-        sleep((int)(seconds * 1000));
-    }
 }
