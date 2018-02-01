@@ -39,7 +39,7 @@
         <dependency.alfresco-mbeans.version>6.0</dependency.alfresco-mbeans.version>
         <dependency.alfresco-core.version>6.17_feature_repo-1066_tika_upgrade_4</dependency.alfresco-core.version>
         <dependency.alfresco-greenmail.version>6.1</dependency.alfresco-greenmail.version>
-        <dependency.alfresco-data-model.version>7.2_feature_repo-1066_tika_upgrade_4</dependency.alfresco-data-model.version>
+        <dependency.alfresco-data-model.version>7.2_feature_repo-1066_tika_upgrade_13</dependency.alfresco-data-model.version>
         <dependency.alfresco-jlan.version>6.4</dependency.alfresco-jlan.version>
         <dependency.alfresco-pdf-renderer.version>1.0</dependency.alfresco-pdf-renderer.version>
         <dependency.alfresco-hb-data-sender.version>1.0.4</dependency.alfresco-hb-data-sender.version>
