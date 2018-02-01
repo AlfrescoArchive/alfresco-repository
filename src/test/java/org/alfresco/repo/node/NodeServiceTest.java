@@ -95,6 +95,7 @@ import org.alfresco.util.GUID;
 import org.alfresco.util.Pair;
 import org.alfresco.util.PropertyMap;
 import org.alfresco.util.test.junitrules.ApplicationContextInit;
+import org.alfresco.util.testing.category.DBTests;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hibernate.dialect.Dialect;
@@ -113,7 +114,8 @@ import org.springframework.extensions.surf.util.I18NUtil;
  * @author Derek Hulley
  * @since 4.0
  */
-@Category(OwnJVMTestsCategory.class)
+
+@Category({OwnJVMTestsCategory.class, DBTests.class})
 public class NodeServiceTest
 {
     public static final String NAMESPACE = "http://www.alfresco.org/test/BaseNodeServiceTest";
@@ -393,10 +395,8 @@ public class NodeServiceTest
      * See: <a href="https://issues.alfresco.com/jira/browse/ALF-16888">ALF-16888</a>
      * <p/>
      * Note: if this test hangs for MySQL then check if 'innodb_locks_unsafe_for_binlog = true' (and restart MySQL + test)
-     * 
-     * TODO add @Test marker back to the test after REPO-2783 is fixed
      */
-    public void testConcurrentArchive() throws Exception
+    @Test public void testConcurrentArchive() throws Exception
     {
         Dialect dialect = (Dialect) APP_CONTEXT_INIT.getApplicationContext().getBean("dialect");
         if (dialect.getClass().getName().contains("DB2"))
@@ -406,7 +406,7 @@ public class NodeServiceTest
         }
         
         final NodeRef workspaceRootNodeRef = nodeService.getRootNode(StoreRef.STORE_REF_WORKSPACE_SPACESSTORE);
-        final NodeRef[] nodesPrimer = new NodeRef[1];
+        final NodeRef[] nodesPrimer = new NodeRef[2];
         buildNodeHierarchy(workspaceRootNodeRef, nodesPrimer);
         final NodeRef[] nodesOne = new NodeRef[10];
         buildNodeHierarchy(workspaceRootNodeRef, nodesOne);
