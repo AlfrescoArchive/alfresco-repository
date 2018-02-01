@@ -67,7 +67,6 @@ import org.junit.runners.Suite;
     org.alfresco.repo.domain.usage.UsageDAOTest.class,
     org.alfresco.repo.domain.solr.SOLRDAOTest.class,
     org.alfresco.repo.domain.tenant.TenantAdminDAOTest.class,
-    org.alfresco.repo.node.NodeServiceTest.class,
 
     // REPO-1012 : run AuditDAOTest and PropertyValueCleanupTest near the end
     // because their failure can cause other tests to fail on MS SQL
@@ -78,6 +77,7 @@ import org.junit.runners.Suite;
 
 	// From MiscContextTestSuite
     org.alfresco.repo.domain.query.CannedQueryDAOTest.class,
+    org.alfresco.repo.node.NodeServiceTest.class
 })
 public class AllDBTestsTestSuite
 {
