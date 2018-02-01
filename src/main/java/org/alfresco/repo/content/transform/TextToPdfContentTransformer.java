@@ -130,7 +130,7 @@ public class TextToPdfContentTransformer extends AbstractContentTransformer2
 
             TransformationOptionLimits limits = getLimits(reader, writer, options);
             TransformationOptionPair pageLimits = limits.getPagesPair();
-            pdf = transformer.createPDFFromText(ir, pageLimits, reader.getContentUrl(),transformerDebug);
+            pdf = transformer.createPDFFromText(ir, pageLimits, reader.getContentUrl(), transformerDebug);
 
             // dump it all to the writer
             os = writer.getContentOutputStream();
