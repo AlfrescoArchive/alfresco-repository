@@ -48,7 +48,9 @@ import org.alfresco.util.GUID;
 import org.alfresco.util.testing.category.LuceneTests;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.junit.Before;
 import org.junit.experimental.categories.Category;
+import org.springframework.transaction.annotation.Transactional;
 import org.w3c.dom.Document;
 import org.w3c.dom.NodeList;
 
@@ -57,6 +59,7 @@ import org.w3c.dom.NodeList;
  *
  */
 @Category({BaseSpringTestsCategory.class})
+@Transactional
 public class XSLTFunctionsTest extends BaseAlfrescoSpringTest
 {
     private final static Log log = LogFactory.getLog(XSLTFunctionsTest.class);
@@ -65,14 +68,10 @@ public class XSLTFunctionsTest extends BaseAlfrescoSpringTest
     private FileFolderService fileFolderService;
     private Repository repositoryHelper;
 
-    /* (non-Javadoc)
-     * @see org.alfresco.util.BaseAlfrescoSpringTest#onSetUpInTransaction()
-     */
-    @SuppressWarnings("deprecation")
-    @Override
-    protected void onSetUpInTransaction() throws Exception
+    @Before
+    public void before() throws Exception
     {
-        super.onSetUpInTransaction();
+        super.before();
         this.xsltFunctions = (XSLTFunctions) this.applicationContext.getBean("xsltFunctions");
         this.nodeService = (NodeService) this.applicationContext.getBean("NodeService");
         this.contentService = (ContentService) this.applicationContext.getBean("ContentService");

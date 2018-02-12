@@ -67,7 +67,11 @@ import org.alfresco.test_category.BaseSpringTestsCategory;
 import org.alfresco.util.BaseSpringTest;
 import org.alfresco.util.PropertyMap;
 import org.alfresco.util.testing.category.LuceneTests;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
 import org.junit.experimental.categories.Category;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.ResourceUtils;
 
 /**
@@ -76,6 +80,7 @@ import org.springframework.util.ResourceUtils;
  * @author Roy Wetherall, janv
  */
 @Category({BaseSpringTestsCategory.class, LuceneTests.class})
+@Transactional
 public class DictionaryModelTypeTest extends BaseSpringTest
 {
     /** QNames of the test models */
@@ -376,8 +381,8 @@ public class DictionaryModelTypeTest extends BaseSpringTest
 
     private UserTransaction txn;
 
-    @Override
-    protected void onSetUp() throws Exception
+    @Before
+    public void before() throws Exception
     {
         this.nodeService = (NodeService) this.applicationContext.getBean("nodeService");
         this.contentService = (ContentService) this.applicationContext.getBean("contentService");
@@ -441,8 +446,8 @@ public class DictionaryModelTypeTest extends BaseSpringTest
         txn.commit();
     }
 
-    @Override
-    protected void onTearDown() throws Exception
+    @After
+    public void after() throws Exception
     {
         authenticationService.clearCurrentSecurityContext();
     }
@@ -450,6 +455,7 @@ public class DictionaryModelTypeTest extends BaseSpringTest
     /**
      * Test the creation of dictionary model nodes
      */
+    @Test
     public void testCreateAndUpdateDictionaryModelNodeContent() throws Exception
     {
         try
@@ -602,6 +608,7 @@ public class DictionaryModelTypeTest extends BaseSpringTest
         });
     }
     
+    @Test
     public void testUpdateDictionaryModelPropertyDelete() throws Exception
     {
         try
@@ -744,6 +751,7 @@ public class DictionaryModelTypeTest extends BaseSpringTest
         });
     }
     
+    @Test
     public void testUpdateDictionaryModelConstraintDelete() throws Exception
     {
         try
@@ -868,6 +876,7 @@ public class DictionaryModelTypeTest extends BaseSpringTest
         });
     }
     
+    @Test
     public void testIsActiveFlagAndDelete() throws Exception
     {
         try
@@ -1000,6 +1009,7 @@ public class DictionaryModelTypeTest extends BaseSpringTest
      * Test for MNT-11653
      */
     @SuppressWarnings("deprecation")
+    @Test
     public void testOverrideMandatoryProperty() throws Exception
     {
         try
@@ -1098,6 +1108,7 @@ public class DictionaryModelTypeTest extends BaseSpringTest
     }
 
     /* MNT-15345 test */
+    @Test
     public void testImportingSameNamespaceFails() throws Exception
     {
         // Create model
@@ -1149,6 +1160,7 @@ public class DictionaryModelTypeTest extends BaseSpringTest
     }
 
     /* MNT-15345 test */
+    @Test
     public void testImportingSameNamespaceFailsWithinSingleModel() throws Exception
     {
         // Create model
@@ -1198,6 +1210,7 @@ public class DictionaryModelTypeTest extends BaseSpringTest
         }
     }
 
+    @Test
     public void testCircularDependencyDetected() throws Exception
     {
         // Create modelA

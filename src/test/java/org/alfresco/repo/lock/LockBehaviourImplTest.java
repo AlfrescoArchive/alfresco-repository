@@ -48,7 +48,9 @@ import org.alfresco.service.namespace.QName;
 import org.alfresco.test_category.OwnJVMTestsCategory;
 import org.alfresco.util.BaseSpringTest;
 import org.alfresco.util.TestWithUserUtils;
+import org.junit.Before;
 import org.junit.experimental.categories.Category;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * LockBehaviourImpl Unit Test.
@@ -56,6 +58,7 @@ import org.junit.experimental.categories.Category;
  * @author Roy Wetherall
  */
 @Category(OwnJVMTestsCategory.class)
+@Transactional
 public class LockBehaviourImplTest extends BaseSpringTest
 {
     /**
@@ -111,9 +114,9 @@ public class LockBehaviourImplTest extends BaseSpringTest
     private static final String BAD_USER_WITH_ALL_PERMS_NAME = "badUserOwns";
     
     NodeRef rootNodeRef;
-   
-    @Override
-    protected void onSetUpInTransaction() throws Exception
+
+    @Before
+    public void before() throws Exception
     {
         this.nodeService = (NodeService)applicationContext.getBean("dbNodeService");
         this.lockService = (LockService)applicationContext.getBean("lockService");

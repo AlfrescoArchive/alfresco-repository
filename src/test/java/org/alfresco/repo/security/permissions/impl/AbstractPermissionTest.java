@@ -63,7 +63,7 @@ import org.alfresco.service.namespace.QName;
 import org.alfresco.service.transaction.TransactionService;
 import org.alfresco.util.ApplicationContextHelper;
 import org.springframework.context.ApplicationContext;
-import org.springframework.orm.hibernate3.LocalSessionFactoryBean;
+import org.springframework.orm.hibernate5.LocalSessionFactoryBean;
 
 public class AbstractPermissionTest extends TestCase
 {

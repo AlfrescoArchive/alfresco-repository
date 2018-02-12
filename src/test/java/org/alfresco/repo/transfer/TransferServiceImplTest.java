@@ -25,9 +25,6 @@
  */
 package org.alfresco.repo.transfer;
 
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileWriter;
@@ -45,27 +42,16 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
-
-import javax.xml.XMLConstants;
-import javax.xml.transform.Source;
-import javax.xml.transform.stream.StreamSource;
-import javax.xml.validation.Schema;
-import javax.xml.validation.SchemaFactory;
-import javax.xml.validation.Validator;
-
 import org.alfresco.model.ContentModel;
-import org.alfresco.repo.content.MimetypeMap;
 import org.alfresco.repo.model.Repository;
 import org.alfresco.repo.security.authentication.AuthenticationComponent;
-import org.alfresco.repo.security.authentication.AuthenticationUtil;
 import org.alfresco.repo.transaction.AlfrescoTransactionSupport;
-import org.alfresco.repo.transaction.RetryingTransactionHelper;
 import org.alfresco.repo.transaction.AlfrescoTransactionSupport.TxnReadState;
+import org.alfresco.repo.transaction.RetryingTransactionHelper;
 import org.alfresco.repo.transaction.RetryingTransactionHelper.RetryingTransactionCallback;
 import org.alfresco.repo.transfer.manifest.TransferManifestNodeFactory;
 import org.alfresco.service.cmr.action.ActionService;
 import org.alfresco.service.cmr.lock.LockService;
-import org.alfresco.service.cmr.lock.LockType;
 import org.alfresco.service.cmr.repository.AssociationRef;
 import org.alfresco.service.cmr.repository.ChildAssociationRef;
 import org.alfresco.service.cmr.repository.ContentData;
@@ -78,11 +64,7 @@ import org.alfresco.service.cmr.repository.NodeService;
 import org.alfresco.service.cmr.repository.Path;
 import org.alfresco.service.cmr.repository.StoreRef;
 import org.alfresco.service.cmr.search.CategoryService;
-import org.alfresco.service.cmr.search.CategoryService.Depth;
-import org.alfresco.service.cmr.search.ResultSet;
-import org.alfresco.service.cmr.search.ResultSetRow;
 import org.alfresco.service.cmr.search.SearchService;
-import org.alfresco.service.cmr.security.AccessPermission;
 import org.alfresco.service.cmr.security.MutableAuthenticationService;
 import org.alfresco.service.cmr.security.PermissionService;
 import org.alfresco.service.cmr.security.PersonService;
@@ -91,7 +73,6 @@ import org.alfresco.service.cmr.transfer.TransferCallback;
 import org.alfresco.service.cmr.transfer.TransferDefinition;
 import org.alfresco.service.cmr.transfer.TransferEvent;
 import org.alfresco.service.cmr.transfer.TransferEventBegin;
-import org.alfresco.service.cmr.transfer.TransferEventReport;
 import org.alfresco.service.cmr.transfer.TransferException;
 import org.alfresco.service.cmr.transfer.TransferReceiver;
 import org.alfresco.service.cmr.transfer.TransferService;
@@ -103,16 +84,19 @@ import org.alfresco.service.namespace.QName;
 import org.alfresco.service.namespace.RegexQNamePattern;
 import org.alfresco.service.transaction.TransactionService;
 import org.alfresco.test_category.BaseSpringTestsCategory;
-import org.alfresco.test_category.OwnJVMTestsCategory;
 import org.alfresco.util.BaseAlfrescoSpringTest;
 import org.alfresco.util.GUID;
 import org.alfresco.util.Pair;
-import org.alfresco.util.PropertyMap;
 import org.alfresco.util.TempFileProvider;
-import org.alfresco.util.testing.category.LuceneTests;
 import org.alfresco.util.testing.category.RedundantTests;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.junit.Before;
 import org.junit.experimental.categories.Category;
-import org.springframework.util.ResourceUtils;
+import org.springframework.transaction.annotation.Transactional;
+
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * Unit test for TransferServiceImpl
@@ -122,8 +106,8 @@ import org.springframework.util.ResourceUtils;
  * @author Mark Rogers
  */
 @SuppressWarnings("deprecation")
-@Category({BaseSpringTestsCategory.class, LuceneTests.class})
-public class TransferServiceImplTest extends BaseAlfrescoSpringTest 
+@Category({BaseSpringTestsCategory.class})
+public class TransferServiceImplTest extends BaseAlfrescoSpringTest
 {
     private TransferService transferService;
     private ContentService contentService;
@@ -152,10 +136,10 @@ public class TransferServiceImplTest extends BaseAlfrescoSpringTest
     /**
      * Called during the transaction setup
      */
-    protected void onSetUp() throws Exception
+    @Before
+    public void before() throws Exception
     {
-       
-        super.onSetUp();
+        super.before();
         
         // Get the required services
         this.transferService = (TransferService)this.applicationContext.getBean("TransferService");
@@ -185,13 +169,6 @@ public class TransferServiceImplTest extends BaseAlfrescoSpringTest
         
         authenticationComponent.setSystemUserAsCurrentUser();
         assertNotNull("receiver is null", this.receiver);     
-    }
-    
-    @Override
-    public void runBare() throws Throwable
-    {
-        preventTransaction();
-        super.runBare();
     }
     
     public void testSetup()
@@ -1490,7 +1467,6 @@ public class TransferServiceImplTest extends BaseAlfrescoSpringTest
      */
     public void testPathBasedUpdate() throws Exception
     {
-        endTransaction();
         final RetryingTransactionHelper tran = transactionService.getRetryingTransactionHelper();
 
         final String CONTENT_TITLE = "ContentTitle";

@@ -62,7 +62,10 @@ import org.alfresco.service.cmr.version.VersionService;
 import org.alfresco.service.namespace.QName;
 import org.alfresco.service.transaction.TransactionService;
 import org.alfresco.util.BaseSpringTest;
+import org.junit.Before;
+import org.springframework.transaction.annotation.Transactional;
 
+@Transactional
 public abstract class BaseVersionStoreTest extends BaseSpringTest
 {
     /*
@@ -160,7 +163,8 @@ public abstract class BaseVersionStoreTest extends BaseSpringTest
     /**
      * Called during the transaction setup
      */
-    protected void onSetUpInTransaction() throws Exception
+    @Before
+    public void before() throws Exception
     {
         // Set the multi value if required
         if (this.multiValue == null)

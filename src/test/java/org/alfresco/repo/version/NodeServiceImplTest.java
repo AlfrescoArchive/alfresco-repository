@@ -55,12 +55,15 @@ import org.alfresco.util.TestWithUserUtils;
 import org.alfresco.util.debug.NodeStoreInspector;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.junit.Before;
 import org.junit.experimental.categories.Category;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Roy Wetherall
  */
 @Category(OwnJVMTestsCategory.class)
+@Transactional
 public class NodeServiceImplTest extends BaseVersionStoreTest 
 {
     private static Log logger = LogFactory.getLog(NodeServiceImplTest.class);
@@ -86,13 +89,11 @@ public class NodeServiceImplTest extends BaseVersionStoreTest
      */
     private NodeRef dummyNodeRef = null;
     private QName dummyQName = null;
-    
-    /**
-     * Called during the transaction setup
-     */
-    protected void onSetUpInTransaction() throws Exception
+
+    @Before
+    public void before() throws Exception
     {
-        super.onSetUpInTransaction();
+        super.before();
         
         // Get the node service by name
         this.versionStoreNodeService = (NodeService)this.applicationContext.getBean("versionNodeService");

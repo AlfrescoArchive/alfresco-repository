@@ -76,14 +76,20 @@ import org.alfresco.util.ApplicationContextHelper;
 import org.alfresco.util.GUID;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.experimental.categories.Category;
 import org.springframework.context.ApplicationContext;
+import org.springframework.test.annotation.Commit;
+import org.springframework.test.context.transaction.TestTransaction;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * versionService test class.
  * 
  * @author Roy Wetherall, janv
  */
+@Transactional
 @Category(OwnJVMTestsCategory.class)
 public class VersionServiceImplTest extends BaseVersionStoreTest
 {
@@ -110,10 +116,10 @@ public class VersionServiceImplTest extends BaseVersionStoreTest
     private List<String> excludedOnUpdateProps;
     private Properties globalProperties;
     
-    @Override
-    protected void onSetUpInTransaction() throws Exception
+    @Before
+    public void before() throws Exception
     {
-        super.onSetUpInTransaction();
+        super.before();
         personService = (PersonService) applicationContext.getBean("personService");
         versionableAspect = (VersionableAspect) applicationContext.getBean("versionableAspect");
         excludedOnUpdateProps = versionableAspect.getExcludedOnUpdateProps();
@@ -121,10 +127,9 @@ public class VersionServiceImplTest extends BaseVersionStoreTest
         globalProperties.setProperty(VersionableAspectTest.AUTO_VERSION_PROPS_KEY, "true");
     }
 
-    @Override
-    protected void onTearDownAfterTransaction() throws Exception
+    @After
+    public void after() throws Exception
     {
-        super.onTearDownAfterTransaction();
         versionableAspect.setExcludedOnUpdateProps(excludedOnUpdateProps);
         versionableAspect.afterDictionaryInit();
         globalProperties.setProperty(VersionableAspectTest.AUTO_VERSION_PROPS_KEY, "false");
@@ -946,6 +951,7 @@ public class VersionServiceImplTest extends BaseVersionStoreTest
      * Test reverting from Share
      */
     @SuppressWarnings("unused")
+    @Commit
     public void testScriptNodeRevert()
     {
         CheckOutCheckInService checkOutCheckIn =
@@ -1034,17 +1040,6 @@ public class VersionServiceImplTest extends BaseVersionStoreTest
         assertEquals(VALUE_1, nodeService.getProperty(newNode.getNodeRef(), PROP_1));
         // Will be a new version though - TODO Is this correct?
         assertEquals("0.5", nodeService.getProperty(newNode.getNodeRef(), ContentModel.PROP_VERSION_LABEL));
-
-        // All done
-        setComplete();
-        try
-        {
-            endTransaction();
-        }
-        catch(Throwable e)
-        {
-            fail("Transaction failed: " + e);
-        }
     }
 
     /**
@@ -1058,6 +1053,7 @@ public class VersionServiceImplTest extends BaseVersionStoreTest
      * </li>
      */
     @SuppressWarnings("unused")
+    @Commit
     public void testScriptNodeRevertWithChangeType()
     {
         CheckOutCheckInService checkOutCheckInService =
@@ -1087,17 +1083,6 @@ public class VersionServiceImplTest extends BaseVersionStoreTest
         ScriptNode newNode = scriptNode.revert("History", false, version1.getVersionLabel());
         assertEquals("0.3", nodeService.getProperty(newNode.getNodeRef(), ContentModel.PROP_VERSION_LABEL));
         assertEquals(TEST_TYPE_QNAME, nodeService.getType(newNode.getNodeRef()));
-
-        // All done
-        setComplete();
-        try
-        {
-            endTransaction();
-        }
-        catch(Throwable e)
-        {
-            fail("Transaction failed: " + e);
-        }
     }
 
     /**
@@ -1551,9 +1536,9 @@ public class VersionServiceImplTest extends BaseVersionStoreTest
     {
         // Create a versionable node
         final NodeRef versionableNode = createNewVersionableNode();
-        
-        setComplete();
-        endTransaction();
+
+        TestTransaction.flagForCommit();
+        TestTransaction.end();
 
         transactionService.getRetryingTransactionHelper().doInTransaction(new RetryingTransactionCallback<Object>()
         {
@@ -1594,10 +1579,10 @@ public class VersionServiceImplTest extends BaseVersionStoreTest
         final NodeRef versionableNode = createNewVersionableNode();
         
         this.dbNodeService.setProperty(versionableNode, ContentModel.PROP_AUTO_VERSION, false);
-        
-        setComplete();
-        endTransaction();
-        
+
+        TestTransaction.flagForCommit();
+        TestTransaction.end();
+
         // The initial version should have been created now
         
         transactionService.getRetryingTransactionHelper().doInTransaction(new RetryingTransactionCallback<Object>()
@@ -1642,9 +1627,9 @@ public class VersionServiceImplTest extends BaseVersionStoreTest
                 TEST_TYPE_QNAME,
                 props2).getChildRef();
         this.dbNodeService.addAspect(nodeRef, ContentModel.ASPECT_VERSIONABLE, props);
-        
-        setComplete();
-        endTransaction();
+
+        TestTransaction.flagForCommit();
+        TestTransaction.end();
 
         // The initial version should NOT have been created
         
@@ -1665,8 +1650,8 @@ public class VersionServiceImplTest extends BaseVersionStoreTest
     {
         // No version-type specified when adding the aspect
         NodeRef nodeRef = createNodeWithVersionType(null);
-        setComplete();
-        endTransaction();
+        TestTransaction.flagForCommit();
+        TestTransaction.end();
         assertCorrectVersionLabel(nodeRef, "1.0");
     }
 
@@ -1674,8 +1659,8 @@ public class VersionServiceImplTest extends BaseVersionStoreTest
     {
         // MINOR version-type specified when adding the aspect
         NodeRef nodeRef = createNodeWithVersionType(VersionType.MINOR);
-        setComplete();
-        endTransaction();
+        TestTransaction.flagForCommit();
+        TestTransaction.end();
         assertCorrectVersionLabel(nodeRef, "0.1");
     }
     
@@ -1683,8 +1668,8 @@ public class VersionServiceImplTest extends BaseVersionStoreTest
     {
         // MAJOR version-type specified when adding the aspect
         NodeRef nodeRef = createNodeWithVersionType(VersionType.MAJOR);
-        setComplete();
-        endTransaction();
+        TestTransaction.flagForCommit();
+        TestTransaction.end();
         assertCorrectVersionLabel(nodeRef, "1.0");
     }
     
@@ -1739,9 +1724,9 @@ public class VersionServiceImplTest extends BaseVersionStoreTest
                 TEST_TYPE_QNAME,
                 props2).getChildRef();
         this.dbNodeService.addAspect(nodeRef, ContentModel.ASPECT_VERSIONABLE, null);
-        
-        setComplete();
-        endTransaction();
+
+        TestTransaction.flagForCommit();
+        TestTransaction.end();
         
         transactionService.getRetryingTransactionHelper().doInTransaction(new RetryingTransactionCallback<Object>()
         {
@@ -1802,9 +1787,9 @@ public class VersionServiceImplTest extends BaseVersionStoreTest
                 ContentModel.TYPE_CONTENT,
                 props2).getChildRef();
         this.dbNodeService.addAspect(nodeRef, ContentModel.ASPECT_VERSIONABLE, null);
-        
-        setComplete();
-        endTransaction();
+
+        TestTransaction.flagForCommit();
+        TestTransaction.end();
         
         transactionService.getRetryingTransactionHelper().doInTransaction(new RetryingTransactionCallback<Object>()
         {
@@ -1863,9 +1848,9 @@ public class VersionServiceImplTest extends BaseVersionStoreTest
         // test auto-version props on
         final NodeRef versionableNode = createNewVersionableNode();
         this.dbNodeService.setProperty(versionableNode, ContentModel.PROP_AUTO_VERSION_PROPS, true);
-        
-        setComplete();
-        endTransaction();
+
+        TestTransaction.flagForCommit();
+        TestTransaction.end();
         
         transactionService.getRetryingTransactionHelper().doInTransaction(new RetryingTransactionCallback<Object>()
         {
@@ -1910,16 +1895,12 @@ public class VersionServiceImplTest extends BaseVersionStoreTest
         
         });
         
-        
+        TestTransaction.start();
         // test auto-version props off
-        
-        startNewTransaction();
-        
         final NodeRef versionableNode2 = createNewVersionableNode();
         this.dbNodeService.setProperty(versionableNode2, ContentModel.PROP_AUTO_VERSION_PROPS, false);
-        
-        setComplete();
-        endTransaction();
+        TestTransaction.flagForCommit();
+        TestTransaction.end();
         
         transactionService.getRetryingTransactionHelper().doInTransaction(new RetryingTransactionCallback<Object>()
         {
@@ -1955,9 +1936,9 @@ public class VersionServiceImplTest extends BaseVersionStoreTest
         // test auto-version props on - without any excludes
         final NodeRef versionableNode = createNewVersionableNode();
         this.dbNodeService.setProperty(versionableNode, ContentModel.PROP_AUTO_VERSION_PROPS, true);
-        
-        setComplete();
-        endTransaction();
+
+        TestTransaction.flagForCommit();
+        TestTransaction.end();
         
         transactionService.getRetryingTransactionHelper().doInTransaction(new RetryingTransactionCallback<Object>()
         {
@@ -2159,8 +2140,8 @@ public class VersionServiceImplTest extends BaseVersionStoreTest
             versionService.getVersionHistory(versionableNode).getVersion("1.0"));
        
        // Ready to test
-       setComplete();
-       endTransaction();
+        TestTransaction.flagForCommit();
+        TestTransaction.end();;
        
        // Check the first version is now 2.0
        transactionService.getRetryingTransactionHelper().doInTransaction(new RetryingTransactionCallback<Object>()
@@ -2297,9 +2278,9 @@ public class VersionServiceImplTest extends BaseVersionStoreTest
     {
         final NodeRef versionableNode = createNewVersionableNode();
         this.dbNodeService.setProperty(versionableNode, ContentModel.PROP_AUTO_VERSION_PROPS, true);
-        
-        setComplete();
-        endTransaction();
+
+        TestTransaction.flagForCommit();
+        TestTransaction.end();
         
         final String lockToken = "opaquelocktoken:" + versionableNode.getId() + ":admin";
         
@@ -2381,7 +2362,7 @@ public class VersionServiceImplTest extends BaseVersionStoreTest
     /**
      * Check that the version type property is actually set when creating a new version.
      * 
-     * @see https://issues.alfresco.com/jira/browse/MNT-14681
+     * see MNT-14681
      */
     public void testVersionTypeIsSet()
     {

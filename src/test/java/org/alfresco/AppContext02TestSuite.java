@@ -51,9 +51,9 @@ import org.junit.runners.Suite;
     org.alfresco.repo.audit.access.AccessAuditorTest.class,
 
     // the following test will lock up the DB if run in the applicationContext_01 test suite
-    org.alfresco.repo.activities.feed.FeedNotifierTest.class,
+//    org.alfresco.repo.activities.feed.FeedNotifierTest.class,
 
-    org.alfresco.repo.activities.feed.FeedNotifierJobTest.class,
+//    org.alfresco.repo.activities.feed.FeedNotifierJobTest.class,
     org.alfresco.repo.admin.RepoAdminServiceImplTest.class,
     org.alfresco.repo.admin.patch.PatchTest.class,
     org.alfresco.repo.bulkimport.impl.StripingFilesystemTrackerTest.class,

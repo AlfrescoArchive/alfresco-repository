@@ -40,9 +40,11 @@ import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.cmr.repository.TransformationOptions;
 import org.alfresco.service.cmr.version.Version;
 import org.alfresco.test_category.OwnJVMTestsCategory;
+import org.junit.Before;
 import org.junit.experimental.categories.Category;
 
 import java.util.HashMap;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Tests for retrieving frozen content from a verioned node
@@ -50,6 +52,7 @@ import java.util.HashMap;
  * @author Roy Wetherall
  */
 @Category(OwnJVMTestsCategory.class)
+@Transactional
 public class ContentServiceImplTest extends BaseVersionStoreTest
 {   
     /**
@@ -60,14 +63,12 @@ public class ContentServiceImplTest extends BaseVersionStoreTest
     /**
      * The version content store
      */
-    private ContentService contentService;    
-    
-    /**
-     * Called during the transaction setup
-     */
-    protected void onSetUpInTransaction() throws Exception
+    private ContentService contentService;
+
+    @Before
+    public void before() throws Exception
     {
-        super.onSetUpInTransaction();
+        super.before();
         
         // Get the instance of the required content service
         this.contentService = (ContentService)this.applicationContext.getBean("contentService");

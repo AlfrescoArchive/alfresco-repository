@@ -44,7 +44,7 @@ import org.alfresco.service.cmr.repository.NodeService;
 import org.alfresco.util.Pair;
 import org.alfresco.util.TempFileProvider;
 import org.springframework.extensions.surf.util.I18NUtil;
-import org.springframework.orm.hibernate3.support.HibernateDaoSupport;
+import org.springframework.orm.hibernate5.support.HibernateDaoSupport;
 
 /**
  * Checks that all names do not end with ' ' or '.'

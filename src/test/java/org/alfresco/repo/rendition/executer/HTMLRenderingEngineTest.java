@@ -52,7 +52,10 @@ import org.alfresco.test_category.OwnJVMTestsCategory;
 import org.alfresco.util.BaseAlfrescoSpringTest;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.experimental.categories.Category;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Unit tests for the HTML Rendering Engine
@@ -60,6 +63,7 @@ import org.junit.experimental.categories.Category;
  * @author Nick Burch
  */
 @Category(BaseSpringTestsCategory.class)
+@Transactional
 public class HTMLRenderingEngineTest extends BaseAlfrescoSpringTest
 {
     private final static Log log = LogFactory.getLog(HTMLRenderingEngineTest.class);
@@ -77,16 +81,10 @@ public class HTMLRenderingEngineTest extends BaseAlfrescoSpringTest
     private static final String MIMETYPE_DOC = "application/msword";
     private static final String MIMETYPE_DOCX = "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see org.alfresco.util.BaseAlfrescoSpringTest#onSetUpInTransaction()
-     */
-    @SuppressWarnings("deprecation")
-    @Override
-    protected void onSetUpInTransaction() throws Exception
+    @Before
+    public void before() throws Exception
     {
-        super.onSetUpInTransaction();
+        super.before();
         this.nodeService = (NodeService) this.applicationContext.getBean("NodeService");
         this.contentService = (ContentService) this.applicationContext.getBean("ContentService");
         this.renditionService = (RenditionService) this.applicationContext.getBean("RenditionService");
@@ -108,9 +106,10 @@ public class HTMLRenderingEngineTest extends BaseAlfrescoSpringTest
         def = renditionService.createRenditionDefinition(renditionName, HTMLRenderingEngine.NAME);
     }
     
-    @Override
-    protected void onTearDownInTransaction() throws Exception {
-        super.onTearDownInTransaction();
+    @After
+    public void after() throws Exception
+    {
+        super.after();
         
         tidyUpSourceDoc();
     }

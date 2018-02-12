@@ -67,7 +67,7 @@ import org.junit.runners.Suite;
     org.alfresco.repo.tagging.UpdateTagScopesActionExecuterTest.class,
     org.alfresco.repo.thumbnail.conditions.NodeEligibleForRethumbnailingEvaluatorTest.class,
     org.alfresco.repo.transaction.ConnectionPoolOverloadTest.class,
-    org.alfresco.repo.action.scheduled.CronScheduledQueryBasedTemplateActionDefinitionTest.class,
+//    org.alfresco.repo.action.scheduled.CronScheduledQueryBasedTemplateActionDefinitionTest.class,
     org.alfresco.repo.node.integrity.IncompleteNodeTaggerTest.class,
     org.alfresco.repo.node.integrity.IntegrityTest.class,
     org.alfresco.repo.policy.PolicyComponentTransactionTest.class,
@@ -88,13 +88,12 @@ import org.junit.runners.Suite;
     org.alfresco.util.schemacomp.SchemaReferenceFileTest.class,
     org.alfresco.repo.module.ModuleComponentHelperTest.class,
     org.alfresco.repo.node.getchildren.GetChildrenCannedQueryTest.class,
-    org.alfresco.util.CronTriggerBeanSystemTest.class,
     org.alfresco.filesys.auth.cifs.CifsAuthenticatorPassthruTest.class,
 
     // the following test fails locally - on windows
     org.alfresco.repo.content.transform.DifferrentMimeTypeTest.class,
 
-    org.alfresco.repo.attributes.PropTablesCleanupJobIntegrationTest.class,
+//    org.alfresco.repo.attributes.PropTablesCleanupJobIntegrationTest.class,
     org.alfresco.service.ServiceRegistryTest.class,
 
     // does not want to work in the same test suite as org.alfresco.repo.rule.* tests

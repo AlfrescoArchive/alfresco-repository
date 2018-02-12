@@ -45,13 +45,16 @@ import org.alfresco.util.GUID;
 import org.alfresco.util.XMLUtil;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.junit.Before;
 import org.junit.experimental.categories.Category;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Brian
  * 
  */
 @Category({BaseSpringTestsCategory.class})
+@Transactional
 public class XSLTProcessorTest extends BaseAlfrescoSpringTest
 {
     private final static Log log = LogFactory.getLog(XSLTProcessorTest.class);
@@ -61,16 +64,10 @@ public class XSLTProcessorTest extends BaseAlfrescoSpringTest
     private TemplateService templateService;
     private Repository repositoryHelper;
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see org.alfresco.util.BaseAlfrescoSpringTest#onSetUpInTransaction()
-     */
-    @SuppressWarnings("deprecation")
-    @Override
-    protected void onSetUpInTransaction() throws Exception
+    @Before
+    public void before() throws Exception
     {
-        super.onSetUpInTransaction();
+        super.before();
         this.nodeService = (NodeService) this.applicationContext.getBean("NodeService");
         this.contentService = (ContentService) this.applicationContext.getBean("ContentService");
         this.fileFolderService = (FileFolderService) this.applicationContext.getBean("FileFolderService");

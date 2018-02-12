@@ -47,7 +47,7 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.InitializingBean;
 
 /**
- * A 2-level cache that mainains both a transaction-local cache and
+ * A 2-level cache that maintains both a transaction-local cache and
  * wraps a non-transactional (shared) cache.
  * <p>
  * It uses the <b>shared</b> <tt>SimpleCache</tt> for it's per-transaction
@@ -58,7 +58,7 @@ import org.springframework.beans.factory.InitializingBean;
  * virtually no overhead when running out-of-transaction.
  * <p>
  * The first phase of the commit ensures that any values written to the cache in the
- * current transaction are not already superceded by values in the shared cache.  In
+ * current transaction are not already superseded by values in the shared cache.  In
  * this case, the transaction is failed for concurrency reasons and will have to retry.
  * The second phase occurs post-commit.  We are sure that the transaction committed
  * correctly, but things may have changed in the cache between the commit and post-commit.

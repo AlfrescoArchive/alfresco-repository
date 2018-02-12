@@ -38,7 +38,9 @@ import org.alfresco.service.cmr.workflow.WorkflowService;
 import org.alfresco.service.cmr.workflow.WorkflowTask;
 import org.alfresco.service.cmr.workflow.WorkflowTaskState;
 import org.alfresco.test_category.BaseSpringTestsCategory;
+import org.junit.Before;
 import org.junit.experimental.categories.Category;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Nick Smith
@@ -46,6 +48,7 @@ import org.junit.experimental.categories.Category;
  *
  */
 @Category(BaseSpringTestsCategory.class)
+@Transactional
 public class ActivitiInvitationServiceImplTests extends AbstractInvitationServiceImplTest
 {
     private WorkflowService workflowService;
@@ -68,14 +71,10 @@ public class ActivitiInvitationServiceImplTests extends AbstractInvitationServic
         assertEquals(0, paths.size());
     }
     
-    /**
-    * {@inheritDoc}
-    */
-    @SuppressWarnings("deprecation")
-    @Override
-    protected void onSetUpInTransaction() throws Exception
+    @Before
+    public void before() throws Exception
     {
-        super.onSetUpInTransaction();
+        super.before();
         this.workflowService = (WorkflowService) applicationContext.getBean("WorkflowService");
         
         // Enable Activiti

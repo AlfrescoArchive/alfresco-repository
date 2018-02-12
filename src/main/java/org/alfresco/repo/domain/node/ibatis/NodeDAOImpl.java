@@ -1814,7 +1814,7 @@ public class NodeDAOImpl extends AbstractNodeDAOImpl
     /**
      * MySQL Cluster NDB specific DAO overrides
      *
-     * WARNING: Experimental/unsupported - see AlfrescoMySQLClusterNDBDialect !
+     * WARNING: Experimental/unsupported - see MySQLClusterNDBDialect !
      * 
      * @author janv
      */

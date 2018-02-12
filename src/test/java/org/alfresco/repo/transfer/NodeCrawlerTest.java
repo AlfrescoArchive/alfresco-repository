@@ -50,6 +50,7 @@ import org.alfresco.test_category.OwnJVMTestsCategory;
 import org.alfresco.util.BaseAlfrescoSpringTest;
 import org.alfresco.util.GUID;
 import org.alfresco.util.testing.category.LuceneTests;
+import org.junit.Before;
 import org.junit.experimental.categories.Category;
 
 /**
@@ -68,15 +69,16 @@ public class NodeCrawlerTest extends BaseAlfrescoSpringTest
      * Called during the transaction setup
      */
     @SuppressWarnings("deprecation")
-    protected void onSetUpInTransaction() throws Exception
+    @Before
+    public void before() throws Exception
     {
-        super.onSetUpInTransaction();
+        super.before();
 
         // Get the required services
-        this.nodeService = (NodeService) this.getApplicationContext().getBean("NodeService");
-        this.serviceRegistry = (ServiceRegistry) this.getApplicationContext().getBean("ServiceRegistry");
-        this.nodeCrawlerFactory = (NodeCrawlerFactory) this.getApplicationContext().getBean("NodeCrawlerFactory");
-        Repository repositoryHelper = (Repository) this.applicationContext.getBean("repositoryHelper");
+        this.nodeService = (NodeService) applicationContext.getBean("NodeService");
+        this.serviceRegistry = (ServiceRegistry) applicationContext.getBean("ServiceRegistry");
+        this.nodeCrawlerFactory = (NodeCrawlerFactory) applicationContext.getBean("NodeCrawlerFactory");
+        Repository repositoryHelper = (Repository) applicationContext.getBean("repositoryHelper");
         this.companyHome = repositoryHelper.getCompanyHome();
     }
 

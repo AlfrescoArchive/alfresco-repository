@@ -89,7 +89,7 @@
 
    <!-- Hibernate session factory -->
    <bean id="testSessionFactory"
-      class="org.springframework.orm.hibernate3.LocalSessionFactoryBean">
+      class="org.springframework.orm.hibernate5.LocalSessionFactoryBean">
       <property name="dataSource">
          <ref bean="testDataSource" />
       </property>
@@ -111,7 +111,7 @@
 
    <!-- create a transaction manager -->
    <bean id="testTransactionManager"
-      class="org.springframework.orm.hibernate3.HibernateTransactionManager">
+      class="org.springframework.orm.hibernate5.HibernateTransactionManager">
       <property name="transactionSynchronizationName">
          <value>SYNCHRONIZATION_ALWAYS</value>
       </property>

@@ -56,6 +56,8 @@ import org.alfresco.service.cmr.workflow.WorkflowTask;
 import org.alfresco.service.namespace.QName;
 import org.alfresco.util.BaseSpringTest;
 import org.alfresco.util.GUID;
+import org.junit.Before;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Test to verify timer execution autentication and transaction behaviour.
@@ -63,6 +65,7 @@ import org.alfresco.util.GUID;
  * @author Frederik Heremans
  * @since 3.4.e
  */
+@Transactional
 public class ActivitiTimerExecutionTest extends BaseSpringTest 
 {
 
@@ -83,9 +86,6 @@ public class ActivitiTimerExecutionTest extends BaseSpringTest
 	@SuppressWarnings("deprecation")
 	public void testTimerExecutionAuthentication() throws Exception
     {
-    	this.setComplete();
-        this.endTransaction();
-        
     	try
     	{
     		WorkflowInstance taskAssigneeWorkflowInstance = transactionHelper
@@ -138,9 +138,6 @@ public class ActivitiTimerExecutionTest extends BaseSpringTest
     @SuppressWarnings("deprecation")
 	public void testTimerExecutionTransactionRollback() throws Exception
     {
-    	this.setComplete();
-        this.endTransaction();
-        
     	try
     	{
     		WorkflowInstance workflowInstance = transactionHelper
@@ -236,10 +233,9 @@ public class ActivitiTimerExecutionTest extends BaseSpringTest
         		}
             });
     }
-    
-    @SuppressWarnings("deprecation")
-    @Override
-    protected void onSetUpInTransaction() throws Exception
+
+    @Before
+    public void before() throws Exception
     {
     	 ServiceRegistry registry = (ServiceRegistry) applicationContext.getBean(ServiceRegistry.SERVICE_REGISTRY);
          this.workflowService = registry.getWorkflowService();

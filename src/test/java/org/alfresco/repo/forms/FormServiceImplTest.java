@@ -73,7 +73,9 @@ import org.alfresco.test_category.BaseSpringTestsCategory;
 import org.alfresco.test_category.OwnJVMTestsCategory;
 import org.alfresco.util.BaseAlfrescoSpringTest;
 import org.alfresco.util.GUID;
+import org.junit.Before;
 import org.junit.experimental.categories.Category;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 /**
@@ -83,6 +85,7 @@ import org.springframework.util.StringUtils;
  * @author Nick Smith
  */
 @Category(BaseSpringTestsCategory.class)
+@Transactional
 public class FormServiceImplTest extends BaseAlfrescoSpringTest 
 {
     private FormService formService;
@@ -136,15 +139,11 @@ public class FormServiceImplTest extends BaseAlfrescoSpringTest
     private static final String TYPE_FORM_ITEM_KIND = "type";
     private static final String WORKFLOW_FORM_ITEM_KIND = "workflow";
     private static final String TASK_FORM_ITEM_KIND = "task";
-    
-    /**
-     * Called during the transaction setup
-     */
-    @SuppressWarnings("deprecation")
-    @Override
-    protected void onSetUpInTransaction() throws Exception
+
+    @Before
+    public void before() throws Exception
     {
-        super.onSetUpInTransaction();
+        super.before();
         
         // Get the required services
         this.formService = (FormService)this.applicationContext.getBean("FormService");
