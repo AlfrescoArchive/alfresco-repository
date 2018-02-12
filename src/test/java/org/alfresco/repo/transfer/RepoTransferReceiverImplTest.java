@@ -1436,7 +1436,6 @@ public class RepoTransferReceiverImplTest extends BaseAlfrescoSpringTest
 
     private String localTestAsyncCommit() throws Exception, InterruptedException
     {
-        TestTransaction.start();
         final String transferId = receiver.start("1234", true, receiver.getVersion());
         TestTransaction.end();
 

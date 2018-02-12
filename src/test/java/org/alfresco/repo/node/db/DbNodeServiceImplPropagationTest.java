@@ -108,7 +108,7 @@ public class DbNodeServiceImplPropagationTest extends BaseSpringTest
     }
 
     @After
-    protected void after() throws Exception
+    public void after() throws Exception
     {
         try
         {

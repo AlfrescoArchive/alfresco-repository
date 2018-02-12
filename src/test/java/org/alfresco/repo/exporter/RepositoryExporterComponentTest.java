@@ -40,6 +40,7 @@ import org.alfresco.util.BaseSpringTest;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Ignore;
+import org.junit.Test;
 import org.springframework.test.annotation.Commit;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -69,6 +70,7 @@ public class RepositoryExporterComponentTest extends BaseSpringTest
     }
     
 
+    @Test
     public void testDummy()
     {
     }
@@ -87,6 +89,7 @@ public class RepositoryExporterComponentTest extends BaseSpringTest
 
     @Ignore
     @Commit
+    @Test
     public void testRepositoryExport()
     {
         // Create a temp store to hold exports

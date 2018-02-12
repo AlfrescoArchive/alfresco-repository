@@ -246,7 +246,7 @@ public abstract class BaseNodeServiceTest extends BaseSpringTest
     }
     
     @After
-    protected void after()
+    public void after()
     {
         try
         {
