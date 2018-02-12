@@ -51,6 +51,7 @@ import org.alfresco.util.BaseSpringTest;
 import org.alfresco.util.testing.category.DBTests;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.springframework.context.ApplicationContext;
 import org.springframework.test.annotation.Commit;
@@ -158,6 +159,7 @@ public class DbNodeServiceImplPropagationTest extends BaseSpringTest
      */
     @SuppressWarnings("deprecation")
     @Commit
+    @Test
     public void testAuditablePropagation() throws Exception
     {
         // See REPO-2963
