@@ -45,6 +45,7 @@ import org.alfresco.util.PropertyCheck;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 /**
  * A 2-level cache that maintains both a transaction-local cache and
@@ -273,7 +274,12 @@ public class TransactionalCache<K extends Serializable, V extends Object>
 
             // ensure that we get the transaction callbacks as we have bound the unique
             // transactional caches to a common manager
-            AlfrescoTransactionSupport.bindListener(this);
+            // The synchronizations are not available after the txn is committed/rolled back
+            // the resources are still stored in org.alfresco.util.transaction.TransactionSupportUtil
+            if (TransactionSynchronizationManager.isSynchronizationActive())
+            {
+                AlfrescoTransactionSupport.bindListener(this);
+            }
             AlfrescoTransactionSupport.bindResource(resourceKeyTxnData, data);
         }
         return data;
