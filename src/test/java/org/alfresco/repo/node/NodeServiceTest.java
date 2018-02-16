@@ -404,11 +404,11 @@ public class NodeServiceTest
             // See ALF-16888.  DB2 fails this test persistently.
             return;
         }
-        
+
         final NodeRef workspaceRootNodeRef = nodeService.getRootNode(StoreRef.STORE_REF_WORKSPACE_SPACESSTORE);
         final NodeRef[] nodesPrimer = new NodeRef[2];
         buildNodeHierarchy(workspaceRootNodeRef, nodesPrimer);
-        final NodeRef[] nodesOne = new NodeRef[10];
+        final NodeRef[] nodesOne = new NodeRef[15];
         buildNodeHierarchy(workspaceRootNodeRef, nodesOne);
         final NodeRef[] nodesTwo = new NodeRef[10];
         buildNodeHierarchy(workspaceRootNodeRef, nodesTwo);
