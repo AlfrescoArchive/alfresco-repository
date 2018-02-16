@@ -88,7 +88,7 @@ public abstract class HBBaseDataCollector
         hbDataCollectorService.registerCollector(this);
     }
 
-    public void unregister()
+    public void deregister()
     {
         PropertyCheck.mandatory(this, "hbDataCollectorService", hbDataCollectorService);
         hbDataCollectorService.deregisterCollector(this);
