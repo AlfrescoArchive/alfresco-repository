@@ -45,6 +45,7 @@ import org.alfresco.util.BaseSpringTest;
 import org.alfresco.util.GUID;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -124,6 +125,7 @@ public class NodeEligibleForRethumbnailingEvaluatorTest extends BaseSpringTest
     }
 
     @SuppressWarnings("deprecation")
+    @Test
     public void testNodeWithNoFailedThumbnails()
     {
         // Such a node is always eligible for thumbnailing.
@@ -135,13 +137,14 @@ public class NodeEligibleForRethumbnailingEvaluatorTest extends BaseSpringTest
                 failureHandlingOptions.getRetryCount());
         condition.setParameterValue(NodeEligibleForRethumbnailingEvaluator.PARAM_QUIET_PERIOD, 0L);
         condition.setParameterValue(NodeEligibleForRethumbnailingEvaluator.PARAM_QUIET_PERIOD_RETRIES_ENABLED, true);
-        
+
         NodeEligibleForRethumbnailingEvaluator evaluator =
             (NodeEligibleForRethumbnailingEvaluator)this.applicationContext.getBean(NodeEligibleForRethumbnailingEvaluator.NAME);
-        
+
         assertTrue(evaluator.evaluate(condition, newUnthumbnailedNodeRef));
     }
 
+    @Test
     public void testNodeWithFailedThumbnails()
     {
         // A "non-difficult" node is one which is not yet known to be difficult to thumbnail.

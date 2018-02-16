@@ -41,6 +41,7 @@ import org.alfresco.service.cmr.repository.TransformationOptions;
 import org.alfresco.service.cmr.version.Version;
 import org.alfresco.test_category.OwnJVMTestsCategory;
 import org.junit.Before;
+import org.junit.Test;
 import org.junit.experimental.categories.Category;
 
 import java.util.HashMap;
@@ -77,6 +78,7 @@ public class ContentServiceImplTest extends BaseVersionStoreTest
     /**
      * Test getReader
      */
+    @Test
     public void testGetReader()
     {
         // Create a new versionable node
@@ -104,6 +106,7 @@ public class ContentServiceImplTest extends BaseVersionStoreTest
         assertEquals(UPDATED_CONTENT, contentReader2.getContentString());
     }
 
+    @Test
     public void testTransformAndNulls()
     {
         NodeRef versionableNode = createNewVersionableNode();
@@ -183,6 +186,7 @@ public class ContentServiceImplTest extends BaseVersionStoreTest
     /**
      * Test getWriter
      */
+    @Test
     public void testGetWriter()
     {
         // Create a new versionable node

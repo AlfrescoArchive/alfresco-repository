@@ -95,6 +95,7 @@ import org.alfresco.util.Pair;
 import org.alfresco.util.PropertyMap;
 import org.alfresco.util.testing.category.LuceneTests;
 import org.junit.Before;
+import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.springframework.test.context.transaction.TestTransaction;
 import org.springframework.transaction.TransactionDefinition;
@@ -183,6 +184,7 @@ public class TransferServiceToBeRefactoredTest extends BaseAlfrescoSpringTest
      * 
      * This is a unit test so it does some shenanigans to send to the same instance of alfresco.
      */
+    @Test
     public void testTransferReport() throws Exception
     {
         TestTransaction.flagForCommit();
@@ -617,6 +619,7 @@ public class TransferServiceToBeRefactoredTest extends BaseAlfrescoSpringTest
      *   restore node A2 (and A4 and A5 cascade restore)
      *   transfer
      */
+    @Test
     public void testTransferSyncNodes() throws Exception
     {
         TestTransaction.flagForCommit();
@@ -1328,6 +1331,7 @@ public class TransferServiceToBeRefactoredTest extends BaseAlfrescoSpringTest
      * (A5, A6, A7 and A8 should be deleted A2 and A4 remain since they contain alien content.)</li>
      * </ol>   
      */
+    @Test
     public void testTransferInvadedByLocalAlienNodes() throws Exception
     {
         TestTransaction.flagForCommit();
@@ -2012,6 +2016,7 @@ public class TransferServiceToBeRefactoredTest extends BaseAlfrescoSpringTest
      * </ol>
      * @throws Exception
      */
+    @Test
     public void testLocalAlienRestore() throws Exception
     {
         TestTransaction.flagForCommit();
@@ -2342,6 +2347,7 @@ public class TransferServiceToBeRefactoredTest extends BaseAlfrescoSpringTest
      * <p>
      * This is a unit test so it does some shenanigans to send to the same instance of alfresco.
      */
+    @Test
     public void testTransferWithPermissions() throws Exception
     {
         TestTransaction.flagForCommit();
@@ -2678,6 +2684,7 @@ public class TransferServiceToBeRefactoredTest extends BaseAlfrescoSpringTest
      * Step 5
      * remove locks on A and B - transfer without read only flag - content should all be unlocked.
      */
+    @Test
     public void testReadOnlyFlag() throws Exception
     {
         TestTransaction.flagForCommit();
@@ -3074,6 +3081,7 @@ public class TransferServiceToBeRefactoredTest extends BaseAlfrescoSpringTest
      * transfer 
      * 
      */
+    @Test
     public void testTwoRepoSync() throws Exception
     {
         /**
@@ -3395,6 +3403,7 @@ public class TransferServiceToBeRefactoredTest extends BaseAlfrescoSpringTest
      * Step 5.  Delete C3  - A2 dest images folder uninvaded.
        
      */
+    @Test
     public void testMultiRepoTransfer() throws Exception
     {
         TestTransaction.flagForCommit();
@@ -3822,6 +3831,7 @@ public class TransferServiceToBeRefactoredTest extends BaseAlfrescoSpringTest
      * A4 should be invaded by B due to B6 but not by A.
      * C2Dest should not be invaded.
      */
+    @Test
     public void testMultiRepoTransferMove() throws Exception
     {
         TestTransaction.flagForCommit();
@@ -4229,6 +4239,7 @@ public class TransferServiceToBeRefactoredTest extends BaseAlfrescoSpringTest
      * <p>
      * This is a unit test so it does some shenanigans to send to the same instance of alfresco.
      */
+    @Test
     public void testCopyTransferredNode() throws Exception
     {
         TestTransaction.flagForCommit();
@@ -4460,6 +4471,7 @@ public class TransferServiceToBeRefactoredTest extends BaseAlfrescoSpringTest
      * B6 Copy not invaded.
      * 
      */
+    @Test
     public void testCopyAlien() throws Exception
     {
         TestTransaction.flagForCommit();

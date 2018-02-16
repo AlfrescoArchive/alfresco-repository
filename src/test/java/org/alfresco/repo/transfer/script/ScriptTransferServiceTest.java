@@ -44,6 +44,7 @@ import org.alfresco.test_category.BaseSpringTestsCategory;
 import org.alfresco.test_category.OwnJVMTestsCategory;
 import org.alfresco.util.BaseAlfrescoSpringTest;
 import org.junit.Before;
+import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.mockito.Matchers;
 import org.mockito.Mockito;
@@ -78,7 +79,7 @@ public class ScriptTransferServiceTest extends BaseAlfrescoSpringTest
     }   
     
   // == Test the JavaScript API ==
-  
+  @Test
   public void testJSAPI() throws Exception
   {
       /**

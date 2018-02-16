@@ -56,6 +56,7 @@ import org.alfresco.util.debug.NodeStoreInspector;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.junit.Before;
+import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -108,6 +109,7 @@ public class NodeServiceImplTest extends BaseVersionStoreTest
     /**
      * Test getType
      */
+    @Test
     public void testGetType()
     {
         // Create a new versionable node
@@ -125,6 +127,7 @@ public class NodeServiceImplTest extends BaseVersionStoreTest
     /**
      * Test getProperties
      */
+    @Test
     public void testGetProperties()
     {
         // Create a new versionable node
@@ -163,6 +166,7 @@ public class NodeServiceImplTest extends BaseVersionStoreTest
     /**
      * Test getProperty
      */
+    @Test
     public void testGetProperty()
     {
         // Create a new versionable node
@@ -192,6 +196,7 @@ public class NodeServiceImplTest extends BaseVersionStoreTest
     /**
      * Test getChildAssocs
      */
+    @Test
     public void testGetChildAssocs()
     {
         if (logger.isTraceEnabled())
@@ -252,6 +257,7 @@ public class NodeServiceImplTest extends BaseVersionStoreTest
     /**
      * Test getAssociationTargets
      */
+    @Test
     public void testGetAssociationTargets()
     {
         // Create a new versionable node
@@ -276,6 +282,7 @@ public class NodeServiceImplTest extends BaseVersionStoreTest
      * Tests get target associations by property value.</p>
      * See <b>MNT-14504</b> for more details.
      */
+    @Test
     public void testGetTargetAssocsByPropertyValue()
     {
         // Create a new versionable node
@@ -299,6 +306,7 @@ public class NodeServiceImplTest extends BaseVersionStoreTest
     /**
      * Test hasAspect
      */
+    @Test
     public void testHasAspect()
     {
         // Create a new versionable node
@@ -321,6 +329,7 @@ public class NodeServiceImplTest extends BaseVersionStoreTest
     /**
      * Test getAspects
      */
+    @Test
     public void testGetAspects() 
     {
         // Create a new versionable node
@@ -342,6 +351,7 @@ public class NodeServiceImplTest extends BaseVersionStoreTest
     /**
      * Test getParentAssocs
      */
+    @Test
     public void testGetParentAssocs()
     {
         // Create a new versionable node
@@ -363,6 +373,7 @@ public class NodeServiceImplTest extends BaseVersionStoreTest
     /**
      * Test getPrimaryParent
      */
+    @Test
     public void testGetPrimaryParent()
     {
         // Create a new versionable node
@@ -410,6 +421,7 @@ public class NodeServiceImplTest extends BaseVersionStoreTest
     /**
      * Test addAspect
      */
+    @Test
     public void testAddAspect()
     {
         try
@@ -432,6 +444,7 @@ public class NodeServiceImplTest extends BaseVersionStoreTest
     /**
      * Test removeAspect
      */
+    @Test
     public void testRemoveAspect() 
     {
         try
@@ -453,6 +466,7 @@ public class NodeServiceImplTest extends BaseVersionStoreTest
 	/**
 	 * Test delete node
 	 */
+    @Test
     public void testDeleteNode()
     {
 		try
@@ -472,6 +486,7 @@ public class NodeServiceImplTest extends BaseVersionStoreTest
 	/**
 	 * Test addChild
 	 */
+    @Test
     public void testAddChild()
     {
 		try
@@ -495,6 +510,7 @@ public class NodeServiceImplTest extends BaseVersionStoreTest
 	/**
 	 * Test removeChild
 	 */
+    @Test
     public void testRemoveChild()
     {
 		try
@@ -516,6 +532,7 @@ public class NodeServiceImplTest extends BaseVersionStoreTest
     /**
      * Test setProperties
      */
+    @Test
     public void testSetProperties()
     {
         try
@@ -537,6 +554,7 @@ public class NodeServiceImplTest extends BaseVersionStoreTest
     /**
      * Test setProperty
      */
+    @Test
     public void testSetProperty()
 	{
         try
@@ -559,6 +577,7 @@ public class NodeServiceImplTest extends BaseVersionStoreTest
     /**
      * Test createAssociation
      */
+    @Test
     public void testCreateAssociation()
     {
         try
@@ -581,6 +600,7 @@ public class NodeServiceImplTest extends BaseVersionStoreTest
     /**
      * Test removeAssociation
      */
+    @Test
     public void testRemoveAssociation()
     {
         try
@@ -603,6 +623,7 @@ public class NodeServiceImplTest extends BaseVersionStoreTest
     /**
      * Test getAssociationSources
      */
+    @Test
     public void testGetAssociationSources()
     {
         try
@@ -624,6 +645,7 @@ public class NodeServiceImplTest extends BaseVersionStoreTest
     /**
      * Test getPath
      */
+    @Test
     public void testGetPath()
     {
         Path path = this.versionStoreNodeService.getPath(this.dummyNodeRef);
@@ -632,6 +654,7 @@ public class NodeServiceImplTest extends BaseVersionStoreTest
     /**
      * Test getPaths
      */
+    @Test
     public void testGetPaths()
     {
         List<Path> paths = this.versionStoreNodeService.getPaths(this.dummyNodeRef, false);
@@ -644,6 +667,7 @@ public class NodeServiceImplTest extends BaseVersionStoreTest
      *  database or database connection WRT unicode, this is a
      *  test that'll hopefully break in testing and alert us!
      */
+    @Test
     public void testUnicodeNamesAndProperties()
     {
         // Get our cache objects
@@ -737,6 +761,7 @@ public class NodeServiceImplTest extends BaseVersionStoreTest
     * that does not already have versionable aspect
     * version history of this node should be deleted
     */
+    @Test
     public void testALF1793AddVersionableAspect()
     {
         // Create a new versionable node and create new version
@@ -763,6 +788,7 @@ public class NodeServiceImplTest extends BaseVersionStoreTest
         assertNotNull(version);
     }
     
+    @Test
     public void testTakeOwnershipPermission()
     {
         NodeService proxyNodeService = (NodeService) applicationContext.getBean("NodeService");

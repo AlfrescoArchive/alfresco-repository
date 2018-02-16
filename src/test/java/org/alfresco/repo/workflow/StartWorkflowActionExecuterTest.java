@@ -41,6 +41,7 @@ import org.alfresco.test_category.OwnJVMTestsCategory;
 import org.alfresco.util.BaseSpringTest;
 import org.alfresco.util.GUID;
 import org.junit.Before;
+import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -85,6 +86,7 @@ public class StartWorkflowActionExecuterTest extends BaseSpringTest
     /**
      * Test execution
      */
+    @Test
     public void testExecution()
     {
         // Execute the action

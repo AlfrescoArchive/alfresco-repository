@@ -92,6 +92,7 @@ import org.alfresco.util.testing.category.RedundantTests;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.junit.Before;
+import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -171,6 +172,7 @@ public class TransferServiceImplTest extends BaseAlfrescoSpringTest
         assertNotNull("receiver is null", this.receiver);     
     }
     
+    @Test
     public void testSetup()
     {
         assertEquals(
@@ -183,6 +185,7 @@ public class TransferServiceImplTest extends BaseAlfrescoSpringTest
      * 
      * @throws Exception
      */
+    @Test
     public void testCreateTarget() throws Exception
     {
         String name = "Test Transfer Target " + GUID.generate();
@@ -247,6 +250,7 @@ public class TransferServiceImplTest extends BaseAlfrescoSpringTest
      * 
      * @throws Exception
      */
+    @Test
     public void testCreateTargetSyntax2() throws Exception
     {
         String name = "Test Transfer Target " + GUID.generate();
@@ -322,6 +326,7 @@ public class TransferServiceImplTest extends BaseAlfrescoSpringTest
      * 
      * @throws Exception
      */
+    @Test
     public void testGetTransferTargets() throws Exception
     {
         String nameA = "Test Transfer Target " + GUID.generate();
@@ -356,6 +361,7 @@ public class TransferServiceImplTest extends BaseAlfrescoSpringTest
      * 
      * @throws Exception
      */
+    @Test
     public void testALF6565() throws Exception
     {
         String nameA = GUID.generate();
@@ -400,6 +406,7 @@ public class TransferServiceImplTest extends BaseAlfrescoSpringTest
      * Test of Get All Transfer Targets By Group
      */
     //TODO Test not complete - can't yet put targets in different groups
+    @Test
     public void testGetAllTransferTargetsByGroup() throws Exception
     {
         String getMe = "Test Transfer Target " + GUID.generate();
@@ -438,6 +445,7 @@ public class TransferServiceImplTest extends BaseAlfrescoSpringTest
     /**
      * 
      */
+    @Test
     public void testUpdateTransferTarget() throws Exception
     {
         String updateMe = "Test Transfer Target " + GUID.generate();
@@ -542,6 +550,7 @@ public class TransferServiceImplTest extends BaseAlfrescoSpringTest
     /**
      * 
      */
+    @Test
     public void testDeleteTransferTarget() throws Exception
     {
         String deleteMe = "deleteMe";
@@ -590,6 +599,7 @@ public class TransferServiceImplTest extends BaseAlfrescoSpringTest
 
     }
     
+    @Test
     public void testEnableTransferTarget() throws Exception
     {
         String targetName = "enableMe";
@@ -653,6 +663,7 @@ public class TransferServiceImplTest extends BaseAlfrescoSpringTest
      * 
      * This is a unit test so it does some shenanigans to send to the same instance of alfresco.
      */
+    @Test
     public void testTransferOneNode() throws Exception
     {
         final String CONTENT_TITLE = "ContentTitle";
@@ -1017,6 +1028,7 @@ public class TransferServiceImplTest extends BaseAlfrescoSpringTest
      *  
      * This is a unit test so it does some shenanigans to send to the same instance of alfresco.
      */
+    @Test
     public void testMoveNode() throws Exception
     {
         final String CONTENT_TITLE = "ContentTitle";
@@ -1205,6 +1217,7 @@ public class TransferServiceImplTest extends BaseAlfrescoSpringTest
      * 
      * This is a unit test so it does some shenanigans to send to he same instance of alfresco.
      */
+    @Test
     public void testManyNodes() throws Exception
     {        
         final RetryingTransactionHelper tran = transactionService.getRetryingTransactionHelper();
@@ -1465,6 +1478,7 @@ public class TransferServiceImplTest extends BaseAlfrescoSpringTest
      * 
      * This is a unit test so it does some shenanigans to send to the same instance of alfresco.
      */
+    @Test
     public void testPathBasedUpdate() throws Exception
     {
         final RetryingTransactionHelper tran = transactionService.getRetryingTransactionHelper();
@@ -1630,6 +1644,7 @@ public class TransferServiceImplTest extends BaseAlfrescoSpringTest
      * 
      * This is a unit test so it does some shenanigans to send to the same instance of alfresco.
      */
+    @Test
     public void testAsyncCallback() throws Exception
     {
         final int MAX_SLEEPS = 5;
@@ -1836,6 +1851,7 @@ public class TransferServiceImplTest extends BaseAlfrescoSpringTest
      * 
      * This is a unit test so it does some shenanigans to send to the same instance of alfresco.
      */
+    @Test
     public void testAsyncCancel() throws Exception
     {
         final int MAX_SLEEPS = 5;
@@ -2096,6 +2112,7 @@ public class TransferServiceImplTest extends BaseAlfrescoSpringTest
      * 
      * Turn it on by turning debug logging on for this class or by changing the "runTest" value;
      */
+    @Test
     public void testTransferOneNodeWithBigContent() throws Exception
     { 
         /**
@@ -2238,6 +2255,7 @@ public class TransferServiceImplTest extends BaseAlfrescoSpringTest
      * 
      * This is a unit test so it does some shenanigans to send to the same instance of alfresco.
      */
+    @Test
     public void testEmptyContent() throws Exception
     {
         final RetryingTransactionHelper tran = transactionService.getRetryingTransactionHelper();
@@ -2505,6 +2523,7 @@ public class TransferServiceImplTest extends BaseAlfrescoSpringTest
      * 
      * This is a unit test so it does some shenanigans to send to the same instance of alfresco.
      */
+    @Test
     public void testRepeatUpdateOfContent() throws Exception
     {
         final RetryingTransactionHelper tran = transactionService.getRetryingTransactionHelper();
@@ -2650,6 +2669,7 @@ public class TransferServiceImplTest extends BaseAlfrescoSpringTest
      * 
      * This is a unit test so it does some shenanigans to send to the same instance of alfresco.
      */
+    @Test
     public void testReplaceNode() throws Exception
     {
         final RetryingTransactionHelper tran = transactionService.getRetryingTransactionHelper();
@@ -3028,6 +3048,7 @@ public class TransferServiceImplTest extends BaseAlfrescoSpringTest
      * 
      * @throws Exception
      */
+    @Test
     public void testPeerAssocs() throws Exception
     {
         final RetryingTransactionHelper tran = transactionService.getRetryingTransactionHelper();
@@ -3235,6 +3256,7 @@ public class TransferServiceImplTest extends BaseAlfrescoSpringTest
      * 
      * @throws Exception
      */
+    @Test
     public void testExistingNodes() throws Exception
     {
         final RetryingTransactionHelper tran = transactionService.getRetryingTransactionHelper();
@@ -3406,6 +3428,7 @@ public class TransferServiceImplTest extends BaseAlfrescoSpringTest
      * This is a unit test so it does some shenanigans to send to the same instance of alfresco.
      */
     @Category(RedundantTests.class)
+    @Test
     public void testCategoriesAndTags() throws Exception
     {
         final String CONTENT_TITLE = "ContentTitle";

@@ -44,6 +44,7 @@ import org.alfresco.test_category.BaseSpringTestsCategory;
 import org.alfresco.util.BaseAlfrescoSpringTest;
 import org.alfresco.util.GUID;
 import org.junit.Before;
+import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -77,6 +78,7 @@ public class StandardRenditionLocationResolverTest extends BaseAlfrescoSpringTes
         locationResolver.setRepositoryHelper(repositoryHelper);
     }
 
+    @Test
     public void testChildAssociationFinder()
     {
         QName renditionKind = QName.createQName(NamespaceService.APP_MODEL_1_0_URI, "test");
@@ -138,6 +140,7 @@ public class StandardRenditionLocationResolverTest extends BaseAlfrescoSpringTes
         assertEquals(destinationNode, location.getChildRef());
     }
 
+    @Test
     public void testCreatesFoldersForTemplatedLocation() throws Exception
     {
         QName fooName = QName.createQName(NamespaceService.CONTENT_MODEL_1_0_URI, "testFooFolder");

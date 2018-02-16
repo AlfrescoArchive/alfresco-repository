@@ -78,6 +78,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.springframework.context.ApplicationContext;
 import org.springframework.test.annotation.Commit;
@@ -135,6 +136,7 @@ public class VersionServiceImplTest extends BaseVersionStoreTest
         globalProperties.setProperty(VersionableAspectTest.AUTO_VERSION_PROPS_KEY, "false");
     }
 
+    @Test
     public void testSetup()
     {
         // NOOP
@@ -147,6 +149,7 @@ public class VersionServiceImplTest extends BaseVersionStoreTest
      * 1) Create three versions with comments. Then revert to v1. All comments must be exist.
      * 2) Create three versions. Add comment to the latest two versions (v2 and v3). Then revert to v1. Comments must be exist.
      */
+    @Test
     public void testDiscussableAspect()
     {
     	final String V1_COMMENT = "<p>Comment for version 1</p>";
@@ -272,6 +275,7 @@ public class VersionServiceImplTest extends BaseVersionStoreTest
     }
     
     // MNT-13647, MNT-13719 check for comment count in node property
+    @Test
     public void testCommentsCountProperty() {
     	final String COMMENT = "<p>Comment</p>";
     	
@@ -290,6 +294,7 @@ public class VersionServiceImplTest extends BaseVersionStoreTest
     /**
      * Tests the creation of the initial version of a versionable node
      */
+    @Test
     public void testCreateIntialVersion()
     {
         NodeRef versionableNode = createNewVersionableNode();
@@ -299,6 +304,7 @@ public class VersionServiceImplTest extends BaseVersionStoreTest
     /**
      * Test creating a version history with many versions from the same workspace
      */
+    @Test
     public void testCreateManyVersionsSameWorkspace()
     {
         NodeRef versionableNode = createNewVersionableNode();
@@ -318,6 +324,7 @@ public class VersionServiceImplTest extends BaseVersionStoreTest
     /**
      * Tests the creation of multiple versions of a versionable node with null version properties
      */
+    @Test
     public void testCreateManyVersionsWithNullVersionProperties()
     {
         this.versionProperties = null;
@@ -335,6 +342,7 @@ public class VersionServiceImplTest extends BaseVersionStoreTest
     /**
      * Test versioning a non versionable node ie: no version apsect
      */
+    @Test
     public void testCreateInitialVersionWhenNotVersionable()
     {
         NodeRef node = createNewNode(); // not marked as versionable
@@ -344,6 +352,7 @@ public class VersionServiceImplTest extends BaseVersionStoreTest
     /**
      * Test retrieving the current version for a node with multiple versions
      */
+    @Test
     public void testGetCurrentVersion()
     {
         NodeRef versionableNode = createNewVersionableNode();
@@ -375,6 +384,7 @@ public class VersionServiceImplTest extends BaseVersionStoreTest
     /**
      * Test versioning the children of a versionable node
      */
+    @Test
     public void testVersioningChildren()
     {
         NodeRef versionableNode = createNewVersionableNode();
@@ -400,6 +410,7 @@ public class VersionServiceImplTest extends BaseVersionStoreTest
     /**
      * Test versioning many nodes in one go
      */
+    @Test
     public void testVersioningManyNodes()
     {
         NodeRef versionableNode = createNewVersionableNode();
@@ -482,6 +493,7 @@ public class VersionServiceImplTest extends BaseVersionStoreTest
     /**
      * Tests the version history
      */
+    @Test
     public void testNoVersionHistory()
     {
         NodeRef nodeRef = createNewVersionableNode();
@@ -494,6 +506,7 @@ public class VersionServiceImplTest extends BaseVersionStoreTest
      * Tests getVersionHistory when all the entries in the version history
      * are from the same workspace.
      */
+    @Test
     public void testGetVersionHistorySameWorkspace()
     {
         NodeRef versionableNode = createNewVersionableNode();
@@ -509,6 +522,7 @@ public class VersionServiceImplTest extends BaseVersionStoreTest
      * Same as testGetVersionHistorySameWorkspace except that the order of
      * of db ids is mixed up and a comparator is need to fix it (MNT-226).
      */
+    @Test
     public void testIdsOutOfOrder()
     {
         if (versionService instanceof Version2ServiceImpl)
@@ -521,6 +535,7 @@ public class VersionServiceImplTest extends BaseVersionStoreTest
     /**
      * Same as testIdsOutOfOrder but without the comparator so should fail.
      */
+    @Test
     public void testIdsOutOfOrderFails()
     {
         if (versionService instanceof Version2ServiceImpl)
@@ -638,6 +653,7 @@ public class VersionServiceImplTest extends BaseVersionStoreTest
      * Test revert
      */
     @SuppressWarnings("unused")
+    @Test
     public void testRevert()
     {
        // Create a versionable node
@@ -776,6 +792,7 @@ public class VersionServiceImplTest extends BaseVersionStoreTest
     /**
      * Test reverting a node that has comments, see ALF-13129
      */
+    @Test
     public void testRevertWithComments()
     {
         NodeRef versionableNode = createNewVersionableNode();
@@ -859,6 +876,7 @@ public class VersionServiceImplTest extends BaseVersionStoreTest
     /**
      * Test that secondary association is present after revert, see MNT-11756
      */
+    @Test
     public void testAssociationIsPresentAfterRevert()
     {
         // Create Order
@@ -952,6 +970,7 @@ public class VersionServiceImplTest extends BaseVersionStoreTest
      */
     @SuppressWarnings("unused")
     @Commit
+    @Test
     public void testScriptNodeRevert()
     {
         CheckOutCheckInService checkOutCheckIn =
@@ -1054,6 +1073,7 @@ public class VersionServiceImplTest extends BaseVersionStoreTest
      */
     @SuppressWarnings("unused")
     @Commit
+    @Test
     public void testScriptNodeRevertWithChangeType()
     {
         CheckOutCheckInService checkOutCheckInService =
@@ -1088,6 +1108,7 @@ public class VersionServiceImplTest extends BaseVersionStoreTest
     /**
      * Test restore
      */
+    @Test
     public void testRestore()
     {
         // Try and restore a node without any version history
@@ -1203,6 +1224,7 @@ public class VersionServiceImplTest extends BaseVersionStoreTest
     /**
      * Test deleteVersionHistory
      */
+    @Test
     public void testDeleteVersionHistory()
     {
     	// Create a versionable node
@@ -1257,6 +1279,7 @@ public class VersionServiceImplTest extends BaseVersionStoreTest
      * Test testDeleteLastVersion
      * MNT-13097. Revert content if the last version was chosen.
      */
+    @Test
     public void testDeleteLastVersion()
     {
         // Use 1.0, 2.0 etc for the main part
@@ -1334,6 +1357,7 @@ public class VersionServiceImplTest extends BaseVersionStoreTest
     /**
      * Test deleteVersion
      */
+    @Test
     public void testDeleteVersion()
     {
         // Use 1.0, 2.0 etc for the main part
@@ -1532,6 +1556,7 @@ public class VersionServiceImplTest extends BaseVersionStoreTest
         assertNull(version);
     }
     
+    @Test
     public void testAutoVersionOnInitialVersionOn()
     {
         // Create a versionable node
@@ -1573,6 +1598,7 @@ public class VersionServiceImplTest extends BaseVersionStoreTest
         });
     }
     
+    @Test
     public void testAutoVersionOff()
     {
         // Create a versionable node
@@ -1613,6 +1639,7 @@ public class VersionServiceImplTest extends BaseVersionStoreTest
         });
     }
     
+    @Test
     public void testInitialVersionOff()
     {
         // Create node (this node has some content)
@@ -1646,6 +1673,7 @@ public class VersionServiceImplTest extends BaseVersionStoreTest
        
     }
     
+    @Test
     public void testAddVersionableAspectWithNoVersionType()
     {
         // No version-type specified when adding the aspect
@@ -1655,6 +1683,7 @@ public class VersionServiceImplTest extends BaseVersionStoreTest
         assertCorrectVersionLabel(nodeRef, "1.0");
     }
 
+    @Test
     public void testAddVersionableAspectWithMinorVersionType()
     {
         // MINOR version-type specified when adding the aspect
@@ -1664,6 +1693,7 @@ public class VersionServiceImplTest extends BaseVersionStoreTest
         assertCorrectVersionLabel(nodeRef, "0.1");
     }
     
+    @Test
     public void testAddVersionableAspectWithMajorVersionType()
     {
         // MAJOR version-type specified when adding the aspect
@@ -1713,6 +1743,7 @@ public class VersionServiceImplTest extends BaseVersionStoreTest
         return nodeRef;
     }
 
+    @Test
     public void testAddRemoveVersionableAspect()
     {
     	HashMap<QName, Serializable> props2 = new HashMap<QName, Serializable>();
@@ -1773,6 +1804,7 @@ public class VersionServiceImplTest extends BaseVersionStoreTest
         });
     }
     
+    @Test
     public void testAutoRemovalOfVersionHistory()
     {
     	StoreRef spacesStoreRef = new StoreRef(StoreRef.PROTOCOL_WORKSPACE, "SpacesStore");
@@ -1843,6 +1875,7 @@ public class VersionServiceImplTest extends BaseVersionStoreTest
         });
     }
     
+    @Test
     public void testAutoVersionOnUpdatePropsOnly()
     {
         // test auto-version props on
@@ -1931,6 +1964,7 @@ public class VersionServiceImplTest extends BaseVersionStoreTest
         });
     }
     
+    @Test
     public void testAutoVersionOnUpdatePropsOnlyWithExcludes()
     {
         // test auto-version props on - without any excludes
@@ -2118,6 +2152,7 @@ public class VersionServiceImplTest extends BaseVersionStoreTest
         });
     }
     
+    @Test
     public void testAutoVersionWithPropsOnRevert()
     {
        // test auto-version props on - without any excludes
@@ -2274,6 +2309,7 @@ public class VersionServiceImplTest extends BaseVersionStoreTest
        });
     }
     
+    @Test
     public void testALF5618()
     {
         final NodeRef versionableNode = createNewVersionableNode();
@@ -2333,6 +2369,7 @@ public class VersionServiceImplTest extends BaseVersionStoreTest
         });
     }
     
+    @Test
     public void testAR807() 
     {
     	QName prop = QName.createQName("http://www.alfresco.org/test/versionstorebasetest/1.0", "intProp");
@@ -2364,6 +2401,7 @@ public class VersionServiceImplTest extends BaseVersionStoreTest
      * 
      * see MNT-14681
      */
+    @Test
     public void testVersionTypeIsSet()
     {
         ChildAssociationRef childAssociation = nodeService.createNode(this.rootNodeRef, ContentModel.ASSOC_CHILDREN,
@@ -2385,6 +2423,7 @@ public class VersionServiceImplTest extends BaseVersionStoreTest
     /**
      * Check read permission for the frozen node
      */
+    @Test
     public void testHasPermission()
     {
         AuthenticationUtil.setFullyAuthenticatedUser(AuthenticationUtil.getAdminUserName());
@@ -2425,6 +2464,7 @@ public class VersionServiceImplTest extends BaseVersionStoreTest
      * Check permissions for the frozen node if the store protocol is swapped from "version" to "workspace"
      * MNT-6877
      */
+    @Test
     public void testHasPermissionSwappedProtocol()
     {
         AuthenticationUtil.setFullyAuthenticatedUser(AuthenticationUtil.getAdminUserName());
@@ -2461,6 +2501,7 @@ public class VersionServiceImplTest extends BaseVersionStoreTest
         assertEquals(AccessStatus.DENIED, permissionService.hasPermission(versionNodeRefSwapped, PermissionService.READ));
     }
 
+    @Test
     public void testALF_3962()
     {
         NodeRef versionableNode = createNode(true, QName.createQName("http://www.alfresco.org/model/action/1.0", "action"));
@@ -2533,6 +2574,7 @@ public class VersionServiceImplTest extends BaseVersionStoreTest
      * Ensure that versioning actions don't alter the auditable
      *  aspect properties on the original nodes
      */
+    @Test
     public void testVersioningAndAuditable() throws Exception {
         AuthenticationUtil.setFullyAuthenticatedUser(AuthenticationUtil.getAdminUserName());
         if(!authenticationDAO.userExists(USER_NAME_A))
@@ -2581,6 +2623,7 @@ public class VersionServiceImplTest extends BaseVersionStoreTest
         assertEquals(true, nodeService.hasAspect(nodeA, ContentModel.ASPECT_VERSIONABLE));
     }
     
+    @Test
     public void testEnsureVersioningEnabled() throws Exception 
     {
         AuthenticationUtil.setFullyAuthenticatedUser(AuthenticationUtil.getAdminUserName());
@@ -2685,6 +2728,7 @@ public class VersionServiceImplTest extends BaseVersionStoreTest
     /*
      * It should be possible to create a version for a locked node, see ALF-16540
      */
+    @Test
     public void testVersionLockedNode()
     {
         transactionService.getRetryingTransactionHelper().doInTransaction(new RetryingTransactionCallback<Object>()
@@ -2807,6 +2851,7 @@ public class VersionServiceImplTest extends BaseVersionStoreTest
         System.out.println("Finished: " + fileCount);
     }
 
+    @Test
     public void test_MNT10404()
     {
         String test_run = System.currentTimeMillis() + "";
@@ -2894,6 +2939,7 @@ public class VersionServiceImplTest extends BaseVersionStoreTest
         }
     }
     
+    @Test
     public void test_MNT14143()
     {
         // Create a non-versionable node

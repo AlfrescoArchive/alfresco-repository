@@ -62,6 +62,7 @@ import org.alfresco.test_category.OwnJVMTestsCategory;
 import org.alfresco.util.BaseAlfrescoSpringTest;
 import org.alfresco.util.TempFileProvider;
 import org.junit.Before;
+import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -93,6 +94,7 @@ public class ManifestIntegrationTest extends BaseAlfrescoSpringTest
         this.mlAwareNodeService = (NodeService) this.applicationContext.getBean("mlAwareNodeService");
     }
 
+    @Test
     public void testSnapshot() throws Exception
     {
         // Snapshot a transfer node

@@ -49,6 +49,7 @@ import org.alfresco.util.testing.category.LuceneTests;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.junit.Before;
+import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.springframework.transaction.annotation.Transactional;
 import org.w3c.dom.Document;
@@ -80,6 +81,7 @@ public class XSLTFunctionsTest extends BaseAlfrescoSpringTest
         this.companyHome = repositoryHelper.getCompanyHome();
     }
 
+    @Test
     public void testSimplestParseXMLDocument()
     {
         FileInfo file = createXmlFile(companyHome);
@@ -96,6 +98,7 @@ public class XSLTFunctionsTest extends BaseAlfrescoSpringTest
         }
     }
 
+    @Test
     public void testPathParseXMLDocument()
     {
         String path = "path/to/xml/files";
@@ -116,6 +119,7 @@ public class XSLTFunctionsTest extends BaseAlfrescoSpringTest
         }
     }
     
+    @Test
     public void testParseXMLDocuments()
     {
         String path = "path/to/xml/files";

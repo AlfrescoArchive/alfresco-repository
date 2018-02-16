@@ -51,6 +51,7 @@ import org.alfresco.util.BaseAlfrescoSpringTest;
 import org.alfresco.util.GUID;
 import org.alfresco.util.testing.category.LuceneTests;
 import org.junit.Before;
+import org.junit.Test;
 import org.junit.experimental.categories.Category;
 
 /**
@@ -82,6 +83,7 @@ public class NodeCrawlerTest extends BaseAlfrescoSpringTest
         this.companyHome = repositoryHelper.getCompanyHome();
     }
 
+    @Test
     public void testContentClassFilter() throws Exception
     {
         NodeRef node1 = makeNode(companyHome, ContentModel.TYPE_BASE);
@@ -124,6 +126,7 @@ public class NodeCrawlerTest extends BaseAlfrescoSpringTest
 
     }
 
+    @Test
     public void testChildAssociationFinder()
     {
         makeNode(companyHome, ContentModel.TYPE_BASE);
@@ -159,6 +162,7 @@ public class NodeCrawlerTest extends BaseAlfrescoSpringTest
         assertEquals(node15, new ArrayList<NodeRef>(results).get(0));
     }
 
+    @Test
     public void testCrawler()
     {
         NodeRef node8 = makeNode(companyHome, ContentModel.TYPE_FOLDER);

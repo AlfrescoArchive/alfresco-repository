@@ -57,6 +57,7 @@ import org.alfresco.service.namespace.QName;
 import org.alfresco.util.BaseSpringTest;
 import org.alfresco.util.GUID;
 import org.junit.Before;
+import org.junit.Test;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
@@ -84,6 +85,7 @@ public class ActivitiTimerExecutionTest extends BaseSpringTest
 	private TestPersonManager personManager;
 
 	@SuppressWarnings("deprecation")
+    @Test
 	public void testTimerExecutionAuthentication() throws Exception
     {
     	try
@@ -136,6 +138,7 @@ public class ActivitiTimerExecutionTest extends BaseSpringTest
     }
     
     @SuppressWarnings("deprecation")
+    @Test
 	public void testTimerExecutionTransactionRollback() throws Exception
     {
     	try

@@ -52,6 +52,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.custommonkey.xmlunit.Diff;
 import org.junit.Before;
+import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -83,6 +84,7 @@ public class XSLTRenderingEngineTest extends BaseAlfrescoSpringTest
         this.companyHome = this.applicationContext.getBean("repositoryHelper", Repository.class).getCompanyHome();
     }
 
+    @Test
     public void testSimplestStringTemplate() throws Exception
     {
         try
@@ -112,6 +114,7 @@ public class XSLTRenderingEngineTest extends BaseAlfrescoSpringTest
     }
 
 
+    @Test
     public void testSimplestTemplateWithTargetPath() throws Exception
     {
         try
@@ -143,6 +146,7 @@ public class XSLTRenderingEngineTest extends BaseAlfrescoSpringTest
     }
 
 
+    @Test
     public void testParseXMLDocument() throws Exception
     {
         try
@@ -172,6 +176,7 @@ public class XSLTRenderingEngineTest extends BaseAlfrescoSpringTest
         }
     }
 
+    @Test
     public void testParseXMLDocuments() throws Exception
     {
         try
@@ -214,6 +219,7 @@ public class XSLTRenderingEngineTest extends BaseAlfrescoSpringTest
         }
     }
 
+    @Test
     public void testImportXMLDocument() throws Exception
     {
         try

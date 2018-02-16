@@ -54,6 +54,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -193,6 +194,7 @@ public class HTMLRenderingEngineTest extends BaseAlfrescoSpringTest
        return node;
     }
 
+    @Test
     public void testBasics() throws Exception
     {
        def.setParameterValue(
@@ -255,6 +257,7 @@ public class HTMLRenderingEngineTest extends BaseAlfrescoSpringTest
     /**
      * Test for a .doc and a .docx, neither of which have images
      */
+    @Test
     public void testDocWithoutImages() throws Exception
     {
        def.setParameterValue(
@@ -325,6 +328,7 @@ public class HTMLRenderingEngineTest extends BaseAlfrescoSpringTest
      * Test for a .doc and a .docx, both of which have 
      *  images in them
      */
+    @Test
     public void testDocWithImages() throws Exception
     {
        def.setParameterValue(
@@ -432,6 +436,7 @@ public class HTMLRenderingEngineTest extends BaseAlfrescoSpringTest
      *  
      * TODO Re-enable when we've figured out why the rendition service sulkts
      */
+    @Test
     public void testImagesSameFolder() throws Exception
     {
        def.setParameterValue(
