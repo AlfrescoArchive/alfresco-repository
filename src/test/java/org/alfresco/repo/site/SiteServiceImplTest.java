@@ -251,7 +251,7 @@ public class SiteServiceImplTest extends BaseAlfrescoSpringTest
             }
         };
         transactionService = (TransactionService)this.applicationContext.getBean("transactionComponent");
-        transactionService.getRetryingTransactionHelper().doInTransaction(work);
+        transactionService.getRetryingTransactionHelper().doInTransaction(work, false, true);
     }
     
     @After
