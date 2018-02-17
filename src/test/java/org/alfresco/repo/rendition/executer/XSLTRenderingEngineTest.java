@@ -74,6 +74,7 @@ public class XSLTRenderingEngineTest extends BaseAlfrescoSpringTest
     @Before
     public void before() throws Exception
     {
+        super.before();
         this.nodeService = (NodeService) this.applicationContext.getBean("NodeService");
         this.contentService = (ContentService) this.applicationContext.getBean("ContentService");
         this.fileFolderService = (FileFolderService) this.applicationContext.getBean("FileFolderService");
