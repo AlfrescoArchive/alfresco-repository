@@ -143,14 +143,14 @@ public class TransferServiceToBeRefactoredTest extends BaseAlfrescoSpringTest
     @Before
     public void before() throws Exception
     {
-        // Catch transactions left dangling by inadequate transaction handling during test failures
-//        if (AlfrescoTransactionSupport.getTransactionReadState() != TxnReadState.TXN_NONE)
-//        {
-//            fail("Dangling transaction at start of test.");
-//        }
-        
         super.before();
-        
+
+        TestTransaction.end();
+        // Catch transactions left dangling by inadequate transaction handling during test failures
+        if (AlfrescoTransactionSupport.getTransactionReadState() != TxnReadState.TXN_NONE)
+        {
+            fail("Dangling transaction at start of test.");
+        }
         // Get the required services
         this.transferService = (TransferService)this.applicationContext.getBean("TransferService");
         this.contentService = (ContentService)this.applicationContext.getBean("ContentService");
@@ -187,8 +187,6 @@ public class TransferServiceToBeRefactoredTest extends BaseAlfrescoSpringTest
     @Test
     public void testTransferReport() throws Exception
     {
-        TestTransaction.flagForCommit();
-
         final NodeRef guestHome = repositoryHelper.getGuestHome();
 
         /**
@@ -282,7 +280,6 @@ public class TransferServiceToBeRefactoredTest extends BaseAlfrescoSpringTest
          * Step 1.
          * Call the transfer method. to get a failed transfer - orphan nodes exist
          */
-        TestTransaction.flagForRollback();
         TestTransaction.start();
         try
         {
@@ -341,9 +338,7 @@ public class TransferServiceToBeRefactoredTest extends BaseAlfrescoSpringTest
         {
             TestTransaction.end();
         }
-
-        TestTransaction.flagForCommit();
-
+        
         /**
          * Now validate the client side error transfer report against the xsd file
          */
@@ -622,8 +617,6 @@ public class TransferServiceToBeRefactoredTest extends BaseAlfrescoSpringTest
     @Test
     public void testTransferSyncNodes() throws Exception
     {
-        TestTransaction.flagForCommit();
-
         final String CONTENT_TITLE = "ContentTitle";
         final Locale CONTENT_LOCALE = Locale.GERMAN;
         final String CONTENT_STRING = "Hello";
@@ -1334,8 +1327,6 @@ public class TransferServiceToBeRefactoredTest extends BaseAlfrescoSpringTest
     @Test
     public void testTransferInvadedByLocalAlienNodes() throws Exception
     {
-        TestTransaction.flagForCommit();
-
         final String CONTENT_TITLE = "ContentTitle";
         final Locale CONTENT_LOCALE = Locale.JAPAN;
         final String CONTENT_STRING = "Hello";
@@ -2019,8 +2010,6 @@ public class TransferServiceToBeRefactoredTest extends BaseAlfrescoSpringTest
     @Test
     public void testLocalAlienRestore() throws Exception
     {
-        TestTransaction.flagForCommit();
-
         final String CONTENT_TITLE = "ContentTitle";
 
         /**
@@ -2350,8 +2339,6 @@ public class TransferServiceToBeRefactoredTest extends BaseAlfrescoSpringTest
     @Test
     public void testTransferWithPermissions() throws Exception
     {
-        TestTransaction.flagForCommit();
-
         final String CONTENT_TITLE = "ContentTitle";
         final Locale CONTENT_LOCALE = Locale.GERMAN;
         final String CONTENT_STRING = "Hello";
@@ -2687,8 +2674,6 @@ public class TransferServiceToBeRefactoredTest extends BaseAlfrescoSpringTest
     @Test
     public void testReadOnlyFlag() throws Exception
     {
-        TestTransaction.flagForCommit();
-
         final String CONTENT_TITLE = "ContentTitle";
         final Locale CONTENT_LOCALE = Locale.GERMAN;
         final String CONTENT_STRING = "The quick brown fox";
@@ -3092,7 +3077,6 @@ public class TransferServiceToBeRefactoredTest extends BaseAlfrescoSpringTest
         * create node B6.  Fake its transfered aspect to be from Repo B, Non Alien.
         * transfer (sync)
         */
-        TestTransaction.flagForCommit();
 
         final String CONTENT_TITLE = "ContentTitle";
         final Locale CONTENT_LOCALE = Locale.GERMAN;
@@ -3406,8 +3390,6 @@ public class TransferServiceToBeRefactoredTest extends BaseAlfrescoSpringTest
     @Test
     public void testMultiRepoTransfer() throws Exception
     {
-        TestTransaction.flagForCommit();
-
         final String CONTENT_TITLE = "ContentTitle";
 
         final String targetName = "testMultiRepoTransfer";
@@ -3834,8 +3816,6 @@ public class TransferServiceToBeRefactoredTest extends BaseAlfrescoSpringTest
     @Test
     public void testMultiRepoTransferMove() throws Exception
     {
-        TestTransaction.flagForCommit();
-
         final String localRepositoryId = descriptorService.getCurrentRepositoryDescriptor().getId();
 
         final String CONTENT_TITLE = "ContentTitle";
@@ -4242,8 +4222,6 @@ public class TransferServiceToBeRefactoredTest extends BaseAlfrescoSpringTest
     @Test
     public void testCopyTransferredNode() throws Exception
     {
-        TestTransaction.flagForCommit();
-
         final String CONTENT_TITLE = "ContentTitle";
 
         /**
@@ -4474,8 +4452,6 @@ public class TransferServiceToBeRefactoredTest extends BaseAlfrescoSpringTest
     @Test
     public void testCopyAlien() throws Exception
     {
-        TestTransaction.flagForCommit();
-
         final String CONTENT_TITLE = "ContentTitle";
 
         final String targetName = "testCopyAlien";
