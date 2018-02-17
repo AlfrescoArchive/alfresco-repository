@@ -1070,7 +1070,8 @@
         </property>
     </bean>
     
-    <bean id="RepoAdminService_transaction" class="org.springframework.transaction.interceptor.TransactionInterceptor">
+    <bean id="RepoAdminService_transaction" class="org.alfresco.repo.transaction.RetryingTransactionInterceptor">
+        <property name="transactionService" ref="TransactionService"/>
         <property name="transactionManager">
             <ref bean="transactionManager"/>
         </property>
