@@ -94,6 +94,7 @@ import org.apache.commons.logging.LogFactory;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
+import org.springframework.test.context.transaction.TestTransaction;
 import org.springframework.transaction.annotation.Transactional;
 
 import static org.mockito.Mockito.mock;
@@ -169,7 +170,10 @@ public class TransferServiceImplTest extends BaseAlfrescoSpringTest
         REPO_ID_B = descriptorService.getCurrentRepositoryDescriptor().getId();
         
         authenticationComponent.setSystemUserAsCurrentUser();
-        assertNotNull("receiver is null", this.receiver);     
+        assertNotNull("receiver is null", this.receiver);
+
+        TestTransaction.flagForCommit();
+        TestTransaction.end();
     }
     
     @Test
@@ -179,7 +183,7 @@ public class TransferServiceImplTest extends BaseAlfrescoSpringTest
                 "Must run without transactions",
                 TxnReadState.TXN_NONE, AlfrescoTransactionSupport.getTransactionReadState());
     }
-    
+
     /**
      * Test create target.
      * 
@@ -1864,7 +1868,7 @@ public class TransferServiceImplTest extends BaseAlfrescoSpringTest
         final String targetName = "testAsyncCallback";
         final NodeRef guestHome = repositoryHelper.getGuestHome();
 
-        final RetryingTransactionHelper tran = transactionService.getRetryingTransactionHelper();
+//        final RetryingTransactionHelper tran = transactionService.getRetryingTransactionHelper();
 
         class TestContext
         {
@@ -1933,7 +1937,7 @@ public class TransferServiceImplTest extends BaseAlfrescoSpringTest
             } 
         };
 
-        final TestContext testContext = tran.doInTransaction(setupCB); 
+        final TestContext testContext = transactionService.getRetryingTransactionHelper().doInTransaction(setupCB, false, true);
 
         /**
          * The transfer report is a plain report of the transfer - no async shenanigans to worry about
@@ -2054,7 +2058,7 @@ public class TransferServiceImplTest extends BaseAlfrescoSpringTest
                 return null;
             }
         };
-        tran.doInTransaction(transferAsyncCB);
+        transactionService.getRetryingTransactionHelper().doInTransaction(transferAsyncCB);
 
 
         /**
@@ -2526,7 +2530,6 @@ public class TransferServiceImplTest extends BaseAlfrescoSpringTest
     @Test
     public void testRepeatUpdateOfContent() throws Exception
     {
-        final RetryingTransactionHelper tran = transactionService.getRetryingTransactionHelper();
         final String CONTENT_TITLE = "ContentTitle";
         final Locale CONTENT_LOCALE = Locale.GERMAN; 
         final String CONTENT_ENCODING = "UTF-8";
@@ -2593,7 +2596,7 @@ public class TransferServiceImplTest extends BaseAlfrescoSpringTest
             } 
         };
         
-        final TestContext testContext = tran.doInTransaction(setupCB); 
+        final TestContext testContext = transactionService.getRetryingTransactionHelper().doInTransaction(setupCB, false, true);
         
         RetryingTransactionCallback<Void> updateContentCB = new RetryingTransactionCallback<Void>() {
 
@@ -2649,9 +2652,9 @@ public class TransferServiceImplTest extends BaseAlfrescoSpringTest
         {
             logger.debug("testRepeatUpdateContent - iteration:" + i);
             testContext.contentString = String.valueOf(i);
-            tran.doInTransaction(updateContentCB);
-            tran.doInTransaction(transferCB); 
-            tran.doInTransaction(checkTransferCB); 
+            transactionService.getRetryingTransactionHelper().doInTransaction(updateContentCB);
+            transactionService.getRetryingTransactionHelper().doInTransaction(transferCB);
+            transactionService.getRetryingTransactionHelper().doInTransaction(checkTransferCB);
         }
     } // test repeat update content
 
@@ -3440,8 +3443,6 @@ public class TransferServiceImplTest extends BaseAlfrescoSpringTest
         final String TAG_1_NAME = "tag1";
         final String TAG_2_NAME = "tag2";
 
-        final RetryingTransactionHelper tran = transactionService.getRetryingTransactionHelper();
-
         class TestContext
         {
             TransferTarget transferMe;
@@ -3491,7 +3492,7 @@ public class TransferServiceImplTest extends BaseAlfrescoSpringTest
                 return ctx;
             } 
         };
-        final TestContext testContext = tran.doInTransaction(setupCB); 
+        final TestContext testContext = transactionService.getRetryingTransactionHelper().doInTransaction(setupCB);
 
         /**
          * Step 1: Transfer our which has a tag
@@ -3510,7 +3511,7 @@ public class TransferServiceImplTest extends BaseAlfrescoSpringTest
                 return null;
             }
         };
-        tran.doInTransaction(transferCB);
+        transactionService.getRetryingTransactionHelper().doInTransaction(transferCB);
         
         RetryingTransactionCallback<Void> validateStep1CB = new RetryingTransactionCallback<Void>() {
 
@@ -3526,8 +3527,8 @@ public class TransferServiceImplTest extends BaseAlfrescoSpringTest
                 
                 List<String> tags = taggingService.getTags(testContext.contentNodeRef);
                 assertNotNull(tags);
-                assertTrue(tags.size() == 1);
-                assertTrue(tags.contains(TAG_1_NAME));
+                assertEquals(1, tags.size());
+                    assertTrue(tags.contains(TAG_1_NAME));
                 
                 // Now add another tag for step number 2
                 taggingService.addTag(testContext.contentNodeRef, TAG_2_NAME);
@@ -3535,14 +3536,14 @@ public class TransferServiceImplTest extends BaseAlfrescoSpringTest
            
             }
         };
-        tran.doInTransaction(validateStep1CB);
+        transactionService.getRetryingTransactionHelper().doInTransaction(validateStep1CB);
         
         /**
          * Step 2:
          * Transfer our node again - With another tag 
          */
         logger.debug("Second transfer - add a second tag");
-        tran.doInTransaction(transferCB);
+        transactionService.getRetryingTransactionHelper().doInTransaction(transferCB);
      
         RetryingTransactionCallback<Void> validateStep2CB = new RetryingTransactionCallback<Void>() {
 
@@ -3565,7 +3566,7 @@ public class TransferServiceImplTest extends BaseAlfrescoSpringTest
             }
         };
 
-        tran.doInTransaction(validateStep2CB);
+        transactionService.getRetryingTransactionHelper().doInTransaction(validateStep2CB);
         
         /**
          * Step 3 - delete a tag
@@ -3581,11 +3582,11 @@ public class TransferServiceImplTest extends BaseAlfrescoSpringTest
             }
         };
 
-        tran.doInTransaction(deleteTagCB);
+        transactionService.getRetryingTransactionHelper().doInTransaction(deleteTagCB);
 
        
         logger.debug("Transfer again - this is to delete a tag");
-        tran.doInTransaction(transferCB);
+        transactionService.getRetryingTransactionHelper().doInTransaction(transferCB);
         
         // should probably be in contentModel
         final QName ASPECT_GENERAL_CLASSIFIABLE = ContentModel.ASPECT_GEN_CLASSIFIABLE;
@@ -3607,7 +3608,7 @@ public class TransferServiceImplTest extends BaseAlfrescoSpringTest
             }
         };
 
-        tran.doInTransaction(validateStep3CB);
+        transactionService.getRetryingTransactionHelper().doInTransaction(validateStep3CB);
         
         /**
          * Step 4 - update to add a category that already exists
@@ -3665,11 +3666,11 @@ public class TransferServiceImplTest extends BaseAlfrescoSpringTest
              }
          };
 
-        tran.doInTransaction(step4WriteContentCB);
+        transactionService.getRetryingTransactionHelper().doInTransaction(step4WriteContentCB);
 
-        tran.doInTransaction(transferCB);
+        transactionService.getRetryingTransactionHelper().doInTransaction(transferCB);
 
-        tran.doInTransaction(validateStep4CB);
+        transactionService.getRetryingTransactionHelper().doInTransaction(validateStep4CB);
 
      } // testCategoriesAndTags
     
