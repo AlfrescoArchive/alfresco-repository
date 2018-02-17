@@ -159,7 +159,7 @@ public class FeedNotifierJobTest
         userNotifier.setEmailHelper(emailHelper);
         feedNotifier.setUserNotifier(userNotifier);
 
-        JobDataMap jobDataMap = jobDetail.getJobDataMap();
+        JobDataMap jobDataMap = new JobDataMap();
         jobDataMap.put("tenantAdminService", tenantAdminService);
         jobDataMap.put("feedNotifier", feedNotifier);
         jobDetail = JobBuilder.newJob()
