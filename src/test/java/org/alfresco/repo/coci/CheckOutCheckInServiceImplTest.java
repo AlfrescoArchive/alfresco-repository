@@ -721,6 +721,7 @@ public class CheckOutCheckInServiceImplTest extends BaseSpringTest
         assertEquals("Expect a 1:1 relationship", 1, sourceAssocs.size());
         
         // Need to commit the transaction in order to get the indexer to run
+        TestTransaction.flagForCommit();
         TestTransaction.end();
 
         final NodeRef finalNodeRef = origNodeRef;        
@@ -770,6 +771,7 @@ public class CheckOutCheckInServiceImplTest extends BaseSpringTest
         final NodeRef workingCopy = cociService.checkout(origNodeRef);
         
         // Need to commit the transaction in order to get the indexer to run
+        TestTransaction.flagForCommit();
         TestTransaction.end();
         
         final NodeRef finalNodeRef = origNodeRef;        
@@ -833,7 +835,8 @@ public class CheckOutCheckInServiceImplTest extends BaseSpringTest
         
         // Add the version aspect to the created node
         nodeService.addAspect(testNodeRef, ContentModel.ASPECT_VERSIONABLE, null);
-        
+
+        TestTransaction.flagForCommit();
         TestTransaction.end();
         
         // Checkout
@@ -1403,7 +1406,8 @@ public class CheckOutCheckInServiceImplTest extends BaseSpringTest
                 nodeService.hasAspect(workingCopy, ContentModel.ASPECT_WORKING_COPY));
         assertTrue("cm:copiedFrom aspect not found on working copy.",
                 nodeService.hasAspect(workingCopy, ContentModel.ASPECT_COPIEDFROM));
-        
+
+        TestTransaction.flagForCommit();
         TestTransaction.end();
         
         // try to delete cm:copiedfrom aspect from working copy - must be allowed
@@ -1439,7 +1443,8 @@ public class CheckOutCheckInServiceImplTest extends BaseSpringTest
         // Check that the cm:original association is present
         assertEquals("Did not find cm:workingcopylink",
                 1, nodeService.getSourceAssocs(workingCopy, ContentModel.ASSOC_WORKING_COPY_LINK).size());
-        
+
+        TestTransaction.flagForCommit();
         TestTransaction.end();
         
         // try to delete cm:workingcopylink association - must be denied
