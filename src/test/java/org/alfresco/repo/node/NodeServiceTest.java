@@ -95,7 +95,6 @@ import org.alfresco.util.GUID;
 import org.alfresco.util.Pair;
 import org.alfresco.util.PropertyMap;
 import org.alfresco.util.test.junitrules.ApplicationContextInit;
-import org.alfresco.util.testing.category.DBTests;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hibernate.dialect.Dialect;
@@ -114,8 +113,8 @@ import org.springframework.extensions.surf.util.I18NUtil;
  * @author Derek Hulley
  * @since 4.0
  */
-
-@Category({OwnJVMTestsCategory.class, DBTests.class})
+	
+@Category(OwnJVMTestsCategory.class)
 public class NodeServiceTest
 {
     public static final String NAMESPACE = "http://www.alfresco.org/test/BaseNodeServiceTest";
@@ -393,6 +392,7 @@ public class NodeServiceTest
      * <p/>
      * See: <a href="https://issues.alfresco.com/jira/browse/ALF-5714">ALF-5714</a><br/>
      * See: <a href="https://issues.alfresco.com/jira/browse/ALF-16888">ALF-16888</a>
+     * See: <a href="https://issues.alfresco.com/jira/browse/REPO-2783">REPO-2783</a>
      * <p/>
      * Note: if this test hangs for MySQL then check if 'innodb_locks_unsafe_for_binlog = true' (and restart MySQL + test)
      */
