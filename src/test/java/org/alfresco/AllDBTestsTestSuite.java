@@ -77,7 +77,6 @@ import org.junit.runners.Suite;
 
 	// From MiscContextTestSuite
     org.alfresco.repo.domain.query.CannedQueryDAOTest.class,
-    org.alfresco.repo.node.NodeServiceTest.class
 })
 public class AllDBTestsTestSuite
 {
