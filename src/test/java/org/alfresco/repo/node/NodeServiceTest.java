@@ -113,7 +113,7 @@ import org.springframework.extensions.surf.util.I18NUtil;
  * @author Derek Hulley
  * @since 4.0
  */
-	
+
 @Category(OwnJVMTestsCategory.class)
 public class NodeServiceTest
 {
@@ -396,7 +396,7 @@ public class NodeServiceTest
      * <p/>
      * Note: if this test hangs for MySQL then check if 'innodb_locks_unsafe_for_binlog = true' (and restart MySQL + test)
      */
-    @Test public void testConcurrentArchive() throws Exception
+    public void testConcurrentArchive() throws Exception
     {
         Dialect dialect = (Dialect) APP_CONTEXT_INIT.getApplicationContext().getBean("dialect");
         if (dialect.getClass().getName().contains("DB2"))
