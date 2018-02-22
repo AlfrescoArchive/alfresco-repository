@@ -39,6 +39,7 @@ import org.activiti.engine.runtime.Job;
 import org.alfresco.model.ContentModel;
 import org.alfresco.repo.content.MimetypeMap;
 import org.alfresco.repo.security.authentication.AuthenticationComponent;
+import org.alfresco.repo.security.authentication.AuthenticationUtil;
 import org.alfresco.repo.security.person.TestPersonManager;
 import org.alfresco.repo.transaction.RetryingTransactionHelper;
 import org.alfresco.repo.workflow.BPMEngineRegistry;
@@ -112,7 +113,7 @@ public class ActivitiTimerExecutionTest extends BaseSpringTest
 	    				
 	    				return path.getInstance();
 	    			}
-    		    });
+    		    }, false, true);
     		
     		// No timers should be available after a while they should have been executed, otherwise test fails
     		waitForTimersToBeExecuted(taskAssigneeWorkflowInstance.getId());
@@ -149,7 +150,8 @@ public class ActivitiTimerExecutionTest extends BaseSpringTest
 	    			public WorkflowInstance execute() throws Throwable
 	    			{
 	    				// Create test person
-	    				personManager.createPerson(USER1);
+	    				NodeRef person = personManager.createPerson(USER1);
+	    				assertNotNull(person);
 	    				
 	    				WorkflowDefinition definition = deployDefinition("activiti/testTimerTransaction.bpmn20.xml");
 	    				
@@ -165,7 +167,7 @@ public class ActivitiTimerExecutionTest extends BaseSpringTest
 	    				
 	    				return path.getInstance();
 	    			}
-    		    });
+    		    }, false, true);
     		
     		String processInstanceId = BPMEngineRegistry.getLocalId(workflowInstance.getId());
     		
@@ -193,11 +195,19 @@ public class ActivitiTimerExecutionTest extends BaseSpringTest
     		assertTrue(fullExceptionStacktrace.contains("Activiti engine rocks!"));
     		
     		// Check if alfresco-changes that were performed are rolled back
-    		NodeRef personNode = personManager.get(USER1);
-    		NodeRef userHomeNode = (NodeRef)nodeService.getProperty(personNode, ContentModel.PROP_HOMEFOLDER);
-    		
-    		String homeFolderName = (String) nodeService.getProperty(userHomeNode, ContentModel.PROP_NAME);
-    		assertNotSame("User home changed", homeFolderName);
+            transactionHelper.doInTransaction((RetryingTransactionHelper.RetryingTransactionCallback<Void>) () ->
+            {
+                AuthenticationUtil.runAsSystem(() ->
+                {
+                    NodeRef personNode = personManager.get(USER1);
+                    NodeRef userHomeNode = (NodeRef)nodeService.getProperty(personNode, ContentModel.PROP_HOMEFOLDER);
+
+                    String homeFolderName = (String) nodeService.getProperty(userHomeNode, ContentModel.PROP_NAME);
+                    assertNotSame("User home changed", homeFolderName);
+                    return null;
+                });
+                return null;
+            }, false, true);
     	}
     	finally
     	{
