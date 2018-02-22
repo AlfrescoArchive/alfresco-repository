@@ -40,7 +40,7 @@ public class DialectFactory {
     /**
      * Builds an appropriate Dialect instance.
      * <p/>
-     * If a dialect is explicitly named in the incoming properties, it is used. Otherwise, the database name and version
+     * The JDBC driver, the database name and version
      * (obtained from connection metadata) are used to make the determination.
      * <p/>
      * An exception is thrown if a dialect was not explicitly set and the database name is not known.
@@ -48,16 +48,18 @@ public class DialectFactory {
 
      * @param databaseName The name of the database product (obtained from metadata).
      * @param databaseMajorVersion The major version of the database product (obtained from metadata).
+     * @param driverName THe name of the JDBC driver
      *
      * @return The appropriate dialect.
      */
-    public static Dialect buildDialect(String databaseName, int databaseMajorVersion)
+    public static Dialect buildDialect(String databaseName, int databaseMajorVersion, String driverName)
     {
         if ( databaseName == null ) {
             throw new IllegalArgumentException("Database name must be explicitly set");
         }
 
-        DatabaseDialectMapper mapper = MAPPERS.get( databaseName );
+        DatabaseDialectMapper mapper = MAPPERS.get(driverName) != null ?
+                MAPPERS.get(driverName) : MAPPERS.get(databaseName);
         if ( mapper == null )
         {
             throw new IllegalArgumentException( "Dialect must be explicitly set for database: " + databaseName );
@@ -153,5 +155,8 @@ public class DialectFactory {
         MAPPERS.put( "Microsoft SQL Server Database", new VersionInsensitiveMapper( "org.alfresco.repo.domain.dialect.SQLServerDialect" ) );
         MAPPERS.put( "Microsoft SQL Server", new VersionInsensitiveMapper( "org.alfresco.repo.domain.dialect.SQLServerDialect" ) );
         MAPPERS.put( "Oracle", new VersionInsensitiveMapper( "org.alfresco.repo.domain.dialect.Oracle9Dialect" ) );
+
+        // MariaDB is distinguished by driver name
+        MAPPERS.put( "MariaDB connector/J", new VersionInsensitiveMapper("org.alfresco.repo.domain.dialect.MariaDBDialect"));
     }
 }

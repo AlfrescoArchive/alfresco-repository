@@ -59,7 +59,7 @@ public class DialectFactoryBean implements FactoryBean<Dialect>
             con = DataSourceUtils.getConnection(dataSource);
             con.setAutoCommit(true);
             DatabaseMetaData meta = con.getMetaData();
-            Dialect dialect = DialectFactory.buildDialect(meta.getDatabaseProductName(), meta.getDatabaseMajorVersion());
+            Dialect dialect = DialectFactory.buildDialect(meta.getDatabaseProductName(), meta.getDatabaseMajorVersion(), meta.getDriverName());
             return dialect;
         }
         finally

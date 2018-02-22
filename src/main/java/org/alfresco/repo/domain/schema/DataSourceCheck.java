@@ -97,7 +97,8 @@ public class DataSourceCheck
 
             Dialect dialect = DialectFactory.buildDialect(
                     meta.getDatabaseProductName(),
-                    meta.getDatabaseMajorVersion());
+                    meta.getDatabaseMajorVersion(),
+                    meta.getDriverName());
 
             // Check MS SQL Server specific settings
             if (dialect instanceof SQLServerDialect)
