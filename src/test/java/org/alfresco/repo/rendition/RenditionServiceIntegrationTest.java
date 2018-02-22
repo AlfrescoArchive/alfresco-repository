@@ -90,6 +90,7 @@ import org.alfresco.service.namespace.QName;
 import org.alfresco.service.namespace.RegexQNamePattern;
 import org.alfresco.test_category.OwnJVMTestsCategory;
 import org.alfresco.util.BaseAlfrescoSpringTest;
+import org.alfresco.util.GUID;
 import org.alfresco.util.Pair;
 import org.junit.After;
 import org.junit.Before;
@@ -97,6 +98,7 @@ import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.test.context.transaction.TestTransaction;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
@@ -152,10 +154,10 @@ public class RenditionServiceIntegrationTest extends BaseAlfrescoSpringTest
         NodeRef companyHome = this.repositoryHelper.getCompanyHome();
 
         // Create the test folder used for these tests
-        this.testTargetFolder = createNode(companyHome, "testFolder", ContentModel.TYPE_FOLDER);
+        this.testTargetFolder = createNode(companyHome, "testFolder-" + GUID.generate(), ContentModel.TYPE_FOLDER);
 
         // Create the node used as a content supplier for tests
-        this.nodeWithDocContent  =  createContentNode(companyHome, "testDocContent");
+        this.nodeWithDocContent  =  createContentNode(companyHome, "testDocContent-" + GUID.generate());
         
         // Put some known PDF content in it.
         File pdfQuickFile = AbstractContentTransformerTest.loadQuickTestFile("pdf");
@@ -176,7 +178,7 @@ public class RenditionServiceIntegrationTest extends BaseAlfrescoSpringTest
 
 
         // Create a test image
-        this.nodeWithImageContent = createContentNode(companyHome, "testImageNode"); 
+        this.nodeWithImageContent = createContentNode(companyHome, "testImageNode-" + GUID.generate());
         // Stream some well-known image content into the node.       
         URL url = RenditionServiceIntegrationTest.class.getClassLoader().getResource("images/gray21.512.png");
         assertNotNull("url of test image was null", url);
@@ -185,6 +187,9 @@ public class RenditionServiceIntegrationTest extends BaseAlfrescoSpringTest
 
         // Create a test template node.
         this.nodeWithFreeMarkerContent = createFreeMarkerNode(companyHome);
+        TestTransaction.flagForCommit();
+        TestTransaction.end();
+        TestTransaction.start();
     }
 
     private NodeRef createContentNode(NodeRef companyHome, String name)
@@ -205,7 +210,7 @@ public class RenditionServiceIntegrationTest extends BaseAlfrescoSpringTest
 
     private NodeRef createFreeMarkerNode(NodeRef companyHome)
     {
-        NodeRef fmNode = createContentNode(companyHome, "testFreeMarkerNode");
+        NodeRef fmNode = createContentNode(companyHome, "testFreeMarkerNode-" + GUID.generate());
         nodeService.setProperty(fmNode, ContentModel.PROP_CONTENT, new ContentData(null,
                     MimetypeMap.MIMETYPE_TEXT_PLAIN, 0L, null));
 
@@ -225,10 +230,6 @@ public class RenditionServiceIntegrationTest extends BaseAlfrescoSpringTest
     public void after() throws Exception
     {
         super.after();
-        nodeService.deleteNode(nodeWithImageContent);
-        nodeService.deleteNode(nodeWithDocContent);
-        nodeService.deleteNode(nodeWithFreeMarkerContent);
-        nodeService.deleteNode(testTargetFolder);
     }
     
     @Test
@@ -696,7 +697,7 @@ public class RenditionServiceIntegrationTest extends BaseAlfrescoSpringTest
                                         nodeWithDocContent, RenditionModel.ASPECT_RENDITIONED));
                             return renditionAssoc.getChildRef();
                         }
-                    });
+                    }, false, true);
         }
         catch (RenditionCancelledException e)
         {
@@ -744,16 +745,23 @@ public class RenditionServiceIntegrationTest extends BaseAlfrescoSpringTest
                     AuthenticationUtil.setRunAsUserSystem();
                     CheckOutCheckInService checkOutCheckInService = 
                         (CheckOutCheckInService) applicationContext.getBean("checkOutCheckInService");
-                    checkOutCheckInService.checkout(nodeWithDocContent);
+                    NodeRef wc = checkOutCheckInService.checkout(nodeRef);
+                    assertNotNull(wc);
                 }
             };
             renderPdfDocumentLongRunningTest(new CheckoutRunnable(nodeWithDocContent), true);
         }
         finally
         {
-            AuthenticationUtil.setRunAsUserSystem();
-            CheckOutCheckInService checkOutCheckInService = (CheckOutCheckInService) applicationContext.getBean("CheckOutCheckInService");
-            checkOutCheckInService.cancelCheckout(checkOutCheckInService.getWorkingCopy(nodeWithDocContent));
+            transactionHelper.doInTransaction(() ->
+            {
+                AuthenticationUtil.setRunAsUserSystem();
+                CheckOutCheckInService checkOutCheckInService = (CheckOutCheckInService) applicationContext.getBean("CheckOutCheckInService");
+                NodeRef wc = checkOutCheckInService.getWorkingCopy(nodeWithDocContent);
+                assertNotNull(wc);
+                checkOutCheckInService.cancelCheckout(wc);
+                return null;
+            }, false, true);
         }
     }
     
@@ -1312,7 +1320,7 @@ public class RenditionServiceIntegrationTest extends BaseAlfrescoSpringTest
                 renditionService.render(nodeToRender, action, callback);
                 return null;
             }
-        });
+        }, false, true);
         
         // Now wait for the actionService thread to complete the rendering.
         // We'll arbitrarily timeout after 30 seconds, which should be plenty for the
@@ -1977,7 +1985,7 @@ public class RenditionServiceIntegrationTest extends BaseAlfrescoSpringTest
                 renditionService.render(nodeWithDocContent, doclib, dummyCallback);
                 return null;
             }
-        });
+        }, false, true);
         
         // Now wait for the actionService thread to complete the rendering.
         Thread.sleep(5000);
@@ -1992,7 +2000,7 @@ public class RenditionServiceIntegrationTest extends BaseAlfrescoSpringTest
                         assertEquals("Wrong rendition count", 1, renditions.size());
                         return null;
                     }
-                });
+                }, false, true);
         
         // Now update the content to a corrupt PDF file that cannot be rendered.
         transactionHelper.doInTransaction(new RetryingTransactionHelper.RetryingTransactionCallback<Void>()
@@ -2009,7 +2017,7 @@ public class RenditionServiceIntegrationTest extends BaseAlfrescoSpringTest
                         
                         return null;
                     }
-                });
+                }, false, true);
         
         // Now wait for the actionService thread to complete the rendition removal.
         Thread.sleep(5000);
@@ -2023,7 +2031,7 @@ public class RenditionServiceIntegrationTest extends BaseAlfrescoSpringTest
                         assertEquals("Wrong rendition count", 0, renditions.size());
                         return null;
                     }
-                });
+                }, false, true);
     }
 
     
