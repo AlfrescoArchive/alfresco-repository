@@ -48,6 +48,7 @@ import org.alfresco.util.BaseSpringTest;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
+import org.springframework.test.context.ContextConfiguration;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
@@ -57,6 +58,7 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Category(BaseSpringTestsCategory.class)
 @Transactional
+@ContextConfiguration({ "classpath:org/alfresco/repo/jscript/test-context.xml" })
 public class ScriptBehaviourTest extends BaseSpringTest 
 {
 	private ServiceRegistry serviceRegistry;
@@ -66,11 +68,6 @@ public class ScriptBehaviourTest extends BaseSpringTest
 	private StoreRef storeRef;
 	private NodeRef folderNodeRef;
 	
-	protected String[] getConfigLocations()
-    {
-        return new String[] { "classpath:org/alfresco/repo/jscript/test-context.xml" };
-    }
-
     @Before
     public void before() throws Exception
     {
