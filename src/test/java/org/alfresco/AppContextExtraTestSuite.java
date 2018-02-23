@@ -114,6 +114,9 @@ import org.junit.runners.Suite;
     org.alfresco.repo.site.SiteServiceImplMoreTest.class,
     org.alfresco.util.test.junitrules.TemporarySitesTest.class,
 
+    // [classpath:alfresco/application-context.xml, classpath:subsystem-test-context.xml]
+    org.alfresco.repo.management.subsystems.test.SubsystemsTest.class,
+
     // ======================================================================
     // any other order may lead to failing tests
     // ======================================================================
@@ -159,11 +162,7 @@ import org.junit.runners.Suite;
     // mtAllContext [classpath:alfresco/application-context.xml, classpath:tenant/mt-*context.xml]
     // ----------------------------------------------------------------------
     org.alfresco.repo.tenant.MultiTDemoTest.class,
-    org.alfresco.repo.workflow.activiti.ActivitiMultitenantWorkflowTest.class,
-
-
-    // [classpath:alfresco/application-context.xml, classpath:subsystem-test-context.xml]
-    org.alfresco.repo.management.subsystems.test.SubsystemsTest.class
+    org.alfresco.repo.workflow.activiti.ActivitiMultitenantWorkflowTest.class
 })
 public class AppContextExtraTestSuite
 {
