@@ -42,6 +42,7 @@ import org.alfresco.repo.domain.node.NodeDAO;
 import org.alfresco.repo.domain.node.NodeDAO.ChildAssocRefQueryCallback;
 import org.alfresco.repo.domain.node.Transaction;
 import org.alfresco.repo.domain.schema.SchemaBootstrap;
+import org.alfresco.repo.management.subsystems.ChildApplicationContextFactory;
 import org.alfresco.repo.node.BaseNodeServiceTest;
 import org.alfresco.repo.node.cleanup.NodeCleanupRegistry;
 import org.alfresco.repo.node.db.NodeStringLengthWorker.NodeStringLengthWorkResult;
@@ -68,8 +69,10 @@ import org.hibernate.dialect.MySQLInnoDBDialect;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.quartz.Scheduler;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.extensions.surf.util.I18NUtil;
+import org.springframework.scheduling.quartz.JobDetailBean;
 
 /**
  * @see org.alfresco.repo.node.db.DbNodeServiceImpl
@@ -122,17 +125,31 @@ public class DbNodeServiceImplTest extends BaseNodeServiceTest
 
         try
         {
+        JobDetailBean contentStoreCleanerJobDetail = (JobDetailBean)applicationContext.getBean("contentStoreCleanerJobDetail");
+        scheduler.pauseJob(contentStoreCleanerJobDetail.getName(), contentStoreCleanerJobDetail.getGroup());
 
-            scheduler.pauseAll();
-            setComplete();
-            endTransaction();
-            NodeCleanupRegistry cleanupRegistry = (NodeCleanupRegistry) applicationContext.getBean("nodeCleanupRegistry");
-            cleanupRegistry.doClean();
+        ChildApplicationContextFactory activitiesFeed = (ChildApplicationContextFactory)applicationContext.getBean("ActivitiesFeed");
+        ApplicationContext activitiesFeedCtx = activitiesFeed.getApplicationContext();
+        JobDetailBean feedGeneratorJobDetail = (JobDetailBean)activitiesFeedCtx.getBean("feedGeneratorJobDetail");
+        JobDetailBean postLookupJobDetail = (JobDetailBean)activitiesFeedCtx.getBean("postLookupJobDetail");
+        JobDetailBean feedCleanerJobDetail = (JobDetailBean)activitiesFeedCtx.getBean("feedCleanerJobDetail");
+        JobDetailBean postCleanerJobDetail = (JobDetailBean)activitiesFeedCtx.getBean("postCleanerJobDetail");
+        JobDetailBean feedNotifierJobDetail = (JobDetailBean)activitiesFeedCtx.getBean("feedNotifierJobDetail");
 
+        // Pause activities jobs so that we aren't competing with their scheduled versions
+        scheduler.pauseJob(feedGeneratorJobDetail.getName(), feedGeneratorJobDetail.getGroup());
+        scheduler.pauseJob(postLookupJobDetail.getName(), postLookupJobDetail.getGroup());
+        scheduler.pauseJob(feedCleanerJobDetail.getName(), feedCleanerJobDetail.getGroup());
+        scheduler.pauseJob(postCleanerJobDetail.getName(), postCleanerJobDetail.getGroup());
+        scheduler.pauseJob(feedNotifierJobDetail.getName(), feedNotifierJobDetail.getGroup());
+
+        setComplete();
+        endTransaction();
+        NodeCleanupRegistry cleanupRegistry = (NodeCleanupRegistry) applicationContext.getBean("nodeCleanupRegistry");
+        cleanupRegistry.doClean();
         }
-        finally
-        {
-            scheduler.resumeAll();
+        finally{
+        scheduler.resumeAll();
         }
     }
 
