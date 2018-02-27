@@ -121,6 +121,9 @@ public class DbNodeServiceImplTest extends BaseNodeServiceTest
     @SuppressWarnings("deprecation")
     public void testNodeCleanupRegistry() throws Exception
     {
+        long cleanupRegistryTime=0;
+        System.out.println("testNodeCleanupRegistry has just started, let the magic begin:");
+        long startTime = System.currentTimeMillis();
         Scheduler scheduler = (Scheduler)applicationContext.getBean("schedulerFactory");
 
         try
@@ -143,13 +146,22 @@ public class DbNodeServiceImplTest extends BaseNodeServiceTest
         scheduler.pauseJob(postCleanerJobDetail.getName(), postCleanerJobDetail.getGroup());
         scheduler.pauseJob(feedNotifierJobDetail.getName(), feedNotifierJobDetail.getGroup());
 
+        long pauseTime = System.currentTimeMillis();
+        System.out.println("Time elapsed for pause jobs:"+(pauseTime-startTime));
         setComplete();
         endTransaction();
+        long endTransactionTime=System.currentTimeMillis();
+        System.out.println("Time elapsed for commiting transaction:"+(endTransactionTime-pauseTime));
         NodeCleanupRegistry cleanupRegistry = (NodeCleanupRegistry) applicationContext.getBean("nodeCleanupRegistry");
         cleanupRegistry.doClean();
+        cleanupRegistryTime = System.currentTimeMillis();
+        System.out.println("Time elapsed for the cleanupRegistry to do his magic:"+(cleanupRegistryTime-endTransactionTime));
+        
         }
         finally{
         scheduler.resumeAll();
+        long resumeTime = System.currentTimeMillis();
+        System.out.println("Time elapsed for resuming jobs:"+(resumeTime-cleanupRegistryTime));
         }
     }
 
