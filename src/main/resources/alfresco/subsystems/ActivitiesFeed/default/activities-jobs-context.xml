@@ -11,7 +11,7 @@
             <list>
                 <bean id="feedCleanerTrigger" class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">
                     <property name="cronExpression" value="${activities.feed.cleaner.cronExpression}"/>
-                    <property name="startDelay" value="${activities.feed.cleaner.startDelayMilliSeconds}"/>
+                    <property name="startDelay" value="${activities.feed.cleaner.startDelayMilliseconds}"/>
                     <property name="jobDetail" ref="feedCleanerJobDetail"/>
                 </bean>
             </list>
