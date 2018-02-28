@@ -66,8 +66,10 @@ import org.alfresco.util.Pair;
 import org.alfresco.util.testing.category.DBTests;
 import org.hibernate.dialect.Dialect;
 import org.hibernate.dialect.MySQLInnoDBDialect;
+import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
+import org.junit.runners.MethodSorters;
 import org.quartz.Scheduler;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.event.ContextRefreshedEvent;
@@ -81,6 +83,7 @@ import org.springframework.scheduling.quartz.JobDetailBean;
  */
 @SuppressWarnings("unused")
 @Category({OwnJVMTestsCategory.class, DBTests.class})
+//@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class DbNodeServiceImplTest extends BaseNodeServiceTest
 {
     private TransactionService txnService;
@@ -121,10 +124,6 @@ public class DbNodeServiceImplTest extends BaseNodeServiceTest
     @SuppressWarnings("deprecation")
     public void testNodeCleanupRegistry() throws Exception
     {
-        if (true)
-        {
-        return ;
-        }
         long cleanupRegistryTime=0;
         System.out.println("testNodeCleanupRegistry has just started, let the magic begin:");
         long startTime = System.currentTimeMillis();

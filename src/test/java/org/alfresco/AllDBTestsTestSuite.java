@@ -39,12 +39,13 @@ import org.junit.runners.Suite;
 @Categories.ExcludeCategory(NonBuildTests.class)
 @Suite.SuiteClasses({
 
+    org.alfresco.repo.node.db.DbNodeServiceImplTest.class,
+
 	// From AllUnitTestsSuite
     org.alfresco.repo.dictionary.RepoDictionaryDAOTest.class,
 
 	// From AppContext03TestSuite
     org.alfresco.repo.lock.JobLockServiceTest.class,
-    org.alfresco.repo.node.db.DbNodeServiceImplTest.class,
     org.alfresco.repo.node.db.DbNodeServiceImplPropagationTest.class,
 
 //	// From AppContext04TestSuite
