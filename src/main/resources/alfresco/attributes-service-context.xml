@@ -15,12 +15,12 @@
         <property name="triggers">
             <list>
                 <bean id="propTablesCleanupTrigger" class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">
+                    <property name="startDelay" value="${system.cronJob.startDelayMilliseconds}"/>
                     <property name="cronExpression" value="${attributes.propcleaner.cronExpression}" />
                     <property name="jobDetail" ref="propTablesCleanupJobDetail"/>
                 </bean>
             </list>
         </property>
-        <property name="startupDelay" value="${system.cronJob.startDelaySeconds}"/>
     </bean>
 
     <bean id="propTablesCleanupJobDetail" class="org.springframework.scheduling.quartz.JobDetailFactoryBean">

@@ -14,7 +14,7 @@
             <list>
                 <bean id="syncTrigger" class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">
                     <property name="cronExpression" value="${synchronization.import.cron}"/>
-                    <property name="startDelay" value="${system.cronJob.startDelaySeconds}"/>
+                    <property name="startDelay" value="${system.cronJob.startDelayMilliseconds}"/>
                     <property name="jobDetail">
                         <bean class="org.springframework.scheduling.quartz.JobDetailFactoryBean">
                             <property name="jobClass" value="org.alfresco.repo.security.sync.UserRegistrySynchronizerJob"/>

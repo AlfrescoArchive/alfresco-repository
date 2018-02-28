@@ -117,11 +117,11 @@
    </bean>
 
     <bean id="downloadCleanerScheduler" class="org.springframework.scheduling.quartz.SchedulerFactoryBean">
-        <property name="startupDelay" value="${download.cleaner.startDelaySeconds}"/>
         <property name="triggers">
             <list>
                 <bean id="downloadCleanerTrigger" class="org.springframework.scheduling.quartz.SimpleTriggerFactoryBean">
                     <property name="repeatInterval" value="${download.cleaner.repeatIntervalSeconds}"/>
+                    <property name="startDelay" value="${download.cleaner.startDelayMilliseconds}"/>
                     <property name="jobDetail">
                         <bean class="org.springframework.scheduling.quartz.JobDetailFactoryBean">
                             <property name="jobClass" value="org.alfresco.repo.download.DownloadsCleanupJob"/>

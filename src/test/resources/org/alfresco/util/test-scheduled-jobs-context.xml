@@ -30,7 +30,7 @@
                 </bean>
             </list>
         </property>
-        <property name="startupDelay" value="${activities.feed.notifier.startDelaySeconds}"/>
+        <property name="startupDelay" value="60"/>
         <property name="autoStartup" value="${activities.feed.notifier.enabled}" />
     </bean>
 </beans>

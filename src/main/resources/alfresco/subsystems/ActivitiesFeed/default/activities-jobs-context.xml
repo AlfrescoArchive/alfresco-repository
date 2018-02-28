@@ -11,7 +11,7 @@
             <list>
                 <bean id="feedCleanerTrigger" class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">
                     <property name="cronExpression" value="${activities.feed.cleaner.cronExpression}"/>
-                    <property name="startDelay" value="${activities.feed.cleaner.startDelaySeconds}"/>
+                    <property name="startDelay" value="${activities.feed.cleaner.startDelayMilliSeconds}"/>
                     <property name="jobDetail" ref="feedCleanerJobDetail"/>
                 </bean>
             </list>
@@ -34,12 +34,12 @@
         <property name="triggers">
             <list>
                 <bean id="feedGeneratorTrigger" class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">
+                    <property name="startDelay" value="${activities.feed.generator.startDelayMilliseconds}"/>
                     <property name="cronExpression" value="${activities.feed.generator.cronExpression}"/>
                     <property name="jobDetail" ref="feedGeneratorJobDetail"/>
                 </bean>
             </list>
         </property>
-        <property name="startupDelay" value="${activities.feed.generator.startDelaySeconds}"/>
         <property name="autoStartup" value="${activities.feed.generator.enabled}" />
     </bean>
 
@@ -58,12 +58,12 @@
         <property name="triggers">
             <list>
                 <bean id="postLookupTrigger" class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">
+                    <property name="startDelay" value="${activities.post.lookup.startDelayMilliseconds}"/>
                     <property name="cronExpression" value="${activities.post.lookup.cronExpression}" />
                     <property name="jobDetail" ref="postLookupJobDetail"/>
                 </bean>
             </list>
         </property>
-        <property name="startupDelay" value="${activities.post.lookup.startDelaySeconds}"/>
         <property name="autoStartup" value="${activities.post.lookup.enabled}" />
     </bean>
 
@@ -82,12 +82,12 @@
         <property name="triggers">
             <list>
                 <bean id="postCleanerTrigger" class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">
+                    <property name="startDelay" value="${activities.post.cleaner.startDelayMilliseconds}"/>
                     <property name="cronExpression" value="${activities.post.cleaner.cronExpression}"/>
                     <property name="jobDetail" ref="postCleanerJobDetail"/>
                 </bean>
             </list>
         </property>
-        <property name="startupDelay" value="${activities.post.cleaner.startDelaySeconds}"/>
         <property name="autoStartup" value="${activities.post.cleaner.enabled}"/>
     </bean>
 
@@ -106,12 +106,12 @@
         <property name="triggers">
             <list>
                 <bean id="feedNotifierTrigger" class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">
+                    <property name="startDelay" value="${activities.feed.notifier.startDelayMilliseconds}"/>
                     <property name="cronExpression" value="${activities.feed.notifier.cronExpression}" />
                     <property name="jobDetail" ref="feedNotifierJobDetail"/>
                 </bean>
             </list>
         </property>
-        <property name="startupDelay" value="${activities.feed.notifier.startDelaySeconds}"/>
         <property name="autoStartup" value="${activities.feed.notifier.enabled}" />
     </bean>
 

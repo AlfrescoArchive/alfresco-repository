@@ -18,7 +18,7 @@
 
     <bean id="search.alfrescoCoreBackupTrigger" class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">
         <property name="cronExpression" value="${solr.backup.alfresco.cronExpression}"/>
-        <property name="startDelay" value="${system.cronJob.startDelaySeconds}"/>
+        <property name="startDelay" value="${system.cronJob.startDelayMilliseconds}"/>
         <property name="jobDetail">
             <bean class="org.springframework.scheduling.quartz.JobDetailFactoryBean">
                 <property name="jobClass" value="org.alfresco.repo.search.impl.solr.SolrBackupJob"/>
@@ -59,7 +59,7 @@
 
     <bean id="search.archiveCoreBackupTrigger" class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">
         <property name="cronExpression" value="${solr.backup.archive.cronExpression}"/>
-        <property name="startDelay" value="${system.cronJob.startDelaySeconds}"/>
+        <property name="startDelay" value="${system.cronJob.startDelayMilliseconds}"/>
         <property name="jobDetail">
             <bean id="search.archiveCoreBackupJobDetail" class="org.springframework.scheduling.quartz.JobDetailFactoryBean">
                 <property name="jobClass" value="org.alfresco.repo.search.impl.solr.SolrBackupJob"/>

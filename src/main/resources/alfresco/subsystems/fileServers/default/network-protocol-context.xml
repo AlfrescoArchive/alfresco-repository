@@ -85,6 +85,7 @@
             <list>
                 <bean id="cifsLockKeeperRefreshTrigger" class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">
                     <property name="cronExpression" value="${filesystem.lockKeeperRefreshCronExpression}"/>
+                    <property name="startDelay" value="${system.cronJob.startDelayMilliseconds}"/>
                     <property name="jobDetail">
                         <bean id="cifsLockKeeperRefreshJobDetail" class="org.springframework.scheduling.quartz.JobDetailFactoryBean">
                             <property name="jobClass" value="org.alfresco.filesys.repo.LockKeeperRefreshJob"/>
@@ -98,7 +99,6 @@
                 </bean>
             </list>
         </property>
-        <property name="startupDelay" value="${system.cronJob.startDelaySeconds}"/>
     </bean>
 
    <!-- Filesystem Interface -->
