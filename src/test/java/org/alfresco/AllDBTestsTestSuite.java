@@ -38,7 +38,6 @@ import org.junit.runners.Suite;
 @Categories.IncludeCategory(DBTests.class)
 @Categories.ExcludeCategory(NonBuildTests.class)
 @Suite.SuiteClasses({
-
 	// From AllUnitTestsSuite
     org.alfresco.repo.dictionary.RepoDictionaryDAOTest.class,
 
@@ -76,6 +75,9 @@ import org.junit.runners.Suite;
 
 	// From MiscContextTestSuite
     org.alfresco.repo.domain.query.CannedQueryDAOTest.class,
+
+    // REPO-2963 : Tests causing a cascade of failures in AllDBTestsTestSuite on PostgreSQL/MySQL	
+    // Moved at the bottom of the suite because DbNodeServiceImplTest.testNodeCleanupRegistry() takes a long time on a clean DB.
     org.alfresco.repo.node.db.DbNodeServiceImplTest.class,
 })
 public class AllDBTestsTestSuite

@@ -83,7 +83,6 @@ import org.springframework.scheduling.quartz.JobDetailBean;
  */
 @SuppressWarnings("unused")
 @Category({OwnJVMTestsCategory.class, DBTests.class})
-//@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class DbNodeServiceImplTest extends BaseNodeServiceTest
 {
     private TransactionService txnService;
@@ -124,48 +123,11 @@ public class DbNodeServiceImplTest extends BaseNodeServiceTest
     @SuppressWarnings("deprecation")
     public void testNodeCleanupRegistry() throws Exception
     {
-        long cleanupRegistryTime=0;
-        System.out.println("testNodeCleanupRegistry has just started, let the magic begin:");
-        long startTime = System.currentTimeMillis();
-        Scheduler scheduler = (Scheduler)applicationContext.getBean("schedulerFactory");
-
-        try
-        {
-        JobDetailBean contentStoreCleanerJobDetail = (JobDetailBean)applicationContext.getBean("contentStoreCleanerJobDetail");
-        scheduler.pauseJob(contentStoreCleanerJobDetail.getName(), contentStoreCleanerJobDetail.getGroup());
-
-        ChildApplicationContextFactory activitiesFeed = (ChildApplicationContextFactory)applicationContext.getBean("ActivitiesFeed");
-        ApplicationContext activitiesFeedCtx = activitiesFeed.getApplicationContext();
-        JobDetailBean feedGeneratorJobDetail = (JobDetailBean)activitiesFeedCtx.getBean("feedGeneratorJobDetail");
-        JobDetailBean postLookupJobDetail = (JobDetailBean)activitiesFeedCtx.getBean("postLookupJobDetail");
-        JobDetailBean feedCleanerJobDetail = (JobDetailBean)activitiesFeedCtx.getBean("feedCleanerJobDetail");
-        JobDetailBean postCleanerJobDetail = (JobDetailBean)activitiesFeedCtx.getBean("postCleanerJobDetail");
-        JobDetailBean feedNotifierJobDetail = (JobDetailBean)activitiesFeedCtx.getBean("feedNotifierJobDetail");
-
-        // Pause activities jobs so that we aren't competing with their scheduled versions
-        scheduler.pauseJob(feedGeneratorJobDetail.getName(), feedGeneratorJobDetail.getGroup());
-        scheduler.pauseJob(postLookupJobDetail.getName(), postLookupJobDetail.getGroup());
-        scheduler.pauseJob(feedCleanerJobDetail.getName(), feedCleanerJobDetail.getGroup());
-        scheduler.pauseJob(postCleanerJobDetail.getName(), postCleanerJobDetail.getGroup());
-        scheduler.pauseJob(feedNotifierJobDetail.getName(), feedNotifierJobDetail.getGroup());
-
-        long pauseTime = System.currentTimeMillis();
-        System.out.println("Time elapsed for pause jobs:"+(pauseTime-startTime));
+        // REPO-2963: this test takes a long time in order to pass on a clean DB.
         setComplete();
         endTransaction();
-        long endTransactionTime=System.currentTimeMillis();
-        System.out.println("Time elapsed for commiting transaction:"+(endTransactionTime-pauseTime));
         NodeCleanupRegistry cleanupRegistry = (NodeCleanupRegistry) applicationContext.getBean("nodeCleanupRegistry");
         cleanupRegistry.doClean();
-        cleanupRegistryTime = System.currentTimeMillis();
-        System.out.println("Time elapsed for the cleanupRegistry to do his magic:"+(cleanupRegistryTime-endTransactionTime));
-        
-        }
-        finally{
-        scheduler.resumeAll();
-        long resumeTime = System.currentTimeMillis();
-        System.out.println("Time elapsed for resuming jobs:"+(resumeTime-cleanupRegistryTime));
-        }
     }
 
     /**
