@@ -770,7 +770,7 @@
         </dependency>
         <dependency>
             <groupId>org.alfresco</groupId>
-            <artifactId>alfresco</artifactId>
+            <artifactId>alfresco-data-model</artifactId>
             <version>${dependency.alfresco-data-model.version}</version>
             <classifier>tests</classifier>
             <scope>test</scope>
