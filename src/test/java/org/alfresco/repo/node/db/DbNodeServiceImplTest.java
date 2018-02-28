@@ -42,7 +42,6 @@ import org.alfresco.repo.domain.node.NodeDAO;
 import org.alfresco.repo.domain.node.NodeDAO.ChildAssocRefQueryCallback;
 import org.alfresco.repo.domain.node.Transaction;
 import org.alfresco.repo.domain.schema.SchemaBootstrap;
-import org.alfresco.repo.management.subsystems.ChildApplicationContextFactory;
 import org.alfresco.repo.node.BaseNodeServiceTest;
 import org.alfresco.repo.node.cleanup.NodeCleanupRegistry;
 import org.alfresco.repo.node.db.NodeStringLengthWorker.NodeStringLengthWorkResult;
@@ -66,15 +65,10 @@ import org.alfresco.util.Pair;
 import org.alfresco.util.testing.category.DBTests;
 import org.hibernate.dialect.Dialect;
 import org.hibernate.dialect.MySQLInnoDBDialect;
-import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
-import org.junit.runners.MethodSorters;
-import org.quartz.Scheduler;
-import org.springframework.context.ApplicationContext;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.extensions.surf.util.I18NUtil;
-import org.springframework.scheduling.quartz.JobDetailBean;
 
 /**
  * @see org.alfresco.repo.node.db.DbNodeServiceImpl
