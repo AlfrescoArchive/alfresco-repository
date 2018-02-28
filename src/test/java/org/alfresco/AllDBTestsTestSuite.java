@@ -39,8 +39,6 @@ import org.junit.runners.Suite;
 @Categories.ExcludeCategory(NonBuildTests.class)
 @Suite.SuiteClasses({
 
-    org.alfresco.repo.node.db.DbNodeServiceImplTest.class,
-
 	// From AllUnitTestsSuite
     org.alfresco.repo.dictionary.RepoDictionaryDAOTest.class,
 
@@ -78,6 +76,7 @@ import org.junit.runners.Suite;
 
 	// From MiscContextTestSuite
     org.alfresco.repo.domain.query.CannedQueryDAOTest.class,
+    org.alfresco.repo.node.db.DbNodeServiceImplTest.class,
 })
 public class AllDBTestsTestSuite
 {
