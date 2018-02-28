@@ -31,14 +31,11 @@ import java.util.Set;
 
 import org.alfresco.opencmis.dictionary.CMISDictionaryService;
 import org.alfresco.opencmis.search.CMISQueryOptions.CMISQueryMode;
-import org.alfresco.repo.search.impl.lucene.PagingLuceneResultSet;
 import org.alfresco.repo.search.impl.querymodel.Query;
 import org.alfresco.repo.search.impl.querymodel.QueryEngine;
 import org.alfresco.repo.search.impl.querymodel.QueryEngineResults;
 import org.alfresco.repo.search.impl.querymodel.QueryModelException;
-import org.alfresco.repo.security.permissions.impl.acegi.FilteringResultSet;
 import org.alfresco.service.cmr.dictionary.DictionaryService;
-import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.cmr.repository.NodeService;
 import org.alfresco.service.cmr.repository.StoreRef;
 import org.alfresco.service.cmr.search.LimitBy;
@@ -118,7 +115,7 @@ public class CMISQueryServiceImpl implements CMISQueryService
             ResultSet current = map.get(group);
             for (String selector : group)
             {
-                wrapped.put(selector, filterNotExistingNodes(current));
+                wrapped.put(selector, current);
             }
         }
         LimitBy limitBy = null;
@@ -189,32 +186,6 @@ public class CMISQueryServiceImpl implements CMISQueryService
         QueryEngineResults queryEngineResults = queryEngine.executeQuery(query, options, functionContext);
         
         return new Pair<Query, QueryEngineResults>(query, queryEngineResults);
-    }
-
-    /* MNT-8804 filter ResultSet for nodes with corrupted indexes */
-    private ResultSet filterNotExistingNodes(ResultSet resultSet)
-    {
-        if (resultSet instanceof PagingLuceneResultSet)
-        {
-            ResultSet wrapped = ((PagingLuceneResultSet)resultSet).getWrapped();
-            
-            if (wrapped instanceof FilteringResultSet)
-            {
-                FilteringResultSet filteringResultSet = (FilteringResultSet)wrapped;
-                
-                for (int i = 0; i < filteringResultSet.length(); i++)
-                {
-                    NodeRef nodeRef = filteringResultSet.getNodeRef(i);
-                    /* filter node if it does not exist */
-                    if (!nodeService.exists(nodeRef))
-                    {
-                        filteringResultSet.setIncluded(i, false);
-                    }
-                }
-            }
-        }
-        
-        return resultSet;
     }
 
     public CMISResultSet query(String query, StoreRef storeRef)
