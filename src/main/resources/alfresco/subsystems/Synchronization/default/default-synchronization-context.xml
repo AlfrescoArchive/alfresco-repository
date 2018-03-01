@@ -9,7 +9,7 @@
         (e.g. LDAP directory)
     -->
 
-    <bean id="syncScheduler" class="org.springframework.scheduling.quartz.SchedulerFactoryBean">
+    <bean id="ldapSyncSchedulerAccessor" class="org.springframework.scheduling.quartz.SchedulerAccessorBean">
         <property name="triggers">
             <list>
                 <bean id="syncTrigger" class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">

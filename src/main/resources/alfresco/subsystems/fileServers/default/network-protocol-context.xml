@@ -80,7 +80,7 @@
         <property name="timeToExpire"><value>${filesystem.lockKeeperTimeout}</value></property>
    </bean>
 
-    <bean id="cifsLockKeeperRefreshScheduler" class="org.springframework.scheduling.quartz.SchedulerFactoryBean">
+    <bean id="cifsLockKeeperRefreshSchedulerAccessor" class="org.springframework.scheduling.quartz.SchedulerAccessorBean">
         <property name="triggers">
             <list>
                 <bean id="cifsLockKeeperRefreshTrigger" class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">

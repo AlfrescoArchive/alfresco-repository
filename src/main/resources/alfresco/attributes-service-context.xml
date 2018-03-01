@@ -11,7 +11,8 @@
     </bean>
 
     <!-- Cleanup job for alf_prop_xxx tables -->
-    <bean id="propTablesCleanupScheduler" class="org.springframework.scheduling.quartz.SchedulerFactoryBean">
+    <bean id="propTablesCleanupSchedulerAccessor" class="org.springframework.scheduling.quartz.SchedulerAccessorBean">
+        <property name="scheduler" ref="schedulerFactory"/>
         <property name="triggers">
             <list>
                 <bean id="propTablesCleanupTrigger" class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">
