@@ -117,6 +117,7 @@
    </bean>
 
     <bean id="downloadCleanerSchedulerAccessor" class="org.springframework.scheduling.quartz.SchedulerAccessorBean">
+        <property name="scheduler" ref="schedulerFactory"/>
         <property name="triggers">
             <list>
                 <bean id="downloadCleanerTrigger" class="org.springframework.scheduling.quartz.SimpleTriggerFactoryBean">

@@ -81,6 +81,7 @@
    </bean>
 
     <bean id="cifsLockKeeperRefreshSchedulerAccessor" class="org.springframework.scheduling.quartz.SchedulerAccessorBean">
+        <property name="scheduler" ref="schedulerFactory"/>
         <property name="triggers">
             <list>
                 <bean id="cifsLockKeeperRefreshTrigger" class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">

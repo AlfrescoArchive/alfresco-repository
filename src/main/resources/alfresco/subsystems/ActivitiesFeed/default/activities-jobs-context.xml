@@ -7,6 +7,7 @@
     <!-- Activities Feed Cleaner -->
 
     <bean id="feedCleanerSchedulerAccessor" class="org.alfresco.schedule.AlfrescoSchedulerAccessorBean">
+        <property name="scheduler" ref="schedulerFactory"/>
         <property name="triggers">
             <list>
                 <bean id="feedCleanerTrigger" class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">
@@ -31,6 +32,7 @@
     <!-- Activities Feed Generator -->
 
     <bean id="feedGeneratorSchedulerAccessor" class="org.alfresco.schedule.AlfrescoSchedulerAccessorBean">
+        <property name="scheduler" ref="schedulerFactory"/>
         <property name="triggers">
             <list>
                 <bean id="feedGeneratorTrigger" class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">
@@ -55,6 +57,7 @@
     <!-- Activities Post Lookup (for secondary lookup) -->
 
     <bean id="postLookupSchedulerAccessor" class="org.alfresco.schedule.AlfrescoSchedulerAccessorBean">
+        <property name="scheduler" ref="schedulerFactory"/>
         <property name="triggers">
             <list>
                 <bean id="postLookupTrigger" class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">
@@ -79,6 +82,7 @@
     <!-- Activities Post Cleaner -->
 
     <bean id="postCleanerSchedulerAccessor" class="org.alfresco.schedule.AlfrescoSchedulerAccessorBean">
+        <property name="scheduler" ref="schedulerFactory"/>
         <property name="triggers">
             <list>
                 <bean id="postCleanerTrigger" class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">
@@ -103,6 +107,7 @@
     <!-- Activities Email Notifier -->
 
     <bean id="feedNotifierSchedulerAccessor" class="org.alfresco.schedule.AlfrescoSchedulerAccessorBean">
+        <property name="scheduler" ref="schedulerFactory"/>
         <property name="triggers">
             <list>
                 <bean id="feedNotifierTrigger" class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">
