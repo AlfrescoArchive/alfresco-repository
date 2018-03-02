@@ -104,14 +104,6 @@ public class DbNodeServiceImplTest extends BaseNodeServiceTest
         dictionaryService = (DictionaryService) applicationContext.getBean("dictionaryService");
     }
 
-    // REPO-2963 Initially just pass tests on selected DBs
-    protected boolean skipTestRepo2963()
-    {
-        return true; // Always skip the test
-//        String name = dialect.getClass().getName();
-//        return name.contains("PostgreSQL") || name.contains("MySQL");
-    }
-
     /**
      * Ensure that transactionless calls are handled
      */
@@ -126,8 +118,10 @@ public class DbNodeServiceImplTest extends BaseNodeServiceTest
     /**
      * Manually trigger the cleanup registry
      */
+    @SuppressWarnings("deprecation")
     public void testNodeCleanupRegistry() throws Exception
     {
+<<<<<<< HEAD
         // See REPO-2963
         if (skipTestRepo2963())
         {
@@ -136,25 +130,20 @@ public class DbNodeServiceImplTest extends BaseNodeServiceTest
 
         TestTransaction.flagForCommit();
         TestTransaction.end();
+=======
+        // REPO-2963: this test takes a long time in order to pass on a clean DB.
+        setComplete();
+        endTransaction();
+>>>>>>> master
         NodeCleanupRegistry cleanupRegistry = (NodeCleanupRegistry) applicationContext.getBean("nodeCleanupRegistry");
         cleanupRegistry.doClean();
     }
-    
+
     /**
      * <a href="https://issues.alfresco.com/jira/browse/ALF-14929">ALF-14929</a>
      */
     public synchronized void testTxnCommitTime() throws Exception
     {
-        // See REPO-2963
-        if (skipTestRepo2963())
-        {
-            return;
-        }
-
-        /*
-         * This test is subject to intermittent - but correct - failures if bug ALF-14929 is present
-         */
-        
         String currentTxn = AlfrescoTransactionSupport.getTransactionId();
         assertNotNull("Must have a txn change UUID for all transactions.");
         
