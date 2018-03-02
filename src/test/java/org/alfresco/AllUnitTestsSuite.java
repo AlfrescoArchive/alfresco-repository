@@ -27,6 +27,7 @@ package org.alfresco;
 
 import org.alfresco.util.testing.category.DBTests;
 import org.alfresco.util.testing.category.NonBuildTests;
+import org.alfresco.util.transaction.SpringAwareUserTransactionTest;
 import org.junit.experimental.categories.Categories;
 import org.junit.runner.RunWith;
 import org.junit.runners.Suite;
@@ -198,7 +199,9 @@ import org.junit.runners.Suite;
     org.alfresco.repo.domain.DialectFactoryBeanTest.class,
     org.alfresco.util.BeanExtenderUnitTest.class,
     org.alfresco.util.bean.HierarchicalBeanLoaderTest.class,
-    org.alfresco.util.resource.HierarchicalResourceLoaderTest.class
+    org.alfresco.util.resource.HierarchicalResourceLoaderTest.class,
+
+    org.alfresco.util.transaction.SpringAwareUserTransactionTest.class,
 })
 public class AllUnitTestsSuite
 {
