@@ -65,7 +65,6 @@ import org.apache.commons.logging.LogFactory;
 import org.junit.experimental.categories.Category;
 import org.springframework.context.ApplicationContext;
 import org.springframework.dao.ConcurrencyFailureException;
-import org.springframework.orm.hibernate5.support.HibernateDaoSupport;
 
 /**
  * Tests the transaction retrying behaviour with various failure modes.
