@@ -121,20 +121,9 @@ public class DbNodeServiceImplTest extends BaseNodeServiceTest
     @SuppressWarnings("deprecation")
     public void testNodeCleanupRegistry() throws Exception
     {
-<<<<<<< HEAD
-        // See REPO-2963
-        if (skipTestRepo2963())
-        {
-            return;
-        }
-
         TestTransaction.flagForCommit();
         TestTransaction.end();
-=======
         // REPO-2963: this test takes a long time in order to pass on a clean DB.
-        setComplete();
-        endTransaction();
->>>>>>> master
         NodeCleanupRegistry cleanupRegistry = (NodeCleanupRegistry) applicationContext.getBean("nodeCleanupRegistry");
         cleanupRegistry.doClean();
     }

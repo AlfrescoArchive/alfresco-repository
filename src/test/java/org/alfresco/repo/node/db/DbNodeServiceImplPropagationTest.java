@@ -345,16 +345,6 @@ public class DbNodeServiceImplPropagationTest extends BaseSpringTest
         assertEquals(modified.getTime(), modifiedAt.getTime());
         modifiedAt = (Date)nodeService.getProperty(ac4, ContentModel.PROP_MODIFIED);
         assertEquals((double)new Date().getTime(), (double)modifiedAt.getTime(), 3000d);
-<<<<<<< HEAD
-=======
-        
-        setComplete();
-        endTransaction();
-
-        startNewTransaction();
-        txn.commit();
-
->>>>>>> master
     }
     
     private void restartAuditableTxn() throws Exception
