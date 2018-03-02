@@ -270,29 +270,31 @@ public class ScheduledPersistedActionImpl implements ScheduledPersistedAction
                   return null;
                }
 
-                // Let the scheduler do it's own job
-                startAt = scheduleStart;
-//               // Based on the start time, when would it next be
-//               //  due to fire?
-//               DateIntervalTrigger testT = buildDateIntervalTrigger("TEST", scheduleStart, null);
-//               Date nextFireFromNow = testT.getFireTimeAfter(new Date());
-//               Date nextFireFromLast = testT.getFireTimeAfter(lastExecutedAt);
-//
-//               // If the next fire time from the last is before the
-//               //  next due date, then we missed one
-//               if(nextFireFromLast.getTime() < nextFireFromNow.getTime())
-//               {
-//                  // We missed one!
-//                  // Tell Quartz the requested start time, so it runs
-//                  //  immediately, and repeats are correctly calculated
-//                  startAt = scheduleStart;
-//               }
-//               else
-//               {
-//                  // The last run time was largely when due
-//                  // So, don't run until the next time
-//                  startAt = nextFireFromNow;
-//               }
+               // Based on the start time, when would it next be
+               //  due to fire?
+               Trigger testT = TriggerBuilder.newTrigger()
+                       .withIdentity("TEST")
+                       .withSchedule(CalendarIntervalScheduleBuilder.calendarIntervalSchedule())
+                       .startAt(scheduleStart)
+                       .build();
+               Date nextFireFromNow = testT.getFireTimeAfter(new Date());
+               Date nextFireFromLast = testT.getFireTimeAfter(lastExecutedAt);
+
+               // If the next fire time from the last is before the
+               //  next due date, then we missed one
+               if(nextFireFromLast.getTime() < nextFireFromNow.getTime())
+               {
+                  // We missed one!
+                  // Tell Quartz the requested start time, so it runs
+                  //  immediately, and repeats are correctly calculated
+                  startAt = scheduleStart;
+               }
+               else
+               {
+                  // The last run time was largely when due
+                  // So, don't run until the next time
+                  startAt = nextFireFromNow;
+               }
             }
          }
       }
