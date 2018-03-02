@@ -235,11 +235,6 @@
     </bean>
 
     <bean id="dialect" class="org.alfresco.repo.domain.dialect.DialectFactoryBean">
-        <!--<property name="driverDialectMap">-->
-        <!--<map>-->
-        <!--<entry key="MariaDB connector/J" value="org.alfresco.repo.domain.dialect.MariaDBDialect-->
-        <!--</map>-->
-        <!--</property>-->
         <property name="dataSource" ref="dataSource"/>
     </bean>
 
