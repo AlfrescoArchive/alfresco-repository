@@ -103,8 +103,6 @@ import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.core.io.support.ResourcePatternResolver;
 import org.springframework.extensions.surf.util.AbstractLifecycleBean;
 import org.springframework.extensions.surf.util.I18NUtil;
-import org.springframework.orm.hibernate5.LocalSessionFactoryBean;
-
 
 /**
  * Bootstraps the schema and schema update.  The schema is considered missing if the applied patch table
@@ -247,7 +245,6 @@ public class SchemaBootstrap extends AbstractLifecycleBean
     private DescriptorService descriptorService;
     private DataSource dataSource;
     private AppliedPatchDAO appliedPatchDAO;
-    private LocalSessionFactoryBean localSessionFactory;
     private String schemaOuputFilename;
     private boolean updateSchema;
     private boolean stopAfterSchemaBootstrap;
@@ -285,16 +282,6 @@ public class SchemaBootstrap extends AbstractLifecycleBean
     public void setAppliedPatchDAO(AppliedPatchDAO appliedPatchDAO)
     {
         this.appliedPatchDAO = appliedPatchDAO;
-    }
-
-    public void setLocalSessionFactory(LocalSessionFactoryBean localSessionFactory)
-    {
-        this.localSessionFactory = localSessionFactory;
-    }
-    
-    public LocalSessionFactoryBean getLocalSessionFactory()
-    {
-        return localSessionFactory;
     }
 
     /**

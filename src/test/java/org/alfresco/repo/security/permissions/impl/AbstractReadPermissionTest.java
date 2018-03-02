@@ -69,7 +69,6 @@ import org.alfresco.util.ApplicationContextHelper;
 import org.alfresco.util.testing.category.LuceneTests;
 import org.junit.experimental.categories.Category;
 import org.springframework.context.ApplicationContext;
-import org.springframework.orm.hibernate5.LocalSessionFactoryBean;
 
 @Category(LuceneTests.class)
 public class AbstractReadPermissionTest extends TestCase
@@ -87,8 +86,6 @@ public class AbstractReadPermissionTest extends TestCase
     protected MutableAuthenticationService authenticationService;
     
     protected MutableAuthenticationDao authenticationDAO;
-
-    protected LocalSessionFactoryBean sessionFactory;
 
     protected NodeRef rootNodeRef;
 
