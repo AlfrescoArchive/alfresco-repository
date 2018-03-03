@@ -746,12 +746,12 @@ public class TransactionalCache<K extends Serializable, V extends Object>
                     txnData.isClearOn = true;
                     if (!txnData.haveIssuedFullWarning)
                     {
-                    	if (logger.isInfoEnabled())
+                        if (logger.isInfoEnabled())
                         {
                              Exception e = new Exception("Stack: ");
                              logger.info("Transactional update cache '" + name + "' is full (" + maxCacheSize + ").", e);
                         }
-                    	else if (logger.isWarnEnabled())
+                        else if (logger.isWarnEnabled())
                         {
                             logger.warn("Transactional update cache '" + name + "' is full (" + maxCacheSize + ").");
                         }
@@ -856,14 +856,14 @@ public class TransactionalCache<K extends Serializable, V extends Object>
                         txnData.isClearOn = true;
                         if (!txnData.haveIssuedFullWarning)
                         {
-                        	if (logger.isInfoEnabled())
+                            if (logger.isInfoEnabled())
                             {
                                  Exception e = new Exception("Stack: ");
                                  logger.info("Transactional removal cache '" + name + "' is full (" + maxCacheSize + ").", e);
                             }
                             else if (logger.isWarnEnabled())
                             {
-                            	logger.warn("Transactional removal cache '" + name + "' is full (" + maxCacheSize + ").");
+                                logger.warn("Transactional removal cache '" + name + "' is full (" + maxCacheSize + ").");
                             }
                             txnData.haveIssuedFullWarning = true;
                         }
