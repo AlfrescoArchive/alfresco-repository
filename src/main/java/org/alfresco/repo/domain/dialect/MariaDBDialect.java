@@ -27,6 +27,7 @@ package org.alfresco.repo.domain.dialect;
 
 /**
  * @author eknizat
+ * @since 6.0
  */
 public class MariaDBDialect extends MySQLInnoDBDialect
 {

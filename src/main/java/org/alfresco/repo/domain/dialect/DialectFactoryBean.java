@@ -28,7 +28,6 @@ package org.alfresco.repo.domain.dialect;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.SQLException;
-import java.util.Map;
 
 import javax.sql.DataSource;
 import org.springframework.beans.factory.FactoryBean;
@@ -39,6 +38,7 @@ import org.springframework.jdbc.datasource.DataSourceUtils;
  * where required as a singleton from the container.
  * 
  * @author dward
+ * @since 6.0
  */
 public class DialectFactoryBean implements FactoryBean<Dialect>
 {

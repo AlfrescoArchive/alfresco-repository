@@ -32,8 +32,7 @@ import java.sql.Types;
  * <code>Oracle9Dialect</code> for good reason: Hibernate ceased supporting
  * <b>right outer join</b> in the <code>Oracle9iDialect</code>.
  * 
- * @author Derek Hulley
- * @since 2.2.2
+ * @since 6.0
  */
 public class Oracle9Dialect extends Dialect
 {

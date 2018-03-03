@@ -61,7 +61,9 @@ import java.util.Iterator;
  * </pre>
  *
  * Class copied from patched hibernate 3.2.6
+ * @since 6.0
  */
+@SuppressWarnings({"rawtypes", "unchecked"})
 public class TypeNames {
 
     private HashMap weighted = new HashMap();

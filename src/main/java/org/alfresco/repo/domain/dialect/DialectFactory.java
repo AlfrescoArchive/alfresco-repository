@@ -31,12 +31,15 @@ import org.alfresco.error.AlfrescoRuntimeException;
 
 /**
  * A factory for generating Dialect instances.
+ * <p>
+ * This class is an Alfresco-specific version of the Hibernate class with the same name.
  *
  * @author Steve Ebersole
  * @author Alfresco
+ * @since 6.0
  */
-public class DialectFactory {
-
+public class DialectFactory
+{
     /**
      * Builds an appropriate Dialect instance.
      * <p/>

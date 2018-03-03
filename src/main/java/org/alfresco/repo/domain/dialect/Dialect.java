@@ -27,6 +27,8 @@ package org.alfresco.repo.domain.dialect;
 
 /**
  * Class partially copied from patched hibernate 3.2.6
+ * 
+ * @since 6.0
  */
 public class Dialect
 {

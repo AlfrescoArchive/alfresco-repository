@@ -27,6 +27,9 @@ package org.alfresco.repo.domain.dialect;
 
 import java.sql.Types;
 
+/**
+ * @since 6.0
+ */
 public class PostgreSQLDialect extends Dialect
 {
     public PostgreSQLDialect()
