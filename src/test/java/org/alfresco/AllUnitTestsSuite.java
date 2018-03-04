@@ -45,7 +45,7 @@ import org.junit.runners.Suite;
     org.alfresco.filesys.repo.CIFSContentComparatorTest.class,
     org.alfresco.filesys.repo.rules.ShuffleTest.class,
     org.alfresco.repo.admin.Log4JHierarchyInitTest.class,
-//    org.alfresco.repo.attributes.PropTablesCleanupJobTest.class,
+    org.alfresco.repo.attributes.PropTablesCleanupJobTest.class,
     org.alfresco.repo.cache.DefaultCacheFactoryTest.class,
     org.alfresco.repo.cache.DefaultSimpleCacheTest.class,
     org.alfresco.repo.cache.lookup.EntityLookupCacheTest.class,
