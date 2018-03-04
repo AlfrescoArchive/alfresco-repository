@@ -97,6 +97,7 @@ public class HeartBeatJobTest
         jobDataMap.put("jobLockService", mockJobLockService);
         JobDetail jobDetail = JobBuilder.newJob()
                 .setJobData(jobDataMap)
+                .ofType(HeartBeatJob.class)
                 .build();
         when(mockJobExecutionContext.getJobDetail()).thenReturn(jobDetail);
 
@@ -169,6 +170,7 @@ public class HeartBeatJobTest
         jobDataMap.put("jobLockService", mockJobLockService);
         JobDetail jobDetail = JobBuilder.newJob()
                 .setJobData(jobDataMap)
+                .ofType(HeartBeatJob.class)
                 .build();
         when(mockJobExecutionContext.getJobDetail()).thenReturn(jobDetail);
 
