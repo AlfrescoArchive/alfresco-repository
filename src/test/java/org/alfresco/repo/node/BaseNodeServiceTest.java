@@ -45,8 +45,6 @@ import org.alfresco.repo.content.MimetypeMap;
 import org.alfresco.repo.dictionary.DictionaryComponent;
 import org.alfresco.repo.dictionary.DictionaryDAO;
 import org.alfresco.repo.dictionary.M2Model;
-import org.alfresco.repo.domain.dialect.DB2Dialect;
-import org.alfresco.repo.domain.dialect.Dialect;
 import org.alfresco.repo.node.NodeServicePolicies.BeforeDeleteNodePolicy;
 import org.alfresco.repo.node.NodeServicePolicies.OnDeleteNodePolicy;
 import org.alfresco.repo.node.encryption.MetadataEncryptor;
@@ -91,13 +89,6 @@ import org.springframework.extensions.surf.util.I18NUtil;
 import org.springframework.test.annotation.Commit;
 import org.springframework.test.context.transaction.TestTransaction;
 import org.springframework.transaction.annotation.Transactional;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
 
 /**
  * Provides a base set of tests of the various {@link org.alfresco.service.cmr.repository.NodeService}
@@ -191,7 +182,6 @@ public abstract class BaseNodeServiceTest extends BaseSpringTest
     protected AuthenticationComponent authenticationComponent;
     protected NodeService nodeService;
     protected MetadataEncryptor metadataEncryptor;
-    protected Dialect dialect;
     /** populated during setup */
     protected NodeRef rootNodeRef;
     private NodeRef cat;
@@ -199,7 +189,6 @@ public abstract class BaseNodeServiceTest extends BaseSpringTest
     @Before
     public void before()
     {
-        dialect = (Dialect) applicationContext.getBean("dialect");
         metadataEncryptor = (MetadataEncryptor) applicationContext.getBean("metadataEncryptor");
         
         transactionService = (TransactionService) applicationContext.getBean("transactionComponent");
@@ -452,10 +441,6 @@ public abstract class BaseNodeServiceTest extends BaseSpringTest
         assoc = nodeService.addChild(n1, n8, ASSOC_TYPE_QNAME_TEST_CHILDREN, qname);
         ret.put(qname, assoc);
 
-//        // flush and clear
-//        getSession().flush();
-//        getSession().clear();
-        
         // done
         return ret;
     }
@@ -913,6 +898,7 @@ public abstract class BaseNodeServiceTest extends BaseSpringTest
     
     /**
      * Test <a href="https://issues.alfresco.com/jira/browse/ALFCOM-2299">ALFCOM-2299</a>
+     * <p>Needs to be committed for good measure</p>
      */
     @Commit
     @Test
@@ -937,8 +923,6 @@ public abstract class BaseNodeServiceTest extends BaseSpringTest
         // Now remove the aspect from the source node and check that the target node was cascade-deleted
         nodeService.removeAspect(sourceNodeRef, ASPECT_WITH_ASSOCIATIONS);
         assertFalse("Child node must have been cascade-deleted", nodeService.exists(targetNodeRef));
-        
-        // Commit for good measure
     }
     
     private static final QName ASPECT_QNAME_TEST_RENDERED = QName.createQName(NAMESPACE, "rendered");
@@ -1049,14 +1033,7 @@ public abstract class BaseNodeServiceTest extends BaseSpringTest
         StringBuilder sb = new StringBuilder(2056);
         for (int i = 0; i < 1024; i++)
         {
-            if (dialect instanceof DB2Dialect)
-            {
-                sb.append("A"); // pending ALF-4300
-            }
-            else
-            {
-                sb.append("\u1234");
-            }
+            sb.append("\u1234");
         }
         String longString = sb.toString();
         int len = longString.length();
@@ -1609,10 +1586,6 @@ public abstract class BaseNodeServiceTest extends BaseSpringTest
         nodeService.setProperty(nodeRef, qnameProperty3, null);
         // set an enum property
         nodeService.setProperty(nodeRef, qnameProperty4, TestEnum.TEST_ONE);
-        
-        // force a flush
-//        getSession().flush();
-//        getSession().clear();
         
         // now get them back
         Map<QName, Serializable> checkMap = nodeService.getProperties(nodeRef);
@@ -2282,9 +2255,6 @@ public abstract class BaseNodeServiceTest extends BaseSpringTest
         // Check the properties again
         checkProperties = nodeService.getProperties(nodeRef);
         checkProperties(checkProperties, expectedProperties);
-        
-//        setComplete();
-//        endTransaction();
     }
     
     /**
@@ -2506,9 +2476,6 @@ public abstract class BaseNodeServiceTest extends BaseSpringTest
 //        Map<QName, Serializable> propsCheck = nodeService.getProperties(rootNodeRef);
 //        assertEquals("Residual properties not present and equal. ", props, propsCheck);
 //        assertTrue("Expect residual aspect to be present.", nodeService.hasAspect(rootNodeRef, ASPECT_RESIDUAL));
-//        
-//        setComplete();
-//        endTransaction();
     }
 
     @Test
@@ -2911,9 +2878,6 @@ public abstract class BaseNodeServiceTest extends BaseSpringTest
             // Remove one of the targets
             targetNodeRefs.remove(0);
         }
-        
-//        setComplete();
-//        endTransaction();
     }
 
     /**
