@@ -128,11 +128,7 @@ public class SchemaBootstrap extends AbstractLifecycleBean
     private static final String MSG_EXECUTING_COPIED_SCRIPT = "schema.update.msg.executing_copied_script";
     private static final String MSG_EXECUTING_STATEMENT = "schema.update.msg.executing_statement";
     private static final String MSG_OPTIONAL_STATEMENT_FAILED = "schema.update.msg.optional_statement_failed";
-    private static final String WARN_DIALECT_UNSUPPORTED = "schema.update.warn.dialect_unsupported";
-    private static final String WARN_DIALECT_HSQL = "schema.update.warn.dialect_hsql";
-    private static final String WARN_DIALECT_DERBY = "schema.update.warn.dialect_derby";
     private static final String ERR_FORCED_STOP = "schema.update.err.forced_stop";
-    private static final String ERR_DIALECT_SHOULD_USE = "schema.update.err.dialect_should_use";
     private static final String ERR_MULTIPLE_SCHEMAS = "schema.update.err.found_multiple";
     private static final String ERR_PREVIOUS_FAILED_BOOTSTRAP = "schema.update.err.previous_failed";
     private static final String ERR_STATEMENT_FAILED = "schema.update.err.statement_failed";
