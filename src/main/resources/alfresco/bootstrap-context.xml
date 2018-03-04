@@ -50,9 +50,6 @@
 
 
     <bean id="databaseMetaDataHelper" class="org.alfresco.util.DatabaseMetaDataHelper">
-       <!--<property name="localSessionFactory">-->
-          <!--<ref bean="&amp;sessionFactory"></ref>  &lt;!&ndash; inject the actual factory, not a session &ndash;&gt;-->
-       <!--</property>-->
     </bean>
 
     <!-- ensure that the schema is bootstrapped -->
@@ -66,9 +63,6 @@
        <property name="appliedPatchDAO">
           <ref bean="appliedPatchDAO"/>
        </property>
-       <!--<property name="localSessionFactory">-->
-          <!--<ref bean="&amp;sessionFactory"></ref>  &lt;!&ndash; inject the actual factory, not a session &ndash;&gt;-->
-       <!--</property>-->
        <property name="descriptorService">
           <ref bean="descriptorComponent"/>
        </property>
@@ -78,9 +72,6 @@
        <property name="maximumStringLength">
           <value>${system.maximumStringLength}</value>
        </property>
-       <!--<property name="hibernateMaxExecutions">-->
-          <!--<value>${system.hibernateMaxExecutions}</value>-->
-       <!--</property>-->
        <property name="dbSchemaName">
           <value>${db.schema.name}</value>
        </property>
