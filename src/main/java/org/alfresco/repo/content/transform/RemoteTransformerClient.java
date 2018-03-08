@@ -54,6 +54,8 @@ import java.util.StringJoiner;
  * Client class that transfers content (from a ContentReader) to a remote transformation agent together with
  * request parameters that will be used to transform the content. The transformed content is then returned and
  * saved in a ContentWriter. In the event of an error an Exception is thrown.
+ *
+ * @since 6.0
  */
 public class RemoteTransformerClient
 {
