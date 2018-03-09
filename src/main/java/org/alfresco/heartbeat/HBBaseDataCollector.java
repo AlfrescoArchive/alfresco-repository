@@ -2,7 +2,7 @@
  * #%L
  * Alfresco Repository
  * %%
- * Copyright (C) 2005 - 2017 Alfresco Software Limited
+ * Copyright (C) 2005 - 2018 Alfresco Software Limited
  * %%
  * This file is part of the Alfresco software. 
  * If the software was purchased under a paid Alfresco license, the terms of 
@@ -34,7 +34,10 @@ import org.alfresco.util.PropertyCheck;
 /**
  *
  * This class is to be extended by HeartBeat data collectors.
-  *
+ * Every new collector needs to document exactly what kind of data they collecting. As good examples use one
+ * of the existing collectors {@link AuthoritiesDataCollector}, {@link ConfigurationDataCollector},
+ * {@link InfoDataCollector}, {@link ModelUsageDataCollector}, {@link SystemUsageDataCollector}
+ *
  * @author eknizat
  */
 public abstract class HBBaseDataCollector

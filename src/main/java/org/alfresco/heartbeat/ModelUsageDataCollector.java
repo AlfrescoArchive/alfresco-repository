@@ -38,11 +38,17 @@ import org.springframework.beans.factory.InitializingBean;
 import java.util.*;
 
 /**
- * This class collects model usage data for HeartBeat.
- * <br>
- * <b>Collector ID:</b> acs.repository.usage.model
- * <br>
- * <b>Data points:</b> numOfActiveModels, numOfActiveTypes, numOfActiveAspects
+ * A collector of data related to the data models being used.
+ * <ul>
+ *  <li>Collector ID: <b>acs.repository.usage.model</b></li>
+ *  <li>Data:
+ *      <ul>
+ *          <li><b>numOfActiveModels:</b> Int number of active models. {@link CustomModelsInfo#getNumberOfActiveModels()}</li>
+ *          <li><b>numOfActiveTypes:</b> Int number of active types. {@link CustomModelsInfo#getNumberOfActiveTypes()}</li>
+ *          <li><b>numOfActiveAspects:</b> Int number of active aspects. {@link CustomModelsInfo#getNumberOfActiveAspects()}</li>
+ *      </ul>
+ *  </li>
+ * </ul>
  *
  * @author eknizat
  */

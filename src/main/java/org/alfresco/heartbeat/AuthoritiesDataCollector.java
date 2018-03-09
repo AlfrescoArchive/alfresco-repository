@@ -37,12 +37,16 @@ import org.springframework.beans.factory.InitializingBean;
 import java.util.*;
 
 /**
- * This class collects authorities data for HBDataCollectorService.
- * <br>
- * <b>Collector ID:</b> acs.repository.usage.authorities
- * <br>
- * <b>Data points:</b> numUsers, numGroups
- *
+ * A collector of data related authorities. The AuthorityService encapsulates authorities granted to users.
+ * <ul>
+ *  <li>Collector ID: <b>acs.repository.usage.authorities</b></li>
+ *  <li>Data:
+ *      <ul>
+ *          <li><b>numUsers:</b> Integer number which gets the number of all users in a zone. {@link AuthorityService#getAllAuthoritiesInZone(String zoneName, AuthorityType USER)}</li>
+ *          <li><b>numGroups:</b> Integer number which gets the number of all groups in a zone. {@link AuthorityService#getAllAuthoritiesInZone(String zoneName, AuthorityType GROUP)}</li>
+ *      </ul>
+ *  </li>
+ * </ul>
  * @author eknizat
  */
 public class AuthoritiesDataCollector extends HBBaseDataCollector implements InitializingBean
