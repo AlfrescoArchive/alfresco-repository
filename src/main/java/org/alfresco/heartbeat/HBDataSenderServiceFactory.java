@@ -29,6 +29,8 @@ import org.alfresco.heartbeat.datasender.HBDataSenderServiceBuilder;
 import org.alfresco.heartbeat.datasender.HBDataSenderService;
 
 /**
+ * Creates and configures a {@link HBDataSenderService}
+ *
  * @author Ancuta Morarasu
  *
  */
@@ -37,22 +39,42 @@ public class HBDataSenderServiceFactory
     private String target;
     private boolean heartbeatEnabled;
     private String sendingSchedule;
-    
+
+    /**
+     * Sets the ingestion url for the heartbeat data
+     *
+     * @param target valid url
+     */
     public void setTarget(String target)
     {
         this.target = target;
     }
-    
+
+    /**
+     * Enables or stops gathering and sending heartbeat data
+     *
+     * @param heartbeatEnabled
+     */
     public void setHeartbeatEnabled(boolean heartbeatEnabled)
     {
         this.heartbeatEnabled = heartbeatEnabled;
     }
-    
+
+    /**
+     * Sets the cron trigger expression for scheduling the heartbeat job.
+     *
+     * @param sendingSchedule
+     */
     public void setSendingSchedule(String sendingSchedule)
     {
         this.sendingSchedule = sendingSchedule;
     }
 
+    /**
+     * Creates the HBDataSenderService
+     *
+     * @return
+     */
     public HBDataSenderService createInstance() 
     {
         return HBDataSenderServiceBuilder.builder()

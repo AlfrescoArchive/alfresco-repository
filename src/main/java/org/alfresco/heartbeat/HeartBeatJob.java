@@ -59,6 +59,7 @@ public class HeartBeatJob implements Job
     public static final String JOB_LOCK_SERVICE_KEY = "jobLockService";
 
 
+    @Override
     public void execute(final JobExecutionContext jobexecutioncontext) throws JobExecutionException
     {
         final JobDataMap dataMap = jobexecutioncontext.getJobDetail().getJobDataMap();

@@ -48,6 +48,12 @@ public abstract class HBBaseDataCollector
      */
     private HBDataCollectorService hbDataCollectorService;
 
+    /**
+     *
+     * @param collectorId Unique name of the collector e.g.: acs.repository.info
+     * @param collectorVersion Version of the collector e.g.: 1.0
+     * @param cronExpression Cron expression for frequently time scheduling e.g.: "0 0 0 ? * SUN" (Weekly)
+     */
     public HBBaseDataCollector(String collectorId, String collectorVersion, String cronExpression)
     {
         PropertyCheck.mandatory(this, "collectorId", collectorId);
@@ -88,6 +94,9 @@ public abstract class HBBaseDataCollector
         hbDataCollectorService.registerCollector(this);
     }
 
+    /**
+     * This method is called by Spring at initialisation and will deregister this collector with the provided {@link HBDataCollectorService}
+     */
     public void deregister()
     {
         PropertyCheck.mandatory(this, "hbDataCollectorService", hbDataCollectorService);

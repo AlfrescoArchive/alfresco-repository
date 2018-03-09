@@ -34,6 +34,15 @@ import org.springframework.beans.factory.InitializingBean;
 
 import java.util.*;
 
+/**
+ * This class collects system usage data for HeartBeat.
+ * <br>
+ * <b>Collector ID:</b> acs.repository.usage.system
+ * <br>
+ * <b>Data points:</b> memFree, memMax, memTotal
+ *
+ * @author eknizat
+ */
 public class SystemUsageDataCollector extends HBBaseDataCollector implements InitializingBean
 {
     /** The logger. */

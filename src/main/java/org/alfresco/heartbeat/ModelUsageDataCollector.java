@@ -37,6 +37,15 @@ import org.springframework.beans.factory.InitializingBean;
 
 import java.util.*;
 
+/**
+ * This class collects model usage data for HeartBeat.
+ * <br>
+ * <b>Collector ID:</b> acs.repository.usage.model
+ * <br>
+ * <b>Data points:</b> numOfActiveModels, numOfActiveTypes, numOfActiveAspects
+ *
+ * @author eknizat
+ */
 public class ModelUsageDataCollector extends HBBaseDataCollector implements InitializingBean
 {
     /** The logger. */
