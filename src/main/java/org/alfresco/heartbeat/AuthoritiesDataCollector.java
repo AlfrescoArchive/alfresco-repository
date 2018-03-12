@@ -42,11 +42,12 @@ import java.util.*;
  *  <li>Collector ID: <b>acs.repository.usage.authorities</b></li>
  *  <li>Data:
  *      <ul>
- *          <li><b>numUsers:</b> Integer - The total number of users in the system. {@link AuthorityService#getAllAuthoritiesInZone(String zoneName, AuthorityType USER)}</li>
- *          <li><b>numGroups:</b> Integer - The total number of groups in the system. {@link AuthorityService#getAllAuthoritiesInZone(String zoneName, AuthorityType GROUP)}</li>
+ *          <li><b>numUsers:</b> Integer - The total number of users in the system. {@link AuthorityService#getAllAuthoritiesInZone(String, AuthorityType)}</li>
+ *          <li><b>numGroups:</b> Integer - The total number of groups in the system. {@link AuthorityService#getAllAuthoritiesInZone(String, AuthorityType)}</li>
  *      </ul>
  *  </li>
  * </ul>
+ *
  * @author eknizat
  */
 public class AuthoritiesDataCollector extends HBBaseDataCollector implements InitializingBean

@@ -48,6 +48,7 @@ import java.util.*;
  *      </ul>
  *  </li>
  * </ul>
+ *
  * @author eknizat
  */
 public class SystemUsageDataCollector extends HBBaseDataCollector implements InitializingBean
