@@ -34,7 +34,7 @@ import org.alfresco.util.PropertyCheck;
 /**
  *
  * This class is to be extended by HeartBeat data collectors.
- * Every new collector needs to document exactly what kind of data they collecting. As good examples use one
+ * Every new collector needs to provide details of the data it collects.. As good examples use one
  * of the existing collectors {@link AuthoritiesDataCollector}, {@link ConfigurationDataCollector},
  * {@link InfoDataCollector}, {@link ModelUsageDataCollector}, {@link SystemUsageDataCollector}
  *

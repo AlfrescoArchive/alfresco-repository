@@ -2,7 +2,7 @@
  * #%L
  * Alfresco Repository
  * %%
- * Copyright (C) 2005 - 2017 Alfresco Software Limited
+ * Copyright (C) 2005 - 2018 Alfresco Software Limited
  * %%
  * This file is part of the Alfresco software.
  * If the software was purchased under a paid Alfresco license, the terms of
@@ -45,7 +45,7 @@ import org.springframework.beans.factory.InitializingBean;
  *  <li>Collector ID: <b>acs.repository.configuration</b></li>
  *  <li>Data:
  *      <ul>
- *          <li><b>smartFoldersEnabled:</b> Boolean which returns whether smart folder is registered or not. {@link SpringExtensionBundle#isEnabled()}</li>
+ *          <li><b>smartFoldersEnabled:</b> Boolean - Smart folder is registered or not. {@link SpringExtensionBundle#isEnabled()}</li>
  *      </ul>
  *  </li>
  * </ul>

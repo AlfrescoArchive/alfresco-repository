@@ -2,7 +2,7 @@
  * #%L
  * Alfresco Repository
  * %%
- * Copyright (C) 2005 - 2017 Alfresco Software Limited
+ * Copyright (C) 2005 - 2018 Alfresco Software Limited
  * %%
  * This file is part of the Alfresco software.
  * If the software was purchased under a paid Alfresco license, the terms of
@@ -42,8 +42,8 @@ import java.util.*;
  *  <li>Collector ID: <b>acs.repository.usage.authorities</b></li>
  *  <li>Data:
  *      <ul>
- *          <li><b>numUsers:</b> Integer number which gets the number of all users in a zone. {@link AuthorityService#getAllAuthoritiesInZone(String zoneName, AuthorityType USER)}</li>
- *          <li><b>numGroups:</b> Integer number which gets the number of all groups in a zone. {@link AuthorityService#getAllAuthoritiesInZone(String zoneName, AuthorityType GROUP)}</li>
+ *          <li><b>numUsers:</b> Integer - The total number of users in the system. {@link AuthorityService#getAllAuthoritiesInZone(String zoneName, AuthorityType USER)}</li>
+ *          <li><b>numGroups:</b> Integer - The total number of groups in the system. {@link AuthorityService#getAllAuthoritiesInZone(String zoneName, AuthorityType GROUP)}</li>
  *      </ul>
  *  </li>
  * </ul>

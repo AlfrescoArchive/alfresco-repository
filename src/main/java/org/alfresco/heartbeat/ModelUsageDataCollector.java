@@ -2,7 +2,7 @@
  * #%L
  * Alfresco Repository
  * %%
- * Copyright (C) 2005 - 2017 Alfresco Software Limited
+ * Copyright (C) 2005 - 2018 Alfresco Software Limited
  * %%
  * This file is part of the Alfresco software.
  * If the software was purchased under a paid Alfresco license, the terms of
@@ -43,9 +43,9 @@ import java.util.*;
  *  <li>Collector ID: <b>acs.repository.usage.model</b></li>
  *  <li>Data:
  *      <ul>
- *          <li><b>numOfActiveModels:</b> Int number of active models. {@link CustomModelsInfo#getNumberOfActiveModels()}</li>
- *          <li><b>numOfActiveTypes:</b> Int number of active types. {@link CustomModelsInfo#getNumberOfActiveTypes()}</li>
- *          <li><b>numOfActiveAspects:</b> Int number of active aspects. {@link CustomModelsInfo#getNumberOfActiveAspects()}</li>
+ *          <li><b>numOfActiveModels:</b> Int - Number of active models. {@link CustomModelsInfo#getNumberOfActiveModels()}</li>
+ *          <li><b>numOfActiveTypes:</b> Int - Number of active types. {@link CustomModelsInfo#getNumberOfActiveTypes()}</li>
+ *          <li><b>numOfActiveAspects:</b> Int - Number of active aspects. {@link CustomModelsInfo#getNumberOfActiveAspects()}</li>
  *      </ul>
  *  </li>
  * </ul>
