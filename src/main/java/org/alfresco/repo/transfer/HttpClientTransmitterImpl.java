@@ -725,7 +725,7 @@ public class HttpClientTransmitterImpl implements TransferTransmitter
 
                 if(statusObj.has("error"))
                 {
-                    String errorJSON = statusObj.get("error").toString();
+                    String errorJSON = statusObj.get("error").textValue();
                     Throwable throwable = rehydrateError(errorJSON);
                     p.setError(throwable);
                 }

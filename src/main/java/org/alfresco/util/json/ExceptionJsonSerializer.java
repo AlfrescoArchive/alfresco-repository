@@ -50,7 +50,7 @@ public class ExceptionJsonSerializer implements JsonSerializer<Throwable, String
         {
             return null;
         }
-        JsonNode errorJSON = (ObjectNode) JsonUtil.getObjectMapper().readTree(errorString);
+        JsonNode errorJSON = JsonUtil.getObjectMapper().readTree(errorString);
         
         Throwable result = null;
         Object createdObject = null;
