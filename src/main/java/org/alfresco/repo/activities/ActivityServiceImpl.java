@@ -25,6 +25,8 @@
  */
 package org.alfresco.repo.activities;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -58,10 +60,9 @@ import org.alfresco.service.cmr.security.PersonService;
 import org.alfresco.service.cmr.site.SiteInfo;
 import org.alfresco.service.cmr.site.SiteService;
 import org.alfresco.service.namespace.QName;
+import org.alfresco.util.json.JsonUtil;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.json.JSONException;
-import org.json.JSONObject;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.extensions.surf.util.ParameterCheck;
 
@@ -83,7 +84,7 @@ public class ActivityServiceImpl implements ActivityService, InitializingBean
     private ActivityPostService activityPostService;
     private PersonService personService;
     private NodeService nodeService;
-    
+
     private int maxFeedItems = 100;
     
     private boolean userNamesAreCaseSensitive = false;
@@ -240,24 +241,15 @@ public class ActivityServiceImpl implements ActivityService, InitializingBean
     public List<String> getUserFeedEntries(String feedUserId, String siteId, boolean excludeThisUser, boolean excludeOtherUsers, Set<String> userFilter, Set<String> actvityFilter)
     {
         List<String> activityFeedEntries = new ArrayList<String>();
-        
-        try
+
+        List<ActivityFeedEntity> activityFeeds = getUserFeedEntries(feedUserId, siteId, excludeThisUser, excludeOtherUsers, userFilter, actvityFilter, -1);
+
+        if (activityFeeds != null)
         {
-            List<ActivityFeedEntity> activityFeeds = getUserFeedEntries(feedUserId, siteId, excludeThisUser, excludeOtherUsers, userFilter, actvityFilter, -1);
-            
-            if (activityFeeds != null)
+            for (ActivityFeedEntity activityFeed : activityFeeds)
             {
-                for (ActivityFeedEntity activityFeed : activityFeeds)
-                {
-                    activityFeedEntries.add(activityFeed.getJSONString());
-                }
+                activityFeedEntries.add(activityFeed.getJSONString());
             }
-        }
-        catch (JSONException je)
-        {    
-            AlfrescoRuntimeException are = new AlfrescoRuntimeException("Unable to get user feed entries: " + je.getMessage());
-            logger.error(are);
-            throw are;
         }
         
         return activityFeedEntries;
@@ -322,10 +314,10 @@ public class ActivityServiceImpl implements ActivityService, InitializingBean
         {
             try
             {
-                JSONObject j = new JSONObject(activityFeed.getActivitySummary());
+                JsonNode j = JsonUtil.getObjectMapper().readTree(activityFeed.getActivitySummary());
                 postUserId = j.get("memberUserName").toString();
             }
-            catch (JSONException e)
+            catch (IOException e)
             {
                 // Ignore any exceptions. This is only an attempt to prevent 304 revalidation so 
                 // the consequences of an exception are not significant, we will simply allow
@@ -604,12 +596,6 @@ public class ActivityServiceImpl implements ActivityService, InitializingBean
         catch (SQLException se)
         {
             AlfrescoRuntimeException are = new AlfrescoRuntimeException("Unable to get site feed entries: " + se.getMessage());
-            logger.error(are);
-            throw are;
-        }
-        catch (JSONException je)
-        {    
-            AlfrescoRuntimeException are = new AlfrescoRuntimeException("Unable to get site feed entries: " + je.getMessage());
             logger.error(are);
             throw are;
         }

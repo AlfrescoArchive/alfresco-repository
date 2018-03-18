@@ -25,6 +25,9 @@
  */
 package org.alfresco.repo.preference;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Date;
@@ -62,10 +65,9 @@ import org.alfresco.traitextender.Extensible;
 import org.alfresco.traitextender.Trait;
 import org.alfresco.util.ISO8601DateFormat;
 import org.alfresco.util.Pair;
+import org.alfresco.util.json.JsonUtil;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.json.JSONException;
-import org.json.JSONObject;
 
 /**
  * Preference Service Implementation
@@ -145,9 +147,9 @@ public class PreferenceServiceImpl implements PreferenceService, Extensible
         return getPreferences(userName, null);
     }
     
-    private JSONObject getPreferencesObject(String userName) throws JSONException
+    private String getPreferencesObject(String userName)
     {
-        JSONObject jsonPrefs = null;
+        String jsonPrefs = null;
 
         // Get the user node reference
         NodeRef personNodeRef = this.personService.getPerson(userName);
@@ -171,7 +173,7 @@ public class PreferenceServiceImpl implements PreferenceService, Extensible
                         ContentModel.PROP_PREFERENCE_VALUES);
                 if (reader != null)
                 {
-                    jsonPrefs = new JSONObject(reader.getContentString());
+                    jsonPrefs = reader.getContentString();
                 }
             }
         }
@@ -191,16 +193,17 @@ public class PreferenceServiceImpl implements PreferenceService, Extensible
         String preferenceValue = null;
         try
         {
-            JSONObject jsonPrefs = getPreferencesObject(userName);
+            String jsonPrefs = getPreferencesObject(userName);
             if(jsonPrefs != null)
             {
-                if(jsonPrefs.has(preferenceName))
+                JsonNode jsonNode = JsonUtil.getObjectMapper().readTree(jsonPrefs);
+                if(jsonNode.has(preferenceName))
                 {
-                    preferenceValue = jsonPrefs.getString(preferenceName);
+                    preferenceValue = jsonNode.get(preferenceName).textValue();
                 }
             }
         }
-        catch (JSONException exception)
+        catch (IOException exception)
         {
             throw new AlfrescoRuntimeException("Can not get preferences for " + userName + " because there was an error pasing the JSON data.", exception);
         }
@@ -220,11 +223,12 @@ public class PreferenceServiceImpl implements PreferenceService, Extensible
         
         try
         {
-            JSONObject jsonPrefs = getPreferencesObject(userName);
-            if(jsonPrefs != null)
+            String jsonString = getPreferencesObject(userName);
+            if(jsonString != null)
             {
+                JsonNode jsonPrefs = JsonUtil.getObjectMapper().readTree(jsonString);
                 // Build hash from preferences stored in the repository
-                Iterator<String> keys = jsonPrefs.keys();
+                Iterator<String> keys = jsonPrefs.fieldNames();
                 while (keys.hasNext())
                 {
                     String key = (String)keys.next();
@@ -272,7 +276,7 @@ public class PreferenceServiceImpl implements PreferenceService, Extensible
                 }
             }
         }
-        catch (JSONException exception)
+        catch (IOException exception)
         {
             throw new AlfrescoRuntimeException("Can not get preferences for " + userName + " because there was an error parsing the JSON data.", exception);
         }
@@ -408,12 +412,16 @@ public class PreferenceServiceImpl implements PreferenceService, Extensible
                     try
                     {
                         // Get the current preferences
-                        JSONObject jsonPrefs = new JSONObject();
+                        ObjectNode jsonPrefs = null;
                         ContentReader reader = PreferenceServiceImpl.this.contentService.getReader(personNodeRef,
                                 ContentModel.PROP_PREFERENCE_VALUES);
                         if (reader != null)
                         {
-                            jsonPrefs = new JSONObject(reader.getContentString());
+                            jsonPrefs = (ObjectNode) JsonUtil.getObjectMapper().readTree(reader.getContentString());
+                        }
+                        else
+                        {
+                            jsonPrefs = JsonUtil.getObjectMapper().createObjectNode();
                         }
 
                         // Update with the new preference values
@@ -452,7 +460,7 @@ public class PreferenceServiceImpl implements PreferenceService, Extensible
                                 Date date = new Date();
                                 value = ISO8601DateFormat.format(date);
                             }
-                            jsonPrefs.put(key, value);
+                            jsonPrefs.put(key, value == null ? null : value.toString());
                         }
 
                         // Save the updated preferences
@@ -462,7 +470,7 @@ public class PreferenceServiceImpl implements PreferenceService, Extensible
                         contentWriter.setMimetype(MimetypeMap.MIMETYPE_TEXT_PLAIN);
                         contentWriter.putContent(jsonPrefs.toString());
                     }
-                    catch (JSONException exception)
+                    catch (IOException exception)
                     {
                         throw new AlfrescoRuntimeException("Can not update preferences for " + userName
                                 + " because there was an error pasing the JSON data.", exception);
@@ -510,7 +518,7 @@ public class PreferenceServiceImpl implements PreferenceService, Extensible
                     {
                         try
                         {
-                            JSONObject jsonPrefs = new JSONObject();
+                            ObjectNode jsonPrefs = null;
                             if (preferenceFilter != null && preferenceFilter.length() != 0)
                             {
                                 // Get the current preferences
@@ -518,13 +526,17 @@ public class PreferenceServiceImpl implements PreferenceService, Extensible
                                         personNodeRef, ContentModel.PROP_PREFERENCE_VALUES);
                                 if (reader != null)
                                 {
-                                    jsonPrefs = new JSONObject(reader.getContentString());
+                                    jsonPrefs = (ObjectNode) JsonUtil.getObjectMapper().readTree(reader.getContentString());
+                                }
+                                else
+                                {
+                                    jsonPrefs = JsonUtil.getObjectMapper().createObjectNode();
                                 }
 
                                 // Remove the prefs that match the filter
                                 List<String> removeKeys = new ArrayList<String>(10);
                                 @SuppressWarnings("unchecked")
-                                Iterator<String> keys = jsonPrefs.keys();
+                                Iterator<String> keys = jsonPrefs.fieldNames();
                                 while (keys.hasNext())
                                 {
                                     final String key = (String) keys.next();
@@ -548,7 +560,7 @@ public class PreferenceServiceImpl implements PreferenceService, Extensible
                             contentWriter.setMimetype(MimetypeMap.MIMETYPE_TEXT_PLAIN);
                             contentWriter.putContent(jsonPrefs.toString());
                         }
-                        catch (JSONException exception)
+                        catch (IOException exception)
                         {
                             throw new AlfrescoRuntimeException("Can not update preferences for " + userName
                                     + " because there was an error pasing the JSON data.", exception);

@@ -26,6 +26,8 @@
 
 package org.alfresco.util.json;
 
+import java.io.IOException;
+
 /**
  * An interface for converting objects of a specified type (T) into a serialized
  * Json format (of type S).
@@ -35,7 +37,7 @@ package org.alfresco.util.json;
 public interface JsonSerializer<T, S>
 {
 
-    S serialize(T object);
+    S serialize(T object) throws IOException;
 
-    T deserialize(S object);
+    T deserialize(S object) throws IOException;
 }

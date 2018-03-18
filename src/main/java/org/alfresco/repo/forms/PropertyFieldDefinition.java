@@ -25,16 +25,12 @@
  */
 package org.alfresco.repo.forms;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
 import org.alfresco.repo.dictionary.IndexTokenisationMode;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
 
 /**
  * A property field definition.
@@ -242,48 +238,6 @@ public class PropertyFieldDefinition extends FieldDefinition
         public Map<String, Object> getParameters()
         {
             return this.params;
-        }
-        
-        /**
-         * Returns the paramters for the constraint as a JSONObject
-         * 
-         * @return JSONObject representation of the parameters
-         */
-        @SuppressWarnings("unchecked")
-        public JSONObject getParametersAsJSON()
-        {
-            JSONObject result = null;
-            
-            if (this.params != null)
-            {
-                result = new JSONObject();
-                
-                for (String name : this.params.keySet())
-                {
-                    try
-                    {
-                        Object value = this.params.get(name);
-                        if (value instanceof Collection)
-                        {
-                            // if the value is a Collection add to JSONObject as a JSONArray
-                            result.put(name, new JSONArray((Collection)value));
-                        }
-                        else
-                        {
-                            result.put(name, value);
-                        }
-                    }
-                    catch (JSONException je)
-                    {
-                        // just log a warning
-                        if (logger.isWarnEnabled())
-                            logger.warn("Failed to add constraint parameter '" + name +
-                                        "' to JSON object.", je);
-                    }
-                }
-            }
-            
-            return result;
         }
     }
 }

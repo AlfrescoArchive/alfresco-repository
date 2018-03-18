@@ -31,6 +31,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -72,12 +73,12 @@ import org.alfresco.service.namespace.NamespaceService;
 import org.alfresco.service.namespace.QName;
 import org.alfresco.util.GUID;
 import org.alfresco.util.PropertyMap;
+import org.alfresco.util.json.JsonUtil;
 import org.alfresco.util.test.junitrules.AlfrescoPerson;
 import org.alfresco.util.test.junitrules.ApplicationContextInit;
 import org.alfresco.util.test.junitrules.RunAsFullyAuthenticatedRule;
 import org.alfresco.util.test.junitrules.TemporaryNodes;
 import org.alfresco.util.test.junitrules.TemporarySites;
-import org.json.JSONObject;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
@@ -228,8 +229,8 @@ public class CommentsTest
                         if ("comments".equals(activityPostEntry.getAppTool()))
                         {
                             String activityData = activityPostEntry.getActivityData();
-                            JSONObject json = new JSONObject(activityData);
-                            activityNodeRef = (String) json.get("nodeRef");
+                            JsonNode json = JsonUtil.getObjectMapper().readTree(activityData);
+                            activityNodeRef = json.get("nodeRef").textValue();
                         }
                     }
 

@@ -25,6 +25,7 @@
  */
 package org.alfresco.repo.jscript;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import java.text.MessageFormat;
 
 import org.alfresco.repo.jscript.app.JSONConversionComponent;
@@ -59,7 +60,7 @@ public final class ApplicationScriptUtils extends BaseScopableProcessorExtension
      * @param node the node to convert to JSON representation.
      * @return The JSON representation of this node
      */
-    public String toJSON(ScriptNode node)
+    public String toJSON(ScriptNode node) throws JsonProcessingException
     {
         return this.toJSON(node, false);
     }
@@ -71,7 +72,7 @@ public final class ApplicationScriptUtils extends BaseScopableProcessorExtension
      * @param useShortQNames if true short-form qnames will be returned, else long-form.
      * @return The JSON representation of this node
      */
-    public String toJSON(ScriptNode node, boolean useShortQNames)
+    public String toJSON(ScriptNode node, boolean useShortQNames) throws JsonProcessingException
     {
         return jsonConversionComponent.toJSON(node.getNodeRef(), useShortQNames);        
     }

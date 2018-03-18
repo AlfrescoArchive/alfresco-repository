@@ -25,7 +25,9 @@
  */
 package org.alfresco.repo.search.impl.solr.facet.facetsresponse;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**

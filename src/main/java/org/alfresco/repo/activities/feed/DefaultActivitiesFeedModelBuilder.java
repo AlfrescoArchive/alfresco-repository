@@ -25,6 +25,7 @@
  */
 package org.alfresco.repo.activities.feed;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -33,7 +34,6 @@ import java.util.Map;
 import java.util.Set;
 
 import org.alfresco.repo.domain.activities.ActivityFeedEntity;
-import org.json.JSONException;
 
 /**
  * @since 4.0
@@ -67,7 +67,7 @@ public class DefaultActivitiesFeedModelBuilder implements ActivitiesFeedModelBui
     }
 
     @Override
-    public void addActivityFeedEntry(ActivityFeedEntity feedEntry) throws JSONException
+    public void addActivityFeedEntry(ActivityFeedEntity feedEntry) throws IOException
     {
         if (ignore(feedEntry) == true) 
         {

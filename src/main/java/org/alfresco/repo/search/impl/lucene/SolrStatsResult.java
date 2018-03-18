@@ -25,16 +25,16 @@
  */
 package org.alfresco.repo.search.impl.lucene;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
-
 import org.alfresco.service.cmr.search.StatsResultSet;
 import org.alfresco.service.cmr.search.StatsResultStat;
+import org.alfresco.util.json.JsonUtil;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
 import org.springframework.util.StringUtils;
 
 /**
@@ -59,7 +59,7 @@ public class SolrStatsResult implements JSONResult, StatsResultSet
     private List<StatsResultStat> stats;
     private boolean nameIsADate;
     
-    public SolrStatsResult(JSONObject json, boolean nameIsADate)
+    public SolrStatsResult(JsonNode json, boolean nameIsADate)
     {
         try 
         {
@@ -67,7 +67,7 @@ public class SolrStatsResult implements JSONResult, StatsResultSet
             stats = new ArrayList<>();
             processJson(json);
         }
-        catch (NullPointerException | JSONException e)
+        catch (NullPointerException e)
         {
            logger.info(e.getMessage());
         }
@@ -75,17 +75,15 @@ public class SolrStatsResult implements JSONResult, StatsResultSet
     
     /**
      * Parses the json
-     * @param json JSONObject
-     * @throws JSONException
      */
-    protected void processJson(JSONObject json) throws JSONException
+    private void processJson(JsonNode json)
     {
-        JSONObject responseHeader = json.getJSONObject("responseHeader");
-        status = responseHeader.getLong("status");
-        queryTime = responseHeader.getLong("QTime");
+        JsonNode responseHeader = json.get("responseHeader");
+        status = responseHeader.get("status").longValue();
+        queryTime = responseHeader.get("QTime").longValue();
         
-        JSONObject response = json.getJSONObject("response");
-        numberFound = response.getLong("numFound");
+        JsonNode response = json.get("response");
+        numberFound = response.get("numFound").longValue();
         
         if (logger.isDebugEnabled())
         {
@@ -94,38 +92,38 @@ public class SolrStatsResult implements JSONResult, StatsResultSet
         
         if(json.has("stats"))
         {
-            JSONObject statsObj = json.getJSONObject("stats");
+            JsonNode statsObj = json.get("stats");
             if(statsObj.has("stats_fields"))
             {
-                JSONObject statsFields = statsObj.getJSONObject("stats_fields");
-                JSONArray fieldNames = statsFields.names();
-                if (fieldNames.length() == 1)
+                JsonNode statsFields = statsObj.get("stats_fields");
+                Iterator<String> fieldNames = statsFields.fieldNames();
+                if (fieldNames.hasNext())
                 {
-                    JSONObject contentsize = statsFields.getJSONObject(fieldNames.getString(0));
-                    
-                    sum = contentsize.getLong("sum");
-                    max = contentsize.getLong("max");
-                    mean = contentsize.getLong("mean");
-                    
-                    if(contentsize.has("facets"))
+                    String firstField = fieldNames.next();
+                    // should have only one object
+                    if (!fieldNames.hasNext())
                     {
-                        JSONObject facets = contentsize.getJSONObject("facets");
-                        JSONArray facetNames = facets.names();
-                        for(int i = 0; i < facetNames.length(); i++)
+                        JsonNode contentsize = statsFields.get(firstField);
+
+                        sum = contentsize.get("sum").longValue();
+                        max = contentsize.get("max").longValue();
+                        mean = contentsize.get("mean").longValue();
+
+                        if (contentsize.has("facets"))
                         {
-                            JSONObject facetType = facets.getJSONObject(String.valueOf(facetNames.get(i)));
-                            if (facetType!=null && facetType.names() != null)
+                            JsonNode facets = contentsize.get("facets");
+                            Iterator<String> facetFieldsIterator = facets.fieldNames();
+                            while (facetFieldsIterator.hasNext())
                             {
-                                JSONArray facetValues = facetType.names();
-                                for(int j = 0; j < facetValues.length(); j++)
+                                JsonNode facetType = facets.get(facetFieldsIterator.next());
+                                Iterator<String> facetValuesIterator = facetType.fieldNames();
+                                while (facetValuesIterator.hasNext())
                                 {
-                                    String name = String.valueOf(facetValues.get(j));
-                                    JSONObject facetVal = facetType.getJSONObject(name);
-                                    stats.add(processStat(name, facetVal));                          
-                                }                        
+                                    String name = facetValuesIterator.next();
+                                    JsonNode facetVal = facetType.get(name);
+                                    stats.add(processStat(name, facetVal));
+                                }
                             }
-
-
                         }
                     }
                 }
@@ -134,20 +132,16 @@ public class SolrStatsResult implements JSONResult, StatsResultSet
     }
     
     /**
-     * Proccesses an individual stat entry
-     * @param name String
-     * @param facetVal JSONObject
-     * @return Stat
-     * @throws JSONException
+     * Processes an individual stat entry
      */
-    private StatsResultStat processStat(String name, JSONObject facetVal) throws JSONException
+    private StatsResultStat processStat(String name, JsonNode facetVal)
     {
         return new StatsResultStat(nameIsADate?formatAsDate(name):name,
-                    facetVal.getLong("sum"),
-                    facetVal.getLong("count"),
-                    facetVal.getLong("min"),
-                    facetVal.getLong("max"),
-                    facetVal.getLong("mean"));
+                    facetVal.get("sum").longValue(),
+                    facetVal.get("count").longValue(),
+                    facetVal.get("min").longValue(),
+                    facetVal.get("max").longValue(),
+                    facetVal.get("mean").longValue());
     }
 
     public static String formatAsDate(String name)

@@ -11,6 +11,7 @@
       <property name="userNamesAreCaseSensitive" value="${user.name.caseSensitive}"/>
       <property name="eventPublisher" ref="eventPublisher" />
       <property name="ignoredActivityTypes" value="${activities.post.ignored-types}"/>
+      <property name="objectMapper" ref="repositoryJacksonObjectMapper"/>
    </bean>
    
    <bean id="activityService" class="org.alfresco.repo.activities.ActivityServiceImpl">
@@ -72,6 +73,7 @@
       <property name="siteService" ref="SiteService"/>
       <property name="jobLockService" ref="jobLockService"/>
       <property name="maxItemsPerCycle" value="${activities.post.lookup.maxItemsPerCycle}"/>
+      <property name="objectMapper" ref="repositoryJacksonObjectMapper"/>
    </bean>
     
    <bean id="baseFeedGenerator" class="org.alfresco.repo.activities.feed.AbstractFeedGenerator" abstract="true" init-method="init">
@@ -117,7 +119,7 @@
               <value>alfresco/templates/activities</value>
           </list>
       </property>
-      
+      <property name="objectMapper" ref="repositoryJacksonObjectMapper"/>
    </bean>
    
    <bean id="FeedTaskProcessor" class="org.springframework.aop.framework.ProxyFactoryBean">

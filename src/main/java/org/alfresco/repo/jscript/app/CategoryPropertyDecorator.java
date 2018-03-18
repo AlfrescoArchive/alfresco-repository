@@ -25,6 +25,8 @@
  */
 package org.alfresco.repo.jscript.app;
 
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.io.Serializable;
 import java.util.Collection;
 
@@ -32,11 +34,9 @@ import org.alfresco.model.ContentModel;
 import org.alfresco.service.cmr.repository.InvalidNodeRefException;
 import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.namespace.QName;
+import org.alfresco.util.json.JsonUtil;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.json.simple.JSONArray;
-import org.json.simple.JSONAware;
-import org.json.simple.JSONObject;
 
 /**
  * Category property decorator class.
@@ -51,17 +51,17 @@ public class CategoryPropertyDecorator extends BasePropertyDecorator
      * @see org.alfresco.repo.jscript.app.PropertyDecorator#decorate(org.alfresco.service.namespace.QName, org.alfresco.service.cmr.repository.NodeRef, java.io.Serializable)
      */
     @SuppressWarnings("unchecked")
-    public JSONAware decorate(QName propertyName, NodeRef nodeRef, Serializable value)
+    public String decorate(QName propertyName, NodeRef nodeRef, Serializable value)
     {
         Collection<NodeRef> collection = (Collection<NodeRef>)value;
-        JSONArray array = new JSONArray();
+        ArrayNode array = JsonUtil.getObjectMapper().createArrayNode();
 
         for (NodeRef obj : collection)
         {
             try
             {
-                JSONObject jsonObj = new JSONObject();
-                jsonObj.put("name", this.nodeService.getProperty(obj, ContentModel.PROP_NAME));
+                ObjectNode jsonObj = JsonUtil.getObjectMapper().createObjectNode();
+                jsonObj.put("name", this.nodeService.getProperty(obj, ContentModel.PROP_NAME).toString());
                 jsonObj.put("path", this.getPath(obj));
                 jsonObj.put("nodeRef", obj.toString());
                 array.add(jsonObj);
@@ -72,7 +72,7 @@ public class CategoryPropertyDecorator extends BasePropertyDecorator
             }
         }
 
-        return array;
+        return array.toString();
     }
 
     /**

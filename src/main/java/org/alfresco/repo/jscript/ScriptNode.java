@@ -25,6 +25,8 @@
  */
 package org.alfresco.repo.jscript;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -121,10 +123,9 @@ import org.alfresco.util.GUID;
 import org.alfresco.util.ISO8601DateFormat;
 import org.alfresco.util.ISO9075;
 import org.alfresco.util.Pair;
+import org.alfresco.util.json.JsonUtil;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.json.JSONException;
-import org.json.JSONObject;
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.Scriptable;
 import org.mozilla.javascript.ScriptableObject;
@@ -3486,7 +3487,7 @@ public class ScriptNode implements Scopeable, NamespacePrefixResolverProvider
        {
            if(this.services.getPublicServiceAccessService().hasAccess(ServiceRegistry.NODE_SERVICE.getLocalName(), "getProperties", this.nodeRef) == AccessStatus.ALLOWED)
            {
-               JSONObject json = new JSONObject();
+               ObjectNode json = JsonUtil.getObjectMapper().createObjectNode();
               
                try
                {
@@ -3537,11 +3538,11 @@ public class ScriptNode implements Scopeable, NamespacePrefixResolverProvider
                                    logger.debug("Ignoring property '" + nextLongQName + "' as it's namespace is not registered");
                            }
                        }
-                       json.put("properties", nodePropertiesShortQNames);
+                       json.put("properties", JsonUtil.getObjectMapper().writeValueAsString(nodePropertiesShortQNames));
                    }
                    else
                    {
-                       json.put("properties", nodeProperties);
+                       json.put("properties", JsonUtil.getObjectMapper().writeValueAsString(nodeProperties));
                    }
                    
                    // add aspects as an array
@@ -3555,18 +3556,18 @@ public class ScriptNode implements Scopeable, NamespacePrefixResolverProvider
                            String nextShortQName = getShortQName(nextLongQName);
                            nodeAspectsShortQNames.add(nextShortQName);
                        }
-                       json.put("aspects", nodeAspectsShortQNames);
+                       json.put("aspects", JsonUtil.getObjectMapper().writeValueAsString(nodeAspectsShortQNames));
                    }
                    else
                    {
-                       json.put("aspects", nodeAspects);
+                       json.put("aspects", JsonUtil.getObjectMapper().writeValueAsString(nodeAspects));
                    }
                }
-               catch (JSONException error)
+               catch (JsonProcessingException e)
                {
-                   error.printStackTrace();
+                   e.printStackTrace();
                }
-              
+
                jsonStr = json.toString();
            }
        }

@@ -25,6 +25,10 @@
  */
 package org.alfresco.repo.remoteticket;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.databind.node.TextNode;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
@@ -45,10 +49,9 @@ import org.alfresco.service.cmr.remoteticket.NoSuchSystemException;
 import org.alfresco.service.cmr.remoteticket.RemoteAlfrescoTicketInfo;
 import org.alfresco.service.cmr.remoteticket.RemoteAlfrescoTicketService;
 import org.alfresco.service.cmr.remoteticket.RemoteSystemUnavailableException;
+import org.alfresco.util.json.JsonUtil;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.json.simple.JSONObject;
-import org.json.simple.parser.ParseException;
 
 /**
  * Service for working with a Remote Alfresco instance, which
@@ -323,7 +326,7 @@ public class RemoteAlfrescoTicketServiceImpl implements RemoteAlfrescoTicketServ
             logger.debug("Fetching new ticket for " + credentials.getRemoteUsername() + " on " + remoteSystemId);
         
         // Build up the JSON for the ticket request
-        JSONObject json = new JSONObject();
+        ObjectNode json = JsonUtil.getObjectMapper().createObjectNode();
         json.put("username", credentials.getRemoteUsername());
         json.put("password", credentials.getRemotePassword());
         
@@ -332,7 +335,7 @@ public class RemoteAlfrescoTicketServiceImpl implements RemoteAlfrescoTicketServ
         
         // Turn this into a remote request
         RemoteConnectorRequest request = remoteConnectorService.buildRequest(url, "POST");
-        request.setRequestBody(json.toJSONString());
+        request.setRequestBody(json.toString());
         
         Map<String,String> reqHeaders = remoteSystemsReqHeaders.get(remoteSystemId);
         if (reqHeaders != null)
@@ -348,8 +351,9 @@ public class RemoteAlfrescoTicketServiceImpl implements RemoteAlfrescoTicketServ
         
         // Perform the request
         String ticket = null;
-        try {
-            JSONObject response = remoteConnectorService.executeJSONRequest(request);
+        try
+        {
+            JsonNode response = remoteConnectorService.executeJSONRequest(request);
             if (logger.isDebugEnabled())
                 logger.debug("JSON Ticket Response Received: " + response);
 
@@ -359,21 +363,28 @@ public class RemoteAlfrescoTicketServiceImpl implements RemoteAlfrescoTicketServ
             {
                 throw new RemoteSystemUnavailableException("Invalid JSON received: " + response);
             }
-            if (! (data instanceof JSONObject))
+            if (! (data instanceof ObjectNode))
             {
                 throw new RemoteSystemUnavailableException("Invalid JSON part received: " + data.getClass() + " - from: " + response);
             }
 
-            Object ticketJSON = ((JSONObject)data).get("ticket");
+            Object ticketJSON = ((ObjectNode)data).get("ticket");
             if (ticketJSON == null)
             {
                 throw new RemoteSystemUnavailableException("Invalid JSON received, ticket missing: " + response);
             }
-            if (! (ticketJSON instanceof String))
+            if (! (ticketJSON instanceof TextNode))
             {
                 throw new RemoteSystemUnavailableException("Invalid JSON part received: " + ticketJSON.getClass() + " from: " + response);
             }
-            ticket = (String)ticketJSON;
+            ticket = ((TextNode) ticketJSON).textValue();
+        }
+        catch (JsonProcessingException jsonEx)
+        {
+            if (logger.isDebugEnabled())
+                logger.debug("Invalid JSON from remote Alfresco instance " + remoteSystemId, jsonEx);
+
+            throw new RemoteSystemUnavailableException("Invalid JSON response from remote system", jsonEx);
         }
         catch (IOException ioEx)
         {
@@ -381,13 +392,6 @@ public class RemoteAlfrescoTicketServiceImpl implements RemoteAlfrescoTicketServ
                 logger.debug("Problem communicating with remote Alfresco instance " + remoteSystemId, ioEx);
             
             throw new RemoteSystemUnavailableException("Error talking to remote system", ioEx);
-        }
-        catch (ParseException jsonEx)
-        {
-            if (logger.isDebugEnabled())
-                logger.debug("Invalid JSON from remote Alfresco instance " + remoteSystemId, jsonEx);
-            
-            throw new RemoteSystemUnavailableException("Invalid JSON response from remote system", jsonEx);
         }
         catch (AuthenticationException authEx)
         {

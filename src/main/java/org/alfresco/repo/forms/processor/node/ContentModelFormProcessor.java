@@ -34,6 +34,7 @@ import static org.alfresco.repo.forms.processor.node.FormFieldConstants.DOT_CHAR
 import static org.alfresco.repo.forms.processor.node.FormFieldConstants.ON;
 import static org.alfresco.repo.forms.processor.node.FormFieldConstants.PROP_DATA_PREFIX;
 
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -76,8 +77,6 @@ import org.alfresco.service.namespace.NamespaceService;
 import org.alfresco.service.namespace.QName;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.json.JSONArray;
-import org.json.JSONException;
 import org.springframework.extensions.surf.util.I18NUtil;
 
 /**
@@ -385,22 +384,15 @@ public abstract class ContentModelFormProcessor<ItemType, PersistType> extends
                                 value = list;
                             }
                         }
-                        else if (value instanceof JSONArray)
+                        else if (value instanceof ArrayNode)
                         {
-                            // if value is a JSONArray convert to List of Object
-                            JSONArray jsonArr = (JSONArray) value;
-                            int arrLength = jsonArr.length();
+                            // if value is a ArrayNode convert to List of Object
+                            ArrayNode jsonArr = (ArrayNode) value;
+                            int arrLength = jsonArr.size();
                             List<Object> list = new ArrayList<Object>(arrLength);
-                            try
+                            for (int x = 0; x < arrLength; x++)
                             {
-                                for (int x = 0; x < arrLength; x++)
-                                {
-                                    list.add(jsonArr.get(x));
-                                }
-                            }
-                            catch (JSONException je)
-                            {
-                                throw new FormException("Failed to convert JSONArray to List", je);
+                                list.add(jsonArr.get(x));
                             }
 
                             // persist the list

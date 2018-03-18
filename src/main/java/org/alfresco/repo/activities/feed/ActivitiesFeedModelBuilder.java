@@ -25,9 +25,9 @@
  */
 package org.alfresco.repo.activities.feed;
 
+import java.io.IOException;
 import java.util.Map;
 
-import org.json.JSONException;
 import org.alfresco.repo.domain.activities.ActivityFeedEntity;
 
 /**
@@ -40,7 +40,7 @@ public interface ActivitiesFeedModelBuilder
 
     Map<String, Object> buildModel();
 
-    void addActivityFeedEntry(ActivityFeedEntity feedEntry) throws JSONException;
+    void addActivityFeedEntry(ActivityFeedEntity feedEntry) throws IOException;
 
     int activityCount();
 

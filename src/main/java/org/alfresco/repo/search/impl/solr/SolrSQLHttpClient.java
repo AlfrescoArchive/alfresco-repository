@@ -25,6 +25,9 @@
  */
 package org.alfresco.repo.search.impl.solr;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
@@ -50,6 +53,7 @@ import org.alfresco.service.cmr.security.AuthorityType;
 import org.alfresco.service.cmr.security.PermissionService;
 import org.alfresco.util.Pair;
 import org.alfresco.util.PropertyCheck;
+import org.alfresco.util.json.JsonUtil;
 import org.apache.commons.codec.EncoderException;
 import org.apache.commons.codec.net.URLCodec;
 import org.apache.commons.httpclient.HttpClient;
@@ -58,9 +62,6 @@ import org.apache.commons.httpclient.URIException;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.extensions.surf.util.I18NUtil;
@@ -154,43 +155,43 @@ public class SolrSQLHttpClient extends AbstractSolrQueryHTTPClient implements So
                String solrurl = httpClient.getHostConfiguration().getHostURL() + httpClientAndBaseUrl.getSecond();
                 url.append(solrurl);
             }
-            JSONObject body = new JSONObject();
-            
+            ObjectNode body = JsonUtil.getObjectMapper().createObjectNode();
+
             // Authorities go over as is - and tenant mangling and query building takes place on the SOLR side
 
             Set<String> allAuthorisations = permissionService.getAuthorisations();
             boolean includeGroups = includeGroupsForRoleAdmin ? true : !allAuthorisations.contains(PermissionService.ADMINISTRATOR_AUTHORITY);
             
-            JSONArray authorities = new JSONArray();
+            ArrayNode authorities = JsonUtil.getObjectMapper().createArrayNode();
             for (String authority : allAuthorisations)
             {
                 if(includeGroups)
                 {
-                    authorities.put(authority);
+                    authorities.add(authority);
                 }
                 else
                 {
                     if(AuthorityType.getAuthorityType(authority) != AuthorityType.GROUP)
                     {
-                        authorities.put(authority);
+                        authorities.add(authority);
                     }
                 }
             }
             body.put("authorities", authorities);
             body.put("anyDenyDenies", anyDenyDenies);
             
-            JSONArray tenants = new JSONArray();
-            tenants.put(tenantService.getCurrentUserDomain());
+            ArrayNode tenants = JsonUtil.getObjectMapper().createArrayNode();
+            tenants.add(tenantService.getCurrentUserDomain());
             body.put("tenants", tenants);
 
-            JSONArray locales = new JSONArray();
+            ArrayNode locales = JsonUtil.getObjectMapper().createArrayNode();
             for (Locale currentLocale : searchParameters.getLocales())
             {
-                locales.put(DefaultTypeConverter.INSTANCE.convert(String.class, currentLocale));
+                locales.add(DefaultTypeConverter.INSTANCE.convert(String.class, currentLocale));
             }
-            if (locales.length() == 0)
+            if (locales.size() == 0)
             {
-                locales.put(I18NUtil.getLocale());
+                locales.add(I18NUtil.getLocale().toString());
             }
             body.put("locales", locales);
             return (ResultSet) postSolrQuery(httpClient, url.toString(), body, json ->
@@ -198,18 +199,17 @@ public class SolrSQLHttpClient extends AbstractSolrQueryHTTPClient implements So
                 return new SolrSQLJSONResultSet(json, searchParameters);
             });
         }
-        catch (JSONException | IOException | EncoderException e)
+        catch (IOException | EncoderException e)
         {
             throw new LuceneQueryParserException("Unable to parse the solr response ", e);
         }
     }
 
-    protected JSONResult postSolrQuery(HttpClient httpClient, String url, JSONObject body, 
+    protected JSONResult postSolrQuery(HttpClient httpClient, String url, ObjectNode body,
             SolrJsonProcessor<?> jsonProcessor)
-            throws UnsupportedEncodingException, IOException, HttpException, URIException,
-            JSONException
+            throws UnsupportedEncodingException, IOException, HttpException, URIException
     {
-        JSONObject json = postQuery(httpClient, url, body);
+        JsonNode json = postQuery(httpClient, url, body);
         JSONResult results = jsonProcessor.getResult(json);
         if (logger.isDebugEnabled())
         {

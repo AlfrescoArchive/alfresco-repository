@@ -25,6 +25,10 @@
  */
 package org.alfresco.repo.search.impl.solr;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.gson.JsonObject;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -44,9 +48,6 @@ import org.alfresco.service.cmr.search.SpellCheckResult;
 import org.alfresco.util.Pair;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
 
 /**
  * Pojo that parses and stores solr stream response.
@@ -61,44 +62,37 @@ public class SolrSQLJSONResultSet implements ResultSet, JSONResult
     private String solrResponse;
     private int length;
     ResultSet wrapped;
-    private JSONArray docs;
+    private ArrayNode docs;
     private long numberFound;
     
-    public SolrSQLJSONResultSet(JSONObject json, BasicSearchParameters searchParameters)
+    public SolrSQLJSONResultSet(JsonNode json, BasicSearchParameters searchParameters)
     {
-        try
+        solrResponse = json.toString();
+        JsonNode res = json.get("result-set");
+        docs = (ArrayNode) res.get("docs");
+        /*
+         * Check that there is no error, which is returned in the first object.
+         */
+
+        JsonNode obj1 = docs.get(0);
+        if(obj1.has(SOLR_STREAM_EXCEPTION))
         {
-            solrResponse = ((JSONObject) json).toString();
-            JSONObject res = (JSONObject) json.get("result-set");
-            docs = (JSONArray) res.get("docs");
-            /*
-             * Check that there is no error, which is returned in the first object.
-             */
-            
-            JSONObject obj1 = docs.getJSONObject(0);
-            if(obj1.has(SOLR_STREAM_EXCEPTION)) 
+            String error =  obj1.get(SOLR_STREAM_EXCEPTION).toString();
+            if(error.equalsIgnoreCase("/sql handler only works in Solr Cloud mode"))
             {
-                String error =  obj1.get(SOLR_STREAM_EXCEPTION).toString();
-                if(error.equalsIgnoreCase("/sql handler only works in Solr Cloud mode"))
-                {
-                    throw new RuntimeException("Unable to execute the query, this API requires InsightEngine.");
-                }
-                throw new RuntimeException("Unable to execute the query, error caused by: " + error);
+                throw new RuntimeException("Unable to execute the query, this API requires InsightEngine.");
             }
-            //Check if it has an error
-            this.length = docs.length();
-            //Last element will contain the object that hold the solr response time.
-            JSONObject time = (JSONObject) docs.get(length -1);
-            this.numberFound = length - 1;
-            queryTime = new Long((Integer) time.get("RESPONSE_TIME"));
-            // Were hard coding this as we have a hard limit of 1000 results, any more will not be readable.
-            this.resultSetMetaData = new SimpleResultSetMetaData(LimitBy.FINAL_SIZE, 
-                    PermissionEvaluationMode.EAGER, (SearchParameters)searchParameters);
-        } 
-        catch (JSONException e)
-        {
-            logger.info(e.getMessage());
+            throw new RuntimeException("Unable to execute the query, error caused by: " + error);
         }
+        //Check if it has an error
+        this.length = docs.size();
+        //Last element will contain the object that hold the solr response time.
+        JsonNode time = docs.get(length -1);
+        this.numberFound = length - 1;
+        queryTime = time.get("RESPONSE_TIME").longValue();
+        // Were hard coding this as we have a hard limit of 1000 results, any more will not be readable.
+        this.resultSetMetaData = new SimpleResultSetMetaData(LimitBy.FINAL_SIZE,
+                PermissionEvaluationMode.EAGER, (SearchParameters)searchParameters);
     }
 
     @Override
@@ -254,7 +248,7 @@ public class SolrSQLJSONResultSet implements ResultSet, JSONResult
         return solrResponse;
     }
 
-    public JSONArray getDocs()
+    public ArrayNode getDocs()
     {
         return docs;
     }

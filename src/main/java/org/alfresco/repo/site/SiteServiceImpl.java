@@ -25,6 +25,7 @@
  */
 package org.alfresco.repo.site;
 
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -122,11 +123,10 @@ import org.alfresco.util.Pair;
 import org.alfresco.util.PropertyCheck;
 import org.alfresco.util.PropertyMap;
 import org.alfresco.util.SearchLanguageConversion;
+import org.alfresco.util.json.JsonUtil;
 import org.alfresco.util.registry.NamedObjectRegistry;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.json.JSONException;
-import org.json.JSONObject;
 import org.springframework.context.ApplicationEvent;
 import org.springframework.extensions.surf.util.AbstractLifecycleBean;
 import org.springframework.extensions.surf.util.ParameterCheck;
@@ -2966,7 +2966,7 @@ public class SiteServiceImpl extends AbstractLifecycleBean implements SiteServic
      * 
      * @param userName      user name
      * @param role          role
-     * @return String
+     * @return Activity data in JSON format
      */
     private String getActivityUserData(String userName, String role)
     {
@@ -2981,22 +2981,13 @@ public class SiteServiceImpl extends AbstractLifecycleBean implements SiteServic
                     ContentModel.PROP_LASTNAME);
         }
 
-        try
-        {
-            JSONObject activityData = new JSONObject();
-            activityData.put("role", role);
-            activityData.put("memberUserName", userName);
-            activityData.put("memberFirstName", memberFN);
-            activityData.put("memberLastName", memberLN);
-            activityData.put("title", (memberFN + " " + memberLN + " ("
-                    + userName + ")").trim());
-            return activityData.toString();
-        } catch (JSONException je)
-        {
-            // log error, subsume exception
-            logger.error("Failed to get activity data: " + je);
-            return "";
-        }
+        ObjectNode activityData = JsonUtil.getObjectMapper().createObjectNode();
+        activityData.put("role", role);
+        activityData.put("memberUserName", userName);
+        activityData.put("memberFirstName", memberFN);
+        activityData.put("memberLastName", memberLN);
+        activityData.put("title", (memberFN + " " + memberLN + " (" + userName + ")").trim());
+        return activityData.toString();
     }
     
     /**
@@ -3008,20 +2999,10 @@ public class SiteServiceImpl extends AbstractLifecycleBean implements SiteServic
      */
     private String getActivityGroupData(String groupName, String role)
     {
-        try
-        {
-            JSONObject activityData = new JSONObject();
-            activityData.put("role", role);
-            activityData.put("groupName", groupName);
-
-            return activityData.toString();
-        } 
-        catch (JSONException je)
-        {
-            // log error, subsume exception
-            logger.error("Failed to get activity data: " + je);
-            return "";
-        }
+        ObjectNode activityData = JsonUtil.getObjectMapper().createObjectNode();
+        activityData.put("role", role);
+        activityData.put("groupName", groupName);
+        return activityData.toString();
     }
     
     public int countAuthoritiesWithRole(String shortName, String role)

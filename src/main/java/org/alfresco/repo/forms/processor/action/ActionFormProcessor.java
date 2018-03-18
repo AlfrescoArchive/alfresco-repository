@@ -28,6 +28,8 @@ package org.alfresco.repo.forms.processor.action;
 
 import static org.alfresco.repo.forms.processor.node.FormFieldConstants.ON;
 
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.POJONode;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -60,8 +62,6 @@ import org.alfresco.service.namespace.NamespaceService;
 import org.alfresco.service.namespace.QName;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.json.JSONArray;
-import org.json.JSONException;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 
 /**
@@ -265,22 +265,15 @@ public class ActionFormProcessor extends FilteredFormProcessor<ActionDefinition,
                             fieldValueObj = list;
                         }
                     }
-                    else if (fieldValueObj instanceof JSONArray)
+                    else if (fieldValueObj instanceof ArrayNode)
                     {
-                     // if value is a JSONArray convert to List of Object
-                        JSONArray jsonArr = (JSONArray) fieldValueObj;
-                        int arrLength = jsonArr.length();
+                        // if value is a ArrayNode convert to List of Object
+                        ArrayNode jsonArr = (ArrayNode) fieldValueObj;
+                        int arrLength = jsonArr.size();
                         List<Object> list = new ArrayList<Object>(arrLength);
-                        try
+                        for (int x = 0; x < arrLength; x++)
                         {
-                            for (int x = 0; x < arrLength; x++)
-                            {
-                                list.add(jsonArr.get(x));
-                            }
-                        }
-                        catch (JSONException je)
-                        {
-                            throw new FormException("Failed to convert JSONArray to List", je);
+                            list.add(((POJONode) jsonArr.get(x)).getPojo());
                         }
 
                         // persist the list

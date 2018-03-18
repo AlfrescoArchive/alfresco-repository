@@ -25,15 +25,10 @@
  */
 package org.alfresco.repo.preference;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.fail;
-
 import java.io.Serializable;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
-
 import org.alfresco.model.ContentModel;
 import org.alfresco.repo.jscript.ClasspathScriptLocation;
 import org.alfresco.repo.model.Repository;
@@ -49,22 +44,23 @@ import org.alfresco.service.cmr.repository.ScriptLocation;
 import org.alfresco.service.cmr.repository.ScriptService;
 import org.alfresco.service.cmr.security.PersonService;
 import org.alfresco.test_category.BaseSpringTestsCategory;
-import org.alfresco.test_category.OwnJVMTestsCategory;
+import org.alfresco.util.json.JsonUtil;
 import org.alfresco.util.test.junitrules.AlfrescoPerson;
 import org.alfresco.util.test.junitrules.ApplicationContextInit;
 import org.alfresco.util.test.junitrules.RunAsFullyAuthenticatedRule;
 import org.alfresco.util.test.junitrules.RunAsFullyAuthenticatedRule.RunAsUser;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.json.JSONException;
-import org.json.JSONObject;
-import org.json.JSONTokener;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.junit.rules.RuleChain;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.fail;
 
 /**
  * {@link PreferenceService} implementation unit test
@@ -139,7 +135,7 @@ public class PreferenceServiceImplTest
 
                 NodeRef personNodeRef = PERSON_SERVICE.getPerson(testUser1.getUsername());
                 ContentReader reader = CONTENT_SERVICE.getReader(personNodeRef, ContentModel.PROP_PREFERENCE_VALUES);
-                log.debug("JSON: \n" + prettyJson(reader.getContentString()));
+                log.debug("JSON: \n" + JsonUtil.toPrettyJson(reader.getContentString()));
 
                 // Try and get all the preferences
                 prefs = PREFERENCE_SERVICE.getPreferences(testUser1.getUsername(), null);
@@ -239,19 +235,5 @@ public class PreferenceServiceImplTest
                 return null;
             }
         });
-    }
-    
-    private String prettyJson(String jsonString)
-    {
-        String result = jsonString;
-        try
-        {
-            JSONObject json = new JSONObject(new JSONTokener(jsonString));
-            result = json.toString(2);
-        } catch (JSONException ignored)
-        {
-            // Intentionally empty
-        }
-        return result;
     }
 }

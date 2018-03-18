@@ -26,6 +26,7 @@
 
 package org.alfresco.repo.search.impl.solr;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import java.util.HashMap;
 
 import org.alfresco.error.AlfrescoRuntimeException;
@@ -34,7 +35,6 @@ import org.alfresco.service.cmr.repository.StoreRef;
 import org.alfresco.service.cmr.search.SuggesterParameters;
 import org.alfresco.service.cmr.search.SuggesterResult;
 import org.alfresco.service.cmr.search.SuggesterService;
-import org.json.JSONObject;
 
 /**
  * Solr Suggester Service Implementation.
@@ -94,7 +94,7 @@ public class SolrSuggesterServiceImpl implements SuggesterService
             }
             params.put("wt", "json");
 
-            JSONObject response = ((SolrQueryHTTPClient)solrQueryHTTPClient).execute(StoreRef.STORE_REF_WORKSPACE_SPACESSTORE, SUGGEST_HANDLER, params);
+            JsonNode response = ((SolrQueryHTTPClient)solrQueryHTTPClient).execute(StoreRef.STORE_REF_WORKSPACE_SPACESSTORE, SUGGEST_HANDLER, params);
             return new SolrSuggesterResult(response);
         }
         catch (Exception e)

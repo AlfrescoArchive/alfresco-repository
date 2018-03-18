@@ -1352,4 +1352,9 @@
       <property name="policyComponent" ref="policyComponent" />
       <property name="namespaceService" ref="namespaceService" />
    </bean>
+
+   <!-- System wide object mapper -->
+   <bean id="repositoryJacksonObjectMapper" class="org.springframework.http.converter.json.Jackson2ObjectMapperFactoryBean">
+
+   </bean>
 </beans>

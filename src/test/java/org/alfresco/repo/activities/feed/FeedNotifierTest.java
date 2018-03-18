@@ -29,6 +29,8 @@ import static junit.framework.Assert.fail;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.alfresco.model.ContentModel;
 import org.alfresco.repo.activities.post.lookup.PostLookup;
 import org.alfresco.repo.domain.activities.ActivitiesDAO;
@@ -54,7 +56,6 @@ import org.alfresco.service.transaction.TransactionService;
 import org.alfresco.util.ApplicationContextHelper;
 import org.alfresco.util.GUID;
 import org.alfresco.util.PropertyMap;
-import org.json.JSONObject;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -198,9 +199,11 @@ public class FeedNotifierTest
                 FileInfo file1 = fileFolderService.create(workingRootNodeRef, GUID.generate(), ContentModel.TYPE_CONTENT);
 
                 // ensure at least 3 activities
-                JSONObject activityData = new JSONObject();
+                ObjectMapper objectMapper = new ObjectMapper();
+                ObjectNode activityData = objectMapper.createObjectNode();
+
                 activityData.put("title", GUID.generate());
-                activityData.put("nodeRef", file1.getNodeRef());
+                activityData.put("nodeRef", file1.getNodeRef().toString());
                 activityService.postActivity("org.alfresco.documentlibrary.file-added", null, "documentlibrary", activityData.toString(), userName1);
 
                 AuthenticationUtil.popAuthentication();

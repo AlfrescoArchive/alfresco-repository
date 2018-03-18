@@ -25,17 +25,12 @@
  */
 package org.alfresco.repo.search.impl.solr;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
-
 import org.alfresco.repo.management.subsystems.ChildApplicationContextFactory;
 import org.alfresco.repo.search.impl.lucene.LuceneQueryParserException;
-import org.alfresco.service.cmr.repository.datatype.Duration;
-import org.json.JSONException;
-import org.json.JSONObject;
 import org.springframework.context.ApplicationContext;
 
 /**
@@ -115,24 +110,16 @@ public class SolrChildApplicationContextFactory extends ChildApplicationContextF
                 HashMap<String, String> args = new HashMap<String, String>();
                 args.put("action", "SUMMARY");
                 args.put("wt", "json");
-                JSONObject json = adminClient.execute(args);
-                JSONObject summary = json.getJSONObject("Summary");
+                JsonNode json = adminClient.execute(args);
+                JsonNode summary = json.get("Summary");
 
-	            JSONObject alfresco = null;
-                try
-                {
-                    alfresco = summary.getJSONObject("alfresco");
-                }
-                catch (JSONException e)
-                {
-                    // The core might be absent.
-                }
+                JsonNode alfresco = summary.get("alfresco");
 
                 if (alfresco != null)
                 {
                     if (name.equals(SolrChildApplicationContextFactory.ALFRESCO_ACTIVE))
                     {
-                        String alfrescoActive = alfresco.getString("Active");
+                        String alfrescoActive = alfresco.get("Active").textValue();
                         if (alfrescoActive == null || alfrescoActive.isEmpty())
                         {
                             // Admin Console is expecting a true/false value, not blank
@@ -142,77 +129,69 @@ public class SolrChildApplicationContextFactory extends ChildApplicationContextF
                     }
                     else if (name.equals(SolrChildApplicationContextFactory.ALFRESCO_LAG))
                     {
-                        return alfresco.getString("TX Lag");
+                        return alfresco.get("TX Lag").textValue();
                     }
                     else if (name.equals(SolrChildApplicationContextFactory.ALFRESCO_LAG_DURATION))
                     {
-                        return alfresco.getString("TX Duration");
+                        return alfresco.get("TX Duration").textValue();
                     }
                     else if (name.equals(SolrChildApplicationContextFactory.ALFRESCO_LAST_INDEXED_TXN))
                     {
-                        return alfresco.getString("Id for last TX in index");
+                        return alfresco.get("Id for last TX in index").textValue();
                     }
                     else if (name.equals(SolrChildApplicationContextFactory.ALFRESCO_APPROX_TXNS_REMAINING))
                     {
-                        return alfresco.getString("Approx transactions remaining");
+                        return alfresco.get("Approx transactions remaining").textValue();
                     }
                     else if (name.equals(SolrChildApplicationContextFactory.ALFRESCO_APPROX_INDEXING_TIME_REMAINING))
                     {
-                        return alfresco.getString("Approx transaction indexing time remaining");
+                        return alfresco.get("Approx transaction indexing time remaining").textValue();
                     }
                     else if (name.equals(SolrChildApplicationContextFactory.ALFRESCO_DISK))
                     {
-                        return alfresco.getString("On disk (GB)");
+                        return alfresco.get("On disk (GB)").textValue();
                     }
                     else if (name.equals(SolrChildApplicationContextFactory.ALFRESCO_MEMORY))
                     {
-                        return alfresco.getString("Total Searcher Cache (GB)");
+                        return alfresco.get("Total Searcher Cache (GB)").textValue();
                     }
                 }
 
-                JSONObject archive = null;
-                try
-                {
-                    archive = summary.getJSONObject("archive");
-                }
-                catch (JSONException e)
-                {
-                    // The core might be absent.
-                }
+                JsonNode archive = summary.get("archive");
 
                 if (archive != null)
                 {
                     if (name.equals(SolrChildApplicationContextFactory.ARCHIVE_ACTIVE))
                     {
-                        return archive.getString("Active");
+                        return archive.get("Active").textValue();
                     }
                     else if (name.equals(SolrChildApplicationContextFactory.ARCHIVE_LAG))
                     {
-                        return archive.getString("TX Lag");
+                        return archive.get("TX Lag").textValue();
                     }
                     else if (name.equals(SolrChildApplicationContextFactory.ARCHIVE_LAG_DURATION))
                     {
-                        return archive.getString("TX Duration");
+                        return archive.get("TX Duration").textValue();
                     }
                     else if (name.equals(SolrChildApplicationContextFactory.ARCHIVE_LAST_INDEXED_TXN))
                     {
-                        return archive.getString("Id for last TX in index");
+                        return archive.get("Id for last TX in index").textValue();
                     }
                     else if (name.equals(SolrChildApplicationContextFactory.ARCHIVE_APPROX_TXNS_REMAINING))
                     {
-                        return archive.getString("Approx transactions remaining");
+                        return archive.get("Approx transactions remaining").textValue();
                     }
                     else if (name.equals(SolrChildApplicationContextFactory.ARCHIVE_APPROX_INDEXING_TIME_REMAINING))
                     {
-                        return archive.getString("Approx transaction indexing time remaining");
+                        return archive.get("Approx transaction indexing time remaining").textValue();
                     }
                     else if (name.equals(SolrChildApplicationContextFactory.ARCHIVE_DISK))
                     {
-                        return archive.getString("On disk (GB)");
+                        return archive.get("On disk (GB)").textValue();
                     }
                     else if (name.equals(SolrChildApplicationContextFactory.ARCHIVE_MEMORY))
                     {
-                        return archive.getString("Total Searcher Cache (GB)");
+                        return archive.get("Total Searcher Cache (GB)").textValue();
                     }
                 }
 
@@ -222,10 +201,6 @@ public class SolrChildApplicationContextFactory extends ChildApplicationContextF
             catch (LuceneQueryParserException lqe)
             {
                 return "Unavailable: " + lqe.getMessage();
-            }
-            catch (JSONException e)
-            {
-                return "Unavailable: " + e.getMessage();
             }
             catch (IllegalArgumentException iae)
             {

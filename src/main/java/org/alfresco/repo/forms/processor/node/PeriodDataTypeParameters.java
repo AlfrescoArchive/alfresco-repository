@@ -25,6 +25,8 @@
  */
 package org.alfresco.repo.forms.processor.node;
 
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
@@ -33,9 +35,7 @@ import org.alfresco.repo.dictionary.types.period.Cron;
 import org.alfresco.repo.dictionary.types.period.XMLDuration;
 import org.alfresco.repo.forms.DataTypeParameters;
 import org.alfresco.service.cmr.repository.PeriodProvider;
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
+import org.alfresco.util.json.JsonUtil;
 
 /**
  * Represents the parameters for the period data type.
@@ -47,7 +47,7 @@ public class PeriodDataTypeParameters implements DataTypeParameters, Serializabl
     private static final long serialVersionUID = -3654041242831123509L;
     
     protected List<PeriodProvider> providers;
-    
+
     /**
      * Default constructor
      */
@@ -88,39 +88,31 @@ public class PeriodDataTypeParameters implements DataTypeParameters, Serializabl
      * Returns the valid period options as a JSONArray of JSONObject's.
      * 
      * @see org.alfresco.repo.forms.DataTypeParameters#getAsJSON()
-     * @return A JSONArray object holding JSONObject's representing the
+     * @return A String representing a JSONArray object holding JSONObject's representing the
      *         period definitions
      */
     public Object getAsJSON()
     {
-        JSONArray periods = new JSONArray();
-        
-        try
+        ArrayNode periods = JsonUtil.getObjectMapper().createArrayNode();
+
+        for (PeriodProvider pp : this.providers)
         {
-            for (PeriodProvider pp : this.providers)
+            boolean hasExpression = !(pp.getExpressionMutiplicity().equals(PeriodProvider.ExpressionMutiplicity.NONE));
+
+            ObjectNode period = JsonUtil.getObjectMapper().createObjectNode();
+            period.put("type", pp.getPeriodType());
+            period.put("label", pp.getDisplayLabel());
+            period.put("hasExpression", hasExpression);
+
+            if (hasExpression)
             {
-                boolean hasExpression = !(pp.getExpressionMutiplicity().equals(PeriodProvider.ExpressionMutiplicity.NONE)); 
-                
-                JSONObject period = new JSONObject();
-                period.put("type", pp.getPeriodType());
-                period.put("label", pp.getDisplayLabel());
-                period.put("hasExpression", hasExpression);
-                
-                if (hasExpression)
-                {
-                    period.put("expressionMandatory", 
-                                pp.getExpressionMutiplicity().equals(PeriodProvider.ExpressionMutiplicity.MANDATORY));
-                    period.put("expressionType", pp.getExpressionDataType().toPrefixString());
-                    period.put("defaultExpression", pp.getDefaultExpression());
-                }
-                
-                periods.put(period);
+                period.put("expressionMandatory",
+                        pp.getExpressionMutiplicity().equals(PeriodProvider.ExpressionMutiplicity.MANDATORY));
+                period.put("expressionType", pp.getExpressionDataType().toPrefixString());
+                period.put("defaultExpression", pp.getDefaultExpression());
             }
-        }
-        catch (JSONException je)
-        {
-            // return an empty array
-            periods = new JSONArray();
+
+            periods.add(period);
         }
         
         return periods;

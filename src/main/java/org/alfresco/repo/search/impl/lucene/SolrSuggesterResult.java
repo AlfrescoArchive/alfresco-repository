@@ -26,6 +26,8 @@
 
 package org.alfresco.repo.search.impl.lucene;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -35,9 +37,6 @@ import org.alfresco.util.Pair;
 import org.alfresco.util.ParameterCheck;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
 
 /**
  * @author Jamal Kaabi-Mofrad
@@ -54,7 +53,7 @@ public class SolrSuggesterResult implements SuggesterResult
     {
     }
 
-    public SolrSuggesterResult(JSONObject jsonObject)
+    public SolrSuggesterResult(JsonNode jsonObject)
     {
         try
         {
@@ -70,10 +69,9 @@ public class SolrSuggesterResult implements SuggesterResult
      * Parses the json returned from the suggester
      * 
      * @param json the JSON object
-     * @throws JSONException
      */
     @SuppressWarnings("rawtypes")
-    protected void processJson(JSONObject json) throws JSONException
+    protected void processJson(JsonNode json)
     {
         ParameterCheck.mandatory("json", json);
 
@@ -82,26 +80,26 @@ public class SolrSuggesterResult implements SuggesterResult
             logger.debug("Suggester JSON response: " + json);
         }
 
-        JSONObject suggest = json.getJSONObject("suggest");
-        for (Iterator suggestIterator = suggest.keys(); suggestIterator.hasNext(); /**/)
+        JsonNode suggest = json.get("suggest");
+        for (Iterator<String> suggestIterator = suggest.fieldNames(); suggestIterator.hasNext(); /**/)
         {
-            String dictionary = (String) suggestIterator.next();
+            String dictionary = suggestIterator.next();
 
-            JSONObject dictionaryJsonObject = suggest.getJSONObject(dictionary);
-            for (Iterator dicIterator = dictionaryJsonObject.keys(); dicIterator.hasNext(); /**/)
+            JsonNode dictionaryJsonObject = suggest.get(dictionary);
+            for (Iterator<String> dicIterator = dictionaryJsonObject.fieldNames(); dicIterator.hasNext(); /**/)
             {
-                String termStr = (String) dicIterator.next();
+                String termStr = dicIterator.next();
 
-                JSONObject termJsonObject = dictionaryJsonObject.getJSONObject(termStr);
+                JsonNode termJsonObject = dictionaryJsonObject.get(termStr);
                 // number found
-                this.numberFound = termJsonObject.getLong("numFound");
+                this.numberFound = termJsonObject.get("numFound").longValue();
 
                 // the suggested terms
-                JSONArray suggestion = termJsonObject.getJSONArray("suggestions");
-                for (int i = 0, length = suggestion.length(); i < length; i++)
+                ArrayNode suggestion = (ArrayNode) termJsonObject.get("suggestions");
+                for (int i = 0, length = suggestion.size(); i < length; i++)
                 {
-                    JSONObject data = suggestion.getJSONObject(i);
-                    this.suggestions.add(new Pair<String, Integer>(data.getString("term"), data.getInt("weight")));
+                    JsonNode data = suggestion.get(i);
+                    this.suggestions.add(new Pair<String, Integer>(data.get("term").textValue(), data.get("weight").intValue()));
                 }
             }
         }

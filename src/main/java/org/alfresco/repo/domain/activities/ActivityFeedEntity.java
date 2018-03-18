@@ -25,14 +25,15 @@
  */
 package org.alfresco.repo.domain.activities;
 
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import java.io.IOException;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
 import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.util.JSONtoFmModel;
-import org.json.JSONException;
-import org.json.JSONObject;
+import org.alfresco.util.json.JsonUtil;
 import org.springframework.extensions.surf.util.ISO8601DateFormat;
 
 /**
@@ -178,9 +179,9 @@ public class ActivityFeedEntity
         this.appTool = appTool;
     }
     
-    public String getJSONString() throws JSONException
+    public String getJSONString()
     {
-        JSONObject jo = new JSONObject();
+        ObjectNode jo = JsonUtil.getObjectMapper().createObjectNode();
         
         jo.put(KEY_ACTIVITY_FEED_ID, id);
         
@@ -199,7 +200,7 @@ public class ActivityFeedEntity
         return jo.toString();
     }
     
-    public Map<String, Object> getModel() throws JSONException
+    public Map<String, Object> getModel() throws IOException
     {
         Map<String, Object> map = new HashMap<String, Object>();
         

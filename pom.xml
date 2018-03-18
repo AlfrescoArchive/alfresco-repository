@@ -36,9 +36,9 @@
         <img.exe>convert</img.exe>
 
         <dependency.alfresco-legacy-lucene.version>6.2</dependency.alfresco-legacy-lucene.version>
-        <dependency.alfresco-core.version>7.0</dependency.alfresco-core.version>
+        <dependency.alfresco-core.version>json-replace-rc1</dependency.alfresco-core.version>
         <dependency.alfresco-greenmail.version>6.1</dependency.alfresco-greenmail.version>
-        <dependency.alfresco-data-model.version>8.1</dependency.alfresco-data-model.version>
+        <dependency.alfresco-data-model.version>json-replace-rc1</dependency.alfresco-data-model.version>
         <dependency.alfresco-jlan.version>7.0</dependency.alfresco-jlan.version>
         <dependency.alfresco-pdf-renderer.version>1.1</dependency.alfresco-pdf-renderer.version>
         <dependency.alfresco-hb-data-sender.version>1.0.5</dependency.alfresco-hb-data-sender.version>
@@ -48,7 +48,7 @@
         <dependency.httpcomponents.version>4.5.2</dependency.httpcomponents.version>
         <dependency.truezip.version>7.7.9</dependency.truezip.version>
         <dependency.poi.version>3.17</dependency.poi.version>
-        <dependency.webscripts.version>6.13</dependency.webscripts.version>
+        <dependency.webscripts.version>json-replace-rc1</dependency.webscripts.version>
         <dependency.opencmis.version>1.0.0</dependency.opencmis.version>
         <dependency.activiti-engine.version>5.22.0</dependency.activiti-engine.version>
         <dependency.activiti.version>5.22.0</dependency.activiti.version>
@@ -182,11 +182,6 @@
             <version>${dependency.httpcomponents.version}</version>
         </dependency>
         <dependency>
-            <groupId>org.json</groupId>
-            <artifactId>json</artifactId>
-            <version>20090211</version>
-        </dependency>
-        <dependency>
             <groupId>com.ibm.icu</groupId>
             <artifactId>icu4j</artifactId>
             <version>3.6.1</version>
@@ -195,17 +190,6 @@
             <groupId>oro</groupId>
             <artifactId>oro</artifactId>
             <version>2.0.8</version>
-        </dependency>
-        <dependency>
-            <groupId>com.googlecode.json-simple</groupId>
-            <artifactId>json-simple</artifactId>
-            <version>1.1.1</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>junit</groupId>
-                    <artifactId>junit</artifactId>
-                </exclusion>
-            </exclusions>
         </dependency>
         <!-- Dependency on Alfresco patched version of Rhino available in artfifact.alfresco.com -->
         <dependency>

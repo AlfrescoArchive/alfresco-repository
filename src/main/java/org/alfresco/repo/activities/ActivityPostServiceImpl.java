@@ -25,6 +25,11 @@
  */
 package org.alfresco.repo.activities;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -49,9 +54,6 @@ import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.namespace.QName;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.json.JSONException;
-import org.json.JSONObject;
-import org.json.JSONTokener;
 import org.springframework.extensions.surf.util.ParameterCheck;
 
 /**
@@ -67,12 +69,18 @@ public class ActivityPostServiceImpl implements ActivityPostService
     private ActivityPostDAO postDAO;
     private TenantService tenantService;
     private EventPublisher eventPublisher;
+    private ObjectMapper objectMapper;
     
     private int estGridSize = 1;
     
     private boolean userNamesAreCaseSensitive = false;
 
-    public void setIgnoredActivityTypes(String ignoredActivityTypes) 
+    public void setObjectMapper(ObjectMapper objectMapper)
+    {
+        this.objectMapper = objectMapper;
+    }
+
+    public void setIgnoredActivityTypes(String ignoredActivityTypes)
     {
         if (ignoredActivityTypes!= null && ignoredActivityTypes.length() > 0)
         {
@@ -237,7 +245,8 @@ public class ActivityPostServiceImpl implements ActivityPostService
             {
                 if (activityData.length() > 0)
                 {
-                    JSONObject jo = new JSONObject(new JSONTokener(activityData));
+                    // not supposed to be an array
+                    ObjectNode jo = (ObjectNode) objectMapper.readTree(activityData);
                     if (AuthenticationUtil.isMtEnabled())
                     {
                         // MT share - add tenantDomain
@@ -249,7 +258,7 @@ public class ActivityPostServiceImpl implements ActivityPostService
                     // ALF-10362 - belts-and-braces (note: Share sets "title" from cm:name)
                     if (jo.has(PostLookup.JSON_TITLE))
                     {
-                        String title = jo.getString(PostLookup.JSON_TITLE);
+                        String title = jo.get(PostLookup.JSON_TITLE).textValue();
                         if (title.length() > ActivityPostDAO.MAX_LEN_NAME)
                         {
                             jo.put(PostLookup.JSON_TITLE, title.substring(0, 255));
@@ -258,13 +267,14 @@ public class ActivityPostServiceImpl implements ActivityPostService
                     }
                 }
             }
-            catch (JSONException e)
+            // includes JsonProcessingException
+            catch (IOException e)
             {
                 //throw new IllegalArgumentException("Invalid activity data - not valid JSON: " + e);
                 // According to test data in org/alfresco/repo/activities/script/test_activityService.js
                 // invalid JSON should be OK.
             }
-            
+
             if (activityData.length() > ActivityPostDAO.MAX_LEN_ACTIVITY_DATA)
             {
                 throw new IllegalArgumentException("Invalid activity data - exceeds " + ActivityPostDAO.MAX_LEN_ACTIVITY_DATA + " chars: " + activityData);
@@ -400,18 +410,15 @@ public class ActivityPostServiceImpl implements ActivityPostService
     /**
      * Validate that the nodeRef property - if present in the activity data - is valid
      * on a basic level (it can be used to construct a NodeRef object).
-     * 
-     * @param jo
-     * @throws JSONException 
      */
-    private NodeRef checkNodeRef(JSONObject jo) throws JSONException
+    private NodeRef checkNodeRef(ObjectNode objectNode)
     {
         String nodeRefStr = null;
         try
         {
-            if (jo.has(PostLookup.JSON_NODEREF))
+            if (objectNode.has(PostLookup.JSON_NODEREF))
             {
-                nodeRefStr = jo.getString(PostLookup.JSON_NODEREF);
+                nodeRefStr = objectNode.get(PostLookup.JSON_NODEREF).asText();
                 return new NodeRef(nodeRefStr);
             }
         }

@@ -25,6 +25,7 @@
  */
 package org.alfresco.repo.forum;
 
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
@@ -74,10 +75,10 @@ import org.alfresco.service.namespace.NamespaceService;
 import org.alfresco.service.namespace.QName;
 import org.alfresco.util.EqualsHelper;
 import org.alfresco.util.Pair;
+import org.alfresco.util.json.JsonUtil;
 import org.alfresco.util.registry.NamedObjectRegistry;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.json.simple.JSONObject;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationEvent;
 import org.springframework.extensions.surf.util.AbstractLifecycleBean;
@@ -435,13 +436,13 @@ public class CommentServiceImpl extends AbstractLifecycleBean implements Comment
     }
 
     @SuppressWarnings("unchecked")
-	private JSONObject getActivityData(String siteId, final NodeRef nodeRef)
+	private String getActivityData(String siteId, final NodeRef nodeRef)
     {
         if(siteId != null)
         {
 	        // create an activity (with some Share-specific parts)
-	        JSONObject json = new JSONObject();
-	        json.put("title", nodeService.getProperty(nodeRef, ContentModel.PROP_NAME));
+	        ObjectNode json = JsonUtil.getObjectMapper().createObjectNode();
+	        json.put("title", nodeService.getProperty(nodeRef, ContentModel.PROP_NAME).toString());
 			try
 			{
 				StringBuilder sb = new StringBuilder("document-details?nodeRef=");
@@ -455,7 +456,7 @@ public class CommentServiceImpl extends AbstractLifecycleBean implements Comment
 				logger.warn("Unable to urlencode page for create comment activity");
 			}
 
-			return json;
+			return json.toString();
         }
         else
         {
@@ -464,11 +465,11 @@ public class CommentServiceImpl extends AbstractLifecycleBean implements Comment
         }
     }
     
-	private void postActivity(String siteId, String activityType, JSONObject activityData)
+	private void postActivity(String siteId, String activityType, String activityData)
     {
 		if(activityData != null)
 		{
-			activityService.postActivity(activityType, siteId, "comments", activityData.toString());
+			activityService.postActivity(activityType, siteId, "comments", activityData);
 		}
     }
 
@@ -516,7 +517,7 @@ public class CommentServiceImpl extends AbstractLifecycleBean implements Comment
 
     	// determine the siteId and activity data of the comment NodeRef
         String siteId = getSiteId(discussableNode);
-        JSONObject activityData = getActivityData(siteId, discussableNode);
+        String activityData = getActivityData(siteId, discussableNode);
 
         postActivity(siteId, ActivityType.COMMENT_CREATED, activityData);
 
@@ -564,7 +565,7 @@ public class CommentServiceImpl extends AbstractLifecycleBean implements Comment
         NodeRef discussableNodeRef = getDiscussableAncestor(commentNodeRef);
         if(discussableNodeRef != null)
         {
-        	JSONObject activityData = getActivityData(siteId, discussableNodeRef);
+        	String activityData = getActivityData(siteId, discussableNodeRef);
 
         	postActivity(siteId, "org.alfresco.comments.comment-updated", activityData);
         }
@@ -585,7 +586,7 @@ public class CommentServiceImpl extends AbstractLifecycleBean implements Comment
     	// determine the siteId and activity data of the comment NodeRef (do this before removing the comment NodeRef)
         String siteId = getSiteId(commentNodeRef);
         NodeRef discussableNodeRef = getDiscussableAncestor(commentNodeRef);
-        JSONObject activityData = null;
+        String activityData = null;
         if(discussableNodeRef != null)
         {
         	activityData = getActivityData(siteId, discussableNodeRef);

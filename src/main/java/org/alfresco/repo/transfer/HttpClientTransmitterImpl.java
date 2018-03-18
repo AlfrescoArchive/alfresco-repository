@@ -26,6 +26,8 @@
 
 package org.alfresco.repo.transfer;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -54,6 +56,7 @@ import org.alfresco.util.HttpClientHelper;
 import org.alfresco.util.PropertyCheck;
 import org.alfresco.util.json.ExceptionJsonSerializer;
 import org.alfresco.util.json.JsonSerializer;
+import org.alfresco.util.json.JsonUtil;
 import org.apache.commons.httpclient.Credentials;
 import org.apache.commons.httpclient.HostConfiguration;
 import org.apache.commons.httpclient.HttpClient;
@@ -74,7 +77,6 @@ import org.apache.commons.httpclient.protocol.ProtocolSocketFactory;
 import org.apache.commons.httpclient.protocol.SSLProtocolSocketFactory;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.json.JSONObject;
 
 /**
  * HTTP implementation of TransferTransmitter.
@@ -101,7 +103,7 @@ public class HttpClientTransmitterImpl implements TransferTransmitter
     private Protocol httpsProtocol = new Protocol(HTTPS_SCHEME_NAME, (ProtocolSocketFactory) new SSLProtocolSocketFactory(), DEFAULT_HTTPS_PORT);
     private Map<String,Protocol> protocolMap = null;
     private HttpMethodFactory httpMethodFactory = null;
-    private JsonSerializer<Throwable, JSONObject> jsonErrorSerializer;
+    private JsonSerializer<Throwable, String> jsonErrorSerializer;
 
     private ContentService contentService;
 
@@ -222,8 +224,7 @@ public class HttpClientTransmitterImpl implements TransferTransmitter
             {
                 log.error("Received \"unsuccessful\" response code from target server: " + response);
                 String errorPayload = method.getResponseBodyAsString();
-                JSONObject errorObj = new JSONObject(errorPayload);
-                error = rehydrateError(errorObj);
+                error = rehydrateError(errorPayload);
             }
             catch (Exception ex)
             {
@@ -391,20 +392,20 @@ public class HttpClientTransmitterImpl implements TransferTransmitter
                 checkResponseStatus("begin", responseStatus, beginRequest);
                 //If we get here then we've received a 200 response
                 //We're expecting the transfer id encoded in a JSON object...
-                JSONObject response = new JSONObject(beginRequest.getResponseBodyAsString());
+                JsonNode response = JsonUtil.getObjectMapper().readTree(beginRequest.getResponseBodyAsString());
 
                 Transfer transfer = new Transfer();
                 transfer.setTransferTarget(target);
 
-                String transferId = response.getString(TransferCommons.PARAM_TRANSFER_ID);
+                String transferId = response.get(TransferCommons.PARAM_TRANSFER_ID).textValue();
                 transfer.setTransferId(transferId);
 
                 if(response.has(TransferCommons.PARAM_VERSION_MAJOR))
                 {
-                    String versionMajor = response.getString(TransferCommons.PARAM_VERSION_MAJOR);
-                    String versionMinor = response.getString(TransferCommons.PARAM_VERSION_MINOR);
-                    String versionRevision = response.getString(TransferCommons.PARAM_VERSION_REVISION);
-                    String edition = response.getString(TransferCommons.PARAM_VERSION_EDITION);
+                    String versionMajor = response.get(TransferCommons.PARAM_VERSION_MAJOR).textValue();
+                    String versionMinor = response.get(TransferCommons.PARAM_VERSION_MINOR).textValue();
+                    String versionRevision = response.get(TransferCommons.PARAM_VERSION_REVISION).textValue();
+                    String edition = response.get(TransferCommons.PARAM_VERSION_EDITION).textValue();
                     TransferVersion version = new TransferVersionImpl(versionMajor, versionMinor, versionRevision, edition);
                     transfer.setToVersion(version);
                 }
@@ -714,17 +715,17 @@ public class HttpClientTransmitterImpl implements TransferTransmitter
                 checkResponseStatus("status", responseStatus, statusRequest);
                 //If we get here then we've received a 200 response
                 String statusPayload = statusRequest.getResponseBodyAsString();
-                JSONObject statusObj = new JSONObject(statusPayload);
+                JsonNode statusObj = JsonUtil.getObjectMapper().readTree(statusPayload);
                 //We're expecting the transfer progress encoded in a JSON object...
-                int currentPosition  = statusObj.getInt("currentPosition");
-                int endPosition  = statusObj.getInt("endPosition");
-                String statusStr= statusObj.getString("status");
+                int currentPosition  = statusObj.get("currentPosition").intValue();
+                int endPosition  = statusObj.get("endPosition").intValue();
+                String statusStr= statusObj.get("status").textValue();
 
                 TransferProgress p = new TransferProgress();
 
                 if(statusObj.has("error"))
                 {
-                    JSONObject errorJSON = statusObj.getJSONObject("error");
+                    String errorJSON = statusObj.get("error").toString();
                     Throwable throwable = rehydrateError(errorJSON);
                     p.setError(throwable);
                 }
@@ -849,7 +850,7 @@ public class HttpClientTransmitterImpl implements TransferTransmitter
      * @return The rehydrated error object, or null if errorJSON is null.
      * Throws {@code JSONException} if an error occurs while parsing the supplied JSON object
      */
-    private Throwable rehydrateError(JSONObject errorJSON)
+    private Throwable rehydrateError(String errorJSON) throws IOException
     {
         return jsonErrorSerializer.deserialize(errorJSON);
     }
@@ -869,7 +870,7 @@ public class HttpClientTransmitterImpl implements TransferTransmitter
         this.httpMethodFactory = httpMethodFactory;
     }
 
-    public void setJsonErrorSerializer(JsonSerializer<Throwable, JSONObject> jsonErrorSerializer)
+    public void setJsonErrorSerializer(JsonSerializer<Throwable, String> jsonErrorSerializer)
     {
         this.jsonErrorSerializer = jsonErrorSerializer;
     }
