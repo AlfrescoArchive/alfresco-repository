@@ -142,7 +142,7 @@ public class ExceptionJsonSerializer implements JsonSerializer<Throwable, String
             errorObject.put("alfrescoMessageId", alfEx.getMsgId());
             Object[] msgParams = alfEx.getMsgParams();
             List<Object> params = msgParams == null ? Collections.emptyList() : Arrays.asList(msgParams);
-            errorObject.put("alfrescoMessageParams", JsonUtil.getObjectMapper().writeValueAsString(params));
+            errorObject.put("alfrescoMessageParams", JsonUtil.getObjectMapper().convertValue(params, JsonNode.class));
         }
 
         return errorObject.toString();
