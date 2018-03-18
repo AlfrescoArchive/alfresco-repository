@@ -150,9 +150,9 @@ public class SolrQueryHTTPClientTest
         JsonNode body = client.buildStatsBody(params, "myTenant", Locale.US);
         assertNotNull(body);
         ArrayNode tenant = (ArrayNode) body.get("tenants");
-        assertEquals("myTenant", tenant.get(0).toString());
+        assertEquals("myTenant", tenant.get(0).asText());
         ArrayNode locale = (ArrayNode) body.get("locales");
-        assertEquals("en_US", locale.get(0).toString());
+        assertEquals("en_US", locale.get(0).asText());
         String query = body.get("query").textValue();
         assertTrue(query.contains("TYPE:"));
         assertTrue(query.contains("{http://www.alfresco.org/model/content/1.0}content"));

@@ -560,11 +560,11 @@ public class SolrQueryHTTPClient extends AbstractSolrQueryHTTPClient implements 
             body.put("allAttributes", allAttributes);
 
             body.put("defaultFTSOperator",
-                    JsonUtil.getObjectMapper().writeValueAsString(searchParams.getDefaultFTSOperator()));
+                    JsonUtil.getObjectMapper().convertValue(searchParams.getDefaultFTSOperator(), JsonNode.class));
             body.put("defaultFTSFieldOperator",
-                    JsonUtil.getObjectMapper().writeValueAsString(searchParams.getDefaultFTSFieldOperator()));
+                    JsonUtil.getObjectMapper().convertValue(searchParams.getDefaultFTSFieldOperator(), JsonNode.class));
             body.put("queryConsistency",
-                    JsonUtil.getObjectMapper().writeValueAsString(searchParams.getQueryConsistency()));
+                    JsonUtil.getObjectMapper().convertValue(searchParams.getQueryConsistency(), JsonNode.class));
             if (searchParams.getMlAnalaysisMode() != null)
             {
                 body.put("mlAnalaysisMode", searchParams.getMlAnalaysisMode().toString());
