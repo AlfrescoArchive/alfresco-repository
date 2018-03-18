@@ -119,7 +119,7 @@ public class SpellCheckDecisionManager
             {
                 spellCheckJsonValue = JsonUtil.getObjectMapper().createObjectNode();
                 spellCheckJsonValue.put("didYouMean",
-                        JsonUtil.getObjectMapper().writeValueAsString(collationQueriesList));
+                        JsonUtil.getObjectMapper().convertValue(collationQueriesList, JsonNode.class));
             }
             else
             {
