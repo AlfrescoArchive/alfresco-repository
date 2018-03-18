@@ -27,6 +27,7 @@ package org.alfresco.repo.preference;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.databind.node.ValueNode;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -231,8 +232,8 @@ public class PreferenceServiceImpl implements PreferenceService, Extensible
                 Iterator<String> keys = jsonPrefs.fieldNames();
                 while (keys.hasNext())
                 {
-                    String key = (String)keys.next();
-                    Serializable value = (Serializable)jsonPrefs.get(key);
+                    String key = keys.next();
+                    Serializable value = (Serializable) JsonUtil.convertJSONValue((ValueNode) jsonPrefs.get(key));
 
                     if(key.startsWith(SHARE_SITES_PREFERENCE_KEY))
                     {
@@ -460,7 +461,16 @@ public class PreferenceServiceImpl implements PreferenceService, Extensible
                                 Date date = new Date();
                                 value = ISO8601DateFormat.format(date);
                             }
-                            jsonPrefs.put(key, value == null ? null : value.toString());
+                            // if the value is an Object, convert it to String
+                            // or it will be converted to JSON object
+                            if (value != null &&
+                                    !(value instanceof Number) &&
+                                    !(value instanceof String) &&
+                                    !(value instanceof Boolean))
+                            {
+                                value = value.toString();
+                            }
+                            jsonPrefs.put(key, JsonUtil.getObjectMapper().convertValue(value, JsonNode.class));
                         }
 
                         // Save the updated preferences
@@ -518,7 +528,7 @@ public class PreferenceServiceImpl implements PreferenceService, Extensible
                     {
                         try
                         {
-                            ObjectNode jsonPrefs = null;
+                            ObjectNode jsonPrefs = JsonUtil.getObjectMapper().createObjectNode();
                             if (preferenceFilter != null && preferenceFilter.length() != 0)
                             {
                                 // Get the current preferences
@@ -527,10 +537,6 @@ public class PreferenceServiceImpl implements PreferenceService, Extensible
                                 if (reader != null)
                                 {
                                     jsonPrefs = (ObjectNode) JsonUtil.getObjectMapper().readTree(reader.getContentString());
-                                }
-                                else
-                                {
-                                    jsonPrefs = JsonUtil.getObjectMapper().createObjectNode();
                                 }
 
                                 // Remove the prefs that match the filter
