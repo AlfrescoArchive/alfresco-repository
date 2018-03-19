@@ -554,14 +554,14 @@
                     <groupId>nu.validator.htmlparser</groupId>
                     <artifactId>htmlparser</artifactId>
                 </exclusion>
-<!--                <exclusion>
+                <exclusion>
                     <groupId>org.apache.myfaces.core</groupId>
                     <artifactId>myfaces-api</artifactId>
                 </exclusion>
                 <exclusion>
                     <groupId>org.apache.myfaces.core</groupId>
                     <artifactId>myfaces-impl</artifactId>
-                </exclusion>-->
+                </exclusion>
             </exclusions>
         </dependency>
         <dependency>
