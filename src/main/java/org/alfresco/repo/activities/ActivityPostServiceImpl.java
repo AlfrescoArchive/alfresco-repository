@@ -52,6 +52,7 @@ import org.alfresco.service.cmr.model.FileInfo;
 import org.alfresco.service.cmr.repository.ContentData;
 import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.namespace.QName;
+import org.alfresco.util.json.JsonUtil;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.extensions.surf.util.ParameterCheck;
@@ -69,16 +70,11 @@ public class ActivityPostServiceImpl implements ActivityPostService
     private ActivityPostDAO postDAO;
     private TenantService tenantService;
     private EventPublisher eventPublisher;
-    private ObjectMapper objectMapper;
+    private ObjectMapper objectMapper = JsonUtil.getObjectMapper();
     
     private int estGridSize = 1;
     
     private boolean userNamesAreCaseSensitive = false;
-
-    public void setObjectMapper(ObjectMapper objectMapper)
-    {
-        this.objectMapper = objectMapper;
-    }
 
     public void setIgnoredActivityTypes(String ignoredActivityTypes)
     {

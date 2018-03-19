@@ -58,6 +58,7 @@ import org.alfresco.util.Pair;
 import org.alfresco.util.PathUtil;
 import org.alfresco.util.PropertyCheck;
 import org.alfresco.util.VmShutdownListener;
+import org.alfresco.util.json.JsonUtil;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.quartz.JobExecutionException;
@@ -88,8 +89,8 @@ public class PostLookup
     private TenantService tenantService;
     private SiteService siteService;
     private JobLockService jobLockService;
-    private ObjectMapper objectMapper;
-    
+    private ObjectMapper objectMapper = JsonUtil.getObjectMapper();
+
     public static final String JSON_NODEREF_LOOKUP = "nodeRefL"; // requires additional lookup
     
     public static final String JSON_NODEREF = "nodeRef";
@@ -115,11 +116,6 @@ public class PostLookup
     private int rollupCount = 5;
     
     private int maxItemsPerCycle = 500;
-
-    public void setObjectMapper(ObjectMapper objectMapper)
-    {
-        this.objectMapper = objectMapper;
-    }
 
     public void setPostDAO(ActivityPostDAO postDAO)
     {
