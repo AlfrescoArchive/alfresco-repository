@@ -27,7 +27,6 @@
 package org.alfresco.repo.transfer;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -42,7 +41,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
-
 import org.alfresco.service.cmr.repository.AssociationRef;
 import org.alfresco.service.cmr.repository.ContentData;
 import org.alfresco.service.cmr.repository.ContentService;
@@ -56,7 +54,7 @@ import org.alfresco.util.HttpClientHelper;
 import org.alfresco.util.PropertyCheck;
 import org.alfresco.util.json.ExceptionJsonSerializer;
 import org.alfresco.util.json.JsonSerializer;
-import org.alfresco.util.json.JsonUtil;
+import org.alfresco.util.json.jackson.AlfrescoDefaultObjectMapper;
 import org.apache.commons.httpclient.Credentials;
 import org.apache.commons.httpclient.HostConfiguration;
 import org.apache.commons.httpclient.HttpClient;
@@ -392,7 +390,7 @@ public class HttpClientTransmitterImpl implements TransferTransmitter
                 checkResponseStatus("begin", responseStatus, beginRequest);
                 //If we get here then we've received a 200 response
                 //We're expecting the transfer id encoded in a JSON object...
-                JsonNode response = JsonUtil.getObjectMapper().readTree(beginRequest.getResponseBodyAsString());
+                JsonNode response = AlfrescoDefaultObjectMapper.getReader().readTree(beginRequest.getResponseBodyAsString());
 
                 Transfer transfer = new Transfer();
                 transfer.setTransferTarget(target);
@@ -715,7 +713,7 @@ public class HttpClientTransmitterImpl implements TransferTransmitter
                 checkResponseStatus("status", responseStatus, statusRequest);
                 //If we get here then we've received a 200 response
                 String statusPayload = statusRequest.getResponseBodyAsString();
-                JsonNode statusObj = JsonUtil.getObjectMapper().readTree(statusPayload);
+                JsonNode statusObj = AlfrescoDefaultObjectMapper.getReader().readTree(statusPayload);
                 //We're expecting the transfer progress encoded in a JSON object...
                 int currentPosition  = statusObj.get("currentPosition").intValue();
                 int endPosition  = statusObj.get("endPosition").intValue();

@@ -2,7 +2,7 @@
  * #%L
  * Alfresco Repository
  * %%
- * Copyright (C) 2005 - 2016 Alfresco Software Limited
+ * Copyright (C) 2005 - 2018 Alfresco Software Limited
  * %%
  * This file is part of the Alfresco software.
  * If the software was purchased under a paid Alfresco license, the terms of
@@ -41,24 +41,12 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * <p>
- *     The class provides static reference to default {@link com.fasterxml.jackson.databind.ObjectMapper}
- *     as well as utility methods of converting JSON to Java objects and back.
- * </p>
- * <p>
- *     To be used if <code>repositoryJacksonObjectMapper</code> Spring bean is not accessible.
- * </p>
+ * This class provide utility methods for JSON conversion
  */
 public class JsonUtil
 {
-    private static final ObjectMapper objectMapper = new ObjectMapper();
     // outputs pretty JSON strings
     private static ObjectMapper prettyObjectMapper = new ObjectMapper().enable(SerializationFeature.INDENT_OUTPUT);
-
-    public static ObjectMapper getObjectMapper()
-    {
-        return objectMapper;
-    }
 
     public static String toPrettyJson(String jsonString)
     {

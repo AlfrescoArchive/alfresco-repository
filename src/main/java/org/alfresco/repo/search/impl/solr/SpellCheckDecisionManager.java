@@ -32,7 +32,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.alfresco.util.json.JsonUtil;
+import org.alfresco.util.json.jackson.AlfrescoDefaultObjectMapper;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -100,7 +100,7 @@ public class SpellCheckDecisionManager
                     if (collate)
                     {
                         reguestJsonBody.put("query", valueJsonObject.get("collationQuery").textValue());
-                        spellCheckJsonValue = JsonUtil.getObjectMapper().createObjectNode();
+                        spellCheckJsonValue = AlfrescoDefaultObjectMapper.createObjectNode();
                         spellCheckJsonValue.put("searchInsteadFor", valueJsonObject.get("collationQueryString").textValue());
                         break;
                     }
@@ -117,13 +117,13 @@ public class SpellCheckDecisionManager
             }
             else if (collationQueriesList.size() > 0)
             {
-                spellCheckJsonValue = JsonUtil.getObjectMapper().createObjectNode();
+                spellCheckJsonValue = AlfrescoDefaultObjectMapper.createObjectNode();
                 spellCheckJsonValue.put("didYouMean",
-                        JsonUtil.getObjectMapper().convertValue(collationQueriesList, JsonNode.class));
+                        AlfrescoDefaultObjectMapper.convertValue(collationQueriesList, JsonNode.class));
             }
             else
             {
-                spellCheckJsonValue = JsonUtil.getObjectMapper().createObjectNode();
+                spellCheckJsonValue = AlfrescoDefaultObjectMapper.createObjectNode();
             }
         }
         catch (Exception e)

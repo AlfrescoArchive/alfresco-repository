@@ -123,7 +123,7 @@ import org.alfresco.util.GUID;
 import org.alfresco.util.ISO8601DateFormat;
 import org.alfresco.util.ISO9075;
 import org.alfresco.util.Pair;
-import org.alfresco.util.json.JsonUtil;
+import org.alfresco.util.json.jackson.AlfrescoDefaultObjectMapper;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.mozilla.javascript.Context;
@@ -3487,7 +3487,7 @@ public class ScriptNode implements Scopeable, NamespacePrefixResolverProvider
        {
            if(this.services.getPublicServiceAccessService().hasAccess(ServiceRegistry.NODE_SERVICE.getLocalName(), "getProperties", this.nodeRef) == AccessStatus.ALLOWED)
            {
-               ObjectNode json = JsonUtil.getObjectMapper().createObjectNode();
+               ObjectNode json = AlfrescoDefaultObjectMapper.createObjectNode();
               
                try
                {
@@ -3538,11 +3538,11 @@ public class ScriptNode implements Scopeable, NamespacePrefixResolverProvider
                                    logger.debug("Ignoring property '" + nextLongQName + "' as it's namespace is not registered");
                            }
                        }
-                       json.put("properties", JsonUtil.getObjectMapper().writeValueAsString(nodePropertiesShortQNames));
+                       json.put("properties", AlfrescoDefaultObjectMapper.writeValueAsString(nodePropertiesShortQNames));
                    }
                    else
                    {
-                       json.put("properties", JsonUtil.getObjectMapper().writeValueAsString(nodeProperties));
+                       json.put("properties", AlfrescoDefaultObjectMapper.writeValueAsString(nodeProperties));
                    }
                    
                    // add aspects as an array
@@ -3556,11 +3556,11 @@ public class ScriptNode implements Scopeable, NamespacePrefixResolverProvider
                            String nextShortQName = getShortQName(nextLongQName);
                            nodeAspectsShortQNames.add(nextShortQName);
                        }
-                       json.put("aspects", JsonUtil.getObjectMapper().writeValueAsString(nodeAspectsShortQNames));
+                       json.put("aspects", AlfrescoDefaultObjectMapper.writeValueAsString(nodeAspectsShortQNames));
                    }
                    else
                    {
-                       json.put("aspects", JsonUtil.getObjectMapper().writeValueAsString(nodeAspects));
+                       json.put("aspects", AlfrescoDefaultObjectMapper.writeValueAsString(nodeAspects));
                    }
                }
                catch (JsonProcessingException e)

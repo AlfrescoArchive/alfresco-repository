@@ -58,7 +58,7 @@ import org.alfresco.service.namespace.NamespaceException;
 import org.alfresco.service.namespace.NamespaceService;
 import org.alfresco.service.namespace.QName;
 import org.alfresco.util.ISO8601DateFormat;
-import org.alfresco.util.json.JsonUtil;
+import org.alfresco.util.json.jackson.AlfrescoDefaultObjectMapper;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -205,7 +205,7 @@ public class JSONConversionComponent
      */
     public JsonNode toJSONObject(final NodeRef nodeRef, final boolean useShortQNames) throws JsonProcessingException
     {
-        final ObjectNode json = JsonUtil.getObjectMapper().createObjectNode();
+        final ObjectNode json = AlfrescoDefaultObjectMapper.createObjectNode();
         
         if (this.nodeService.exists(nodeRef))
         {
@@ -290,7 +290,7 @@ public class JSONConversionComponent
     @SuppressWarnings("unchecked")
     protected JsonNode permissionsToJSON(final NodeRef nodeRef)
     {
-        final ObjectNode permissionsJSON = JsonUtil.getObjectMapper().createObjectNode();
+        final ObjectNode permissionsJSON = AlfrescoDefaultObjectMapper.createObjectNode();
         if (AccessStatus.ALLOWED.equals(permissionService.hasPermission(nodeRef, PermissionService.READ_PERMISSIONS)) == true)
         {
             permissionsJSON.put("inherited", permissionService.getInheritParentPermissions(nodeRef));
@@ -309,7 +309,7 @@ public class JSONConversionComponent
     @SuppressWarnings("unchecked")
     protected JsonNode userPermissionsToJSON(final NodeRef nodeRef)
     {        
-        final ObjectNode userPermissionJSON = JsonUtil.getObjectMapper().createObjectNode();
+        final ObjectNode userPermissionJSON = AlfrescoDefaultObjectMapper.createObjectNode();
         for (String userPermission : this.userPermissions)
         {
             boolean hasPermission = AccessStatus.ALLOWED.equals(permissionService.hasPermission(nodeRef, userPermission));
@@ -340,7 +340,7 @@ public class JSONConversionComponent
                 // Built-in data type processing
                 if (value instanceof Date)
                 {
-                    ObjectNode dateObj = JsonUtil.getObjectMapper().createObjectNode();
+                    ObjectNode dateObj = AlfrescoDefaultObjectMapper.createObjectNode();
                     dateObj.put("value", value.toString());
                     dateObj.put("iso8601", ISO8601DateFormat.format((Date)value));
                     return dateObj.toString();
@@ -353,7 +353,7 @@ public class JSONConversionComponent
                 	{
                 	    jsonList.add(propertyToJSON(nodeRef, propertyName, key, listItem));
                 	}
-                	return JsonUtil.getObjectMapper().writeValueAsString(jsonList);
+                	return AlfrescoDefaultObjectMapper.writeValueAsString(jsonList);
                 }
                 else if (value instanceof Double)
                 {
@@ -374,7 +374,7 @@ public class JSONConversionComponent
     
     protected JsonNode propertiesToJSON(NodeRef nodeRef, Map<QName, Serializable> properties, boolean useShortQNames) throws JsonProcessingException
     {
-        ObjectNode propertiesJSON = JsonUtil.getObjectMapper().createObjectNode();
+        ObjectNode propertiesJSON = AlfrescoDefaultObjectMapper.createObjectNode();
         
         for (QName propertyName : properties.keySet())
         {
@@ -401,7 +401,7 @@ public class JSONConversionComponent
      */
     protected JsonNode aspectsToJSON(NodeRef nodeRef, boolean useShortQNames)
     {
-        ArrayNode aspectsJSON = JsonUtil.getObjectMapper().createArrayNode();
+        ArrayNode aspectsJSON = AlfrescoDefaultObjectMapper.createArrayNode();
 
         Set<QName> aspects = this.nodeService.getAspects(nodeRef);
         for (QName aspect : aspects)
@@ -419,7 +419,7 @@ public class JSONConversionComponent
     protected JsonNode allSetPermissionsToJSON(NodeRef nodeRef)
     {
         Set<AccessPermission> acls = permissionService.getAllSetPermissions(nodeRef);
-        ArrayNode permissions = JsonUtil.getObjectMapper().createArrayNode();
+        ArrayNode permissions = AlfrescoDefaultObjectMapper.createArrayNode();
 
         List<AccessPermission> ordered = ScriptNode.getSortedACLs(acls);
 

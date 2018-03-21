@@ -75,7 +75,7 @@ import org.alfresco.service.namespace.NamespaceService;
 import org.alfresco.service.namespace.QName;
 import org.alfresco.util.EqualsHelper;
 import org.alfresco.util.Pair;
-import org.alfresco.util.json.JsonUtil;
+import org.alfresco.util.json.jackson.AlfrescoDefaultObjectMapper;
 import org.alfresco.util.registry.NamedObjectRegistry;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -441,7 +441,7 @@ public class CommentServiceImpl extends AbstractLifecycleBean implements Comment
         if(siteId != null)
         {
 	        // create an activity (with some Share-specific parts)
-	        ObjectNode json = JsonUtil.getObjectMapper().createObjectNode();
+	        ObjectNode json = AlfrescoDefaultObjectMapper.createObjectNode();
 	        json.put("title", nodeService.getProperty(nodeRef, ContentModel.PROP_NAME).toString());
 			try
 			{

@@ -30,7 +30,7 @@ import org.alfresco.repo.Client;
 import org.alfresco.repo.tenant.TenantService;
 import org.alfresco.service.cmr.model.FileInfo;
 import org.alfresco.service.cmr.repository.NodeRef;
-import org.alfresco.util.json.JsonUtil;
+import org.alfresco.util.json.jackson.AlfrescoDefaultObjectMapper;
 
 /**
  * A consolidated services for posting file folder activities.
@@ -76,7 +76,7 @@ public class FileFolderActivityPosterImpl implements ActivityPoster
                 NodeRef nodeRef,
                 String fileName)
     {
-        ObjectNode json = JsonUtil.getObjectMapper().createObjectNode();
+        ObjectNode json = AlfrescoDefaultObjectMapper.createObjectNode();
         json.put("nodeRef", nodeRef.toString());
 
         if (parentNodeRef != null)

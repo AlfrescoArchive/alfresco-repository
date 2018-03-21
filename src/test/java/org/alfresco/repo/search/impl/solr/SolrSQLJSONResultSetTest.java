@@ -27,9 +27,8 @@ package org.alfresco.repo.search.impl.solr;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.io.IOException;
-import org.alfresco.util.json.JsonUtil;
+import org.alfresco.util.json.jackson.AlfrescoDefaultObjectMapper;
 import org.junit.Assert;
 import org.junit.Test;
 /**
@@ -43,7 +42,7 @@ public class SolrSQLJSONResultSetTest
     public void parseSQLResponse() throws IOException
     {
         String response = "{\"result-set\":{\"docs\":[{\"SITE\":\"_REPOSITORY_\"},{\"SITE\":\"surf-config\"},{\"SITE\":\"swsdp\"},{\"RESPONSE_TIME\":96,\"EOF\":true}]}}";
-        JsonNode json = JsonUtil.getObjectMapper().readTree(response);
+        JsonNode json = AlfrescoDefaultObjectMapper.getReader().readTree(response);
         SolrSQLJSONResultSet ssjr = new SolrSQLJSONResultSet(json, null);
         Assert.assertNotNull(ssjr);
         Assert.assertNotNull(ssjr.getQueryTime());
@@ -62,7 +61,7 @@ public class SolrSQLJSONResultSetTest
         String response = "{\"result-set\":{\"docs\":[{\"EXCEPTION\":\"Column 'SIT1E' not found in any table\",\"EOF\":true,\"RESPONSE_TIME\":18943}]}}";
         try
         {
-            JsonNode json = JsonUtil.getObjectMapper().readTree(response);
+            JsonNode json = AlfrescoDefaultObjectMapper.getReader().readTree(response);
             SolrSQLJSONResultSet ssjr = new SolrSQLJSONResultSet(json, null);
             Assert.assertNull(ssjr);
         }
@@ -84,7 +83,7 @@ public class SolrSQLJSONResultSetTest
         String response = "{\"result-set\":{\"docs\":[{\"EXCEPTION\":\"/sql handler only works in Solr Cloud mode\",\"EOF\":true}]}}";
         try
         {
-            JsonNode json = JsonUtil.getObjectMapper().readTree(response);
+            JsonNode json = AlfrescoDefaultObjectMapper.getReader().readTree(response);
             SolrSQLJSONResultSet ssjr = new SolrSQLJSONResultSet(json, null);
             Assert.assertNull(ssjr);
         }

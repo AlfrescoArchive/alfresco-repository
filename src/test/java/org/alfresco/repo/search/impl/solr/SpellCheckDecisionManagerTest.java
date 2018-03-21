@@ -29,22 +29,20 @@ package org.alfresco.repo.search.impl.solr;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import java.io.BufferedReader;
-import java.io.ByteArrayInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.Reader;
 import java.net.URL;
 import java.util.Arrays;
-
-import org.alfresco.util.json.JsonUtil;
-import org.junit.*;
+import org.alfresco.util.json.jackson.AlfrescoDefaultObjectMapper;
+import org.junit.Test;
 import org.springframework.util.ResourceUtils;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 /**
  * This class contains tests for the class <code>{@link SpellCheckDecisionManager}</code>.
@@ -343,7 +341,7 @@ public class SpellCheckDecisionManagerTest
         }
         
         Reader reader = new FileReader(ResourceUtils.getFile(url));
-        JsonNode resultJson = JsonUtil.getObjectMapper().readTree(reader);
+        JsonNode resultJson = AlfrescoDefaultObjectMapper.getReader().readTree(reader);
         return resultJson;
     }
 
@@ -367,7 +365,7 @@ public class SpellCheckDecisionManagerTest
                     + "\"defaultNamespace\" : \"http://www.alfresco.org/model/content/1.0\","
                     + "\"defaultFTSFieldOperator\" : \"AND\"," + "\"defaultFTSOperator\" : \"AND\"" + "}";
 
-        ObjectNode json = (ObjectNode) JsonUtil.getObjectMapper().readTree(requestStr);
+        ObjectNode json = (ObjectNode) AlfrescoDefaultObjectMapper.getReader().readTree(requestStr);
         return json;
     }
 

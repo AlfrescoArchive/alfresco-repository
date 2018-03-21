@@ -33,9 +33,9 @@ import java.lang.reflect.Constructor;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-
 import org.alfresco.error.AlfrescoRuntimeException;
 import org.alfresco.service.cmr.transfer.TransferException;
+import org.alfresco.util.json.jackson.AlfrescoDefaultObjectMapper;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -50,7 +50,7 @@ public class ExceptionJsonSerializer implements JsonSerializer<Throwable, String
         {
             return null;
         }
-        JsonNode errorJSON = JsonUtil.getObjectMapper().readTree(errorString);
+        JsonNode errorJSON = AlfrescoDefaultObjectMapper.getReader().readTree(errorString);
         
         Throwable result = null;
         Object createdObject = null;
@@ -132,7 +132,7 @@ public class ExceptionJsonSerializer implements JsonSerializer<Throwable, String
     @Override
     public String serialize(Throwable object) throws IOException
     {
-        ObjectNode errorObject = JsonUtil.getObjectMapper().createObjectNode();
+        ObjectNode errorObject = AlfrescoDefaultObjectMapper.createObjectNode();
 
         errorObject.put("errorType", object.getClass().getName());
         errorObject.put("errorMessage", object.getMessage());
@@ -142,7 +142,7 @@ public class ExceptionJsonSerializer implements JsonSerializer<Throwable, String
             errorObject.put("alfrescoMessageId", alfEx.getMsgId());
             Object[] msgParams = alfEx.getMsgParams();
             List<Object> params = msgParams == null ? Collections.emptyList() : Arrays.asList(msgParams);
-            errorObject.put("alfrescoMessageParams", JsonUtil.getObjectMapper().convertValue(params, JsonNode.class));
+            errorObject.put("alfrescoMessageParams", AlfrescoDefaultObjectMapper.convertValue(params, JsonNode.class));
         }
 
         return errorObject.toString();

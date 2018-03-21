@@ -35,7 +35,7 @@ import org.alfresco.repo.dictionary.types.period.Cron;
 import org.alfresco.repo.dictionary.types.period.XMLDuration;
 import org.alfresco.repo.forms.DataTypeParameters;
 import org.alfresco.service.cmr.repository.PeriodProvider;
-import org.alfresco.util.json.JsonUtil;
+import org.alfresco.util.json.jackson.AlfrescoDefaultObjectMapper;
 
 /**
  * Represents the parameters for the period data type.
@@ -93,13 +93,13 @@ public class PeriodDataTypeParameters implements DataTypeParameters, Serializabl
      */
     public Object getAsJSON()
     {
-        ArrayNode periods = JsonUtil.getObjectMapper().createArrayNode();
+        ArrayNode periods = AlfrescoDefaultObjectMapper.createArrayNode();
 
         for (PeriodProvider pp : this.providers)
         {
             boolean hasExpression = !(pp.getExpressionMutiplicity().equals(PeriodProvider.ExpressionMutiplicity.NONE));
 
-            ObjectNode period = JsonUtil.getObjectMapper().createObjectNode();
+            ObjectNode period = AlfrescoDefaultObjectMapper.createObjectNode();
             period.put("type", pp.getPeriodType());
             period.put("label", pp.getDisplayLabel());
             period.put("hasExpression", hasExpression);

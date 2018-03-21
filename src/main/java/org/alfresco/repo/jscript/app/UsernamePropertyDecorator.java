@@ -32,7 +32,7 @@ import org.alfresco.model.ContentModel;
 import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.cmr.security.PersonService;
 import org.alfresco.service.namespace.QName;
-import org.alfresco.util.json.JsonUtil;
+import org.alfresco.util.json.jackson.AlfrescoDefaultObjectMapper;
 
 /**
  * Username property decorator class.
@@ -61,7 +61,7 @@ public class UsernamePropertyDecorator extends BasePropertyDecorator
         String username = value.toString();
         String firstName = null;
         String lastName = null;
-        ObjectNode map = JsonUtil.getObjectMapper().createObjectNode();
+        ObjectNode map = AlfrescoDefaultObjectMapper.createObjectNode();
         map.put("userName", username);
         
         // DO NOT change this to just use getPersonOrNullImpl

@@ -33,7 +33,7 @@ import java.util.Map;
 
 import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.util.JSONtoFmModel;
-import org.alfresco.util.json.JsonUtil;
+import org.alfresco.util.json.jackson.AlfrescoDefaultObjectMapper;
 import org.springframework.extensions.surf.util.ISO8601DateFormat;
 
 /**
@@ -181,7 +181,7 @@ public class ActivityFeedEntity
     
     public String getJSONString()
     {
-        ObjectNode jo = JsonUtil.getObjectMapper().createObjectNode();
+        ObjectNode jo = AlfrescoDefaultObjectMapper.createObjectNode();
         
         jo.put(KEY_ACTIVITY_FEED_ID, id);
         

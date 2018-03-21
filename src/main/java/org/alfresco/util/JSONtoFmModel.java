@@ -26,27 +26,20 @@
 package org.alfresco.util;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.NullNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.POJONode;
-import com.fasterxml.jackson.databind.node.TextNode;
 import com.fasterxml.jackson.databind.node.ValueNode;
 import java.io.IOException;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.SortedMap;
-import java.util.TimeZone;
 import java.util.TreeMap;
 import java.util.regex.Pattern;
-
-import org.alfresco.util.json.JsonUtil;
+import org.alfresco.util.json.jackson.AlfrescoDefaultObjectMapper;
 import org.springframework.extensions.surf.util.ISO8601DateFormat;
 
 /**
@@ -72,7 +65,7 @@ public final class JSONtoFmModel
      */
     public static Map<String, Object> convertJSONObjectToMap(String jsonString) throws IOException
     {
-        ObjectNode jo = (ObjectNode) JsonUtil.getObjectMapper().readTree(jsonString);
+        ObjectNode jo = (ObjectNode) AlfrescoDefaultObjectMapper.getReader().readTree(jsonString);
         return convertJSONObjectToMap(jo);
     }
     
@@ -146,7 +139,7 @@ public final class JSONtoFmModel
     public static Map<String, Object> convertJSONArrayToMap(String jsonString) throws IOException
     {
         Map<String, Object> model = new HashMap<String, Object>();
-        ArrayNode ja = (ArrayNode) JsonUtil.getObjectMapper().readTree(jsonString);
+        ArrayNode ja = (ArrayNode) AlfrescoDefaultObjectMapper.getReader().readTree(jsonString);
         model.put(ROOT_ARRAY, convertJSONArrayToList(ja));
         return model;
     }

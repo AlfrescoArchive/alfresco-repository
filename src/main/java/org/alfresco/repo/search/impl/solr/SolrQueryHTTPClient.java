@@ -30,10 +30,7 @@ import static org.alfresco.util.SearchDateConversion.parseDateInterval;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.Reader;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -88,7 +85,7 @@ import org.alfresco.service.cmr.security.PermissionService;
 import org.alfresco.util.Pair;
 import org.alfresco.util.ParameterCheck;
 import org.alfresco.util.PropertyCheck;
-import org.alfresco.util.json.JsonUtil;
+import org.alfresco.util.json.jackson.AlfrescoDefaultObjectMapper;
 import org.apache.commons.codec.net.URLCodec;
 import org.apache.commons.httpclient.Header;
 import org.apache.commons.httpclient.HttpClient;
@@ -388,14 +385,14 @@ public class SolrQueryHTTPClient extends AbstractSolrQueryHTTPClient implements 
 
     protected ObjectNode buildStatsBody(StatsParameters searchParameters, String tenant, Locale locale)
     {
-        ObjectNode body = JsonUtil.getObjectMapper().createObjectNode();
+        ObjectNode body = AlfrescoDefaultObjectMapper.createObjectNode();
         body.put("query", searchParameters.getQuery());
         
-        ArrayNode tenants = JsonUtil.getObjectMapper().createArrayNode();
+        ArrayNode tenants = AlfrescoDefaultObjectMapper.createArrayNode();
         tenants.add(tenant);
         body.put("tenants", tenants);
         
-        ArrayNode locales = JsonUtil.getObjectMapper().createArrayNode();
+        ArrayNode locales = AlfrescoDefaultObjectMapper.createArrayNode();
         locales.add(locale.toString());
         body.put("locales", locales);
         
@@ -500,7 +497,7 @@ public class SolrQueryHTTPClient extends AbstractSolrQueryHTTPClient implements 
                 url.append(spellCheckQueryStr);
             }
 
-            ObjectNode body = JsonUtil.getObjectMapper().createObjectNode();
+            ObjectNode body = AlfrescoDefaultObjectMapper.createObjectNode();
             body.put("query", searchParameters.getQuery());
 
             
@@ -509,7 +506,7 @@ public class SolrQueryHTTPClient extends AbstractSolrQueryHTTPClient implements 
             Set<String> allAuthorisations = permissionService.getAuthorisations();
             boolean includeGroups = includeGroupsForRoleAdmin ? true : !allAuthorisations.contains(PermissionService.ADMINISTRATOR_AUTHORITY);
             
-            ArrayNode authorities = JsonUtil.getObjectMapper().createArrayNode();
+            ArrayNode authorities = AlfrescoDefaultObjectMapper.createArrayNode();
             for (String authority : allAuthorisations)
             {
                 if(includeGroups)
@@ -527,11 +524,11 @@ public class SolrQueryHTTPClient extends AbstractSolrQueryHTTPClient implements 
             body.put("authorities", authorities);
             body.put("anyDenyDenies", anyDenyDenies);
             
-            ArrayNode tenants = JsonUtil.getObjectMapper().createArrayNode();
+            ArrayNode tenants = AlfrescoDefaultObjectMapper.createArrayNode();
             tenants.add(tenantService.getCurrentUserDomain());
             body.put("tenants", tenants);
 
-            ArrayNode locales = JsonUtil.getObjectMapper().createArrayNode();
+            ArrayNode locales = AlfrescoDefaultObjectMapper.createArrayNode();
             for (Locale currentLocale : searchParameters.getLocales())
             {
                 locales.add(DefaultTypeConverter.INSTANCE.convert(String.class, currentLocale));
@@ -542,17 +539,17 @@ public class SolrQueryHTTPClient extends AbstractSolrQueryHTTPClient implements 
             }
             body.put("locales", locales);
 
-            ArrayNode templates = JsonUtil.getObjectMapper().createArrayNode();
+            ArrayNode templates = AlfrescoDefaultObjectMapper.createArrayNode();
             for (String templateName : searchParams.getQueryTemplates().keySet())
             {
-                ObjectNode template = JsonUtil.getObjectMapper().createObjectNode();
+                ObjectNode template = AlfrescoDefaultObjectMapper.createObjectNode();
                 template.put("name", templateName);
                 template.put("template", searchParams.getQueryTemplates().get(templateName));
                 templates.add(template);
             }
             body.put("templates", templates);
 
-            ArrayNode allAttributes = JsonUtil.getObjectMapper().createArrayNode();
+            ArrayNode allAttributes = AlfrescoDefaultObjectMapper.createArrayNode();
             for (String attribute : searchParams.getAllAttributes())
             {
                 allAttributes.add(attribute);
@@ -560,18 +557,18 @@ public class SolrQueryHTTPClient extends AbstractSolrQueryHTTPClient implements 
             body.put("allAttributes", allAttributes);
 
             body.put("defaultFTSOperator",
-                    JsonUtil.getObjectMapper().convertValue(searchParams.getDefaultFTSOperator(), JsonNode.class));
+                    AlfrescoDefaultObjectMapper.convertValue(searchParams.getDefaultFTSOperator(), JsonNode.class));
             body.put("defaultFTSFieldOperator",
-                    JsonUtil.getObjectMapper().convertValue(searchParams.getDefaultFTSFieldOperator(), JsonNode.class));
+                    AlfrescoDefaultObjectMapper.convertValue(searchParams.getDefaultFTSFieldOperator(), JsonNode.class));
             body.put("queryConsistency",
-                    JsonUtil.getObjectMapper().convertValue(searchParams.getQueryConsistency(), JsonNode.class));
+                    AlfrescoDefaultObjectMapper.convertValue(searchParams.getQueryConsistency(), JsonNode.class));
             if (searchParams.getMlAnalaysisMode() != null)
             {
                 body.put("mlAnalaysisMode", searchParams.getMlAnalaysisMode().toString());
             }
             body.put("defaultNamespace", searchParams.getNamespace());
 
-            ArrayNode textAttributes = JsonUtil.getObjectMapper().createArrayNode();
+            ArrayNode textAttributes = AlfrescoDefaultObjectMapper.createArrayNode();
             for (String attribute : searchParams.getTextAttributes())
             {
                 textAttributes.add(attribute);
@@ -1269,7 +1266,7 @@ public class SolrQueryHTTPClient extends AbstractSolrQueryHTTPClient implements 
                     throw new LuceneQueryParserException("Request failed " + get.getStatusCode() + " " + url.toString());
                 }
 
-                return JsonUtil.getObjectMapper().readTree(get.getResponseBodyAsString());
+                return AlfrescoDefaultObjectMapper.getReader().readTree(get.getResponseBodyAsString());
             }
             finally
             {

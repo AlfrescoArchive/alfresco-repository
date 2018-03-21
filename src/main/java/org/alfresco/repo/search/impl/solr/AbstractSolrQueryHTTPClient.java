@@ -29,7 +29,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import java.io.IOException;
 import javax.servlet.http.HttpServletResponse;
 import org.alfresco.repo.search.impl.lucene.LuceneQueryParserException;
-import org.alfresco.util.json.JsonUtil;
+import org.alfresco.util.json.jackson.AlfrescoDefaultObjectMapper;
 import org.apache.commons.httpclient.Header;
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpStatus;
@@ -70,7 +70,7 @@ public abstract class AbstractSolrQueryHTTPClient
                 throw new LuceneQueryParserException("Request failed " + post.getStatusCode() + " " + url.toString());
             }
 
-            return JsonUtil.getObjectMapper().readTree(post.getResponseBodyAsStream());
+            return AlfrescoDefaultObjectMapper.getReader().readTree(post.getResponseBodyAsStream());
         }
         finally
         {

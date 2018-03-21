@@ -50,6 +50,7 @@ import org.alfresco.service.cmr.remoteticket.RemoteAlfrescoTicketInfo;
 import org.alfresco.service.cmr.remoteticket.RemoteAlfrescoTicketService;
 import org.alfresco.service.cmr.remoteticket.RemoteSystemUnavailableException;
 import org.alfresco.util.json.JsonUtil;
+import org.alfresco.util.json.jackson.AlfrescoDefaultObjectMapper;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -326,7 +327,7 @@ public class RemoteAlfrescoTicketServiceImpl implements RemoteAlfrescoTicketServ
             logger.debug("Fetching new ticket for " + credentials.getRemoteUsername() + " on " + remoteSystemId);
         
         // Build up the JSON for the ticket request
-        ObjectNode json = JsonUtil.getObjectMapper().createObjectNode();
+        ObjectNode json = AlfrescoDefaultObjectMapper.createObjectNode();
         json.put("username", credentials.getRemoteUsername());
         json.put("password", credentials.getRemotePassword());
         

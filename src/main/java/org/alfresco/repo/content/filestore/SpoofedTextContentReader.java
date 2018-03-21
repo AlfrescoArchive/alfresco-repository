@@ -42,7 +42,7 @@ import org.alfresco.repo.content.MimetypeMap;
 import org.alfresco.service.cmr.repository.ContentIOException;
 import org.alfresco.service.cmr.repository.ContentReader;
 import org.alfresco.textgen.TextGenerator;
-import org.alfresco.util.json.JsonUtil;
+import org.alfresco.util.json.jackson.AlfrescoDefaultObjectMapper;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -148,11 +148,11 @@ public class SpoofedTextContentReader extends AbstractContentReader
         String url = null;
         try
         {
-            ObjectNode jsonObj = JsonUtil.getObjectMapper().createObjectNode();
+            ObjectNode jsonObj = AlfrescoDefaultObjectMapper.createObjectNode();
             jsonObj.put(KEY_LOCALE, locale.toString());
             jsonObj.put(KEY_SEED, Long.valueOf(seed).toString());
             jsonObj.put(KEY_SIZE, Long.valueOf(size).toString());
-            ArrayNode jsonWords = JsonUtil.getObjectMapper().createArrayNode();
+            ArrayNode jsonWords = AlfrescoDefaultObjectMapper.createArrayNode();
             for (String word : words)
             {
                 if (word == null)
@@ -201,14 +201,14 @@ public class SpoofedTextContentReader extends AbstractContentReader
         // Parse URL
         try
         {
-            ObjectNode mappedData = (ObjectNode) JsonUtil.getObjectMapper().readTree(urlData);
+            ObjectNode mappedData = (ObjectNode) AlfrescoDefaultObjectMapper.getReader().readTree(urlData);
 
             String jsonLocale = mappedData.has(KEY_LOCALE) ?
                     mappedData.get(KEY_LOCALE).asText() : Locale.ENGLISH.toString();
             String jsonSeed = mappedData.has(KEY_SEED) ? mappedData.get(KEY_SEED).asText() : "0";
             String jsonSize = mappedData.has(KEY_SIZE) ? mappedData.get(KEY_SIZE).asText() : "1024";
             ArrayNode jsonWords = mappedData.has(KEY_WORDS) ?
-                    (ArrayNode) mappedData.get(KEY_WORDS) : JsonUtil.getObjectMapper().createArrayNode();
+                    (ArrayNode) mappedData.get(KEY_WORDS) : AlfrescoDefaultObjectMapper.createArrayNode();
             // Get the text generator
             Locale locale = new Locale(jsonLocale);
             seed = Long.valueOf(jsonSeed);

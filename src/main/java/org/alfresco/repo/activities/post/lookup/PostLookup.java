@@ -25,7 +25,6 @@
  */
 package org.alfresco.repo.activities.post.lookup;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -58,7 +57,7 @@ import org.alfresco.util.Pair;
 import org.alfresco.util.PathUtil;
 import org.alfresco.util.PropertyCheck;
 import org.alfresco.util.VmShutdownListener;
-import org.alfresco.util.json.JsonUtil;
+import org.alfresco.util.json.jackson.AlfrescoDefaultObjectMapper;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.quartz.JobExecutionException;
@@ -89,7 +88,6 @@ public class PostLookup
     private TenantService tenantService;
     private SiteService siteService;
     private JobLockService jobLockService;
-    private ObjectMapper objectMapper = JsonUtil.getObjectMapper();
 
     public static final String JSON_NODEREF_LOOKUP = "nodeRefL"; // requires additional lookup
     
@@ -339,7 +337,7 @@ public class PostLookup
                 // MT share
                 String tenantDomain = TenantService.DEFAULT_DOMAIN;
                 
-                final ObjectNode jo = (ObjectNode) objectMapper.readTree(activityPost.getActivityData());
+                final ObjectNode jo = (ObjectNode) AlfrescoDefaultObjectMapper.getReader().readTree(activityPost.getActivityData());
                 if (jo.has(JSON_TENANT_DOMAIN))
                 {
                     tenantDomain = jo.get(JSON_TENANT_DOMAIN).asText();
@@ -509,7 +507,7 @@ public class PostLookup
                         newPost.setTenantDomain(tenantDomain);
                         newPost.setJobTaskNode(1);
 
-                        ObjectNode jo = objectMapper.createObjectNode();
+                        ObjectNode jo = AlfrescoDefaultObjectMapper.createObjectNode();
                         jo.put(JSON_NODEREF_PARENT, oldPost.getParentNodeRef().toString());
                         jo.put(JSON_TENANT_DOMAIN, tenantDomain);
                         jo.put(JSON_TITLE, ""+count);

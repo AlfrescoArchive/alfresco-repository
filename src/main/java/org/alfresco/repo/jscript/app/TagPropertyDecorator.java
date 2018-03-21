@@ -34,7 +34,7 @@ import org.alfresco.model.ContentModel;
 import org.alfresco.service.cmr.repository.InvalidNodeRefException;
 import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.namespace.QName;
-import org.alfresco.util.json.JsonUtil;
+import org.alfresco.util.json.jackson.AlfrescoDefaultObjectMapper;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -54,13 +54,13 @@ public class TagPropertyDecorator extends BasePropertyDecorator
     public String decorate(QName propertyName, NodeRef nodeRef, Serializable value)
     {
         Collection<NodeRef> collection = (Collection<NodeRef>)value;
-        ArrayNode array = JsonUtil.getObjectMapper().createArrayNode();
+        ArrayNode array = AlfrescoDefaultObjectMapper.createArrayNode();
 
         for (NodeRef obj : collection)
         {
             try
             {
-                ObjectNode jsonObj = JsonUtil.getObjectMapper().createObjectNode();
+                ObjectNode jsonObj = AlfrescoDefaultObjectMapper.createObjectNode();
                 jsonObj.put("name", this.nodeService.getProperty(obj, ContentModel.PROP_NAME).toString());
                 jsonObj.put("nodeRef", obj.toString());
                 array.add(jsonObj);

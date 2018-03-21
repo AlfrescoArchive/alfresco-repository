@@ -31,7 +31,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 import org.alfresco.model.ContentModel;
 import org.alfresco.query.PagingRequest;
 import org.alfresco.repo.action.executer.MailActionExecuter;
@@ -59,7 +58,7 @@ import org.alfresco.service.cmr.subscriptions.SubscriptionItemTypeEnum;
 import org.alfresco.service.cmr.subscriptions.SubscriptionService;
 import org.alfresco.service.cmr.subscriptions.SubscriptionsDisabledException;
 import org.alfresco.service.namespace.NamespaceService;
-import org.alfresco.util.json.JsonUtil;
+import org.alfresco.util.json.jackson.AlfrescoDefaultObjectMapper;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -214,7 +213,7 @@ public class SubscriptionServiceImpl implements SubscriptionService
         if (userId.equalsIgnoreCase(AuthenticationUtil.getRunAsUser()))
         {
             NodeRef subscriberNode = personService.getPerson(userId, false);
-            ObjectNode activityData = JsonUtil.getObjectMapper().createObjectNode();
+            ObjectNode activityData = AlfrescoDefaultObjectMapper.createObjectNode();
             activityData.put(SUBSCRIBER_USERNAME, userId);
             activityData.put(SUBSCRIBER_FIRSTNAME,
                     nodeService.getProperty(subscriberNode, ContentModel.PROP_FIRSTNAME).toString());
@@ -285,7 +284,7 @@ public class SubscriptionServiceImpl implements SubscriptionService
         {
             NodeRef followerNode = personService.getPerson(userId, false);
             NodeRef userNode = personService.getPerson(userToFollow, false);
-            ObjectNode activityData = JsonUtil.getObjectMapper().createObjectNode();
+            ObjectNode activityData = AlfrescoDefaultObjectMapper.createObjectNode();
             activityData.put(FOLLOWER_USERNAME, userId);
             activityData
                     .put(FOLLOWER_FIRSTNAME, nodeService.getProperty(followerNode, ContentModel.PROP_FIRSTNAME).toString());

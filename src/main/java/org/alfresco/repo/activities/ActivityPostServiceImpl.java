@@ -25,9 +25,6 @@
  */
 package org.alfresco.repo.activities;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.io.IOException;
 import java.sql.SQLException;
@@ -52,7 +49,7 @@ import org.alfresco.service.cmr.model.FileInfo;
 import org.alfresco.service.cmr.repository.ContentData;
 import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.namespace.QName;
-import org.alfresco.util.json.JsonUtil;
+import org.alfresco.util.json.jackson.AlfrescoDefaultObjectMapper;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.extensions.surf.util.ParameterCheck;
@@ -70,8 +67,7 @@ public class ActivityPostServiceImpl implements ActivityPostService
     private ActivityPostDAO postDAO;
     private TenantService tenantService;
     private EventPublisher eventPublisher;
-    private ObjectMapper objectMapper = JsonUtil.getObjectMapper();
-    
+
     private int estGridSize = 1;
     
     private boolean userNamesAreCaseSensitive = false;
@@ -242,7 +238,7 @@ public class ActivityPostServiceImpl implements ActivityPostService
                 if (activityData.length() > 0)
                 {
                     // not supposed to be an array
-                    ObjectNode jo = (ObjectNode) objectMapper.readTree(activityData);
+                    ObjectNode jo = (ObjectNode) AlfrescoDefaultObjectMapper.getReader().readTree(activityData);
                     if (AuthenticationUtil.isMtEnabled())
                     {
                         // MT share - add tenantDomain

@@ -60,7 +60,7 @@ import org.alfresco.service.cmr.security.PersonService;
 import org.alfresco.service.cmr.site.SiteInfo;
 import org.alfresco.service.cmr.site.SiteService;
 import org.alfresco.service.namespace.QName;
-import org.alfresco.util.json.JsonUtil;
+import org.alfresco.util.json.jackson.AlfrescoDefaultObjectMapper;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.InitializingBean;
@@ -314,7 +314,7 @@ public class ActivityServiceImpl implements ActivityService, InitializingBean
         {
             try
             {
-                JsonNode j = JsonUtil.getObjectMapper().readTree(activityFeed.getActivitySummary());
+                JsonNode j = AlfrescoDefaultObjectMapper.getReader().readTree(activityFeed.getActivitySummary());
                 postUserId = j.get("memberUserName").toString();
             }
             catch (IOException e)

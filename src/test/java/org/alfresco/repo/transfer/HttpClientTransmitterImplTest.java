@@ -43,7 +43,7 @@ import org.alfresco.service.cmr.transfer.TransferException;
 import org.alfresco.service.cmr.transfer.TransferProgress;
 import org.alfresco.service.cmr.transfer.TransferProgress.Status;
 import org.alfresco.util.json.ExceptionJsonSerializer;
-import org.alfresco.util.json.JsonUtil;
+import org.alfresco.util.json.jackson.AlfrescoDefaultObjectMapper;
 import org.apache.commons.httpclient.ConnectTimeoutException;
 import org.apache.commons.httpclient.HostConfiguration;
 import org.apache.commons.httpclient.HttpClient;
@@ -231,7 +231,7 @@ public class HttpClientTransmitterImplTest extends TestCase
             @Override
             public String answer(InvocationOnMock invocation) throws Throwable
             {
-                ObjectNode progressObject = JsonUtil.getObjectMapper().createObjectNode();
+                ObjectNode progressObject = AlfrescoDefaultObjectMapper.createObjectNode();
                 progressObject.put("transferId", "mytransferid");
                 progressObject.put("status", Status.ERROR.toString());
                 progressObject.put("currentPosition", 1);

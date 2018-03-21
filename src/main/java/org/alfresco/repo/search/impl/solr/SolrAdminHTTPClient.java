@@ -33,7 +33,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.alfresco.httpclient.HttpClientFactory;
 import org.alfresco.repo.search.impl.lucene.LuceneQueryParserException;
 import org.alfresco.util.ParameterCheck;
-import org.alfresco.util.json.JsonUtil;
+import org.alfresco.util.json.jackson.AlfrescoDefaultObjectMapper;
 import org.apache.commons.codec.net.URLCodec;
 import org.apache.commons.httpclient.Header;
 import org.apache.commons.httpclient.HttpClient;
@@ -150,7 +150,7 @@ public class SolrAdminHTTPClient
                     throw new LuceneQueryParserException("Request failed " + get.getStatusCode() + " " + url.toString());
                 }
 
-                JsonNode json = JsonUtil.getObjectMapper().readTree(get.getResponseBodyAsString());
+                JsonNode json = AlfrescoDefaultObjectMapper.getReader().readTree(get.getResponseBodyAsString());
                 return json;
             }
             finally

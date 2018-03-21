@@ -43,7 +43,7 @@ import org.alfresco.service.cmr.remoteconnector.RemoteConnectorResponse;
 import org.alfresco.service.cmr.remoteconnector.RemoteConnectorServerException;
 import org.alfresco.service.cmr.remoteconnector.RemoteConnectorService;
 import org.alfresco.util.HttpClientHelper;
-import org.alfresco.util.json.JsonUtil;
+import org.alfresco.util.json.jackson.AlfrescoDefaultObjectMapper;
 import org.apache.commons.httpclient.Credentials;
 import org.apache.commons.httpclient.Header;
 import org.apache.commons.httpclient.HttpClient;
@@ -389,7 +389,7 @@ public class RemoteConnectorServiceImpl implements RemoteConnectorService
         
         // Parse this as JSON
         String jsonText = response.getResponseBodyAsString();
-        JsonNode json = JsonUtil.getObjectMapper().readTree(jsonText);
+        JsonNode json = AlfrescoDefaultObjectMapper.getReader().readTree(jsonText);
         return json;
     }
     

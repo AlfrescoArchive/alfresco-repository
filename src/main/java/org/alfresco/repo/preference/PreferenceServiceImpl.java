@@ -67,6 +67,7 @@ import org.alfresco.traitextender.Trait;
 import org.alfresco.util.ISO8601DateFormat;
 import org.alfresco.util.Pair;
 import org.alfresco.util.json.JsonUtil;
+import org.alfresco.util.json.jackson.AlfrescoDefaultObjectMapper;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -197,7 +198,7 @@ public class PreferenceServiceImpl implements PreferenceService, Extensible
             String jsonPrefs = getPreferencesObject(userName);
             if(jsonPrefs != null)
             {
-                JsonNode jsonNode = JsonUtil.getObjectMapper().readTree(jsonPrefs);
+                JsonNode jsonNode = AlfrescoDefaultObjectMapper.getReader().readTree(jsonPrefs);
                 if(jsonNode.has(preferenceName))
                 {
                     preferenceValue = jsonNode.get(preferenceName).textValue();
@@ -227,7 +228,7 @@ public class PreferenceServiceImpl implements PreferenceService, Extensible
             String jsonString = getPreferencesObject(userName);
             if(jsonString != null)
             {
-                JsonNode jsonPrefs = JsonUtil.getObjectMapper().readTree(jsonString);
+                JsonNode jsonPrefs = AlfrescoDefaultObjectMapper.getReader().readTree(jsonString);
                 // Build hash from preferences stored in the repository
                 Iterator<String> keys = jsonPrefs.fieldNames();
                 while (keys.hasNext())
@@ -418,11 +419,11 @@ public class PreferenceServiceImpl implements PreferenceService, Extensible
                                 ContentModel.PROP_PREFERENCE_VALUES);
                         if (reader != null)
                         {
-                            jsonPrefs = (ObjectNode) JsonUtil.getObjectMapper().readTree(reader.getContentString());
+                            jsonPrefs = (ObjectNode) AlfrescoDefaultObjectMapper.getReader().readTree(reader.getContentString());
                         }
                         else
                         {
-                            jsonPrefs = JsonUtil.getObjectMapper().createObjectNode();
+                            jsonPrefs = AlfrescoDefaultObjectMapper.createObjectNode();
                         }
 
                         // Update with the new preference values
@@ -470,7 +471,7 @@ public class PreferenceServiceImpl implements PreferenceService, Extensible
                             {
                                 value = value.toString();
                             }
-                            jsonPrefs.put(key, JsonUtil.getObjectMapper().convertValue(value, JsonNode.class));
+                            jsonPrefs.put(key, AlfrescoDefaultObjectMapper.convertValue(value, JsonNode.class));
                         }
 
                         // Save the updated preferences
@@ -528,7 +529,7 @@ public class PreferenceServiceImpl implements PreferenceService, Extensible
                     {
                         try
                         {
-                            ObjectNode jsonPrefs = JsonUtil.getObjectMapper().createObjectNode();
+                            ObjectNode jsonPrefs = AlfrescoDefaultObjectMapper.createObjectNode();
                             if (preferenceFilter != null && preferenceFilter.length() != 0)
                             {
                                 // Get the current preferences
@@ -536,7 +537,7 @@ public class PreferenceServiceImpl implements PreferenceService, Extensible
                                         personNodeRef, ContentModel.PROP_PREFERENCE_VALUES);
                                 if (reader != null)
                                 {
-                                    jsonPrefs = (ObjectNode) JsonUtil.getObjectMapper().readTree(reader.getContentString());
+                                    jsonPrefs = (ObjectNode) AlfrescoDefaultObjectMapper.getReader().readTree(reader.getContentString());
                                 }
 
                                 // Remove the prefs that match the filter

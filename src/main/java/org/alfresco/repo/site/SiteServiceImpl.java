@@ -123,7 +123,7 @@ import org.alfresco.util.Pair;
 import org.alfresco.util.PropertyCheck;
 import org.alfresco.util.PropertyMap;
 import org.alfresco.util.SearchLanguageConversion;
-import org.alfresco.util.json.JsonUtil;
+import org.alfresco.util.json.jackson.AlfrescoDefaultObjectMapper;
 import org.alfresco.util.registry.NamedObjectRegistry;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -2981,7 +2981,7 @@ public class SiteServiceImpl extends AbstractLifecycleBean implements SiteServic
                     ContentModel.PROP_LASTNAME);
         }
 
-        ObjectNode activityData = JsonUtil.getObjectMapper().createObjectNode();
+        ObjectNode activityData = AlfrescoDefaultObjectMapper.createObjectNode();
         activityData.put("role", role);
         activityData.put("memberUserName", userName);
         activityData.put("memberFirstName", memberFN);
@@ -2999,7 +2999,7 @@ public class SiteServiceImpl extends AbstractLifecycleBean implements SiteServic
      */
     private String getActivityGroupData(String groupName, String role)
     {
-        ObjectNode activityData = JsonUtil.getObjectMapper().createObjectNode();
+        ObjectNode activityData = AlfrescoDefaultObjectMapper.createObjectNode();
         activityData.put("role", role);
         activityData.put("groupName", groupName);
         return activityData.toString();

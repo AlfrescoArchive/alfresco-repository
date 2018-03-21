@@ -53,7 +53,7 @@ import org.alfresco.service.cmr.security.AuthorityType;
 import org.alfresco.service.cmr.security.PermissionService;
 import org.alfresco.util.Pair;
 import org.alfresco.util.PropertyCheck;
-import org.alfresco.util.json.JsonUtil;
+import org.alfresco.util.json.jackson.AlfrescoDefaultObjectMapper;
 import org.apache.commons.codec.EncoderException;
 import org.apache.commons.codec.net.URLCodec;
 import org.apache.commons.httpclient.HttpClient;
@@ -155,14 +155,14 @@ public class SolrSQLHttpClient extends AbstractSolrQueryHTTPClient implements So
                String solrurl = httpClient.getHostConfiguration().getHostURL() + httpClientAndBaseUrl.getSecond();
                 url.append(solrurl);
             }
-            ObjectNode body = JsonUtil.getObjectMapper().createObjectNode();
+            ObjectNode body = AlfrescoDefaultObjectMapper.createObjectNode();
 
             // Authorities go over as is - and tenant mangling and query building takes place on the SOLR side
 
             Set<String> allAuthorisations = permissionService.getAuthorisations();
             boolean includeGroups = includeGroupsForRoleAdmin ? true : !allAuthorisations.contains(PermissionService.ADMINISTRATOR_AUTHORITY);
             
-            ArrayNode authorities = JsonUtil.getObjectMapper().createArrayNode();
+            ArrayNode authorities = AlfrescoDefaultObjectMapper.createArrayNode();
             for (String authority : allAuthorisations)
             {
                 if(includeGroups)
@@ -180,11 +180,11 @@ public class SolrSQLHttpClient extends AbstractSolrQueryHTTPClient implements So
             body.put("authorities", authorities);
             body.put("anyDenyDenies", anyDenyDenies);
             
-            ArrayNode tenants = JsonUtil.getObjectMapper().createArrayNode();
+            ArrayNode tenants = AlfrescoDefaultObjectMapper.createArrayNode();
             tenants.add(tenantService.getCurrentUserDomain());
             body.put("tenants", tenants);
 
-            ArrayNode locales = JsonUtil.getObjectMapper().createArrayNode();
+            ArrayNode locales = AlfrescoDefaultObjectMapper.createArrayNode();
             for (Locale currentLocale : searchParameters.getLocales())
             {
                 locales.add(DefaultTypeConverter.INSTANCE.convert(String.class, currentLocale));

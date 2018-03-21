@@ -25,15 +25,17 @@
  */
 package org.alfresco.repo.search.impl.solr;
 
-import static org.junit.Assert.*;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import org.alfresco.repo.search.impl.lucene.SolrStatsResult;
-import org.alfresco.util.json.JsonUtil;
+import org.alfresco.util.json.jackson.AlfrescoDefaultObjectMapper;
 import org.alfresco.util.testing.category.LuceneTests;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.springframework.util.StringUtils;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 /**
  * The results of executing a solr stats query, parsing the json
@@ -74,7 +76,7 @@ public class SolrStatsResultTest
     
     private SolrStatsResult testProcessing(String testData, long queryTime, int statsSize, long numberFound) throws Exception
     {
-        JsonNode json = JsonUtil.getObjectMapper().readTree(testData);
+        JsonNode json = AlfrescoDefaultObjectMapper.getReader().readTree(testData);
         SolrStatsResult result = new SolrStatsResult(json, false);
 
         assertNotNull(result);
