@@ -1,8 +1,6 @@
 package org.alfresco.repo.domain.node.ibatis.cqrs;
 
 import org.alfresco.repo.domain.node.NodeEntity;
-import org.alfresco.repo.domain.node.ibatis.NodeDAOImpl;
-import org.alfresco.repo.domain.node.ibatis.cqrs.utils.Context;
 import org.alfresco.repo.domain.node.ibatis.cqrs.utils.Logger;
 
 import java.util.List;
@@ -13,9 +11,9 @@ import java.util.List;
 public class IbatisCqrsWriter implements CqrsWriter
 {
     private String name;
-    private IbatisCqrsServiceImpl ibatisCqrsService;
+    private IbatisNodeInsertCqrsServiceImpl ibatisCqrsService;
 
-    public IbatisCqrsWriter(String name, IbatisCqrsServiceImpl ibatisCqrsService)
+    public IbatisCqrsWriter(String name, IbatisNodeInsertCqrsServiceImpl ibatisCqrsService)
     {
         this.name = name;
         this.ibatisCqrsService = ibatisCqrsService;

@@ -59,7 +59,7 @@ import org.alfresco.repo.cache.lookup.EntityLookupCache.EntityLookupCallbackDAOA
 import org.alfresco.repo.domain.contentdata.ContentDataDAO;
 import org.alfresco.repo.domain.control.ControlDAO;
 import org.alfresco.repo.domain.locale.LocaleDAO;
-import org.alfresco.repo.domain.node.ibatis.cqrs.IbatisCqrsServiceImpl;
+import org.alfresco.repo.domain.node.ibatis.cqrs.IbatisNodeInsertCqrsServiceImpl;
 import org.alfresco.repo.domain.node.ibatis.cqrs.utils.CqrsContext;
 import org.alfresco.repo.domain.permissions.AccessControlListDAO;
 import org.alfresco.repo.domain.permissions.AclDAO;
@@ -146,7 +146,7 @@ public abstract class AbstractNodeDAOImpl implements NodeDAO, BatchingDAO
     private LocaleDAO localeDAO;
     private UsageDAO usageDAO;
 
-    private IbatisCqrsServiceImpl ibatisCqrsService;
+    private IbatisNodeInsertCqrsServiceImpl ibatisCqrsService;
 
     private int cachingThreshold = 10;
 
@@ -221,7 +221,7 @@ public abstract class AbstractNodeDAOImpl implements NodeDAO, BatchingDAO
         childByNameCache = new NullCache<ChildByNameKey, ChildAssocEntity>();
 
         CqrsContext cqrsContext = new CqrsContext();
-        ibatisCqrsService = new IbatisCqrsServiceImpl(cqrsContext);
+        ibatisCqrsService = new IbatisNodeInsertCqrsServiceImpl(cqrsContext);
     }
 
     /**
@@ -1430,9 +1430,8 @@ public abstract class AbstractNodeDAOImpl implements NodeDAO, BatchingDAO
             // First try a straight insert and risk the constraint violation if the node exists
             // here
             // TODO return of id requires a Reader ...
-            id = insertNode(node);
-            // cqrs context is not changing
-            ibatisCqrsService.executeCommand(node, ibatisCqrsService.getContext());
+            //id = insertNode(node);
+            ibatisCqrsService.executeCommand(node);
             controlDAO.releaseSavepoint(savepoint);
         }
         catch (Throwable e)
@@ -1455,7 +1454,8 @@ public abstract class AbstractNodeDAOImpl implements NodeDAO, BatchingDAO
                 deleteNodeById(dbTargetNodeId);
                 // Now repeat the insert but let any further problems just be thrown out
                 // TODO return of id requires a Reader ...
-                id = insertNode(node);
+                //id = insertNode(node);
+                ibatisCqrsService.executeCommand(node);
             }
             else
             {

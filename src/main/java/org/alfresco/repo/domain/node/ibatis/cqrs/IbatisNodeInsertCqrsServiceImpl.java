@@ -3,7 +3,6 @@ package org.alfresco.repo.domain.node.ibatis.cqrs;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
-import org.alfresco.repo.domain.node.NodeDAO;
 import org.alfresco.repo.domain.node.ibatis.NodeDAOImpl;
 import org.alfresco.repo.domain.node.ibatis.cqrs.utils.Context;
 import org.alfresco.repo.domain.node.ibatis.cqrs.utils.CqrsContext;
@@ -17,7 +16,7 @@ import java.util.List;
  *
  * Created by mmuller on 26/03/2018.
  */
-public class IbatisCqrsServiceImpl implements CqrsService
+public class IbatisNodeInsertCqrsServiceImpl implements CqrsService
 {
     /** simple in-memory event store */
     private ObservableList<Event> eventStore ;
@@ -30,13 +29,13 @@ public class IbatisCqrsServiceImpl implements CqrsService
     /** For using ibatis it needs the NodeDAOImpl */
     private NodeDAOImpl nodeDAOImpl;
 
-    public IbatisCqrsServiceImpl(Context context)
+    public IbatisNodeInsertCqrsServiceImpl(Context context)
     {
         Logger.logDebug("Init CQRS service", context);
 
         this.context = context;
         eventStore = FXCollections.observableList(new ArrayList<Event>());
-        ibatisCommandHandler = new IbatisCommandHandler();
+        ibatisCommandHandler = new IbatisCommandHandler(this);
 
         addWriters();
         // TODO add Readers ...
@@ -53,16 +52,16 @@ public class IbatisCqrsServiceImpl implements CqrsService
         });
     }
 
-    public void executeCommand(Object ibatisObject, Context context)
+    public void executeCommand(Object ibatisObject)
     {
         Logger.logDebug("Execute ibatis command with ibatisObject: " + ibatisObject.toString(), context);
 
-        CommandHandlerResult result = ibatisCommandHandler.handleCommand(ibatisObject);
+        CommandHandlerResult result = ibatisCommandHandler.handleCommand(ibatisObject, context);
         Logger.logDebug("Handle command result: " + result, context);
         // execute was accepted
         if(result.isAccepted())
         {
-            Logger.logDebug("Ibatis command was axcepted", context);
+            Logger.logDebug("Ibatis command was accepted", context);
 
             // save in event store with addition create timestamp an even id
             Event e = new Event(result.getDiffObject());
@@ -72,7 +71,7 @@ public class IbatisCqrsServiceImpl implements CqrsService
         }
         else
         {
-            Logger.logDebug("Ibatis command was not excepted", context);
+            Logger.logDebug("Ibatis command was not accepted", context);
         }
     }
 
@@ -99,12 +98,12 @@ public class IbatisCqrsServiceImpl implements CqrsService
     public static void main(String[] args)
     {
         CqrsContext context = new CqrsContext();
-        IbatisCqrsServiceImpl ibatisCqrsService = new IbatisCqrsServiceImpl(context);
+        IbatisNodeInsertCqrsServiceImpl ibatisCqrsService = new IbatisNodeInsertCqrsServiceImpl(context);
 
         String[] diffStrings = {"diff1", "diff2", "diff3"};
 
-        ibatisCqrsService.executeCommand(diffStrings[0], context);
-        ibatisCqrsService.executeCommand(diffStrings[1], context);
-        ibatisCqrsService.executeCommand(diffStrings[2], context);
+        ibatisCqrsService.executeCommand(diffStrings[0]);
+        ibatisCqrsService.executeCommand(diffStrings[1]);
+        ibatisCqrsService.executeCommand(diffStrings[2]);
     }
 }

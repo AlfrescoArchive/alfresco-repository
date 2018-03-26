@@ -5,6 +5,5 @@ package org.alfresco.repo.domain.node.ibatis.cqrs.utils;
  */
 public interface Context
 {
-
     public CqrsLogger getLogger();
 }

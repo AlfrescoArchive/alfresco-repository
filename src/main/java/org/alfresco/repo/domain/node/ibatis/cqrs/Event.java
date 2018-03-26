@@ -11,9 +11,15 @@ import java.util.UUID;
 public class Event<T>
 {
     private long timestamp;
+    /** Every event has an id */
     private UUID id;
     private T diffObject;
 
+    /**
+     * Creates an event which can be stored in an Event Store
+     *
+     * @param diffObject contains the diff object (e.g. ibatis statement)
+     */
     public Event(T diffObject)
     {
         this.diffObject = diffObject;
