@@ -334,7 +334,7 @@ public class NodeDAOImpl extends AbstractNodeDAOImpl
     }
 
     @Override
-    protected Long insertNode(NodeEntity node)
+    public Long insertNode(NodeEntity node)
     {
         node.setVersion(1L);
         template.insert(INSERT_NODE, node);
