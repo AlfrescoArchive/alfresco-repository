@@ -8,19 +8,19 @@ import java.util.UUID;
  *
  * Created by mmuller on 26/03/2018.
  */
-public class Event<T>
+public class Event
 {
     private long timestamp;
     /** Every event has an id */
     private UUID id;
-    private T diffObject;
+    private Object diffObject;
 
     /**
      * Creates an event which can be stored in an Event Store
      *
      * @param diffObject contains the diff object (e.g. ibatis statement)
      */
-    public Event(T diffObject)
+    public Event(Object diffObject)
     {
         this.diffObject = diffObject;
         timestamp = System.currentTimeMillis();
@@ -29,7 +29,7 @@ public class Event<T>
 
     public String toString()
     {
-        return "Event id: " + id + " Created: " + timestamp + " DiffObject: " + diffObject.toString();
+        return "Event id=" + id + " Created=" + timestamp + " DiffObject=" + diffObject.toString();
     }
 
     public long getTimestamp()
@@ -42,7 +42,7 @@ public class Event<T>
         return id;
     }
 
-    public T getDiffObject()
+    public Object getDiffObject()
     {
         return diffObject;
     }

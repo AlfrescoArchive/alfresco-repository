@@ -27,7 +27,7 @@ public class IbatisNodeInsertCqrsReader1 extends IbatisNodeInsertCqrsReaderAbstr
             return null;
         }
 
-        Logger.logDebug(this.getName() + " getValue with col: " + col + ", object: " + node.toString(), ibatisCqrsService.getContext());
+        Logger.logDebug(this.getName() + " getValue with col=" + col + ", object=" + node.toString(), ibatisCqrsService.getContext());
         // check instance
         String result = null;
         if(node instanceof NodeEntity && col.equalsIgnoreCase("id"))
@@ -38,7 +38,7 @@ public class IbatisNodeInsertCqrsReader1 extends IbatisNodeInsertCqrsReaderAbstr
         {
             result = node.toString();
         }
-        Logger.logDebug(this.getName() + " getValue returns: " + result, ibatisCqrsService.getContext());
+        Logger.logDebug(this.getName() + " getValue returns=" + result, ibatisCqrsService.getContext());
         return result;
     }
 
