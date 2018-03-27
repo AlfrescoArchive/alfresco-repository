@@ -1429,8 +1429,6 @@ public abstract class AbstractNodeDAOImpl implements NodeDAO, BatchingDAO
         try
         {
             // First try a straight insert and risk the constraint violation if the node exists
-            // here
-            // TODO return of id requires a Reader ...
             //id = insertNode(node);
             ibatisCqrsService.executeCommand(node);
             try
@@ -1462,7 +1460,6 @@ public abstract class AbstractNodeDAOImpl implements NodeDAO, BatchingDAO
                 deleteNodeProperties(dbTargetNodeId, (Set<Long>) null);
                 deleteNodeById(dbTargetNodeId);
                 // Now repeat the insert but let any further problems just be thrown out
-                // TODO return of id requires a Reader ...
                 //id = insertNode(node);
                 ibatisCqrsService.executeCommand(node);
                 try
