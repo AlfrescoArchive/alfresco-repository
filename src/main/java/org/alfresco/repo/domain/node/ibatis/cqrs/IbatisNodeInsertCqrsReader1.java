@@ -10,17 +10,48 @@ import java.util.List;
  *
  * Created by mmuller on 26/03/2018.
  */
-public class IbatisNodeInsertCqrsReader1 implements CqrsReader {
-    private String name;
+public class IbatisNodeInsertCqrsReader1 extends IbatisNodeInsertCqrsReaderAbstract {
     private IbatisNodeInsertCqrsServiceImpl ibatisCqrsService;
 
-    public IbatisNodeInsertCqrsReader1(String name, IbatisNodeInsertCqrsServiceImpl ibatisCqrsService) {
-        this.name = name;
+    public IbatisNodeInsertCqrsReader1(String name, IbatisNodeInsertCqrsServiceImpl ibatisCqrsService)
+    {
+        super(name);
         this.ibatisCqrsService = ibatisCqrsService;
     }
 
-    public void notifyReader(List<Event> events) {
-        Logger.logDebug(name + " detected " + events.size() + " new events:", ibatisCqrsService.getContext());
+    @Override
+    public String getValue(String col, Object node)
+    {
+        if(node == null || col == null || col.isEmpty())
+        {
+            return null;
+        }
+
+        Logger.logDebug(this.getName() + " getValue with col: " + col + ", object: " + node.toString(), ibatisCqrsService.getContext());
+        // check instance
+        String result = null;
+        if(node instanceof NodeEntity && col.equalsIgnoreCase("id"))
+        {
+            result = ((NodeEntity) node).getId().toString();
+        }
+        else if(node instanceof String && col.equalsIgnoreCase("self"))
+        {
+            result = node.toString();
+        }
+        Logger.logDebug(this.getName() + " getValue returns: " + result, ibatisCqrsService.getContext());
+        return result;
+    }
+
+    @Override
+    public void onUpdate(List<Event> events)
+    {
+        // not implemented yet
+    }
+
+    @Override
+    public void onCreate(List<Event> events)
+    {
+        Logger.logDebug(this.getName() + " detected " + events.size() + " new events:", ibatisCqrsService.getContext());
         events.forEach(e -> {
             Object passStatementObject = e.getDiffObject();
             Logger.logDebug("  ---------------------------------", ibatisCqrsService.getContext());
@@ -30,18 +61,9 @@ public class IbatisNodeInsertCqrsReader1 implements CqrsReader {
         });
     }
 
-    public String getValue(String col, Object node)
+    @Override
+    public void onDelete(List<Event> events)
     {
-        // check instance
-        if(col.equalsIgnoreCase("id"))
-        {
-            return ((NodeEntity) node).getId().toString();
-        }
-        return null;
-    }
-
-    public String getName()
-    {
-        return name;
+        // not implemented yet
     }
 }

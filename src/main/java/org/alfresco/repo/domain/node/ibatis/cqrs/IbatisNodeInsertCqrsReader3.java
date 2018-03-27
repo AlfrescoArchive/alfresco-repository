@@ -11,27 +11,15 @@ import java.util.List;
  *
  * Created by mmuller on 26/03/2018.
  */
-public class IbatisNodeInsertCqrsReader3 implements CqrsReader {
-    private String name;
+public class IbatisNodeInsertCqrsReader3 extends IbatisNodeInsertCqrsReaderAbstract {
     private IbatisNodeInsertCqrsServiceImpl ibatisCqrsService;
 
     public IbatisNodeInsertCqrsReader3(String name, IbatisNodeInsertCqrsServiceImpl ibatisCqrsService) {
-        this.name = name;
+        super(name);
         this.ibatisCqrsService = ibatisCqrsService;
     }
 
-    public void notifyReader(List<Event> events) {
-        Logger.logDebug(name + " detected " + events.size() + " new events:", ibatisCqrsService.getContext());
-        events.forEach(e -> {
-            Object passStatementObject = e.getDiffObject();
-            Logger.logDebug("  ---------------------------------", ibatisCqrsService.getContext());
-            Logger.logDebug("  " + e.toString(), ibatisCqrsService.getContext());
-            Logger.logDebug("  ---------------------------------", ibatisCqrsService.getContext());
-            Logger.logDebug("  Cache node id", ibatisCqrsService.getContext());
-            ibatisCqrsService.getNodeDAOImpl().insertNode((NodeEntity) passStatementObject);
-        });
-    }
-
+    @Override
     public String getValue(String col, Object node)
     {
         if(col.equalsIgnoreCase("id"))
@@ -42,8 +30,29 @@ public class IbatisNodeInsertCqrsReader3 implements CqrsReader {
         return null;
     }
 
-    public String getName()
+    @Override
+    public void onUpdate(List<Event> events)
     {
-        return name;
+        // not implemented yet
+    }
+
+    @Override
+    public void onCreate(List<Event> events)
+    {
+        Logger.logDebug(this.getName() + " detected " + events.size() + " new events:", ibatisCqrsService.getContext());
+        events.forEach(e -> {
+            Object passStatementObject = e.getDiffObject();
+            Logger.logDebug("  ---------------------------------", ibatisCqrsService.getContext());
+            Logger.logDebug("  " + e.toString(), ibatisCqrsService.getContext());
+            Logger.logDebug("  ---------------------------------", ibatisCqrsService.getContext());
+            Logger.logDebug("  Cache node id", ibatisCqrsService.getContext());
+            ibatisCqrsService.getNodeDAOImpl().insertNode((NodeEntity) passStatementObject);
+        });
+    }
+
+    @Override
+    public void onDelete(List<Event> events)
+    {
+        // not implemented yet
     }
 }

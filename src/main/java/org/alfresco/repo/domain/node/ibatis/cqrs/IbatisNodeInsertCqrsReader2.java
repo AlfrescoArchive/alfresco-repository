@@ -10,18 +10,35 @@ import java.util.List;
  *
  * Created by mmuller on 26/03/2018.
  */
-public class IbatisNodeInsertCqrsReader2 implements CqrsReader {
-    private String name;
+public class IbatisNodeInsertCqrsReader2 extends IbatisNodeInsertCqrsReaderAbstract {
     private IbatisNodeInsertCqrsServiceImpl ibatisCqrsService;
     private Long cachedLastId;
 
     public IbatisNodeInsertCqrsReader2(String name, IbatisNodeInsertCqrsServiceImpl ibatisCqrsService) {
-        this.name = name;
+        super(name);
         this.ibatisCqrsService = ibatisCqrsService;
     }
 
-    public void notifyReader(List<Event> events) {
-        Logger.logDebug(name + " detected " + events.size() + " new events:", ibatisCqrsService.getContext());
+    @Override
+    public String getValue(String col, Object node)
+    {
+        if(col.equalsIgnoreCase("id"))
+        {
+            return cachedLastId.toString();
+        }
+        return null;
+    }
+
+    @Override
+    public void onUpdate(List<Event> events)
+    {
+        // not implemented yet
+    }
+
+    @Override
+    public void onCreate(List<Event> events)
+    {
+        Logger.logDebug(this.getName() + " detected " + events.size() + " new events:", ibatisCqrsService.getContext());
         events.forEach(e -> {
             Object passStatementObject = e.getDiffObject();
             Logger.logDebug("  ---------------------------------", ibatisCqrsService.getContext());
@@ -32,17 +49,9 @@ public class IbatisNodeInsertCqrsReader2 implements CqrsReader {
         });
     }
 
-    public String getValue(String col, Object node)
+    @Override
+    public void onDelete(List<Event> events)
     {
-        if(col.equalsIgnoreCase("id"))
-        {
-            return cachedLastId.toString();
-        }
-        return null;
-    }
-
-    public String getName()
-    {
-        return name;
+        // not implemented yet
     }
 }

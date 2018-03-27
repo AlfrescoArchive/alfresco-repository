@@ -1,6 +1,5 @@
 package org.alfresco.repo.domain.node.ibatis.cqrs;
 
-import org.alfresco.repo.domain.node.NodeEntity;
 import org.alfresco.repo.domain.node.ibatis.cqrs.utils.Context;
 
 /**
@@ -32,10 +31,10 @@ public class IbatisNodeInsertCommandHandler implements CommandHandler<Object, Co
     public void validateIbatisCommand(Object ibatisCommandOBject) throws IllegalArgumentException
     {
         // validate object
-        if(ibatisCqrsService.getNodeDAOImpl().exists(((NodeEntity) ibatisCommandOBject).getId()))
-        {
-            throw new IllegalArgumentException("Node already exists: " + ((NodeEntity) ibatisCommandOBject).getId());
-        }
+//        if(ibatisCqrsService.getNodeDAOImpl().exists(((NodeEntity) ibatisCommandOBject).getId()))
+//        {
+//            throw new IllegalArgumentException("Node already exists: " + ((NodeEntity) ibatisCommandOBject).getId());
+//        }
         // do some more validation ...
     }
 }

@@ -11,22 +11,26 @@ import java.util.List;
  *
  * Created by mmuller on 26/03/2018.
  */
-public class IbatisNodeInsertCqrsWriter2 implements CqrsWriter
+public class IbatisNodeInsertCqrsWriter2 extends IbatisNodeInsertCqrsWriterAbstract
 {
-    private String name;
     private IbatisNodeInsertCqrsServiceImpl ibatisCqrsService;
     private LinkedList<NodeEntity> nodes;
 
     public IbatisNodeInsertCqrsWriter2(String name, IbatisNodeInsertCqrsServiceImpl ibatisCqrsService)
     {
-        this.name = name;
+        super(name);
         this.ibatisCqrsService = ibatisCqrsService;
         nodes = new LinkedList<>();
     }
 
-    public void notifyWriter(List<Event> events)
+    public void onUpdate(List<Event> events)
     {
-        Logger.logDebug(name + " detected " + events.size() + " new events:" , ibatisCqrsService.getContext());
+        // not implemented yet
+    }
+
+    public void onCreate(List<Event> events)
+    {
+        Logger.logDebug(this.getName() + " detected " + events.size() + " new events:" , ibatisCqrsService.getContext());
         events.forEach(e -> {
             Object passStatementObject = e.getDiffObject();
             Logger.logDebug("  ---------------------------------", ibatisCqrsService.getContext());
@@ -37,8 +41,8 @@ public class IbatisNodeInsertCqrsWriter2 implements CqrsWriter
         });
     }
 
-    public String getName()
+    public void onDelete(List<Event> events)
     {
-        return name;
+        // not implemented yet
     }
 }

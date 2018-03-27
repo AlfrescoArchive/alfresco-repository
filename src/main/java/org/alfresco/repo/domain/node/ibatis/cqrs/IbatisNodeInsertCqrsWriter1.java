@@ -10,18 +10,24 @@ import java.util.List;
  *
  * Created by mmuller on 26/03/2018.
  */
-public class IbatisNodeInsertCqrsWriter1 implements CqrsWriter
+public class IbatisNodeInsertCqrsWriter1 extends IbatisNodeInsertCqrsWriterAbstract
 {
     private String name;
     private IbatisNodeInsertCqrsServiceImpl ibatisCqrsService;
 
     public IbatisNodeInsertCqrsWriter1(String name, IbatisNodeInsertCqrsServiceImpl ibatisCqrsService)
     {
+        super(name);
         this.name = name;
         this.ibatisCqrsService = ibatisCqrsService;
     }
 
-    public void notifyWriter(List<Event> events)
+    public void onUpdate(List<Event> events)
+    {
+        // not implemented yet
+    }
+
+    public void onCreate(List<Event> events)
     {
         Logger.logDebug(name + " detected " + events.size() + " new events:" , ibatisCqrsService.getContext());
         events.forEach(e -> {
@@ -30,8 +36,16 @@ public class IbatisNodeInsertCqrsWriter1 implements CqrsWriter
             Logger.logDebug("  " + e.toString(), ibatisCqrsService.getContext());
             Logger.logDebug("  ---------------------------------", ibatisCqrsService.getContext());
             Logger.logDebug("  Writing ibatis object to database", ibatisCqrsService.getContext());
-            ibatisCqrsService.getNodeDAOImpl().insertNode((NodeEntity) passStatementObject);
+            if(passStatementObject instanceof NodeEntity)
+            {
+                ibatisCqrsService.getNodeDAOImpl().insertNode((NodeEntity) passStatementObject);
+            }
         });
+    }
+
+    public void onDelete(List<Event> events)
+    {
+        // not implemented yet
     }
 
     public String getName()

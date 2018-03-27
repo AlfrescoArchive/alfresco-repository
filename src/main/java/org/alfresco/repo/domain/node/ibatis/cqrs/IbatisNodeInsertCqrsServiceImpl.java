@@ -4,7 +4,6 @@ import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import org.alfresco.repo.domain.node.AbstractNodeDAOImpl;
-import org.alfresco.repo.domain.node.NodeEntity;
 import org.alfresco.repo.domain.node.ibatis.cqrs.utils.Context;
 import org.alfresco.repo.domain.node.ibatis.cqrs.utils.CqrsContext;
 import org.alfresco.repo.domain.node.ibatis.cqrs.utils.Logger;
@@ -23,8 +22,8 @@ public class IbatisNodeInsertCqrsServiceImpl implements CqrsService
     /** simple in-memory event store */
     private ObservableList<Event> eventStore;
 
-    private LinkedList<CqrsWriter> writers;
-    private LinkedList<CqrsReader> readers;
+    private LinkedList<IbatisNodeInsertCqrsWriterAbstract> writers;
+    private LinkedList<IbatisNodeInsertCqrsReaderAbstract> readers;
 
     private IbatisNodeInsertCommandHandler ibatisNodeInsertCommandHandler;
 
@@ -34,9 +33,6 @@ public class IbatisNodeInsertCqrsServiceImpl implements CqrsService
     /** For using ibatis it needs the NodeDAOImpl */
     private AbstractNodeDAOImpl nodeDAOImpl;
 
-//    /** In-memory storage for id returns after insert. Avoids sql query for it */
-//    private HashMap<UUID, Long> nodeIdMap;
-
     public IbatisNodeInsertCqrsServiceImpl(Context context)
     {
         Logger.logDebug("Init CQRS service", context);
@@ -44,11 +40,30 @@ public class IbatisNodeInsertCqrsServiceImpl implements CqrsService
         this.context = context;
         eventStore = FXCollections.observableList(new ArrayList<Event>());
         ibatisNodeInsertCommandHandler = new IbatisNodeInsertCommandHandler(this);
+        writers = new LinkedList<>();
+        readers = new LinkedList<>();
 
-//        nodeIdMap = new HashMap<>();
-
-        addWriters();
         addReaders();
+        addWriters();
+
+        addCreateListener();
+    }
+
+    private void addCreateListener()
+    {
+        // Listeners are implemented for Writers and Readers
+        LinkedList<CqrsWriterAndReader> wr = new LinkedList<CqrsWriterAndReader>(writers);
+        wr.addAll(readers);
+
+        for (CqrsWriterAndReader writerOrReader : wr)
+        {
+            Logger.logDebug("Add Create Listener for: " + writerOrReader.getName(), context);
+            eventStore.addListener((ListChangeListener.Change<? extends Event> c) ->
+            {
+                c.next();
+                writerOrReader.onCreate((List<Event>) c.getAddedSubList());
+            });
+        }
     }
 
     private void addWriters()
@@ -58,11 +73,6 @@ public class IbatisNodeInsertCqrsServiceImpl implements CqrsService
         Logger.logDebug("Add writer: " + writer1.getName() + " as listener", context);
 
         writers.add(writer1);
-
-        eventStore.addListener((ListChangeListener.Change<? extends Event> c) -> {
-            c.next();
-            writer1.notifyWriter((List<Event>) c.getAddedSubList());
-        });
 
         // add writer 2
     }
@@ -74,11 +84,6 @@ public class IbatisNodeInsertCqrsServiceImpl implements CqrsService
         Logger.logDebug("Add reader: " + reader1.getName() + " as listener", context);
 
         readers.add(reader1);
-
-        eventStore.addListener((ListChangeListener.Change<? extends Event> c) -> {
-            c.next();
-            reader1.notifyReader((List<Event>) c.getAddedSubList());
-        });
 
         // add reader 2
 
@@ -109,9 +114,9 @@ public class IbatisNodeInsertCqrsServiceImpl implements CqrsService
     }
 
     // TODO return result object
-    public String query(String readerName, String col, NodeEntity node) throws IllegalAccessException
+    public String query(String readerName, String col, Object node) throws IllegalAccessException
     {
-        for(CqrsReader reader : readers)
+        for(IbatisNodeInsertCqrsReaderAbstract reader : readers)
         {
             if(reader.getName().equalsIgnoreCase(readerName))
             {
@@ -146,7 +151,7 @@ public class IbatisNodeInsertCqrsServiceImpl implements CqrsService
         return eventStore;
     }
 
-    public static void main(String[] args)
+    public static void main(String[] args) throws IllegalAccessException
     {
         CqrsContext context = new CqrsContext();
         IbatisNodeInsertCqrsServiceImpl ibatisCqrsService = new IbatisNodeInsertCqrsServiceImpl(context);
@@ -156,5 +161,9 @@ public class IbatisNodeInsertCqrsServiceImpl implements CqrsService
         ibatisCqrsService.executeCommand(diffStrings[0]);
         ibatisCqrsService.executeCommand(diffStrings[1]);
         ibatisCqrsService.executeCommand(diffStrings[2]);
+
+        ibatisCqrsService.query("reader1", "self", diffStrings[0]);
+        ibatisCqrsService.query("reader1", "self", diffStrings[1]);
+        ibatisCqrsService.query("reader1", "self", diffStrings[2]);
     }
 }
