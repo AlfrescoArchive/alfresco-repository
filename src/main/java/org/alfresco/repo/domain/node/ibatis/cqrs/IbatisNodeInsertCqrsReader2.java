@@ -3,9 +3,7 @@ package org.alfresco.repo.domain.node.ibatis.cqrs;
 import org.alfresco.repo.domain.node.NodeEntity;
 import org.alfresco.repo.domain.node.ibatis.cqrs.utils.Logger;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.UUID;
 
 /**
  * Reader which writes in his own database and simply caches the last node id. Not that good idea.

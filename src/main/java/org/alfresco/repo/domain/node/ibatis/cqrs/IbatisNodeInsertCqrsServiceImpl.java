@@ -3,7 +3,6 @@ package org.alfresco.repo.domain.node.ibatis.cqrs;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
-import javafx.util.Pair;
 import org.alfresco.repo.domain.node.AbstractNodeDAOImpl;
 import org.alfresco.repo.domain.node.NodeEntity;
 import org.alfresco.repo.domain.node.ibatis.cqrs.utils.Context;
@@ -27,7 +26,7 @@ public class IbatisNodeInsertCqrsServiceImpl implements CqrsService
     private LinkedList<CqrsWriter> writers;
     private LinkedList<CqrsReader> readers;
 
-    private IbatisCommandHandler ibatisCommandHandler;
+    private IbatisNodeInsertCommandHandler ibatisNodeInsertCommandHandler;
 
     /** context in which the service is called */
     private Context context;
@@ -44,7 +43,7 @@ public class IbatisNodeInsertCqrsServiceImpl implements CqrsService
 
         this.context = context;
         eventStore = FXCollections.observableList(new ArrayList<Event>());
-        ibatisCommandHandler = new IbatisCommandHandler(this);
+        ibatisNodeInsertCommandHandler = new IbatisNodeInsertCommandHandler(this);
 
 //        nodeIdMap = new HashMap<>();
 
@@ -90,7 +89,7 @@ public class IbatisNodeInsertCqrsServiceImpl implements CqrsService
     {
         Logger.logDebug("Execute ibatis command with ibatisObject: " + ibatisObject.toString(), context);
 
-        CommandHandlerResult result = ibatisCommandHandler.handleCommand(ibatisObject, context);
+        CommandHandlerResult result = ibatisNodeInsertCommandHandler.handleCommand(ibatisObject, context);
         Logger.logDebug("Handle command result: " + result, context);
         // execute was accepted
         if(result.isAccepted())
