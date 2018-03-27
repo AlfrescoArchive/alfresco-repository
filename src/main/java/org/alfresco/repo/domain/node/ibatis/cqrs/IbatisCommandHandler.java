@@ -17,7 +17,19 @@ public class IbatisCommandHandler implements CommandHandler<Object, CommandHandl
     public CommandHandlerResult handleCommand(Object ibatisCommandObject, Context context)
     {
         // check if the command is valid
-        // we accept the command for now
+        try
+        {
+            validateIbatisCommand(ibatisCommandObject);
+        }
+        catch(IllegalArgumentException e)
+        {
+            return new CommandHandlerResult(ibatisCommandObject, false);
+        }
         return new CommandHandlerResult(ibatisCommandObject, true);
+    }
+
+    public void validateIbatisCommand(Object ibatisCommandOBject) throws IllegalArgumentException
+    {
+        // validate object
     }
 }
