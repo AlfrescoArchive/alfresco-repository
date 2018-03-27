@@ -3,7 +3,8 @@ package org.alfresco.repo.domain.node.ibatis.cqrs;
 import org.alfresco.repo.domain.node.ibatis.cqrs.utils.Context;
 
 /**
- * Command handler for CQRS using plain old java object as input and output
+ * Command handler for CQRS using plain old java object as input and output. It validates the commands.
+ * For that Writer or ?Reader? instances can be used
  *
  * @param <C> The command which needs to be handled
  * @param <R> The result of the command

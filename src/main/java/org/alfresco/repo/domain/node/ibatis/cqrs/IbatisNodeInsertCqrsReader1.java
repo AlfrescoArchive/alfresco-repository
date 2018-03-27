@@ -68,4 +68,10 @@ public class IbatisNodeInsertCqrsReader1 extends IbatisNodeInsertCqrsReaderAbstr
     {
         // not implemented yet
     }
+
+    @Override
+    public List<Object> getUsedStores()
+    {
+        return null;
+    }
 }

@@ -3,6 +3,7 @@ package org.alfresco.repo.domain.node.ibatis.cqrs;
 import org.alfresco.repo.domain.node.NodeEntity;
 import org.alfresco.repo.domain.node.ibatis.cqrs.utils.Logger;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -54,5 +55,14 @@ public class IbatisNodeInsertCqrsReader2 extends IbatisNodeInsertCqrsReaderAbstr
     public void onDelete(List<Event> events)
     {
         // not implemented yet
+    }
+
+    @Override
+    public List<Object> getUsedStores()
+    {
+        ArrayList<Object> stores = new ArrayList<>();
+        stores.add(ibatisCqrsService.getNodeDAOImpl());
+        stores.add(cachedLastId);
+        return stores;
     }
 }

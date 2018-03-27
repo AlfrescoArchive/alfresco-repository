@@ -47,6 +47,9 @@ public class IbatisNodeInsertCqrsServiceImpl implements CqrsService
         addWriters();
 
         addCreateListener();
+
+        Logger.logDebug("Init CQRS service finished waiting for commands and queries ...", context);
+        Logger.logDebug("", context);
     }
 
     private void addWriters()
@@ -90,11 +93,12 @@ public class IbatisNodeInsertCqrsServiceImpl implements CqrsService
         }
     }
 
-    public void executeCommand(Object ibatisObject)
+    public void executeCommand(Object commandObject)
     {
-        Logger.logDebug("Execute command with encapsuled object: " + ibatisObject.toString(), context);
+        Logger.logDebug("COMMAND detected:", context);
+        Logger.logDebug("Execute command with encapsuled object: " + commandObject.toString(), context);
 
-        CommandHandlerResult result = ibatisNodeInsertCommandHandler.handleCommand(ibatisObject, context);
+        CommandHandlerResult result = ibatisNodeInsertCommandHandler.handleCommand(commandObject, context);
         Logger.logDebug("Handle command result: " + result, context);
         // execute was accepted
         if(result.isAccepted())
@@ -108,21 +112,35 @@ public class IbatisNodeInsertCqrsServiceImpl implements CqrsService
         }
         else
         {
-            Logger.logDebug("Ibatis command was not accepted", context);
+            Logger.logDebug("Command was not accepted", context);
         }
+        Logger.logDebug("COMMAND finished", context);
+        Logger.logDebug("", context);
     }
 
     // TODO return result object
     public String query(String readerName, String col, Object node) throws IllegalAccessException
     {
-        for(IbatisNodeInsertCqrsReaderAbstract reader : readers)
+        try
         {
-            if(reader.getName().equalsIgnoreCase(readerName))
+            Logger.logDebug("", context);
+            Logger.logDebug("QUERY detected:", context);
+            for(IbatisNodeInsertCqrsReaderAbstract reader : readers)
             {
-                return reader.getValue(col, node);
+                if(reader.getName().equalsIgnoreCase(readerName))
+                {
+                    return reader.getValue(col, node);
+                }
             }
+            IllegalAccessException e = new IllegalAccessException("Reader with name: " + readerName + " don't exists");
+            Logger.logError(e, context);
+            throw e;
         }
-        throw new IllegalAccessException("Reader with name: " + readerName + " don't exists");
+        finally
+        {
+            Logger.logDebug("QUERY finished", context);
+            Logger.logDebug("", context);
+        }
     }
 
     public Context getContext()
@@ -150,12 +168,19 @@ public class IbatisNodeInsertCqrsServiceImpl implements CqrsService
         return eventStore;
     }
 
+    public LinkedList<IbatisNodeInsertCqrsWriterAbstract> getWriters()
+    {
+        return writers;
+    }
+
     public static void main(String[] args) throws IllegalAccessException
     {
         CqrsContext context = new CqrsContext();
         IbatisNodeInsertCqrsServiceImpl ibatisCqrsService = new IbatisNodeInsertCqrsServiceImpl(context);
 
         String[] cmds = {"cmd1", "cmd2", "cmd3"};
+
+        ibatisCqrsService.query("reader1", "self", cmds[0]);
 
         ibatisCqrsService.executeCommand(cmds[0]);
         ibatisCqrsService.executeCommand(cmds[1]);

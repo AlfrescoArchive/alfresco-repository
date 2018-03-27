@@ -3,6 +3,7 @@ package org.alfresco.repo.domain.node.ibatis.cqrs;
 import org.alfresco.repo.domain.node.NodeEntity;
 import org.alfresco.repo.domain.node.ibatis.cqrs.utils.Logger;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -47,7 +48,6 @@ public class IbatisNodeInsertCqrsReader3 extends IbatisNodeInsertCqrsReaderAbstr
             Logger.logDebug("  ---------------------------------", ibatisCqrsService.getContext());
             Logger.logDebug("  " + e.toString(), ibatisCqrsService.getContext());
             Logger.logDebug("  ---------------------------------", ibatisCqrsService.getContext());
-            Logger.logDebug("  Cache node id", ibatisCqrsService.getContext());
             ibatisCqrsService.getNodeDAOImpl().insertNode((NodeEntity) passStatementObject);
         });
     }
@@ -56,5 +56,13 @@ public class IbatisNodeInsertCqrsReader3 extends IbatisNodeInsertCqrsReaderAbstr
     public void onDelete(List<Event> events)
     {
         // not implemented yet
+    }
+
+    @Override
+    public List<Object> getUsedStores()
+    {
+        ArrayList<Object> stores = new ArrayList<>();
+        stores.add(ibatisCqrsService.getNodeDAOImpl());
+        return stores;
     }
 }

@@ -3,6 +3,7 @@ package org.alfresco.repo.domain.node.ibatis.cqrs;
 import org.alfresco.repo.domain.node.NodeEntity;
 import org.alfresco.repo.domain.node.ibatis.cqrs.utils.Logger;
 
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -24,11 +25,13 @@ public class IbatisNodeInsertCqrsWriter2 extends IbatisNodeInsertCqrsWriterAbstr
         nodes = new LinkedList<>();
     }
 
+    @Override
     public void onUpdate(List<Event> events)
     {
         // not implemented yet
     }
 
+    @Override
     public void onCreate(List<Event> events)
     {
         Logger.logDebug(this.getName() + " detected " + events.size() + " new events:" , ibatisCqrsService.getContext());
@@ -42,8 +45,17 @@ public class IbatisNodeInsertCqrsWriter2 extends IbatisNodeInsertCqrsWriterAbstr
         });
     }
 
+    @Override
     public void onDelete(List<Event> events)
     {
         // not implemented yet
+    }
+
+    @Override
+    public List<Object> getUsedStores()
+    {
+        ArrayList<Object> stores = new ArrayList<>();
+        stores.add(nodes);
+        return stores;
     }
 }

@@ -14,11 +14,4 @@ public interface EventListener
     void onCreate(List<Event> events);
 
     void onDelete(List<Event> events);
-
-    /**
-     * Name for the EventListener
-     *
-     * @return the name of the writer
-     */
-    String getName();
 }
