@@ -222,6 +222,7 @@ public abstract class AbstractNodeDAOImpl implements NodeDAO, BatchingDAO
 
         CqrsContext cqrsContext = new CqrsContext();
         ibatisCqrsService = new IbatisNodeInsertCqrsServiceImpl(cqrsContext);
+        ibatisCqrsService.setNodeDAOImpl(this);
     }
 
     /**
@@ -1432,6 +1433,7 @@ public abstract class AbstractNodeDAOImpl implements NodeDAO, BatchingDAO
             // TODO return of id requires a Reader ...
             //id = insertNode(node);
             ibatisCqrsService.executeCommand(node);
+            id = Long.valueOf(ibatisCqrsService.query("reader1", "id", node));
             controlDAO.releaseSavepoint(savepoint);
         }
         catch (Throwable e)
@@ -4988,7 +4990,7 @@ public abstract class AbstractNodeDAOImpl implements NodeDAO, BatchingDAO
     protected abstract int updateStoreRoot(StoreEntity store);
     protected abstract int updateStore(StoreEntity store);
     protected abstract int updateNodesInStore(Long txnId, Long storeId);
-    protected abstract Long insertNode(NodeEntity node);
+    public abstract Long insertNode(NodeEntity node);
     protected abstract int updateNode(NodeUpdateEntity nodeUpdate);
     protected abstract int updateNodes(Long txnId, List<Long> nodeIds);
     protected abstract void updatePrimaryChildrenSharedAclId(

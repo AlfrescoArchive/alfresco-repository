@@ -3,12 +3,15 @@ package org.alfresco.repo.domain.node.ibatis.cqrs;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
-import org.alfresco.repo.domain.node.ibatis.NodeDAOImpl;
+import javafx.util.Pair;
+import org.alfresco.repo.domain.node.AbstractNodeDAOImpl;
+import org.alfresco.repo.domain.node.NodeEntity;
 import org.alfresco.repo.domain.node.ibatis.cqrs.utils.Context;
 import org.alfresco.repo.domain.node.ibatis.cqrs.utils.CqrsContext;
 import org.alfresco.repo.domain.node.ibatis.cqrs.utils.Logger;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 /**
@@ -19,7 +22,10 @@ import java.util.List;
 public class IbatisNodeInsertCqrsServiceImpl implements CqrsService
 {
     /** simple in-memory event store */
-    private ObservableList<Event> eventStore ;
+    private ObservableList<Event> eventStore;
+
+    private LinkedList<CqrsWriter> writers;
+    private LinkedList<CqrsReader> readers;
 
     private IbatisCommandHandler ibatisCommandHandler;
 
@@ -27,7 +33,10 @@ public class IbatisNodeInsertCqrsServiceImpl implements CqrsService
     private Context context;
 
     /** For using ibatis it needs the NodeDAOImpl */
-    private NodeDAOImpl nodeDAOImpl;
+    private AbstractNodeDAOImpl nodeDAOImpl;
+
+//    /** In-memory storage for id returns after insert. Avoids sql query for it */
+//    private HashMap<UUID, Long> nodeIdMap;
 
     public IbatisNodeInsertCqrsServiceImpl(Context context)
     {
@@ -37,19 +46,44 @@ public class IbatisNodeInsertCqrsServiceImpl implements CqrsService
         eventStore = FXCollections.observableList(new ArrayList<Event>());
         ibatisCommandHandler = new IbatisCommandHandler(this);
 
+//        nodeIdMap = new HashMap<>();
+
         addWriters();
-        // TODO add Readers ...
+        addReaders();
     }
 
     private void addWriters()
     {
-        IbatisCqrsWriter writer = new IbatisCqrsWriter("Ibatis CQRS Writer", this);
-        Logger.logDebug("Add writer: " + writer.getName() + " as listener", context);
+        // add writer 1
+        IbatisNodeInsertCqrsWriter1 writer1 = new IbatisNodeInsertCqrsWriter1("writer1", this);
+        Logger.logDebug("Add writer: " + writer1.getName() + " as listener", context);
+
+        writers.add(writer1);
 
         eventStore.addListener((ListChangeListener.Change<? extends Event> c) -> {
             c.next();
-            writer.notifyWriter((List<Event>) c.getAddedSubList());
+            writer1.notifyWriter((List<Event>) c.getAddedSubList());
         });
+
+        // add writer 2
+    }
+
+    private void addReaders()
+    {
+        // add reader 1 . Reads from NodeEntity the id
+        IbatisNodeInsertCqrsReader1 reader1 = new IbatisNodeInsertCqrsReader1("reader1", this);
+        Logger.logDebug("Add reader: " + reader1.getName() + " as listener", context);
+
+        readers.add(reader1);
+
+        eventStore.addListener((ListChangeListener.Change<? extends Event> c) -> {
+            c.next();
+            reader1.notifyReader((List<Event>) c.getAddedSubList());
+        });
+
+        // add reader 2
+
+        // add reader 3
     }
 
     public void executeCommand(Object ibatisObject)
@@ -75,6 +109,19 @@ public class IbatisNodeInsertCqrsServiceImpl implements CqrsService
         }
     }
 
+    // TODO return result object
+    public String query(String readerName, String col, NodeEntity node) throws IllegalAccessException
+    {
+        for(CqrsReader reader : readers)
+        {
+            if(reader.getName().equalsIgnoreCase(readerName))
+            {
+                return reader.getValue(col, node);
+            }
+        }
+        throw new IllegalAccessException("Reader with name: " + readerName + " don't exists");
+    }
+
     public Context getContext()
     {
         return context;
@@ -85,14 +132,19 @@ public class IbatisNodeInsertCqrsServiceImpl implements CqrsService
         this.context = context;
     }
 
-    public void setNodeDAOImpl(NodeDAOImpl nodeDAOImpl)
+    public void setNodeDAOImpl(AbstractNodeDAOImpl nodeDAOImpl)
     {
         this.nodeDAOImpl = nodeDAOImpl;
     }
 
-    public NodeDAOImpl getNodeDAOImpl()
+    public AbstractNodeDAOImpl getNodeDAOImpl()
     {
         return nodeDAOImpl;
+    }
+
+    public ObservableList<Event> getEventStore()
+    {
+        return eventStore;
     }
 
     public static void main(String[] args)
