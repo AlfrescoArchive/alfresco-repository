@@ -7,6 +7,7 @@ import java.util.List;
 
 /**
  * Reader which writes in his own database and simply caches the last node id. Not that good idea.
+ * NOTICE Thise reader isn't used in this example
  *
  * Created by mmuller on 26/03/2018.
  */

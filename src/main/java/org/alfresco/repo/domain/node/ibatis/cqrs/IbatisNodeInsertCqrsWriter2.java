@@ -8,6 +8,7 @@ import java.util.List;
 
 /**
  * Writer which simply caches the node.
+ * NOTICE This writer isn't used in this example.
  *
  * Created by mmuller on 26/03/2018.
  */

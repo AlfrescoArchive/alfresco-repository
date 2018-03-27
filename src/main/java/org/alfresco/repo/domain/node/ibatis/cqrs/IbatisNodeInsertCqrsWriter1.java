@@ -29,15 +29,18 @@ public class IbatisNodeInsertCqrsWriter1 extends IbatisNodeInsertCqrsWriterAbstr
 
     public void onCreate(List<Event> events)
     {
+        Logger.logDebug("", ibatisCqrsService.getContext());
         Logger.logDebug(name + " detected " + events.size() + " new events:" , ibatisCqrsService.getContext());
         events.forEach(e -> {
             Object passStatementObject = e.getDiffObject();
+            Logger.logDebug("", ibatisCqrsService.getContext());
             Logger.logDebug("  ---------------------------------", ibatisCqrsService.getContext());
             Logger.logDebug("  " + e.toString(), ibatisCqrsService.getContext());
             Logger.logDebug("  ---------------------------------", ibatisCqrsService.getContext());
-            Logger.logDebug("  Writing ibatis object to database", ibatisCqrsService.getContext());
+            Logger.logDebug("", ibatisCqrsService.getContext());
             if(passStatementObject instanceof NodeEntity)
             {
+                Logger.logDebug("  Writing NodeEntity object to database", ibatisCqrsService.getContext());
                 ibatisCqrsService.getNodeDAOImpl().insertNode((NodeEntity) passStatementObject);
             }
         });

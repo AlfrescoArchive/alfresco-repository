@@ -51,13 +51,15 @@ public class IbatisNodeInsertCqrsReader1 extends IbatisNodeInsertCqrsReaderAbstr
     @Override
     public void onCreate(List<Event> events)
     {
+        Logger.logDebug("", ibatisCqrsService.getContext());
         Logger.logDebug(this.getName() + " detected " + events.size() + " new events:", ibatisCqrsService.getContext());
         events.forEach(e -> {
             Object passStatementObject = e.getDiffObject();
+            Logger.logDebug("", ibatisCqrsService.getContext());
             Logger.logDebug("  ---------------------------------", ibatisCqrsService.getContext());
             Logger.logDebug("  " + e.toString(), ibatisCqrsService.getContext());
             Logger.logDebug("  ---------------------------------", ibatisCqrsService.getContext());
-            Logger.logDebug("  Cache node id", ibatisCqrsService.getContext());
+            Logger.logDebug("", ibatisCqrsService.getContext());
         });
     }
 

@@ -9,6 +9,8 @@ import java.util.List;
  * Reader which uses our implementation for retrieve the node from his own.
  * Uses org.alfresco.repo.domain.node.AbstractNodeDAOImpl#getNodePair(java.lang.Long) for retrieve the id.
  *
+ * NOTICE Thise reader isn't used in this example
+ *
  * Created by mmuller on 26/03/2018.
  */
 public class IbatisNodeInsertCqrsReader3 extends IbatisNodeInsertCqrsReaderAbstract {
