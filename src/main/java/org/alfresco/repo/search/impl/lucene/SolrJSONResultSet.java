@@ -28,6 +28,7 @@ package org.alfresco.repo.search.impl.lucene;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.databind.node.ValueNode;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -156,7 +157,8 @@ public class SolrJSONResultSet implements ResultSet, JSONResult
         for(int i = 0; i < numDocs; i++)
         {
             ObjectNode doc = (ObjectNode) docs.get(i);
-            ArrayNode dbids = doc.has("DBID") ? (ArrayNode) doc.get("DBID") : null;
+            ArrayNode dbids = doc.has("DBID") && doc.get("DBID") instanceof ArrayNode ?
+                    (ArrayNode) doc.get("DBID") : null;
             if(dbids != null)
             {
                 Long dbid = dbids.get(0).longValue();
@@ -251,8 +253,8 @@ public class SolrJSONResultSet implements ResultSet, JSONResult
                 ObjectNode facet_queries = (ObjectNode) facet_counts.get("facet_queries");
                 for(Iterator<Map.Entry<String,JsonNode>> it = facet_queries.fields(); it.hasNext(); /**/)
                 {
-                    String fq = it.next().getValue().textValue();
-                    Integer count = Integer.valueOf(facet_queries.get(fq).intValue());
+                    String fq = it.next().getKey();
+                    Integer count = facet_queries.get(fq).intValue();
                     facetQueries.put(fq, count);
                 }
             }
@@ -469,7 +471,7 @@ public class SolrJSONResultSet implements ResultSet, JSONResult
                 });
             }
 
-            Integer count = Integer.valueOf(piv.get("count").intValue());
+            Integer count = piv.get("count").intValue();
             metrics.add(new SimpleMetric(METRIC_TYPE.count,count));
             nested.addAll(buildPivot(piv, "pivot", rangeParameters));
 
@@ -514,9 +516,9 @@ public class SolrJSONResultSet implements ResultSet, JSONResult
                     case facets:
                     	return null;
                     case mean:
-                        if ("NaN".equals(String.valueOf(val))) return null; //else fall through
+                        if ("NaN".equals(String.valueOf(val.textValue()))) return null; //else fall through
                     default:
-                        return new SimpleMetric(metricType, val);
+                        return new SimpleMetric(metricType, JsonUtil.convertJSONValue((ValueNode) val));
                 }
             }).filter(Objects::nonNull).collect(Collectors.toSet());
         }

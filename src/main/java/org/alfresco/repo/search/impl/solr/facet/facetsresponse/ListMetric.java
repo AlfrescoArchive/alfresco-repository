@@ -25,9 +25,9 @@
  */
 package org.alfresco.repo.search.impl.solr.facet.facetsresponse;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.databind.node.ValueNode;
+import org.alfresco.util.json.JsonUtil;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -51,10 +51,10 @@ public class ListMetric implements Metric
         try
         {
             ArrayNode jsonArray = (ArrayNode) val;
-            List<JsonNode> values = new ArrayList<>(jsonArray.size());
+            List<Object> values = new ArrayList<>(jsonArray.size());
             for(int i = 0; i < jsonArray.size(); i++)
             {
-                values.add(jsonArray.get(i));
+                values.add(JsonUtil.convertJSONValue((ValueNode) jsonArray.get(i)));
             }
             value.put(type.toString(), values);
         }
