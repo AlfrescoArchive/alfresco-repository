@@ -122,7 +122,14 @@ public class IbatisNodeInsertCqrsServiceImpl implements CqrsService
     public void executeCommand(Object commandObject)
     {
         Logger.logDebug("COMMAND detected:", context);
-        Logger.logDebug("Execute command with encapsuled object: " + commandObject.toString(), context);
+        if(commandObject!=null)
+        {
+            Logger.logDebug("Execute command with encapsuled object: " + commandObject.toString(), context);
+        }
+        else
+        {
+            Logger.logDebug("Execute command with encapsuled object: null", context);
+        }
 
         CommandHandlerResult result = ibatisNodeInsertCommandHandler.handleCommand(commandObject, context);
         Logger.logDebug("Handle command result: " + result, context);
@@ -138,7 +145,7 @@ public class IbatisNodeInsertCqrsServiceImpl implements CqrsService
         }
         else
         {
-            Logger.logDebug("Command was not accepted", context);
+            Logger.logDebug("Command was not accepted. No adding to Event Source", context);
         }
         Logger.logDebug("COMMAND finished", context);
         Logger.logDebug("", context);
@@ -210,6 +217,7 @@ public class IbatisNodeInsertCqrsServiceImpl implements CqrsService
 
         ibatisCqrsService.executeCommand(cmds[0]);
         ibatisCqrsService.executeCommand(cmds[1]);
+        ibatisCqrsService.executeCommand(null);
         ibatisCqrsService.executeCommand(cmds[2]);
 
         ibatisCqrsService.query("reader1", "self", cmds[0]);

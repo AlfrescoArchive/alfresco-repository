@@ -63,6 +63,11 @@ public class CommandHandlerResult
     @Override
     public String toString()
     {
-        return "Accepted= " + accepted + ", the diffOjbect= " + diffObject.toString();
+        String commandObjectString = "null";
+        if(diffObject != null)
+        {
+            commandObjectString = diffObject.toString();
+        }
+        return "Accepted=" + accepted + ", the diffOjbect=" + commandObjectString;
     }
 }

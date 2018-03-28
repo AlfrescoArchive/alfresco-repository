@@ -51,6 +51,7 @@ public class IbatisNodeInsertCommandHandler implements CommandHandler<Object, Co
         }
         catch(IllegalArgumentException e)
         {
+            Logger.logError(e, ibatisCqrsService.getContext());
             return new CommandHandlerResult(commandObject, false);
         }
         return new CommandHandlerResult(commandObject, true);
@@ -58,6 +59,11 @@ public class IbatisNodeInsertCommandHandler implements CommandHandler<Object, Co
 
     private void validateCommand(Object commandObject) throws IllegalArgumentException
     {
+        String commandObjectString = "null";
+        if(commandObject != null)
+        {
+            commandObjectString = commandObject.toString();
+        }
         // use writer1 for validate object
         IbatisNodeInsertCqrsWriter1 writer1 = (IbatisNodeInsertCqrsWriter1) ibatisCqrsService.getWriters().getFirst();
         Object store = null;
@@ -67,14 +73,18 @@ public class IbatisNodeInsertCommandHandler implements CommandHandler<Object, Co
         }
         if(store == null)
         {
-            Logger.logDebug(writer1.getName() + " validates the command: " + commandObject.toString() + ", without a store", ibatisCqrsService.getContext());
+            Logger.logDebug(writer1.getName() + " validates the command: " + commandObjectString + ", without a store", ibatisCqrsService.getContext());
         }
         else
         {
-            Logger.logDebug(writer1.getName() + " validates the command: " + commandObject.toString() + ", against the store: "
+            Logger.logDebug(writer1.getName() + " validates the command: " + commandObjectString + ", against the store: "
                     + store.toString(), ibatisCqrsService.getContext());
             // Do something with the store for validate the command object
             // Throw the IllegalArgumentException if you are not happy with the command
+        }
+        if(commandObject == null)
+        {
+            throw new IllegalArgumentException("Command object is null");
         }
     }
 }

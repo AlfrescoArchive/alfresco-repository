@@ -55,7 +55,12 @@ public class Event
 
     public String toString()
     {
-        return "Event id=" + id + " Created=" + timestamp + " DiffObject=" + diffObject.toString();
+        String commandObjectString = "null";
+        if(diffObject != null)
+        {
+            commandObjectString = diffObject.toString();
+        }
+        return "Event id=" + id + " Created=" + timestamp + " DiffObject=" + commandObjectString;
     }
 
     public long getTimestamp()
