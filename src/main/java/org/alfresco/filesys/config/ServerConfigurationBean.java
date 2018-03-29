@@ -1409,6 +1409,15 @@ public class ServerConfigurationBean extends AbstractServerConfigurationBean imp
 	    			logger.info("FTP server data ports restricted to range " + rangeFrom + ":" + rangeTo);
             	}
             }
+
+            // Check for an external address
+
+            String ExtAddr = ftpConfigBean.getExternalAddress();
+            if (ExtAddr != null && ExtAddr.length() > 0) {
+
+               ftpConfig.setFTPExternalAddress(ExtAddr);
+            }
+
             
     		// FTPS parameter parsing
     		//
