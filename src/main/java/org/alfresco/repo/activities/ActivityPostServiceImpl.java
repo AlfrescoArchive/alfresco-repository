@@ -251,7 +251,7 @@ public class ActivityPostServiceImpl implements ActivityPostService
                     if (jo.has(PostLookup.JSON_TITLE))
                     {
                         String title = jo.get(PostLookup.JSON_TITLE).textValue();
-                        if (title.length() > ActivityPostDAO.MAX_LEN_NAME)
+                        if (title != null && title.length() > ActivityPostDAO.MAX_LEN_NAME)
                         {
                             jo.put(PostLookup.JSON_TITLE, title.substring(0, 255));
                             activityData = jo.toString();
