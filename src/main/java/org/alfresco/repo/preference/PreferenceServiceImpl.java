@@ -26,6 +26,7 @@
 package org.alfresco.repo.preference;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.NullNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.ValueNode;
 import java.io.IOException;
@@ -199,7 +200,7 @@ public class PreferenceServiceImpl implements PreferenceService, Extensible
             if(jsonPrefs != null)
             {
                 JsonNode jsonNode = AlfrescoDefaultObjectMapper.getReader().readTree(jsonPrefs);
-                if(jsonNode.has(preferenceName))
+                if(jsonNode.has(preferenceName) && !(jsonNode.get(preferenceName) instanceof NullNode))
                 {
                     preferenceValue = jsonNode.get(preferenceName).asText();
                 }
