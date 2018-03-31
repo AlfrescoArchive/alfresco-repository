@@ -2,7 +2,7 @@
     <modelVersion>4.0.0</modelVersion>
     <artifactId>alfresco-repository</artifactId>
     <name>Alfresco Repository</name>
-    <version>6.32-SNAPSHOT</version>
+    <version>6.40-SNAPSHOT</version>
     <packaging>jar</packaging>
 
     <parent>
@@ -41,7 +41,7 @@
         <dependency.alfresco-data-model.version>json-replace-rc1</dependency.alfresco-data-model.version>
         <dependency.alfresco-jlan.version>7.0</dependency.alfresco-jlan.version>
         <dependency.alfresco-pdf-renderer.version>1.1</dependency.alfresco-pdf-renderer.version>
-        <dependency.alfresco-hb-data-sender.version>1.0.5</dependency.alfresco-hb-data-sender.version>
+        <dependency.alfresco-hb-data-sender.version>1.0.7</dependency.alfresco-hb-data-sender.version>
 
 
         <dependency.spring.version>5.0.4.RELEASE</dependency.spring.version>
@@ -52,7 +52,7 @@
         <dependency.opencmis.version>1.0.0</dependency.opencmis.version>
         <dependency.activiti-engine.version>5.22.0</dependency.activiti-engine.version>
         <dependency.activiti.version>5.22.0</dependency.activiti.version>
-        <dependency.postgresql.version>9.4.1212</dependency.postgresql.version>
+        <dependency.postgresql.version>42.2.1</dependency.postgresql.version>
         <dependency.mysql.version>5.1.40</dependency.mysql.version>
         <dependency.mariadb.version>2.0.1</dependency.mariadb.version>
         <dependency.antlr.version>3.5.2</dependency.antlr.version>
@@ -109,7 +109,7 @@
         <dependency>
             <groupId>com.sun.mail</groupId>
             <artifactId>javax.mail</artifactId>
-            <version>1.5.5</version>
+            <version>1.6.1</version>
         </dependency>
         <dependency>
             <groupId>org.alfresco</groupId>
@@ -191,11 +191,21 @@
             <artifactId>oro</artifactId>
             <version>2.0.8</version>
         </dependency>
-        <!-- Dependency on Alfresco patched version of Rhino available in artfifact.alfresco.com -->
+        <dependency>
+            <groupId>com.googlecode.json-simple</groupId>
+            <artifactId>json-simple</artifactId>
+            <version>1.1.1</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>junit</groupId>
+                    <artifactId>junit</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
         <dependency>
             <groupId>org.mozilla</groupId>
             <artifactId>rhino</artifactId>
-            <version>1.7R4-alfresco-patched</version>
+            <version>1.7.9</version>
         </dependency>
         <dependency>
             <groupId>org.springframework</groupId>
@@ -379,13 +389,13 @@
         </dependency>
         <dependency>
             <groupId>org.bouncycastle</groupId>
-            <artifactId>bcprov-jdk15</artifactId>
-            <version>1.46</version>
+            <artifactId>bcprov-jdk15on</artifactId>
+            <version>1.59</version>
         </dependency>
         <dependency>
             <groupId>org.bouncycastle</groupId>
-            <artifactId>bcmail-jdk15</artifactId>
-            <version>1.46</version>
+            <artifactId>bcmail-jdk15on</artifactId>
+            <version>1.59</version>
         </dependency>
         <dependency>
             <groupId>com.googlecode.mp4parser</groupId>
@@ -613,7 +623,7 @@
         <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
-            <version>11.0.2</version>
+            <version>24.0-jre</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.security</groupId>
