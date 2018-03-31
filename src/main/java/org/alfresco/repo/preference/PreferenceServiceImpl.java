@@ -201,7 +201,7 @@ public class PreferenceServiceImpl implements PreferenceService, Extensible
                 JsonNode jsonNode = AlfrescoDefaultObjectMapper.getReader().readTree(jsonPrefs);
                 if(jsonNode.has(preferenceName))
                 {
-                    preferenceValue = jsonNode.get(preferenceName).textValue();
+                    preferenceValue = jsonNode.get(preferenceName).asText();
                 }
             }
         }
