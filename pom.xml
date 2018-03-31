@@ -36,9 +36,9 @@
         <img.exe>convert</img.exe>
 
         <dependency.alfresco-legacy-lucene.version>6.2</dependency.alfresco-legacy-lucene.version>
-        <dependency.alfresco-core.version>json-replace-rc1</dependency.alfresco-core.version>
+        <dependency.alfresco-core.version>json-replace-rc2</dependency.alfresco-core.version>
         <dependency.alfresco-greenmail.version>6.1</dependency.alfresco-greenmail.version>
-        <dependency.alfresco-data-model.version>json-replace-rc1</dependency.alfresco-data-model.version>
+        <dependency.alfresco-data-model.version>json-replace-rc2</dependency.alfresco-data-model.version>
         <dependency.alfresco-jlan.version>7.0</dependency.alfresco-jlan.version>
         <dependency.alfresco-pdf-renderer.version>1.1</dependency.alfresco-pdf-renderer.version>
         <dependency.alfresco-hb-data-sender.version>1.0.7</dependency.alfresco-hb-data-sender.version>
@@ -48,7 +48,7 @@
         <dependency.httpcomponents.version>4.5.2</dependency.httpcomponents.version>
         <dependency.truezip.version>7.7.9</dependency.truezip.version>
         <dependency.poi.version>3.17</dependency.poi.version>
-        <dependency.webscripts.version>json-replace-rc1</dependency.webscripts.version>
+        <dependency.webscripts.version>json-replace-rc2</dependency.webscripts.version>
         <dependency.opencmis.version>1.0.0</dependency.opencmis.version>
         <dependency.activiti-engine.version>5.22.0</dependency.activiti-engine.version>
         <dependency.activiti.version>5.22.0</dependency.activiti.version>
