@@ -117,7 +117,6 @@
               <value>alfresco/templates/activities</value>
           </list>
       </property>
-      
    </bean>
    
    <bean id="FeedTaskProcessor" class="org.springframework.aop.framework.ProxyFactoryBean">

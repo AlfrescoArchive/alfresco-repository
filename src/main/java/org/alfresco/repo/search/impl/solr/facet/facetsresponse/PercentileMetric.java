@@ -25,15 +25,11 @@
  */
 package org.alfresco.repo.search.impl.solr.facet.facetsresponse;
 
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import java.util.HashMap;
+import java.util.Map;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.json.JSONArray;
-import org.json.JSONException;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 /**
  * A metric with one value
@@ -49,22 +45,18 @@ public class PercentileMetric implements Metric
         this.type = type;
         try
         {
-            JSONArray jsonArray = (JSONArray) val;
-            Map<String,Number> percentiles = new HashMap<>(jsonArray.length()/2);
+            ArrayNode jsonArray = (ArrayNode) val;
+            Map<String,Number> percentiles = new HashMap<>(jsonArray.size()/2);
 
-            for (int i = 0, length = jsonArray.length(); i < length; i++)
+            for (int i = 0, length = jsonArray.size(); i < length; i++)
             {
-                percentiles.put(jsonArray.getString(i++),jsonArray.getDouble(i));
+                percentiles.put(jsonArray.get(i++).textValue(),jsonArray.get(i).doubleValue());
             }
             value.put(type.toString(), percentiles);
         }
         catch (ClassCastException cce)
         {
             logger.debug("ClassCastException for "+val);
-        }
-        catch (JSONException e)
-        {
-            logger.debug("Failed to process percentile for "+val+ " "+e.getMessage());
         }
     }
 

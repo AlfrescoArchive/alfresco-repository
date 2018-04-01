@@ -26,17 +26,12 @@
 
 package org.alfresco.repo.forum;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-
+import com.fasterxml.jackson.databind.JsonNode;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 import org.alfresco.model.ContentModel;
 import org.alfresco.model.ForumModel;
 import org.alfresco.repo.content.MimetypeMap;
@@ -72,18 +67,23 @@ import org.alfresco.service.namespace.NamespaceService;
 import org.alfresco.service.namespace.QName;
 import org.alfresco.util.GUID;
 import org.alfresco.util.PropertyMap;
+import org.alfresco.util.json.jackson.AlfrescoDefaultObjectMapper;
 import org.alfresco.util.test.junitrules.AlfrescoPerson;
 import org.alfresco.util.test.junitrules.ApplicationContextInit;
 import org.alfresco.util.test.junitrules.RunAsFullyAuthenticatedRule;
 import org.alfresco.util.test.junitrules.TemporaryNodes;
 import org.alfresco.util.test.junitrules.TemporarySites;
-import org.json.JSONObject;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.RuleChain;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 /**
  * Test class for some {@link ForumModel forum model}-related functionality, specifically comments.
@@ -228,8 +228,8 @@ public class CommentsTest
                         if ("comments".equals(activityPostEntry.getAppTool()))
                         {
                             String activityData = activityPostEntry.getActivityData();
-                            JSONObject json = new JSONObject(activityData);
-                            activityNodeRef = (String) json.get("nodeRef");
+                            JsonNode json = AlfrescoDefaultObjectMapper.getReader().readTree(activityData);
+                            activityNodeRef = json.get("nodeRef").textValue();
                         }
                     }
 

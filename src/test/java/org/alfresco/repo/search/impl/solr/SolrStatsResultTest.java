@@ -25,16 +25,17 @@
  */
 package org.alfresco.repo.search.impl.solr;
 
-import static org.junit.Assert.*;
-
+import com.fasterxml.jackson.databind.JsonNode;
 import org.alfresco.repo.search.impl.lucene.SolrStatsResult;
+import org.alfresco.util.json.jackson.AlfrescoDefaultObjectMapper;
 import org.alfresco.util.testing.category.LuceneTests;
-import org.json.JSONException;
-import org.json.JSONObject;
-import org.json.JSONTokener;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.springframework.util.StringUtils;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 /**
  * The results of executing a solr stats query, parsing the json
@@ -53,7 +54,7 @@ public class SolrStatsResultTest
     public static String TEST_VERSIONLABEL_DOT = "{\"response\":{\"start\":0,\"docs\":[],\"numFound\":190},\"responseHeader\":{\"status\":0,\"QTime\":6},\"stats\":{\"stats_fields\":{\"contentsize\":{\"missing\":9,\"min\":25,\"sumOfSquares\":5.62876356840762E14,\"max\":3737049.0,\"count\":181,\"facets\":{\"@{http://www.alfresco.org/model/content/1.0}versionLabel.\":{}},\"mean\":82362.49162011173,\"sum\":1.4742886E7,\"stddev\":1748900.2773910002}}},\"lastIndexedTx\":44}";
 
     @Test
-    public void testSolrStatsResult() throws JSONException
+    public void testSolrStatsResult() throws Exception
     {
         SolrStatsResult resultCreated = testProcessing(TEST_CREATED, 13, 7, 188);
         SolrStatsResult resultMimetype = testProcessing(TEST_MIMETYPE, 12, 11, 188);
@@ -63,7 +64,7 @@ public class SolrStatsResultTest
     }
     
     @Test
-    public void testSolrStatsResultDateFormat() throws JSONException
+    public void testSolrStatsResultDateFormat() throws Exception
     {
         String date = SolrStatsResult.formatAsDate(null);
         assertNotNull(date);
@@ -73,9 +74,9 @@ public class SolrStatsResultTest
         assertEquals("2014-05-12", SolrStatsResult.formatAsDate("2014-05-12T16:26:53.292Z"));
     }
     
-    private SolrStatsResult testProcessing(String testData, long queryTime, int statsSize, long numberFound) throws JSONException
+    private SolrStatsResult testProcessing(String testData, long queryTime, int statsSize, long numberFound) throws Exception
     {
-        JSONObject json = new JSONObject(new JSONTokener(testData));
+        JsonNode json = AlfrescoDefaultObjectMapper.getReader().readTree(testData);
         SolrStatsResult result = new SolrStatsResult(json, false);
 
         assertNotNull(result);

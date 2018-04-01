@@ -26,24 +26,23 @@
 
 package org.alfresco.repo.search.impl.solr;
 
-import java.io.BufferedReader;
-import java.io.ByteArrayInputStream;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
-import java.io.InputStream;
-import java.io.InputStreamReader;
+import java.io.IOException;
 import java.io.Reader;
 import java.net.URL;
 import java.util.Arrays;
-
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-import org.json.JSONTokener;
-import org.junit.*;
+import org.alfresco.util.json.jackson.AlfrescoDefaultObjectMapper;
+import org.junit.Test;
 import org.springframework.util.ResourceUtils;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 /**
  * This class contains tests for the class <code>{@link SpellCheckDecisionManager}</code>.
@@ -69,9 +68,9 @@ public class SpellCheckDecisionManagerTest
     {
         final String searchTerm = "alfrezco";
 
-        JSONObject resultJson = getSearchResponseAsJson("searchInsteadFor.json");
+        JsonNode resultJson = getSearchResponseAsJson("searchInsteadFor.json");
 
-        JSONObject requestBody = createJsonSearchRequest(searchTerm);
+        ObjectNode requestBody = createJsonSearchRequest(searchTerm);
         String spellCheckParam = getSpellCheckParam(searchTerm);
 
         SpellCheckDecisionManager manager = new SpellCheckDecisionManager(resultJson, SEARCH_REQUEST_URL
@@ -80,11 +79,11 @@ public class SpellCheckDecisionManagerTest
         assertTrue(manager.isCollate());
         assertEquals(SEARCH_REQUEST_URL, manager.getUrl());
 
-        JSONObject searchedForJsonObject = manager.getSpellCheckJsonValue();
-        assertEquals("alfresco", searchedForJsonObject.getString("searchInsteadFor"));
+        JsonNode searchedForJsonNode = manager.getSpellCheckJsonValue();
+        assertEquals("alfresco", searchedForJsonNode.get("searchInsteadFor").textValue());
 
         // Check that the request query has been modified with the suggested term
-        assertEquals(createJsonSearchRequest("alfresco").getString("query"), requestBody.getString("query"));
+        assertEquals(createJsonSearchRequest("alfresco").get("query").textValue(), requestBody.get("query").textValue());
 
         // Check that the number of found docs (original query) is 0 and the collation hits are greater than 0
         long numberFound = getOrigQueryHit(resultJson);
@@ -107,9 +106,9 @@ public class SpellCheckDecisionManagerTest
     {
         final String searchTerm = "alfrezco";
 
-        JSONObject resultJson = getSearchResponseAsJson("searchInsteadFor2.json");
+        JsonNode resultJson = getSearchResponseAsJson("searchInsteadFor2.json");
 
-        JSONObject requestBody = createJsonSearchRequest(searchTerm);
+        ObjectNode requestBody = createJsonSearchRequest(searchTerm);
         String spellCheckParam = getSpellCheckParam(searchTerm);
 
         SpellCheckDecisionManager manager = new SpellCheckDecisionManager(resultJson, SEARCH_REQUEST_URL
@@ -118,11 +117,12 @@ public class SpellCheckDecisionManagerTest
         assertTrue(manager.isCollate());
         assertEquals(SEARCH_REQUEST_URL, manager.getUrl());
 
-        JSONObject searchedForJsonObject = manager.getSpellCheckJsonValue();
-        assertEquals("alfresco", searchedForJsonObject.getString("searchInsteadFor"));
+        JsonNode searchedForJsonNode = manager.getSpellCheckJsonValue();
+        assertEquals("alfresco", searchedForJsonNode.get("searchInsteadFor").textValue());
 
         // Check that the request query has been modified with the suggested term
-        assertEquals(createJsonSearchRequest("alfresco").getString("query"), requestBody.getString("query"));
+        assertEquals(createJsonSearchRequest("alfresco").get("query").textValue(),
+                requestBody.get("query").textValue());
 
         // Check that the number of found docs (original query) is 0 and the collation hits are greater than 0
         long numberFound = getOrigQueryHit(resultJson);
@@ -145,9 +145,9 @@ public class SpellCheckDecisionManagerTest
     {
         final String searchTerm = "londn";
 
-        JSONObject resultJson = getSearchResponseAsJson("didYouMean.json");
+        JsonNode resultJson = getSearchResponseAsJson("didYouMean.json");
 
-        JSONObject requestBody = createJsonSearchRequest(searchTerm);
+        ObjectNode requestBody = createJsonSearchRequest(searchTerm);
         String spellCheckParam = getSpellCheckParam(searchTerm);
 
         SpellCheckDecisionManager manager = new SpellCheckDecisionManager(resultJson, SEARCH_REQUEST_URL
@@ -156,18 +156,18 @@ public class SpellCheckDecisionManagerTest
         assertFalse(manager.isCollate());
         assertEquals(SEARCH_REQUEST_URL + spellCheckParam, manager.getUrl());
 
-        JSONObject didYouMeanJsonObject = manager.getSpellCheckJsonValue();
-        JSONArray jsonArray = didYouMeanJsonObject.getJSONArray("didYouMean");
-        assertEquals(2, jsonArray.length());
+        JsonNode didYouMeanJsonNode = manager.getSpellCheckJsonValue();
+        ArrayNode jsonArray = (ArrayNode) didYouMeanJsonNode.get("didYouMean");
+        assertEquals(2, jsonArray.size());
 
-        String[] suggestedTerms = { jsonArray.getString(0), jsonArray.getString(1) };
+        String[] suggestedTerms = { jsonArray.get(0).textValue(), jsonArray.get(1).textValue() };
         Arrays.sort(suggestedTerms);
 
         assertEquals("login", suggestedTerms[0]);
         assertEquals("london", suggestedTerms[1]);
 
         // Check that the request query has NOT been modified with the suggested term
-        assertEquals(createJsonSearchRequest(searchTerm).getString("query"), requestBody.getString("query"));
+        assertEquals(createJsonSearchRequest(searchTerm).get("query").textValue(), requestBody.get("query").textValue());
 
         // Check that the number of found docs (original query) is less than collation hits
         long numberFound = getOrigQueryHit(resultJson);
@@ -190,9 +190,9 @@ public class SpellCheckDecisionManagerTest
     {
         final String searchTerm = "londn";
 
-        JSONObject resultJson = getSearchResponseAsJson("didYouMean2.json");
+        JsonNode resultJson = getSearchResponseAsJson("didYouMean2.json");
 
-        JSONObject requestBody = createJsonSearchRequest(searchTerm);
+        ObjectNode requestBody = createJsonSearchRequest(searchTerm);
         String spellCheckParam = getSpellCheckParam(searchTerm);
 
         SpellCheckDecisionManager manager = new SpellCheckDecisionManager(resultJson, SEARCH_REQUEST_URL
@@ -201,18 +201,18 @@ public class SpellCheckDecisionManagerTest
         assertFalse(manager.isCollate());
         assertEquals(SEARCH_REQUEST_URL + spellCheckParam, manager.getUrl());
 
-        JSONObject didYouMeanJsonObject = manager.getSpellCheckJsonValue();
-        JSONArray jsonArray = didYouMeanJsonObject.getJSONArray("didYouMean");
-        assertEquals(2, jsonArray.length());
+        JsonNode didYouMeanJsonNode = manager.getSpellCheckJsonValue();
+        ArrayNode jsonArray = (ArrayNode) didYouMeanJsonNode.get("didYouMean");
+        assertEquals(2, jsonArray.size());
 
-        String[] suggestedTerms = { jsonArray.getString(0), jsonArray.getString(1) };
+        String[] suggestedTerms = { jsonArray.get(0).textValue(), jsonArray.get(1).textValue() };
         Arrays.sort(suggestedTerms);
 
         assertEquals("login", suggestedTerms[0]);
         assertEquals("london", suggestedTerms[1]);
 
         // Check that the request query has NOT been modified with the suggested term
-        assertEquals(createJsonSearchRequest(searchTerm).getString("query"), requestBody.getString("query"));
+        assertEquals(createJsonSearchRequest(searchTerm).get("query").textValue(), requestBody.get("query").textValue());
 
         // Check that the number of found docs (original query) is less than collation hits
         System.out.println("###jsonResult:"+resultJson);
@@ -233,9 +233,9 @@ public class SpellCheckDecisionManagerTest
     {
         final String searchTerm = "gibberishtextttttttttt";
 
-        JSONObject resultJson = getSearchResponseAsJson("noSuggestions.json");
+        JsonNode resultJson = getSearchResponseAsJson("noSuggestions.json");
 
-        JSONObject requestBody = createJsonSearchRequest(searchTerm);
+        ObjectNode requestBody = createJsonSearchRequest(searchTerm);
         String spellCheckParam = getSpellCheckParam(searchTerm);
 
         SpellCheckDecisionManager manager = new SpellCheckDecisionManager(resultJson, SEARCH_REQUEST_URL
@@ -244,11 +244,11 @@ public class SpellCheckDecisionManagerTest
         assertFalse(manager.isCollate());
         assertEquals(SEARCH_REQUEST_URL + spellCheckParam, manager.getUrl());
 
-        JSONObject noSuggestionsJsonObject = manager.getSpellCheckJsonValue();
-        assertEquals(0, noSuggestionsJsonObject.length());
+        JsonNode noSuggestionsJsonNode = manager.getSpellCheckJsonValue();
+        assertEquals(0, noSuggestionsJsonNode.size());
 
         // Check that the request query has NOT been modified with the suggested term
-        assertEquals(createJsonSearchRequest(searchTerm).getString("query"), requestBody.getString("query"));
+        assertEquals(createJsonSearchRequest(searchTerm).get("query").textValue(), requestBody.get("query").textValue());
         
         long numberFound = getOrigQueryHit(resultJson);
         assertEquals(0L, numberFound);
@@ -269,9 +269,9 @@ public class SpellCheckDecisionManagerTest
     {
         final String searchTerm = "london";
 
-        JSONObject resultJson = getSearchResponseAsJson("correctlySpelledTermQuery.json");
+        JsonNode resultJson = getSearchResponseAsJson("correctlySpelledTermQuery.json");
 
-        JSONObject requestBody = createJsonSearchRequest(searchTerm);
+        ObjectNode requestBody = createJsonSearchRequest(searchTerm);
         String spellCheckParam = getSpellCheckParam(searchTerm);
 
         SpellCheckDecisionManager manager = new SpellCheckDecisionManager(resultJson, SEARCH_REQUEST_URL
@@ -280,11 +280,11 @@ public class SpellCheckDecisionManagerTest
         assertFalse(manager.isCollate());
         assertEquals(SEARCH_REQUEST_URL + spellCheckParam, manager.getUrl());
 
-        JSONObject noSuggestionsJsonObject = manager.getSpellCheckJsonValue();
-        assertEquals(0, noSuggestionsJsonObject.length());
+        JsonNode noSuggestionsJsonNode = manager.getSpellCheckJsonValue();
+        assertEquals(0, noSuggestionsJsonNode.size());
 
         // Check that the request query has NOT been modified with the suggested term
-        assertEquals(createJsonSearchRequest(searchTerm).getString("query"), requestBody.getString("query"));
+        assertEquals(createJsonSearchRequest(searchTerm).get("query").textValue(), requestBody.get("query").textValue());
         
         // Check that the number of found docs (original query) is greater than or equal to the collation hits
         long numberFound = getOrigQueryHit(resultJson);
@@ -306,9 +306,9 @@ public class SpellCheckDecisionManagerTest
     {
         final String searchTerm = "london";
 
-        JSONObject resultJson = getSearchResponseAsJson("correctlySpelledTermQuery2.json");
+        JsonNode resultJson = getSearchResponseAsJson("correctlySpelledTermQuery2.json");
 
-        JSONObject requestBody = createJsonSearchRequest(searchTerm);
+        ObjectNode requestBody = createJsonSearchRequest(searchTerm);
         String spellCheckParam = getSpellCheckParam(searchTerm);
 
         SpellCheckDecisionManager manager = new SpellCheckDecisionManager(resultJson, SEARCH_REQUEST_URL
@@ -317,11 +317,11 @@ public class SpellCheckDecisionManagerTest
         assertFalse(manager.isCollate());
         assertEquals(SEARCH_REQUEST_URL + spellCheckParam, manager.getUrl());
 
-        JSONObject noSuggestionsJsonObject = manager.getSpellCheckJsonValue();
-        assertEquals(0, noSuggestionsJsonObject.length());
+        JsonNode noSuggestionsJsonNode = manager.getSpellCheckJsonValue();
+        assertEquals(0, noSuggestionsJsonNode.size());
 
         // Check that the request query has NOT been modified with the suggested term
-        assertEquals(createJsonSearchRequest(searchTerm).getString("query"), requestBody.getString("query"));
+        assertEquals(createJsonSearchRequest(searchTerm).get("query").textValue(), requestBody.get("query").textValue());
 
         // Check that the number of found docs (original query) is greater than or equal to the collation hits
         long numberFound = getOrigQueryHit(resultJson);
@@ -332,7 +332,7 @@ public class SpellCheckDecisionManagerTest
     }
 
 
-    public JSONObject getSearchResponseAsJson(String jsonResponse) throws FileNotFoundException, JSONException
+    public JsonNode getSearchResponseAsJson(String jsonResponse) throws FileNotFoundException, IOException
     {
         URL url = SpellCheckDecisionManagerTest.class.getClassLoader().getResource(RESOURCE_PREFIX + jsonResponse);
         if (url == null)
@@ -341,11 +341,11 @@ public class SpellCheckDecisionManagerTest
         }
         
         Reader reader = new FileReader(ResourceUtils.getFile(url));
-        JSONObject resultJson = new JSONObject(new JSONTokener(reader));
+        JsonNode resultJson = AlfrescoDefaultObjectMapper.getReader().readTree(reader);
         return resultJson;
     }
 
-    public JSONObject createJsonSearchRequest(String searchTerm) throws JSONException
+    public ObjectNode createJsonSearchRequest(String searchTerm) throws IOException
     {
         String requestStr = "{"
                     + "\"queryConsistency\" : \"DEFAULT\","
@@ -365,9 +365,7 @@ public class SpellCheckDecisionManagerTest
                     + "\"defaultNamespace\" : \"http://www.alfresco.org/model/content/1.0\","
                     + "\"defaultFTSFieldOperator\" : \"AND\"," + "\"defaultFTSOperator\" : \"AND\"" + "}";
 
-        InputStream is = new ByteArrayInputStream(requestStr.getBytes());
-        Reader reader = new BufferedReader(new InputStreamReader(is));
-        JSONObject json = new JSONObject(new JSONTokener(reader));
+        ObjectNode json = (ObjectNode) AlfrescoDefaultObjectMapper.getReader().readTree(requestStr);
         return json;
     }
 
@@ -376,27 +374,27 @@ public class SpellCheckDecisionManagerTest
         return "&spellcheck.q=" + searchTerm + "&spellcheck=true";
     }
 
-    private long getOrigQueryHit(JSONObject resultJson) throws JSONException
+    private long getOrigQueryHit(JsonNode resultJson)
     {
-        JSONObject response = resultJson.getJSONObject("response");
-        long numberFound = response.getLong("numFound");
+        JsonNode response = resultJson.get("response");
+        long numberFound = response.get("numFound").longValue();
         return numberFound;
 
     }
 
-    private long getCollationHit(JSONObject resultJson) throws JSONException
+    private long getCollationHit(JsonNode resultJson)
     {
-        JSONObject spellcheck = resultJson.getJSONObject("spellcheck");
-        JSONArray suggestions = spellcheck.getJSONArray("suggestions");
+        ObjectNode spellcheck = (ObjectNode) resultJson.get("spellcheck");
+        ArrayNode suggestions = (ArrayNode) spellcheck.get("suggestions");
 
-        for (int key = 0, value = 1, length = suggestions.length(); value < length; key += 2, value += 2)
+        for (int key = 0, value = 1, length = suggestions.size(); value < length; key += 2, value += 2)
         {
-            String jsonName = suggestions.getString(key);
+            String jsonName = suggestions.get(key).textValue();
 
             if ("collation".equals(jsonName))
             {
-                JSONObject valueJsonObject = suggestions.getJSONObject(value);
-                long collationHit = valueJsonObject.getLong("hits");
+                JsonNode valueJsonNode = suggestions.get(value);
+                long collationHit = valueJsonNode.get("hits").longValue();
                 return collationHit;
             }
         }
@@ -404,19 +402,19 @@ public class SpellCheckDecisionManagerTest
         return 0;
     }
 
-    private long getCollationHit2(JSONObject resultJson) throws JSONException
+    private long getCollationHit2(JsonNode resultJson)
     {
-        JSONObject spellcheck = resultJson.getJSONObject("spellcheck");
-        JSONArray collations = spellcheck.getJSONArray("collations");
+        JsonNode spellcheck = resultJson.get("spellcheck");
+        ArrayNode collations = (ArrayNode) spellcheck.get("collations");
 
-        for (int key = 0, value = 1, length = collations.length(); value < length; key += 2, value += 2)
+        for (int key = 0, value = 1, length = collations.size(); value < length; key += 2, value += 2)
         {
-            String jsonName = collations.getString(key);
+            String jsonName = collations.get(key).textValue();
 
             if ("collation".equals(jsonName))
             {
-                JSONObject valueJsonObject = collations.getJSONObject(value);
-                long collationHit = valueJsonObject.getLong("hits");
+                JsonNode valueJsonNode = collations.get(value);
+                long collationHit = valueJsonNode.get("hits").longValue();
                 return collationHit;
             }
         }

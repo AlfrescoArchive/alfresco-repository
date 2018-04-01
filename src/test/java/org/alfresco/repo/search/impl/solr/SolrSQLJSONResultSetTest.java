@@ -25,9 +25,10 @@
  */
 package org.alfresco.repo.search.impl.solr;
 
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import java.io.IOException;
+import org.alfresco.util.json.jackson.AlfrescoDefaultObjectMapper;
 import org.junit.Assert;
 import org.junit.Test;
 /**
@@ -38,10 +39,10 @@ import org.junit.Test;
 public class SolrSQLJSONResultSetTest
 {
     @Test
-    public void parseSQLResponse() throws JSONException
+    public void parseSQLResponse() throws IOException
     {
         String response = "{\"result-set\":{\"docs\":[{\"SITE\":\"_REPOSITORY_\"},{\"SITE\":\"surf-config\"},{\"SITE\":\"swsdp\"},{\"RESPONSE_TIME\":96,\"EOF\":true}]}}";
-        JSONObject json = new JSONObject(response);
+        JsonNode json = AlfrescoDefaultObjectMapper.getReader().readTree(response);
         SolrSQLJSONResultSet ssjr = new SolrSQLJSONResultSet(json, null);
         Assert.assertNotNull(ssjr);
         Assert.assertNotNull(ssjr.getQueryTime());
@@ -49,18 +50,18 @@ public class SolrSQLJSONResultSetTest
         Assert.assertEquals(3, ssjr.getNumberFound());
         Assert.assertNotNull(ssjr.getSolrResponse());
         Assert.assertEquals(response, ssjr.getSolrResponse());
-        JSONArray docs = ssjr.getDocs();
+        ArrayNode docs = ssjr.getDocs();
         Assert.assertNotNull(docs);
         Assert.assertNotNull(ssjr.getResultSetMetaData());
         
     }
     @Test
-    public void parseSQLErrorResponse() throws JSONException
+    public void parseSQLErrorResponse() throws IOException
     {
         String response = "{\"result-set\":{\"docs\":[{\"EXCEPTION\":\"Column 'SIT1E' not found in any table\",\"EOF\":true,\"RESPONSE_TIME\":18943}]}}";
         try
         {
-            JSONObject json = new JSONObject(response);
+            JsonNode json = AlfrescoDefaultObjectMapper.getReader().readTree(response);
             SolrSQLJSONResultSet ssjr = new SolrSQLJSONResultSet(json, null);
             Assert.assertNull(ssjr);
         }
@@ -74,15 +75,15 @@ public class SolrSQLJSONResultSetTest
     /**
      * Validates that when a query is done against SearchService then it should state that it works only with
      * Insight Engine.
-     * @throws JSONException
+     * @
      */
     @Test
-    public void parseInvalidInsightEngineResponse() throws JSONException
+    public void parseInvalidInsightEngineResponse() throws IOException
     {
         String response = "{\"result-set\":{\"docs\":[{\"EXCEPTION\":\"/sql handler only works in Solr Cloud mode\",\"EOF\":true}]}}";
         try
         {
-            JSONObject json = new JSONObject(response);
+            JsonNode json = AlfrescoDefaultObjectMapper.getReader().readTree(response);
             SolrSQLJSONResultSet ssjr = new SolrSQLJSONResultSet(json, null);
             Assert.assertNull(ssjr);
         }

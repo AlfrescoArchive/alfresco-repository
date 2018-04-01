@@ -26,13 +26,15 @@
 
 package org.alfresco.repo.search.impl.solr;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.alfresco.util.json.jackson.AlfrescoDefaultObjectMapper;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.json.JSONArray;
-import org.json.JSONObject;
 
 /**
  *
@@ -50,29 +52,29 @@ public class SpellCheckDecisionManager
     private static final String COLLATION = "collation";
     private boolean collate;
     private String url;
-    private JSONObject spellCheckJsonValue;
+    private ObjectNode spellCheckJsonValue;
 
-    public SpellCheckDecisionManager(JSONObject resultJson, String origURL, JSONObject reguestJsonBody,
+    public SpellCheckDecisionManager(JsonNode resultJson, String origURL, ObjectNode reguestJsonBody,
                 String spellCheckParams)
     {
         try
         {
             List<String> collationQueriesList = new ArrayList<>();
-            JSONObject response = resultJson.getJSONObject("response");
-            long numberFound = response.getLong("numFound");
+            JsonNode response = resultJson.get("response");
+            long numberFound = response.get("numFound").longValue();
 
             this.url = origURL;
 
-            JSONObject spellcheck = resultJson.getJSONObject("spellcheck");
-            JSONArray suggestions = spellcheck.getJSONArray("suggestions");
+            JsonNode spellcheck = resultJson.get("spellcheck");
+            ArrayNode suggestions = (ArrayNode) spellcheck.get("suggestions");
 
-            JSONArray collations = null;
+            ArrayNode collations = null;
             /**
             * A top level collations key will be present in Solr 6 only.
             **/
             if(spellcheck.has("collations"))
             {
-                collations = spellcheck.getJSONArray("collations");
+                collations = (ArrayNode) spellcheck.get("collations");
             }
 
             /*
@@ -80,39 +82,48 @@ public class SpellCheckDecisionManager
             * array, we are talking to Solr4.
             */
 
-            JSONArray jsonArray = (collations!=null) ? collations : suggestions;
+            ArrayNode jsonArray = (collations!=null) ? collations : suggestions;
 
             /*
             * The code below will work for both Solr 4 and Solr 6.
             */
 
-            for (int key = 0, value = 1, length = jsonArray.length(); value < length; key += 2, value += 2) {
-                String jsonName = jsonArray.getString(key);
+            for (int key = 0, value = 1, length = jsonArray.size(); value < length; key += 2, value += 2) {
+                String jsonName = jsonArray.get(key).textValue();
 
-                if (COLLATION.equals(jsonName)) {
-                    JSONObject valueJsonObject = jsonArray.getJSONObject(value);
-                    long collationHit = valueJsonObject.getLong("hits");
+                if (COLLATION.equals(jsonName))
+                {
+                    JsonNode valueJsonObject = jsonArray.get(value);
+                    long collationHit = valueJsonObject.get("hits").longValue();
 
                     this.collate = numberFound == 0 && collationHit > 0;
-                    if (collate) {
-                        reguestJsonBody.put("query", valueJsonObject.getString("collationQuery"));
-                        spellCheckJsonValue = new JSONObject();
-                        spellCheckJsonValue.put("searchInsteadFor", valueJsonObject.getString("collationQueryString"));
+                    if (collate)
+                    {
+                        reguestJsonBody.put("query", valueJsonObject.get("collationQuery").textValue());
+                        spellCheckJsonValue = AlfrescoDefaultObjectMapper.createObjectNode();
+                        spellCheckJsonValue.put("searchInsteadFor", valueJsonObject.get("collationQueryString").textValue());
                         break;
-                    } else if (collationHit > numberFound) {
-                        collationQueriesList.add(valueJsonObject.getString("collationQueryString"));
+                    }
+                    else if (collationHit > numberFound)
+                    {
+                        collationQueriesList.add(valueJsonObject.get("collationQueryString").textValue());
                     }
                 }
             }
 
-            if (collate) {
+            if (collate)
+            {
                 this.url = origURL.replace(spellCheckParams, "");
-            } else if (collationQueriesList.size() > 0) {
-                spellCheckJsonValue = new JSONObject();
-                JSONArray jsonArray1 = new JSONArray(collationQueriesList);
-                spellCheckJsonValue.put("didYouMean", jsonArray1);
-            } else {
-                spellCheckJsonValue = new JSONObject();
+            }
+            else if (collationQueriesList.size() > 0)
+            {
+                spellCheckJsonValue = AlfrescoDefaultObjectMapper.createObjectNode();
+                spellCheckJsonValue.put("didYouMean",
+                        AlfrescoDefaultObjectMapper.convertValue(collationQueriesList, JsonNode.class));
+            }
+            else
+            {
+                spellCheckJsonValue = AlfrescoDefaultObjectMapper.createObjectNode();
             }
         }
         catch (Exception e)
@@ -140,7 +151,7 @@ public class SpellCheckDecisionManager
     /**
      * @return the spellCheckJsonValue
      */
-    public JSONObject getSpellCheckJsonValue()
+    public JsonNode getSpellCheckJsonValue()
     {
         return this.spellCheckJsonValue;
     }

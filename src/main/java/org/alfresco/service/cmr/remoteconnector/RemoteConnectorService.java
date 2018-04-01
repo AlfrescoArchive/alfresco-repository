@@ -25,11 +25,10 @@
  */
 package org.alfresco.service.cmr.remoteconnector;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import java.io.IOException;
 
 import org.alfresco.repo.security.authentication.AuthenticationException;
-import org.json.simple.JSONObject;
-import org.json.simple.parser.ParseException;
 
 /**
  * Helper Service for performing remote web requests from within
@@ -63,9 +62,7 @@ public interface RemoteConnectorService
     
     /**
      * Executes the given request, requesting a JSON response, and
-     *  returns the parsed JSON received back
-     *  
-     * @throws ParseException If the response is not valid JSON
+     *  returns the JSON received back
      */
-    JSONObject executeJSONRequest(RemoteConnectorRequest request) throws IOException, AuthenticationException, ParseException;
+    JsonNode executeJSONRequest(RemoteConnectorRequest request) throws IOException, AuthenticationException;
 }

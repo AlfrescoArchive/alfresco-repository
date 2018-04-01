@@ -25,6 +25,10 @@
  */
 package org.alfresco.repo.jscript.app;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.io.Serializable;
 import java.text.MessageFormat;
 import java.util.ArrayList;
@@ -39,7 +43,6 @@ import org.alfresco.model.ContentModel;
 import org.alfresco.repo.jscript.ScriptNode;
 import org.alfresco.service.ServiceRegistry;
 import org.alfresco.service.cmr.lock.LockService;
-import org.alfresco.service.cmr.lock.LockStatus;
 import org.alfresco.service.cmr.model.FileFolderService;
 import org.alfresco.service.cmr.model.FileInfo;
 import org.alfresco.service.cmr.repository.ContentData;
@@ -55,12 +58,10 @@ import org.alfresco.service.namespace.NamespaceException;
 import org.alfresco.service.namespace.NamespaceService;
 import org.alfresco.service.namespace.QName;
 import org.alfresco.util.ISO8601DateFormat;
+import org.alfresco.util.json.jackson.AlfrescoDefaultObjectMapper;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.json.JSONException;
-import org.json.simple.JSONArray;
-import org.json.simple.JSONAware;
-import org.json.simple.JSONObject;
+
 import org.springframework.extensions.surf.util.URLEncoder;
 
 /**
@@ -193,20 +194,18 @@ public class JSONConversionComponent
      * Convert a node reference to a JSON string.  Selects the correct converter based on selection
      * implementation.
      */
-    @SuppressWarnings("unchecked")
-    public String toJSON(final NodeRef nodeRef, final boolean useShortQNames)
+    public String toJSON(final NodeRef nodeRef, final boolean useShortQNames) throws JsonProcessingException
     {
-        return toJSONObject(nodeRef, useShortQNames).toJSONString();
+        return toJSONObject(nodeRef, useShortQNames).toString();
     }
     
     /**
      * Convert a node reference to a JSON object.  Selects the correct converter based on selection
      * implementation.
      */
-    @SuppressWarnings("unchecked")
-    public JSONObject toJSONObject(final NodeRef nodeRef, final boolean useShortQNames)
+    public JsonNode toJSONObject(final NodeRef nodeRef, final boolean useShortQNames) throws JsonProcessingException
     {
-        final JSONObject json = new JSONObject();
+        final ObjectNode json = AlfrescoDefaultObjectMapper.createObjectNode();
         
         if (this.nodeService.exists(nodeRef))
         {
@@ -228,21 +227,15 @@ public class JSONConversionComponent
                 json.put("properties", propertiesToJSON(nodeRef, nodeInfo.getProperties(), useShortQNames));
                 
                 // add aspects
-                json.put("aspects", apsectsToJSON(nodeRef, useShortQNames));
+                json.put("aspects", aspectsToJSON(nodeRef, useShortQNames));
             }
         }    
         
         return json;
     }
-    
-    /**
-     * 
-     * @param nodeInfo FileInfo
-     * @param rootJSONObject JSONObject
-     * @param useShortQNames boolean
-     */
+
     @SuppressWarnings("unchecked")
-    protected void setRootValues(final FileInfo nodeInfo, final JSONObject rootJSONObject, final boolean useShortQNames)
+    protected void setRootValues(final FileInfo nodeInfo, final ObjectNode rootJSONObject, final boolean useShortQNames) throws JsonProcessingException
     {
         final NodeRef nodeRef = nodeInfo.getNodeRef();
         
@@ -293,14 +286,11 @@ public class JSONConversionComponent
     
     /**
      * Handles the work of converting node permissions to JSON.
-     *  
-     * @param nodeRef NodeRef
-     * @return JSONObject
      */
     @SuppressWarnings("unchecked")
-    protected JSONObject permissionsToJSON(final NodeRef nodeRef)
+    protected JsonNode permissionsToJSON(final NodeRef nodeRef)
     {
-        final JSONObject permissionsJSON = new JSONObject();        
+        final ObjectNode permissionsJSON = AlfrescoDefaultObjectMapper.createObjectNode();
         if (AccessStatus.ALLOWED.equals(permissionService.hasPermission(nodeRef, PermissionService.READ_PERMISSIONS)) == true)
         {
             permissionsJSON.put("inherited", permissionService.getInheritParentPermissions(nodeRef));
@@ -317,9 +307,9 @@ public class JSONConversionComponent
      * @return JSONObject
      */
     @SuppressWarnings("unchecked")
-    protected JSONObject userPermissionsToJSON(final NodeRef nodeRef)
+    protected JsonNode userPermissionsToJSON(final NodeRef nodeRef)
     {        
-        final JSONObject userPermissionJSON = new JSONObject();
+        final ObjectNode userPermissionJSON = AlfrescoDefaultObjectMapper.createObjectNode();
         for (String userPermission : this.userPermissions)
         {
             boolean hasPermission = AccessStatus.ALLOWED.equals(permissionService.hasPermission(nodeRef, userPermission));
@@ -330,25 +320,19 @@ public class JSONConversionComponent
     
     /**
      * Handles the work of converting values to JSON.
-     * 
-     * @param nodeRef NodeRef
-     * @param propertyName QName
-     * @param key String
-     * @param value Serializable
-     * @return the JSON value
      */
     @SuppressWarnings({ "unchecked", "rawtypes" })
-    protected Object propertyToJSON(final NodeRef nodeRef, final QName propertyName, final String key, final Serializable value)
+    protected String propertyToJSON(final NodeRef nodeRef, final QName propertyName, final String key, final Serializable value) throws JsonProcessingException
     {
     	if (value != null)
         {
             // Has a decorator has been registered for this property?
             if (propertyDecorators.containsKey(propertyName))
             {
-                JSONAware jsonAware = propertyDecorators.get(propertyName).decorate(propertyName, nodeRef, value);
-                if (jsonAware != null)
+                String jsonString = propertyDecorators.get(propertyName).decorate(propertyName, nodeRef, value);
+                if (jsonString != null)
                 {
-                	return jsonAware;
+                	return jsonString;
                 }
             }
             else
@@ -356,10 +340,10 @@ public class JSONConversionComponent
                 // Built-in data type processing
                 if (value instanceof Date)
                 {
-                    JSONObject dateObj = new JSONObject();
-                    dateObj.put("value", JSONObject.escape(value.toString()));
-                    dateObj.put("iso8601", JSONObject.escape(ISO8601DateFormat.format((Date)value)));
-                    return dateObj;
+                    ObjectNode dateObj = AlfrescoDefaultObjectMapper.createObjectNode();
+                    dateObj.put("value", value.toString());
+                    dateObj.put("iso8601", ISO8601DateFormat.format((Date)value));
+                    return dateObj.toString();
                 }
                 else if (value instanceof List)
                 {
@@ -369,7 +353,7 @@ public class JSONConversionComponent
                 	{
                 	    jsonList.add(propertyToJSON(nodeRef, propertyName, key, listItem));
                 	}
-                	return jsonList;
+                	return AlfrescoDefaultObjectMapper.writeValueAsString(jsonList);
                 }
                 else if (value instanceof Double)
                 {
@@ -388,16 +372,9 @@ public class JSONConversionComponent
     	return null;
     }
     
-    /**
-     * 
-     * @param nodeRef NodeRef
-     * @param useShortQNames boolean
-     * @return JSONObject
-     */
-    @SuppressWarnings("unchecked")
-    protected JSONObject propertiesToJSON(NodeRef nodeRef, Map<QName, Serializable> properties, boolean useShortQNames)
+    protected JsonNode propertiesToJSON(NodeRef nodeRef, Map<QName, Serializable> properties, boolean useShortQNames) throws JsonProcessingException
     {
-        JSONObject propertiesJSON = new JSONObject();
+        ObjectNode propertiesJSON = AlfrescoDefaultObjectMapper.createObjectNode();
         
         for (QName propertyName : properties.keySet())
         {
@@ -421,16 +398,11 @@ public class JSONConversionComponent
     
     /**
      * Handles the work of converting aspects to JSON.
-     * 
-     * @param nodeRef NodeRef
-     * @param useShortQNames boolean
-     * @return JSONArray
      */
-    @SuppressWarnings("unchecked")
-    protected JSONArray apsectsToJSON(NodeRef nodeRef, boolean useShortQNames)
+    protected JsonNode aspectsToJSON(NodeRef nodeRef, boolean useShortQNames)
     {
-        JSONArray aspectsJSON = new JSONArray();
-        
+        ArrayNode aspectsJSON = AlfrescoDefaultObjectMapper.createArrayNode();
+
         Set<QName> aspects = this.nodeService.getAspects(nodeRef);
         for (QName aspect : aspects)
         {
@@ -442,15 +414,12 @@ public class JSONConversionComponent
     
     /**
      * Handles the work of converting all set permissions to JSON.
-     * 
-     * @param nodeRef NodeRef
-     * @return JSONArray
      */
     @SuppressWarnings("unchecked")
-    protected JSONArray allSetPermissionsToJSON(NodeRef nodeRef)
+    protected JsonNode allSetPermissionsToJSON(NodeRef nodeRef)
     {
         Set<AccessPermission> acls = permissionService.getAllSetPermissions(nodeRef);
-        JSONArray permissions = new JSONArray();
+        ArrayNode permissions = AlfrescoDefaultObjectMapper.createArrayNode();
 
         List<AccessPermission> ordered = ScriptNode.getSortedACLs(acls);
 

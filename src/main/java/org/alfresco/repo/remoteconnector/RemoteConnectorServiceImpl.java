@@ -25,6 +25,7 @@
  */
 package org.alfresco.repo.remoteconnector;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import java.io.FilterInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -42,6 +43,7 @@ import org.alfresco.service.cmr.remoteconnector.RemoteConnectorResponse;
 import org.alfresco.service.cmr.remoteconnector.RemoteConnectorServerException;
 import org.alfresco.service.cmr.remoteconnector.RemoteConnectorService;
 import org.alfresco.util.HttpClientHelper;
+import org.alfresco.util.json.jackson.AlfrescoDefaultObjectMapper;
 import org.apache.commons.httpclient.Credentials;
 import org.apache.commons.httpclient.Header;
 import org.apache.commons.httpclient.HttpClient;
@@ -53,9 +55,6 @@ import org.apache.commons.httpclient.methods.EntityEnclosingMethod;
 import org.apache.commons.httpclient.methods.StringRequestEntity;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
 import org.springframework.extensions.webscripts.Status;
 
 /**
@@ -374,15 +373,13 @@ public class RemoteConnectorServiceImpl implements RemoteConnectorService
     /**
      * Executes the given request, requesting a JSON response, and
      *  returns the parsed JSON received back
-     *  
-     * @throws ParseException If the response is not valid JSON
      */
-    public JSONObject executeJSONRequest(RemoteConnectorRequest request) throws ParseException, IOException, AuthenticationException
+    public JsonNode executeJSONRequest(RemoteConnectorRequest request) throws IOException, AuthenticationException
     {
         return doExecuteJSONRequest(request, this);
     }
     
-    public static JSONObject doExecuteJSONRequest(RemoteConnectorRequest request, RemoteConnectorService service) throws ParseException, IOException, AuthenticationException
+    public static JsonNode doExecuteJSONRequest(RemoteConnectorRequest request, RemoteConnectorService service) throws IOException, AuthenticationException
     {
         // Set as JSON
         request.setContentType(MimetypeMap.MIMETYPE_JSON);
@@ -391,19 +388,9 @@ public class RemoteConnectorServiceImpl implements RemoteConnectorService
         RemoteConnectorResponse response = service.executeRequest(request);
         
         // Parse this as JSON
-        JSONParser parser = new JSONParser();
         String jsonText = response.getResponseBodyAsString();
-        Object json = parser.parse(jsonText);
-        
-        // Check it's the right type and return
-        if (json instanceof JSONObject)
-        {
-            return (JSONObject)json;
-        }
-        else
-        {
-            throw new ParseException(0, json);
-        }
+        JsonNode json = AlfrescoDefaultObjectMapper.getReader().readTree(jsonText);
+        return json;
     }
     
     private static class HttpClientReleasingInputStream extends FilterInputStream

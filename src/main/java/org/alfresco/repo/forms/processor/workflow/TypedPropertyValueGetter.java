@@ -26,6 +26,7 @@
 
 package org.alfresco.repo.forms.processor.workflow;
 
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -37,8 +38,6 @@ import org.alfresco.service.cmr.dictionary.DataTypeDefinition;
 import org.alfresco.service.cmr.dictionary.PropertyDefinition;
 import org.alfresco.service.cmr.repository.datatype.DefaultTypeConverter;
 import org.alfresco.util.ISO8601DateFormat;
-import org.json.JSONArray;
-import org.json.JSONException;
 import org.springframework.extensions.surf.util.I18NUtil;
 
 /**
@@ -166,10 +165,10 @@ public class TypedPropertyValueGetter
             String stringValue = (String) value;
             return processMultiValueString(stringValue);
         }
-        else if (value instanceof JSONArray) 
+        else if (value instanceof ArrayNode)
         {
             // if value is a JSONArray convert to List of Object
-            JSONArray jsonArr = (JSONArray) value;
+            ArrayNode jsonArr = (ArrayNode) value;
             return processJSONArray(jsonArr);
         }
         else if (value instanceof List<?>)
@@ -183,20 +182,13 @@ public class TypedPropertyValueGetter
         }
     }
 
-    private Serializable processJSONArray(JSONArray jsonArr)
+    private Serializable processJSONArray(ArrayNode jsonArr)
     {
-        int arrLength = jsonArr.length();
+        int arrLength = jsonArr.size();
         ArrayList<Object> list = new ArrayList<Object>(arrLength);
-        try 
+        for (int x = 0; x < arrLength; x++)
         {
-            for (int x = 0; x < arrLength; x++) 
-            {
-                list.add(jsonArr.get(x));
-            }
-        }
-        catch (JSONException je) 
-        {
-            throw new FormException("Failed to convert JSONArray to List", je);
+            list.add(jsonArr.get(x));
         }
         return list;
     }

@@ -28,6 +28,7 @@ package org.alfresco.repo.transfer;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.*;
 
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.Socket;
@@ -41,8 +42,8 @@ import org.alfresco.service.cmr.repository.NodeService;
 import org.alfresco.service.cmr.transfer.TransferException;
 import org.alfresco.service.cmr.transfer.TransferProgress;
 import org.alfresco.service.cmr.transfer.TransferProgress.Status;
-import org.alfresco.service.namespace.QName;
 import org.alfresco.util.json.ExceptionJsonSerializer;
+import org.alfresco.util.json.jackson.AlfrescoDefaultObjectMapper;
 import org.apache.commons.httpclient.ConnectTimeoutException;
 import org.apache.commons.httpclient.HostConfiguration;
 import org.apache.commons.httpclient.HttpClient;
@@ -51,7 +52,6 @@ import org.apache.commons.httpclient.HttpState;
 import org.apache.commons.httpclient.methods.PostMethod;
 import org.apache.commons.httpclient.params.HttpConnectionParams;
 import org.apache.commons.httpclient.protocol.SecureProtocolSocketFactory;
-import org.json.JSONObject;
 import org.mockito.ArgumentCaptor;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
@@ -231,12 +231,12 @@ public class HttpClientTransmitterImplTest extends TestCase
             @Override
             public String answer(InvocationOnMock invocation) throws Throwable
             {
-                JSONObject progressObject = new JSONObject();
+                ObjectNode progressObject = AlfrescoDefaultObjectMapper.createObjectNode();
                 progressObject.put("transferId", "mytransferid");
-                progressObject.put("status", Status.ERROR);
+                progressObject.put("status", Status.ERROR.toString());
                 progressObject.put("currentPosition", 1);
                 progressObject.put("endPosition", 10);
-                JSONObject errorObject = errorSerializer.serialize(expectedException);
+                String errorObject = errorSerializer.serialize(expectedException);
                 progressObject.put("error", errorObject);
                 return progressObject.toString();
             }
@@ -263,8 +263,8 @@ public class HttpClientTransmitterImplTest extends TestCase
             @Override
             public String answer(InvocationOnMock invocation) throws Throwable
             {
-                JSONObject errorObject = errorSerializer.serialize(expectedException);
-                return errorObject.toString();
+                String errorObject = errorSerializer.serialize(expectedException);
+                return errorObject;
             }
         }).when(mockedHttpMethodFactory.latestPostMethod).getResponseBodyAsString();
         

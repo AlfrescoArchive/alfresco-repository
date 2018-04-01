@@ -25,6 +25,8 @@
  */
 package org.alfresco.repo.content.filestore;
 
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.io.File;
 import java.io.InputStream;
 import java.nio.channels.Channels;
@@ -40,11 +42,9 @@ import org.alfresco.repo.content.MimetypeMap;
 import org.alfresco.service.cmr.repository.ContentIOException;
 import org.alfresco.service.cmr.repository.ContentReader;
 import org.alfresco.textgen.TextGenerator;
+import org.alfresco.util.json.jackson.AlfrescoDefaultObjectMapper;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
 
 /**
  * Provides access to text data that is generated when requested.
@@ -66,7 +66,7 @@ public class SpoofedTextContentReader extends AbstractContentReader
     public static final String KEY_SEED = "seed";
     public static final String KEY_SIZE = "size";
     public static final String KEY_WORDS = "words";
-    
+
     private static Map<Locale, TextGenerator> textGeneratorsByLocale = new HashMap<Locale, TextGenerator>();
     private static ReentrantReadWriteLock textGeneratorsLock = new ReentrantReadWriteLock();
     
@@ -148,11 +148,11 @@ public class SpoofedTextContentReader extends AbstractContentReader
         String url = null;
         try
         {
-             JSONObject jsonObj = new JSONObject();
+            ObjectNode jsonObj = AlfrescoDefaultObjectMapper.createObjectNode();
             jsonObj.put(KEY_LOCALE, locale.toString());
             jsonObj.put(KEY_SEED, Long.valueOf(seed).toString());
             jsonObj.put(KEY_SIZE, Long.valueOf(size).toString());
-            JSONArray jsonWords = new JSONArray();
+            ArrayNode jsonWords = AlfrescoDefaultObjectMapper.createArrayNode();
             for (String word : words)
             {
                 if (word == null)
@@ -201,13 +201,14 @@ public class SpoofedTextContentReader extends AbstractContentReader
         // Parse URL
         try
         {
-            JSONParser parser = new JSONParser();
-            JSONObject mappedData = (JSONObject) parser.parse(urlData);
+            ObjectNode mappedData = (ObjectNode) AlfrescoDefaultObjectMapper.getReader().readTree(urlData);
 
-            String jsonLocale = mappedData.containsKey(KEY_LOCALE) ? (String) mappedData.get(KEY_LOCALE) : Locale.ENGLISH.toString();
-            String jsonSeed = mappedData.containsKey(KEY_SEED) ? (String) mappedData.get(KEY_SEED) : "0";
-            String jsonSize = mappedData.containsKey(KEY_SIZE) ? (String) mappedData.get(KEY_SIZE) : "1024";
-            JSONArray jsonWords = mappedData.containsKey(KEY_WORDS) ? (JSONArray) mappedData.get(KEY_WORDS) : new JSONArray();
+            String jsonLocale = mappedData.has(KEY_LOCALE) ?
+                    mappedData.get(KEY_LOCALE).asText() : Locale.ENGLISH.toString();
+            String jsonSeed = mappedData.has(KEY_SEED) ? mappedData.get(KEY_SEED).asText() : "0";
+            String jsonSize = mappedData.has(KEY_SIZE) ? mappedData.get(KEY_SIZE).asText() : "1024";
+            ArrayNode jsonWords = mappedData.has(KEY_WORDS) ?
+                    (ArrayNode) mappedData.get(KEY_WORDS) : AlfrescoDefaultObjectMapper.createArrayNode();
             // Get the text generator
             Locale locale = new Locale(jsonLocale);
             seed = Long.valueOf(jsonSeed);
@@ -215,7 +216,7 @@ public class SpoofedTextContentReader extends AbstractContentReader
             words = new String[jsonWords.size()];
             for (int i = 0; i < words.length; i++)
             {
-                words[i] = (String) jsonWords.get(i);
+                words[i] = jsonWords.get(i).asText();
             }
             this.textGenerator = SpoofedTextContentReader.getTextGenerator(locale);
             // Set the base class storage for external information

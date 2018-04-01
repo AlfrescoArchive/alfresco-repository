@@ -25,6 +25,7 @@
  */
 package org.alfresco.repo.activities.post.lookup;
 
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Date;
@@ -56,11 +57,9 @@ import org.alfresco.util.Pair;
 import org.alfresco.util.PathUtil;
 import org.alfresco.util.PropertyCheck;
 import org.alfresco.util.VmShutdownListener;
+import org.alfresco.util.json.jackson.AlfrescoDefaultObjectMapper;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.json.JSONException;
-import org.json.JSONObject;
-import org.json.JSONTokener;
 import org.quartz.JobExecutionException;
 
 /**
@@ -89,7 +88,7 @@ public class PostLookup
     private TenantService tenantService;
     private SiteService siteService;
     private JobLockService jobLockService;
-    
+
     public static final String JSON_NODEREF_LOOKUP = "nodeRefL"; // requires additional lookup
     
     public static final String JSON_NODEREF = "nodeRef";
@@ -115,7 +114,7 @@ public class PostLookup
     private int rollupCount = 5;
     
     private int maxItemsPerCycle = 500;
-    
+
     public void setPostDAO(ActivityPostDAO postDAO)
     {
         this.postDAO = postDAO;
@@ -338,10 +337,10 @@ public class PostLookup
                 // MT share
                 String tenantDomain = TenantService.DEFAULT_DOMAIN;
                 
-                final JSONObject jo = new JSONObject(new JSONTokener(activityPost.getActivityData()));
-                if (! jo.isNull(JSON_TENANT_DOMAIN))
+                final ObjectNode jo = (ObjectNode) AlfrescoDefaultObjectMapper.getReader().readTree(activityPost.getActivityData());
+                if (jo.has(JSON_TENANT_DOMAIN))
                 {
-                    tenantDomain = jo.getString(JSON_TENANT_DOMAIN);
+                    tenantDomain = jo.get(JSON_TENANT_DOMAIN).asText();
                 }
                 
                 activityPost.setTenantDomain(tenantDomain);
@@ -350,11 +349,11 @@ public class PostLookup
                 {
                     public Void doWork() throws Exception
                     {
-                        JSONObject joLookup = null;
+                        ObjectNode joLookup = null;
                         
-                        if (! jo.isNull(JSON_NODEREF_LOOKUP))
+                        if (jo.has(JSON_NODEREF_LOOKUP))
                         {
-                            String nodeRefStr = jo.getString(JSON_NODEREF_LOOKUP);
+                            String nodeRefStr = jo.get(JSON_NODEREF_LOOKUP).asText();
                             NodeRef nodeRef = new NodeRef(nodeRefStr);
                             
                             // lookup additional node data
@@ -363,7 +362,7 @@ public class PostLookup
                         else
                         {
                             // lookup poster's firstname/lastname (if needed)
-                            if ((jo.isNull(JSON_FIRSTNAME)) || (jo.isNull(JSON_LASTNAME)))
+                            if (!jo.has(JSON_FIRSTNAME) || !jo.has(JSON_LASTNAME))
                             {
                                 Pair<String, String> firstLastName = lookupPerson(postUserId);
                                 if (firstLastName != null)
@@ -380,11 +379,11 @@ public class PostLookup
                             if (parentNodeRef == null)
                             {
                                 String parentNodeRefStr = null;
-                                if (jo.isNull(JSON_PARENT_NODEREF))
+                                if (!jo.has(JSON_PARENT_NODEREF))
                                 {
-                                    if (! jo.isNull(JSON_NODEREF))
+                                    if (jo.has(JSON_NODEREF))
                                     {
-                                        parentNodeRef = lookupParentNodeRef(new NodeRef(jo.getString(JSON_NODEREF)));
+                                        parentNodeRef = lookupParentNodeRef(new NodeRef(jo.get(JSON_NODEREF).asText()));
                                         if (parentNodeRef != null)
                                         {
                                             parentNodeRefStr = parentNodeRef.toString();
@@ -397,7 +396,7 @@ public class PostLookup
                                 }
                                 else
                                 {
-                                    parentNodeRefStr = jo.getString(JSON_PARENT_NODEREF);
+                                    parentNodeRefStr = jo.get(JSON_PARENT_NODEREF).asText();
                                 }
                                 
                                 if (parentNodeRefStr != null)
@@ -410,9 +409,9 @@ public class PostLookup
                             String siteId = activityPost.getSiteNetwork();
                             if (siteId == null)
                             {
-                                if (! jo.isNull(JSON_NODEREF))
+                                if (jo.has(JSON_NODEREF))
                                 {
-                                    String nodeRefStr = jo.getString(JSON_NODEREF);
+                                    String nodeRefStr = jo.get(JSON_NODEREF).asText();
                                     if (nodeRefStr != null)
                                     {
                                         siteId = lookupSite(new NodeRef(nodeRefStr));
@@ -507,48 +506,40 @@ public class PostLookup
                         newPost.setLastModified(oldPost.getLastModified());
                         newPost.setTenantDomain(tenantDomain);
                         newPost.setJobTaskNode(1);
-                        
-                        try
+
+                        ObjectNode jo = AlfrescoDefaultObjectMapper.createObjectNode();
+                        jo.put(JSON_NODEREF_PARENT, oldPost.getParentNodeRef().toString());
+                        jo.put(JSON_TENANT_DOMAIN, tenantDomain);
+                        jo.put(JSON_TITLE, ""+count);
+
+                        Pair<String, String> firstLastName = lookupPerson(postUserId);
+                        if (firstLastName != null)
                         {
-                            JSONObject jo = new JSONObject();
-                            jo.put(JSON_NODEREF_PARENT, oldPost.getParentNodeRef().toString());
-                            jo.put(JSON_TENANT_DOMAIN, tenantDomain);
-                            jo.put(JSON_TITLE, ""+count);
-                            
-                            Pair<String, String> firstLastName = lookupPerson(postUserId);
-                            if (firstLastName != null)
+                            jo.put(JSON_FIRSTNAME, firstLastName.getFirst());
+                            jo.put(JSON_LASTNAME, firstLastName.getSecond());
+                        }
+
+                        Path path = lookupPath(oldPost.getParentNodeRef());
+                        if (path != null)
+                        {
+                            String displayPath = PathUtil.getDisplayPath(path, true);
+                            if (displayPath != null)
                             {
-                                jo.put(JSON_FIRSTNAME, firstLastName.getFirst());
-                                jo.put(JSON_LASTNAME, firstLastName.getSecond());
-                            }
-                            
-                            Path path = lookupPath(oldPost.getParentNodeRef());
-                            if (path != null)
-                            {
-                                String displayPath = PathUtil.getDisplayPath(path, true);
-                                if (displayPath != null)
+                                // note: PathUtil.getDisplayPath returns prefix path as: '/company_home/sites/' rather than /Company Home/Sites'
+                                String prefix = "/company_home/sites/"+tenantService.getBaseName(oldPost.getSiteNetwork())+"/documentLibrary";
+                                int idx = displayPath.indexOf(prefix);
+                                if (idx == 0)
                                 {
-                                    // note: PathUtil.getDisplayPath returns prefix path as: '/company_home/sites/' rather than /Company Home/Sites'
-                                    String prefix = "/company_home/sites/"+tenantService.getBaseName(oldPost.getSiteNetwork())+"/documentLibrary";
-                                    int idx = displayPath.indexOf(prefix);
-                                    if (idx == 0)
-                                    {
-                                        displayPath = displayPath.substring(prefix.length());
-                                    }
-                                    
-                                    // Share-specific
-                                    jo.put(JSON_PAGE, "documentlibrary?path="+displayPath);
+                                    displayPath = displayPath.substring(prefix.length());
                                 }
+
+                                // Share-specific
+                                jo.put(JSON_PAGE, "documentlibrary?path="+displayPath);
                             }
-                            
-                            newPost.setActivityData(jo.toString());
-                            newPost.setStatus(ActivityPostEntity.STATUS.POSTED.toString());
                         }
-                        catch (JSONException e)
-                        {
-                            logger.warn("Unable to create activity data: "+e);
-                            newPost.setStatus(ActivityPostEntity.STATUS.ERROR.toString());
-                        }
+
+                        newPost.setActivityData(jo.toString());
+                        newPost.setStatus(ActivityPostEntity.STATUS.POSTED.toString());
                         
                         for (ActivityPostEntity post : entry.getValue())
                         {
@@ -648,7 +639,7 @@ public class PostLookup
         return path;
     }
     
-    private Pair<String, String> lookupPerson(final String postUserId) throws JSONException
+    private Pair<String, String> lookupPerson(final String postUserId)
     {
         Pair<String, String> result = null;
         if (personService.personExists(postUserId))
@@ -663,7 +654,7 @@ public class PostLookup
         return result;
     }
     
-    private NodeRef lookupParentNodeRef(final NodeRef nodeRef) throws JSONException
+    private NodeRef lookupParentNodeRef(final NodeRef nodeRef)
     {
         NodeRef parentNodeRef = null;
         if (nodeService.exists(nodeRef))
@@ -673,7 +664,7 @@ public class PostLookup
         return parentNodeRef;
     }
     
-    private String lookupSite(final NodeRef nodeRef) throws JSONException
+    private String lookupSite(final NodeRef nodeRef)
     {
         String siteId = null;
         if (nodeService.exists(nodeRef))
@@ -686,25 +677,25 @@ public class PostLookup
     /**
      * Generic node lookup - note: not currently used (see ActivityService.postActivity when activityData is not supplied)
      */
-    private JSONObject lookupNode(final NodeRef nodeRef, final String postUserId, final JSONObject jo) throws JSONException
+    private ObjectNode lookupNode(final NodeRef nodeRef, final String postUserId, final ObjectNode jo)
     {
         String name = "";
-        if (! jo.isNull(JSON_NAME))
+        if (jo.has(JSON_NAME))
         {
-            name = jo.getString(JSON_NAME);
+            name = jo.get(JSON_NAME).asText();
         }
         
         NodeRef parentNodeRef = null;
-        if (! jo.isNull(JSON_PARENT_NODEREF))
+        if (jo.has(JSON_PARENT_NODEREF))
         {
-            parentNodeRef = new NodeRef(jo.getString(JSON_PARENT_NODEREF));
+            parentNodeRef = new NodeRef(jo.get(JSON_PARENT_NODEREF).asText());
         }
         
         
         String typeQName = "";
-        if (! jo.isNull(JSON_TYPEQNAME))
+        if (jo.has(JSON_TYPEQNAME))
         {
-            typeQName = jo.getString(JSON_TYPEQNAME);
+            typeQName = jo.get(JSON_TYPEQNAME).asText();
         }
         
         String displayPath = "";

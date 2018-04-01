@@ -25,14 +25,11 @@
  */
 package org.alfresco.repo.subscriptions;
 
-import static org.junit.Assert.assertEquals;
-
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 import org.alfresco.model.ContentModel;
 import org.alfresco.repo.activities.feed.FeedGenerator;
 import org.alfresco.repo.activities.feed.local.LocalFeedTaskProcessor;
@@ -59,15 +56,12 @@ import org.alfresco.service.namespace.NamespaceService;
 import org.alfresco.service.namespace.QName;
 import org.alfresco.test_category.OwnJVMTestsCategory;
 import org.alfresco.util.GUID;
+import org.alfresco.util.json.JsonUtil;
 import org.alfresco.util.test.junitrules.AlfrescoPerson;
 import org.alfresco.util.test.junitrules.ApplicationContextInit;
 import org.alfresco.util.test.junitrules.TemporarySites;
-import org.apache.commons.lang.mutable.MutableInt;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.json.JSONException;
-import org.json.JSONObject;
-import org.json.JSONTokener;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -79,6 +73,8 @@ import org.junit.rules.RuleChain;
 import org.quartz.Scheduler;
 import org.quartz.SchedulerException;
 import org.springframework.context.ApplicationContext;
+
+import static org.junit.Assert.assertEquals;
 
 @Category(OwnJVMTestsCategory.class)
 public class SubscriptionServiceActivitiesTest
@@ -536,23 +532,9 @@ public class SubscriptionServiceActivitiesTest
         StringBuilder result = new StringBuilder();
         for (String jsonString : jsonStrings)
         {
-            result.append(prettyJson(jsonString));
+            result.append(JsonUtil.toPrettyJson(jsonString));
             result.append("\n");
         }
         return result.toString();
-    }
-    
-    private String prettyJson(String jsonString)
-    {
-        String result = jsonString;
-        try
-        {
-            JSONObject json = new JSONObject(new JSONTokener(jsonString));
-            result = json.toString(2);
-        } catch (JSONException ignored)
-        {
-            // Intentionally empty
-        }
-        return result;
     }
 }

@@ -122,10 +122,10 @@ public class VirtualPreferenceServiceExtensionTest extends VirtualizationIntegra
                                                                      DOCUMENTS_FAVOURITES_KEY);
         assertFalse(preference.contains(testfile1.toString()));
         assertTrue(preference.contains(physicalTestfile1.toString()));
-        assertNull((String) preferenceService.getPreference("admin",
+        assertNull(preferenceService.getPreference("admin",
                                                             EXT_DOCUMENTS_FAVOURITES + testfile1.toString()
                                                                         + CREATED_AT));
-        assertNotNull((String) preferenceService.getPreference("admin",
+        assertNotNull(preferenceService.getPreference("admin",
                                                                EXT_DOCUMENTS_FAVOURITES + physicalTestfile1.toString()
                                                                            + CREATED_AT));
 
@@ -189,11 +189,11 @@ public class VirtualPreferenceServiceExtensionTest extends VirtualizationIntegra
                                                                      FOLDERS_FAVOURITES_KEY);
         assertFalse(preference.contains(physicalFolderInVirtualContext.toString()));
         assertTrue(preference.contains(physicalFolder.toString()));
-        assertNull((String) preferenceService.getPreference("admin",
+        assertNull(preferenceService.getPreference("admin",
                                                             EXT_FOLDERS_FAVOURITES
                                                                         + physicalFolderInVirtualContext.toString()
                                                                         + CREATED_AT));
-        assertNotNull((String) preferenceService.getPreference("admin",
+        assertNotNull(preferenceService.getPreference("admin",
                                                                EXT_FOLDERS_FAVOURITES + physicalFolder.toString()
                                                                            + CREATED_AT));
 

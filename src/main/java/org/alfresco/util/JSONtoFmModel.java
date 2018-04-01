@@ -25,6 +25,12 @@
  */
 package org.alfresco.util;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.databind.node.POJONode;
+import com.fasterxml.jackson.databind.node.ValueNode;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -33,11 +39,7 @@ import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.regex.Pattern;
-
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-import org.json.JSONTokener;
+import org.alfresco.util.json.jackson.AlfrescoDefaultObjectMapper;
 import org.springframework.extensions.surf.util.ISO8601DateFormat;
 
 /**
@@ -54,17 +56,16 @@ public final class JSONtoFmModel
     private static Pattern matcherISO8601 = Pattern.compile(REGEXP_ISO8061);
     
     public static boolean autoConvertISO8601 = true;
-    
+
     /**
      * Convert JSON Object string to Freemarker-compatible data model
      * 
      * @param jsonString String
      * @return model
-     * @throws JSONException
      */
-    public static Map<String, Object> convertJSONObjectToMap(String jsonString) throws JSONException
+    public static Map<String, Object> convertJSONObjectToMap(String jsonString) throws IOException
     {
-        JSONObject jo = new JSONObject(new JSONTokener(jsonString));
+        ObjectNode jo = (ObjectNode) AlfrescoDefaultObjectMapper.getReader().readTree(jsonString);
         return convertJSONObjectToMap(jo);
     }
     
@@ -72,53 +73,73 @@ public final class JSONtoFmModel
      * JSONObject is an unordered collection of name/value pairs -> convert to Map (equivalent to Freemarker "hash")
      */
     @SuppressWarnings("unchecked")
-    public static Map<String, Object> convertJSONObjectToMap(JSONObject jo) throws JSONException
+    public static Map<String, Object> convertJSONObjectToMap(ObjectNode jo) throws IOException
     {
         Map<String, Object> model = new HashMap<String, Object>();
         
-        Iterator<String> itr = (Iterator<String>)jo.keys();
+        Iterator<Map.Entry<String, JsonNode>> itr = jo.fields();
         while (itr.hasNext())
         {
-            String key = (String)itr.next();
-            
-            Object o = jo.get(key);
-            if (o instanceof JSONObject)
+            Map.Entry<String, JsonNode> element = itr.next();
+
+            JsonNode o = element.getValue();
+            if (o instanceof ObjectNode)
             {
-                model.put(key, convertJSONObjectToMap((JSONObject)o));
+                model.put(element.getKey(), convertJSONObjectToMap((ObjectNode) o));
             }
-            else if (o instanceof JSONArray)
+            else if (o instanceof ArrayNode)
             {
-                model.put(key, convertJSONArrayToList((JSONArray)o));
+                model.put(element.getKey(), convertJSONArrayToList((ArrayNode) o));
             }
-            else if (o == JSONObject.NULL)
+            else if (o instanceof ValueNode)
             {
-                model.put(key, null); // note: http://freemarker.org/docs/dgui_template_exp.html#dgui_template_exp_missing
-            }
-            else
-            {
-                if ((o instanceof String) && autoConvertISO8601 && (matcherISO8601.matcher((String)o).matches()))
-                {
-                    o = ISO8601DateFormat.parse((String)o);
-                }
-                
-                model.put(key, o);
+                model.put(element.getKey(), convertJSONValue((ValueNode) o));
             }
         }
        
         return model;
     }
-   
+
+    /**
+     * Extract Java object from JSON
+     *
+     * @return object extracted from ValueNode
+     */
+    public static Object convertJSONValue(ValueNode valueNode)
+    {
+        switch(valueNode.getNodeType())
+        {
+            case NUMBER:
+                return valueNode.numberValue();
+            case STRING:
+                if (autoConvertISO8601 && (matcherISO8601.matcher(valueNode.textValue()).matches()))
+                {
+                    return ISO8601DateFormat.parse(valueNode.textValue());
+                }
+                else
+                {
+                    return valueNode.textValue();
+                }
+            case BOOLEAN:
+                return valueNode.booleanValue();
+            case POJO:
+                return ((POJONode) valueNode).getPojo();
+            case NULL:
+            default:
+                return null; // note: http://freemarker.org/docs/dgui_template_exp.html#dgui_template_exp_missing
+        }
+    }
+
     /**
      * Convert JSON Array string to Freemarker-compatible data model
      * 
      * @param jsonString String
      * @return model
-     * @throws JSONException
      */
-    public static Map<String, Object> convertJSONArrayToMap(String jsonString) throws JSONException
+    public static Map<String, Object> convertJSONArrayToMap(String jsonString) throws IOException
     {
         Map<String, Object> model = new HashMap<String, Object>();
-        JSONArray ja = new JSONArray(new JSONTokener(jsonString));
+        ArrayNode ja = (ArrayNode) AlfrescoDefaultObjectMapper.getReader().readTree(jsonString);
         model.put(ROOT_ARRAY, convertJSONArrayToList(ja));
         return model;
     }
@@ -126,37 +147,28 @@ public final class JSONtoFmModel
     /**
      * JSONArray is an ordered sequence of values -> convert to List (equivalent to Freemarker "sequence")
      */
-    public static List<Object> convertJSONArrayToList(JSONArray ja) throws JSONException
+    public static List<Object> convertJSONArrayToList(ArrayNode ja) throws IOException
     {
         List<Object> model = new ArrayList<Object>();
-       
-        for (int i = 0; i < ja.length(); i++)
+
+        for (int i = 0; i < ja.size(); i++)
         {
             Object o = ja.get(i);
-            
-            if (o instanceof JSONArray)
+
+            if (o instanceof ArrayNode)
             {
-                model.add(convertJSONArrayToList((JSONArray)o));
+                model.add(convertJSONArrayToList((ArrayNode) o));
             }
-            else if (o instanceof JSONObject)
+            else if (o instanceof ObjectNode)
             {
-                model.add(convertJSONObjectToMap((JSONObject)o));
+                model.add(convertJSONObjectToMap((ObjectNode) o));
             }
-            else if (o == JSONObject.NULL)
+            else if (o instanceof ValueNode)
             {
-                model.add(null);
-            }
-            else
-            {
-                if ((o instanceof String) && autoConvertISO8601 && (matcherISO8601.matcher((String)o).matches()))
-                {
-                    o = ISO8601DateFormat.parse((String)o);
-                }
-                
-                model.add(o);
+                model.add(convertJSONValue((ValueNode) o));
             }
         }
-       
+
         return model;
     }
    

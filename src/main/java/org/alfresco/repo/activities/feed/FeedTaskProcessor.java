@@ -25,6 +25,9 @@
  */
 package org.alfresco.repo.activities.feed;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -58,9 +61,6 @@ import org.alfresco.util.JSONtoFmModel;
 import org.alfresco.util.Pair;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
 import org.springframework.extensions.surf.util.Base64;
 
 import freemarker.cache.URLTemplateLoader;
@@ -92,7 +92,13 @@ public abstract class FeedTaskProcessor
     private static final String URL_SERVICE_TEMPLATE  = "/api/activities/template";
     
     private boolean userNamesAreCaseSensitive = false;
-    
+    private ObjectMapper objectMapper;
+
+    public void setObjectMapper(ObjectMapper objectMapper)
+    {
+        this.objectMapper = objectMapper;
+    }
+
     public void setUserNamesAreCaseSensitive(boolean userNamesAreCaseSensitive)
     {
         this.userNamesAreCaseSensitive = userNamesAreCaseSensitive;
@@ -148,9 +154,9 @@ public abstract class FeedTaskProcessor
                 {
                     model = JSONtoFmModel.convertJSONObjectToMap(activityPost.getActivityData());
                 }
-                catch(JSONException je)
+                catch(IOException ioe)
                 {
-                    logger.error("Skipping activity post " + activityPost.getId() + " due to invalid activity data: ", je);
+                    logger.error("Skipping activity post " + activityPost.getId() + " due to invalid activity data: ", ioe);
                     updatePostStatus(activityPost.getId(), ActivityPostEntity.STATUS.ERROR);
                     continue;
                 }
@@ -524,13 +530,13 @@ public abstract class FeedTaskProcessor
             String jsonArrayResult = callWebScript(sbUrl.toString(), ctx.getTicket());
             if ((jsonArrayResult != null) && (jsonArrayResult.length() != 0))
             {
-                JSONArray ja = new JSONArray(jsonArrayResult);
-                for (int i = 0; i < ja.length(); i++)
+                ArrayNode ja = (ArrayNode) objectMapper.readTree(jsonArrayResult);
+                for (int i = 0; i < ja.size(); i++)
                 {
-                    JSONObject member = (JSONObject)ja.get(i);
-                    JSONObject person = (JSONObject)member.getJSONObject("person");
+                    ObjectNode member = (ObjectNode) ja.get(i);
+                    ObjectNode person = (ObjectNode) member.get("person");
                     
-                    String userName = person.getString("userName");
+                    String userName = person.get("userName").textValue();
                     if (! ctx.isUserNamesAreCaseSensitive())
                     {
                         userName = userName.toLowerCase();
@@ -566,10 +572,10 @@ public abstract class FeedTaskProcessor
         
         if ((jsonArrayResult != null) && (jsonArrayResult.length() != 0))
         {
-            JSONArray ja = new JSONArray(jsonArrayResult);
-            for (int i = 0; i < ja.length(); i++)
+            ArrayNode ja = (ArrayNode) objectMapper.readTree(jsonArrayResult);
+            for (int i = 0; i < ja.size(); i++)
             {
-                String name = ja.getString(i);
+                String name = ja.get(i).asText();
                 allTemplateNames.add(name);
             }
         }

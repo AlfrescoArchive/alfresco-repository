@@ -25,6 +25,7 @@
  */
 package org.alfresco.repo.activities.feed;
 
+import java.io.IOException;
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.List;
@@ -47,7 +48,6 @@ import org.alfresco.util.Pair;
 import org.alfresco.util.PropertyCheck;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.json.JSONException;
 import org.springframework.beans.factory.ObjectFactory;
 
 /**
@@ -183,16 +183,15 @@ public abstract class AbstractUserNotifier implements UserNotifier
                 try
                 {
                     modelBuilder.addActivityFeedEntry(feedEntry);
-
-                    String siteId = feedEntry.getSiteNetwork();
-                    addSiteName(siteId, siteNames);
                 }
-                catch (JSONException je)
+                catch (IOException error)
                 {
-                    // skip this feed entry
-                    logger.warn("Skip feed entry for user ("+feedUserId+"): " + je.getMessage());
-                    continue;
+                    logger.warn("Unable to process feed entry : " + feedEntry, error);
+                    return null;
                 }
+
+                String siteId = feedEntry.getSiteNetwork();
+                addSiteName(siteId, siteNames);
             }
 
             final int activityCount = modelBuilder.activityCount();

@@ -25,10 +25,11 @@
  */
 package org.alfresco.repo.search.impl.solr.facet.facetsresponse;
 
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ValueNode;
+import org.alfresco.util.json.JsonUtil;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.json.JSONArray;
-import org.json.JSONException;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -49,21 +50,17 @@ public class ListMetric implements Metric
         this.type = type;
         try
         {
-            JSONArray jsonArray = (JSONArray) val;
-            List<Object> values = new ArrayList<>(jsonArray.length());
-            for(int i = 0; i < jsonArray.length(); i++)
+            ArrayNode jsonArray = (ArrayNode) val;
+            List<Object> values = new ArrayList<>(jsonArray.size());
+            for(int i = 0; i < jsonArray.size(); i++)
             {
-                values.add(jsonArray.get(i));
+                values.add(JsonUtil.convertJSONValue((ValueNode) jsonArray.get(i)));
             }
             value.put(type.toString(), values);
         }
         catch (ClassCastException cce)
         {
             logger.debug("ClassCastException for "+val);
-        }
-        catch (JSONException e)
-        {
-            logger.debug("Failed to process "+val+ " "+e.getMessage());
         }
     }
 

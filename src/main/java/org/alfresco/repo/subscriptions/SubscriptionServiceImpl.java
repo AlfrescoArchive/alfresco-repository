@@ -25,12 +25,12 @@
  */
 package org.alfresco.repo.subscriptions;
 
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.io.Serializable;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 import org.alfresco.model.ContentModel;
 import org.alfresco.query.PagingRequest;
 import org.alfresco.repo.action.executer.MailActionExecuter;
@@ -58,10 +58,9 @@ import org.alfresco.service.cmr.subscriptions.SubscriptionItemTypeEnum;
 import org.alfresco.service.cmr.subscriptions.SubscriptionService;
 import org.alfresco.service.cmr.subscriptions.SubscriptionsDisabledException;
 import org.alfresco.service.namespace.NamespaceService;
+import org.alfresco.util.json.jackson.AlfrescoDefaultObjectMapper;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.json.JSONException;
-import org.json.JSONObject;
 
 public class SubscriptionServiceImpl implements SubscriptionService
 {
@@ -213,25 +212,16 @@ public class SubscriptionServiceImpl implements SubscriptionService
 
         if (userId.equalsIgnoreCase(AuthenticationUtil.getRunAsUser()))
         {
-            String activityDataJSON = null;
-            try
-            {
-                NodeRef subscriberNode = personService.getPerson(userId, false);
-                JSONObject activityData = new JSONObject();
-                activityData.put(SUBSCRIBER_USERNAME, userId);
-                activityData.put(SUBSCRIBER_FIRSTNAME,
-                        nodeService.getProperty(subscriberNode, ContentModel.PROP_FIRSTNAME));
-                activityData.put(SUBSCRIBER_LASTNAME,
-                        nodeService.getProperty(subscriberNode, ContentModel.PROP_LASTNAME));
-                activityData.put(NODE, node.toString());
-                activityDataJSON = activityData.toString();
-            } catch (JSONException je)
-            {
-                // log error, subsume exception
-                logger.error("Failed to get activity data: " + je);
-            }
+            NodeRef subscriberNode = personService.getPerson(userId, false);
+            ObjectNode activityData = AlfrescoDefaultObjectMapper.createObjectNode();
+            activityData.put(SUBSCRIBER_USERNAME, userId);
+            activityData.put(SUBSCRIBER_FIRSTNAME,
+                    nodeService.getProperty(subscriberNode, ContentModel.PROP_FIRSTNAME).toString());
+            activityData.put(SUBSCRIBER_LASTNAME,
+                    nodeService.getProperty(subscriberNode, ContentModel.PROP_LASTNAME).toString());
+            activityData.put(NODE, node.toString());
 
-            activityService.postActivity(ActivityType.SUBSCRIPTIONS_SUBSCRIBE, null, ACTIVITY_TOOL, activityDataJSON);
+            activityService.postActivity(ActivityType.SUBSCRIPTIONS_SUBSCRIBE, null, ACTIVITY_TOOL, activityData.toString());
         }
     }
 
@@ -292,29 +282,18 @@ public class SubscriptionServiceImpl implements SubscriptionService
 
         if (userId.equalsIgnoreCase(AuthenticationUtil.getRunAsUser()))
         {
-            try
-            {
-                String activityDataJSON = null;
+            NodeRef followerNode = personService.getPerson(userId, false);
+            NodeRef userNode = personService.getPerson(userToFollow, false);
+            ObjectNode activityData = AlfrescoDefaultObjectMapper.createObjectNode();
+            activityData.put(FOLLOWER_USERNAME, userId);
+            activityData
+                    .put(FOLLOWER_FIRSTNAME, nodeService.getProperty(followerNode, ContentModel.PROP_FIRSTNAME).toString());
+            activityData.put(FOLLOWER_LASTNAME, nodeService.getProperty(followerNode, ContentModel.PROP_LASTNAME).toString());
+            activityData.put(USER_USERNAME, userToFollow);
+            activityData.put(USER_FIRSTNAME, nodeService.getProperty(userNode, ContentModel.PROP_FIRSTNAME).toString());
+            activityData.put(USER_LASTNAME, nodeService.getProperty(userNode, ContentModel.PROP_LASTNAME).toString());
 
-                NodeRef followerNode = personService.getPerson(userId, false);
-                NodeRef userNode = personService.getPerson(userToFollow, false);
-                JSONObject activityData = new JSONObject();
-                activityData.put(FOLLOWER_USERNAME, userId);
-                activityData
-                        .put(FOLLOWER_FIRSTNAME, nodeService.getProperty(followerNode, ContentModel.PROP_FIRSTNAME));
-                activityData.put(FOLLOWER_LASTNAME, nodeService.getProperty(followerNode, ContentModel.PROP_LASTNAME));
-                activityData.put(USER_USERNAME, userToFollow);
-                activityData.put(USER_FIRSTNAME, nodeService.getProperty(userNode, ContentModel.PROP_FIRSTNAME));
-                activityData.put(USER_LASTNAME, nodeService.getProperty(userNode, ContentModel.PROP_LASTNAME));
-                activityDataJSON = activityData.toString();
-
-                activityService.postActivity(ActivityType.SUBSCRIPTIONS_FOLLOW, null, ACTIVITY_TOOL, activityDataJSON);
-
-            } catch (JSONException je)
-            {
-                // log error, subsume exception
-                logger.error("Failed to get activity data: " + je);
-            }
+            activityService.postActivity(ActivityType.SUBSCRIPTIONS_FOLLOW, null, ACTIVITY_TOOL, activityData.toString());
 
             try
             {

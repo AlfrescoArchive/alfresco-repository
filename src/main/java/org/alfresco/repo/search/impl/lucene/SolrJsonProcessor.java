@@ -25,7 +25,8 @@
  */
 package org.alfresco.repo.search.impl.lucene;
 
-import org.json.JSONObject;
+
+import com.fasterxml.jackson.databind.JsonNode;
 
 /**
  * Processes Json returned from Solr
@@ -35,5 +36,5 @@ import org.json.JSONObject;
 @FunctionalInterface
 public interface SolrJsonProcessor<T extends JSONResult>
 {
-    public T getResult(JSONObject json);
+    public T getResult(JsonNode json);
 }

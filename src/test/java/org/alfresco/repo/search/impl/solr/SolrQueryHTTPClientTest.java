@@ -36,6 +36,8 @@ import static org.mockito.Matchers.notNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -71,9 +73,6 @@ import org.alfresco.service.namespace.NamespaceService;
 import org.alfresco.service.namespace.QName;
 import org.alfresco.util.testing.category.LuceneTests;
 import org.apache.commons.codec.net.URLCodec;
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
@@ -144,17 +143,17 @@ public class SolrQueryHTTPClientTest
     }
 
     @Test
-    public void testBuildStatsBody() throws JSONException
+    public void testBuildStatsBody()
     {
 
         StatsParameters params = getParameters();
-        JSONObject body = client.buildStatsBody(params, "myTenant", Locale.US);
+        JsonNode body = client.buildStatsBody(params, "myTenant", Locale.US);
         assertNotNull(body);
-        JSONArray tenant = body.getJSONArray("tenants");
-        assertEquals("myTenant", tenant.get(0).toString());
-        JSONArray locale = body.getJSONArray("locales");
-        assertEquals("en_US", locale.get(0).toString());
-        String query = body.getString("query");
+        ArrayNode tenant = (ArrayNode) body.get("tenants");
+        assertEquals("myTenant", tenant.get(0).asText());
+        ArrayNode locale = (ArrayNode) body.get("locales");
+        assertEquals("en_US", locale.get(0).asText());
+        String query = body.get("query").textValue();
         assertTrue(query.contains("TYPE:"));
         assertTrue(query.contains("{http://www.alfresco.org/model/content/1.0}content"));
     }

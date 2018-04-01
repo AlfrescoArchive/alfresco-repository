@@ -27,10 +27,10 @@ package org.alfresco.repo.search.impl.solr;
 
 import static org.alfresco.util.SearchDateConversion.parseDateInterval;
 
-import java.io.BufferedReader;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.Reader;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -85,6 +85,7 @@ import org.alfresco.service.cmr.security.PermissionService;
 import org.alfresco.util.Pair;
 import org.alfresco.util.ParameterCheck;
 import org.alfresco.util.PropertyCheck;
+import org.alfresco.util.json.jackson.AlfrescoDefaultObjectMapper;
 import org.apache.commons.codec.net.URLCodec;
 import org.apache.commons.httpclient.Header;
 import org.apache.commons.httpclient.HttpClient;
@@ -97,10 +98,6 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.solr.common.params.HighlightParams;
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-import org.json.JSONTokener;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.extensions.surf.util.I18NUtil;
@@ -304,7 +301,7 @@ public class SolrQueryHTTPClient extends AbstractSolrQueryHTTPClient implements 
             Pair<HttpClient, String> httpClientAndBaseUrl = mapping.getHttpClientAndBaseUrl();
             HttpClient httpClient = httpClientAndBaseUrl.getFirst();
             String url = buildStatsUrl(searchParameters, httpClientAndBaseUrl.getSecond(), locale, mapping);
-            JSONObject body = buildStatsBody(searchParameters, tenantService.getCurrentUserDomain(), locale);
+            ObjectNode body = buildStatsBody(searchParameters, tenantService.getCurrentUserDomain(), locale);
             
             if(httpClient == null)
             {
@@ -326,10 +323,6 @@ public class SolrQueryHTTPClient extends AbstractSolrQueryHTTPClient implements 
             throw new LuceneQueryParserException("stats", e);
         }
         catch (IOException e)
-        {
-            throw new LuceneQueryParserException("stats", e);
-        }
-        catch (JSONException e)
         {
             throw new LuceneQueryParserException("stats", e);
         }
@@ -390,17 +383,17 @@ public class SolrQueryHTTPClient extends AbstractSolrQueryHTTPClient implements 
         }
     }
 
-    protected JSONObject buildStatsBody(StatsParameters searchParameters, String tenant, Locale locale) throws JSONException
+    protected ObjectNode buildStatsBody(StatsParameters searchParameters, String tenant, Locale locale)
     {
-        JSONObject body = new JSONObject();
+        ObjectNode body = AlfrescoDefaultObjectMapper.createObjectNode();
         body.put("query", searchParameters.getQuery());
         
-        JSONArray tenants = new JSONArray();
-        tenants.put(tenant);
+        ArrayNode tenants = AlfrescoDefaultObjectMapper.createArrayNode();
+        tenants.add(tenant);
         body.put("tenants", tenants);
         
-        JSONArray locales = new JSONArray();
-        locales.put(locale);
+        ArrayNode locales = AlfrescoDefaultObjectMapper.createArrayNode();
+        locales.add(locale.toString());
         body.put("locales", locales);
         
         return body;
@@ -504,7 +497,7 @@ public class SolrQueryHTTPClient extends AbstractSolrQueryHTTPClient implements 
                 url.append(spellCheckQueryStr);
             }
 
-            JSONObject body = new JSONObject();
+            ObjectNode body = AlfrescoDefaultObjectMapper.createObjectNode();
             body.put("query", searchParameters.getQuery());
 
             
@@ -513,69 +506,72 @@ public class SolrQueryHTTPClient extends AbstractSolrQueryHTTPClient implements 
             Set<String> allAuthorisations = permissionService.getAuthorisations();
             boolean includeGroups = includeGroupsForRoleAdmin ? true : !allAuthorisations.contains(PermissionService.ADMINISTRATOR_AUTHORITY);
             
-            JSONArray authorities = new JSONArray();
+            ArrayNode authorities = AlfrescoDefaultObjectMapper.createArrayNode();
             for (String authority : allAuthorisations)
             {
                 if(includeGroups)
                 {
-                    authorities.put(authority);
+                    authorities.add(authority);
                 }
                 else
                 {
                     if(AuthorityType.getAuthorityType(authority) != AuthorityType.GROUP)
                     {
-                        authorities.put(authority);
+                        authorities.add(authority);
                     }
                 }
             }
             body.put("authorities", authorities);
             body.put("anyDenyDenies", anyDenyDenies);
             
-            JSONArray tenants = new JSONArray();
-            tenants.put(tenantService.getCurrentUserDomain());
+            ArrayNode tenants = AlfrescoDefaultObjectMapper.createArrayNode();
+            tenants.add(tenantService.getCurrentUserDomain());
             body.put("tenants", tenants);
 
-            JSONArray locales = new JSONArray();
+            ArrayNode locales = AlfrescoDefaultObjectMapper.createArrayNode();
             for (Locale currentLocale : searchParameters.getLocales())
             {
-                locales.put(DefaultTypeConverter.INSTANCE.convert(String.class, currentLocale));
+                locales.add(DefaultTypeConverter.INSTANCE.convert(String.class, currentLocale));
             }
-            if (locales.length() == 0)
+            if (locales.size() == 0)
             {
-                locales.put(I18NUtil.getLocale());
+                locales.add(I18NUtil.getLocale().toString());
             }
             body.put("locales", locales);
 
-            JSONArray templates = new JSONArray();
+            ArrayNode templates = AlfrescoDefaultObjectMapper.createArrayNode();
             for (String templateName : searchParams.getQueryTemplates().keySet())
             {
-                JSONObject template = new JSONObject();
+                ObjectNode template = AlfrescoDefaultObjectMapper.createObjectNode();
                 template.put("name", templateName);
                 template.put("template", searchParams.getQueryTemplates().get(templateName));
-                templates.put(template);
+                templates.add(template);
             }
             body.put("templates", templates);
 
-            JSONArray allAttributes = new JSONArray();
+            ArrayNode allAttributes = AlfrescoDefaultObjectMapper.createArrayNode();
             for (String attribute : searchParams.getAllAttributes())
             {
-                allAttributes.put(attribute);
+                allAttributes.add(attribute);
             }
             body.put("allAttributes", allAttributes);
 
-            body.put("defaultFTSOperator", searchParams.getDefaultFTSOperator());
-            body.put("defaultFTSFieldOperator", searchParams.getDefaultFTSFieldOperator());
-            body.put("queryConsistency", searchParams.getQueryConsistency());
+            body.put("defaultFTSOperator",
+                    AlfrescoDefaultObjectMapper.convertValue(searchParams.getDefaultFTSOperator(), JsonNode.class));
+            body.put("defaultFTSFieldOperator",
+                    AlfrescoDefaultObjectMapper.convertValue(searchParams.getDefaultFTSFieldOperator(), JsonNode.class));
+            body.put("queryConsistency",
+                    AlfrescoDefaultObjectMapper.convertValue(searchParams.getQueryConsistency(), JsonNode.class));
             if (searchParams.getMlAnalaysisMode() != null)
             {
                 body.put("mlAnalaysisMode", searchParams.getMlAnalaysisMode().toString());
             }
             body.put("defaultNamespace", searchParams.getNamespace());
 
-            JSONArray textAttributes = new JSONArray();
+            ArrayNode textAttributes = AlfrescoDefaultObjectMapper.createArrayNode();
             for (String attribute : searchParams.getTextAttributes())
             {
-                textAttributes.put(attribute);
+                textAttributes.add(attribute);
             }
             body.put("textAttributes", textAttributes);
 
@@ -595,10 +591,6 @@ public class SolrQueryHTTPClient extends AbstractSolrQueryHTTPClient implements 
             throw new LuceneQueryParserException("", e);
         }
         catch (IOException e)
-        {
-            throw new LuceneQueryParserException("", e);
-        }
-        catch (JSONException e)
         {
             throw new LuceneQueryParserException("", e);
         }
@@ -1103,24 +1095,22 @@ public class SolrQueryHTTPClient extends AbstractSolrQueryHTTPClient implements 
         }
     }
 
-    protected JSONResult postSolrQuery(HttpClient httpClient, String url, JSONObject body, SolrJsonProcessor<?> jsonProcessor)
-                throws UnsupportedEncodingException, IOException, HttpException, URIException,
-                JSONException
+    protected JSONResult postSolrQuery(HttpClient httpClient, String url, ObjectNode body, SolrJsonProcessor<?> jsonProcessor)
+                throws UnsupportedEncodingException, IOException, HttpException, URIException
     {
         return postSolrQuery(httpClient, url, body, jsonProcessor, null);
     }
 
-    protected JSONResult postSolrQuery(HttpClient httpClient, String url, JSONObject body, SolrJsonProcessor<?> jsonProcessor, String spellCheckParams)
-                throws UnsupportedEncodingException, IOException, HttpException, URIException,
-                JSONException
+    protected JSONResult postSolrQuery(HttpClient httpClient, String url, ObjectNode body, SolrJsonProcessor<?> jsonProcessor, String spellCheckParams)
+                throws UnsupportedEncodingException, IOException, HttpException, URIException
     {
-        JSONObject json = postQuery(httpClient, url, body);
+        ObjectNode json = (ObjectNode) postQuery(httpClient, url, body);
         if (spellCheckParams != null)
         {
             SpellCheckDecisionManager manager = new SpellCheckDecisionManager(json, url, body, spellCheckParams);
             if (manager.isCollate())
             {
-                json = postQuery(httpClient, manager.getUrl(), body);
+                json = (ObjectNode) postQuery(httpClient, manager.getUrl(), body);
             }
             json.put("spellcheck", manager.getSpellCheckJsonValue());
         }
@@ -1207,13 +1197,7 @@ public class SolrQueryHTTPClient extends AbstractSolrQueryHTTPClient implements 
         }
     }
 
-    /**
-     * @param storeRef
-     * @param handler
-     * @param params
-     * @return
-     */
-    public JSONObject execute(StoreRef storeRef, String handler, HashMap<String, String> params)
+    public JsonNode execute(StoreRef storeRef, String handler, HashMap<String, String> params)
     {       
         try
         {
@@ -1282,10 +1266,7 @@ public class SolrQueryHTTPClient extends AbstractSolrQueryHTTPClient implements 
                     throw new LuceneQueryParserException("Request failed " + get.getStatusCode() + " " + url.toString());
                 }
 
-                Reader reader = new BufferedReader(new InputStreamReader(get.getResponseBodyAsStream()));
-                // TODO - replace with streaming-based solution e.g. SimpleJSON ContentHandler
-                JSONObject json = new JSONObject(new JSONTokener(reader));
-                return json;
+                return AlfrescoDefaultObjectMapper.getReader().readTree(get.getResponseBodyAsString());
             }
             finally
             {
@@ -1301,10 +1282,6 @@ public class SolrQueryHTTPClient extends AbstractSolrQueryHTTPClient implements 
             throw new LuceneQueryParserException("", e);
         }
         catch (IOException e)
-        {
-            throw new LuceneQueryParserException("", e);
-        }
-        catch (JSONException e)
         {
             throw new LuceneQueryParserException("", e);
         }
