@@ -24,41 +24,20 @@
  * #L%
  */
 
-package org.alfresco.repo.domain.node.ibatis.cqrs;
+package org.alfresco.repo.domain.node.cqrs;
 
 import java.util.List;
 
 /**
- * Implements the same context of Viewer and Reader in the CQRS pattern. For this example they both can have names.
- * And they are listen to the Event Source with EventListener.
+ * Listener interface for Writer and Reader
  *
- * As well the CQRS pattern allows us that we can share storage ressources (e.g. in-memory) across Reader and Writer.
- *
- * Created by mmuller on 26/03/2018.
+ * Created by mmuller on 27/03/2018.
  */
-public abstract class CqrsWriterAndReader implements EventListener
+public interface EventListener
 {
-    private String name;
+    void onUpdate(List<Event> events);
 
-    public CqrsWriterAndReader(String name)
-    {
-        this.name = name;
-    }
+    void onCreate(List<Event> events);
 
-    /**
-     * Returns the name of the Writer or Reader
-     *
-     * @return
-     */
-    public String getName()
-    {
-        return name;
-    }
-
-    /**
-     * Returns the store which was used for the writes or readers.
-     *
-     * @return the used store as object. Can be null if no store was used.
-     */
-    public abstract List<Object> getUsedStores();
+    void onDelete(List<Event> events);
 }

@@ -24,15 +24,15 @@
  * #L%
  */
 
-package org.alfresco.repo.domain.node.ibatis.cqrs;
+package org.alfresco.repo.domain.node.cqrs;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import org.alfresco.repo.domain.node.AbstractNodeDAOImpl;
-import org.alfresco.repo.domain.node.ibatis.cqrs.utils.Context;
-import org.alfresco.repo.domain.node.ibatis.cqrs.utils.CqrsContext;
-import org.alfresco.repo.domain.node.ibatis.cqrs.utils.Logger;
+import org.alfresco.repo.domain.node.cqrs.utils.Context;
+import org.alfresco.repo.domain.node.cqrs.utils.CqrsContext;
+import org.alfresco.repo.domain.node.cqrs.utils.Logger;
 
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -43,29 +43,29 @@ import java.util.List;
  *
  * Created by mmuller on 26/03/2018.
  */
-public class IbatisNodeInsertCqrsServiceImpl implements CqrsService
+public class NodeInsertCqrsServiceImpl implements CqrsService
 {
     /** simple in-memory event store */
     private ObservableList<Event> eventStore;
 
-    private LinkedList<IbatisNodeInsertCqrsWriterAbstract> writers;
-    private LinkedList<IbatisNodeInsertCqrsReaderAbstract> readers;
+    private LinkedList<NodeInsertCqrsWriterAbstract> writers;
+    private LinkedList<NodeInsertCqrsReaderAbstract> readers;
 
-    private IbatisNodeInsertCommandHandler ibatisNodeInsertCommandHandler;
+    private NodeInsertCommandHandler nodeInsertCommandHandler;
 
     /** context in which the service is called */
     private Context context;
 
-    /** For using ibatis it needs the NodeDAOImpl */
+    /** For using node insert stuff */
     private AbstractNodeDAOImpl nodeDAOImpl;
 
-    public IbatisNodeInsertCqrsServiceImpl(Context context)
+    public NodeInsertCqrsServiceImpl(Context context)
     {
         Logger.logDebug("Init CQRS service", context);
 
         this.context = context;
         eventStore = FXCollections.observableList(new ArrayList<Event>());
-        ibatisNodeInsertCommandHandler = new IbatisNodeInsertCommandHandler(this);
+        nodeInsertCommandHandler = new NodeInsertCommandHandler(this);
         writers = new LinkedList<>();
         readers = new LinkedList<>();
 
@@ -80,8 +80,8 @@ public class IbatisNodeInsertCqrsServiceImpl implements CqrsService
 
     private void addWriters()
     {
-        // add writer 1. It uses ibatis features for store in the database
-        IbatisNodeInsertCqrsWriter1 writer1 = new IbatisNodeInsertCqrsWriter1("writer1", this);
+        // add writer 1.
+        NodeInsertCqrsWriter1 writer1 = new NodeInsertCqrsWriter1("writer1", this);
         Logger.logDebug("Add writer: " + writer1.getName() + " as event source writer", context);
 
         writers.add(writer1);
@@ -92,7 +92,7 @@ public class IbatisNodeInsertCqrsServiceImpl implements CqrsService
     private void addReaders()
     {
         // add reader 1 . Reads from NodeEntity the id
-        IbatisNodeInsertCqrsReader1 reader1 = new IbatisNodeInsertCqrsReader1("reader1", this);
+        NodeInsertCqrsReader1 reader1 = new NodeInsertCqrsReader1("reader1", this);
         Logger.logDebug("Add reader: " + reader1.getName() + " as event source reader", context);
 
         readers.add(reader1);
@@ -131,7 +131,7 @@ public class IbatisNodeInsertCqrsServiceImpl implements CqrsService
             Logger.logDebug("Execute command with encapsuled object: null", context);
         }
 
-        CommandHandlerResult result = ibatisNodeInsertCommandHandler.handleCommand(commandObject, context);
+        CommandHandlerResult result = nodeInsertCommandHandler.handleCommand(commandObject, context);
         Logger.logDebug("Handle command result: " + result, context);
         // execute was accepted
         if(result.isAccepted())
@@ -158,7 +158,7 @@ public class IbatisNodeInsertCqrsServiceImpl implements CqrsService
         {
             Logger.logDebug("", context);
             Logger.logDebug("QUERY detected:", context);
-            for(IbatisNodeInsertCqrsReaderAbstract reader : readers)
+            for(NodeInsertCqrsReaderAbstract reader : readers)
             {
                 if(reader.getName().equalsIgnoreCase(readerName))
                 {
@@ -201,7 +201,7 @@ public class IbatisNodeInsertCqrsServiceImpl implements CqrsService
         return eventStore;
     }
 
-    public LinkedList<IbatisNodeInsertCqrsWriterAbstract> getWriters()
+    public LinkedList<NodeInsertCqrsWriterAbstract> getWriters()
     {
         return writers;
     }
@@ -209,29 +209,29 @@ public class IbatisNodeInsertCqrsServiceImpl implements CqrsService
     public static void main(String[] args) throws IllegalAccessException
     {
         CqrsContext context = new CqrsContext();
-        IbatisNodeInsertCqrsServiceImpl ibatisCqrsService = new IbatisNodeInsertCqrsServiceImpl(context);
+        NodeInsertCqrsServiceImpl cqrsService = new NodeInsertCqrsServiceImpl(context);
 
         String[] cmds = {"cmd1", "cmd2", "cmd3"};
 
-        ibatisCqrsService.query("reader1", "self", cmds[0]);
+        cqrsService.query("reader1", "self", cmds[0]);
 
-        ibatisCqrsService.executeCommand(cmds[0]);
-        ibatisCqrsService.executeCommand(cmds[1]);
-        ibatisCqrsService.executeCommand(null);
-        ibatisCqrsService.executeCommand(cmds[2]);
+        cqrsService.executeCommand(cmds[0]);
+        cqrsService.executeCommand(cmds[1]);
+        cqrsService.executeCommand(null);
+        cqrsService.executeCommand(cmds[2]);
 
-        ibatisCqrsService.query("reader1", "self", cmds[0]);
-        ibatisCqrsService.query("reader1", "self", cmds[1]);
-        ibatisCqrsService.query("reader1", "self", cmds[2]);
+        cqrsService.query("reader1", "self", cmds[0]);
+        cqrsService.query("reader1", "self", cmds[1]);
+        cqrsService.query("reader1", "self", cmds[2]);
 
-        ibatisCqrsService.query("reader1", "notDefined123", cmds[2]);
+        cqrsService.query("reader1", "notDefined123", cmds[2]);
 
         // col = "id" is defined but diffObject is from type String and node NodeEntity
-        ibatisCqrsService.query("reader1", "id", cmds[2]);
+        cqrsService.query("reader1", "id", cmds[2]);
 
         try
         {
-            ibatisCqrsService.query("reader2", "id", cmds[2]);
+            cqrsService.query("reader2", "id", cmds[2]);
             // it should fail because reader2 was never instantiated or added.
         }
         catch(IllegalAccessException e)

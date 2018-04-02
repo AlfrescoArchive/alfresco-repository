@@ -24,10 +24,10 @@
  * #L%
  */
 
-package org.alfresco.repo.domain.node.ibatis.cqrs;
+package org.alfresco.repo.domain.node.cqrs;
 
 import org.alfresco.repo.domain.node.NodeEntity;
-import org.alfresco.repo.domain.node.ibatis.cqrs.utils.Logger;
+import org.alfresco.repo.domain.node.cqrs.utils.Logger;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -38,13 +38,13 @@ import java.util.List;
  *
  * Created by mmuller on 26/03/2018.
  */
-public class IbatisNodeInsertCqrsReader2 extends IbatisNodeInsertCqrsReaderAbstract {
-    private IbatisNodeInsertCqrsServiceImpl ibatisCqrsService;
+public class NodeInsertCqrsReader2 extends NodeInsertCqrsReaderAbstract {
+    private NodeInsertCqrsServiceImpl cqrsService;
     private Long cachedLastId;
 
-    public IbatisNodeInsertCqrsReader2(String name, IbatisNodeInsertCqrsServiceImpl ibatisCqrsService) {
+    public NodeInsertCqrsReader2(String name, NodeInsertCqrsServiceImpl cqrsService) {
         super(name);
-        this.ibatisCqrsService = ibatisCqrsService;
+        this.cqrsService = cqrsService;
     }
 
     @Override
@@ -66,14 +66,14 @@ public class IbatisNodeInsertCqrsReader2 extends IbatisNodeInsertCqrsReaderAbstr
     @Override
     public void onCreate(List<Event> events)
     {
-        Logger.logDebug(this.getName() + " detected " + events.size() + " new events:", ibatisCqrsService.getContext());
+        Logger.logDebug(this.getName() + " detected " + events.size() + " new events:", cqrsService.getContext());
         events.forEach(e -> {
             Object passStatementObject = e.getDiffObject();
-            Logger.logDebug("  ---------------------------------", ibatisCqrsService.getContext());
-            Logger.logDebug("  " + e.toString(), ibatisCqrsService.getContext());
-            Logger.logDebug("  ---------------------------------", ibatisCqrsService.getContext());
-            Logger.logDebug("  Cache node id", ibatisCqrsService.getContext());
-            cachedLastId = ibatisCqrsService.getNodeDAOImpl().insertNode((NodeEntity) passStatementObject);
+            Logger.logDebug("  ---------------------------------", cqrsService.getContext());
+            Logger.logDebug("  " + e.toString(), cqrsService.getContext());
+            Logger.logDebug("  ---------------------------------", cqrsService.getContext());
+            Logger.logDebug("  Cache node id", cqrsService.getContext());
+            cachedLastId = cqrsService.getNodeDAOImpl().insertNode((NodeEntity) passStatementObject);
         });
     }
 
@@ -87,7 +87,7 @@ public class IbatisNodeInsertCqrsReader2 extends IbatisNodeInsertCqrsReaderAbstr
     public List<Object> getUsedStores()
     {
         ArrayList<Object> stores = new ArrayList<>();
-        stores.add(ibatisCqrsService.getNodeDAOImpl());
+        stores.add(cqrsService.getNodeDAOImpl());
         stores.add(cachedLastId);
         return stores;
     }

@@ -24,29 +24,41 @@
  * #L%
  */
 
-package org.alfresco.repo.domain.node.ibatis.cqrs;
+package org.alfresco.repo.domain.node.cqrs;
 
-import org.alfresco.repo.domain.node.ibatis.cqrs.utils.Context;
+import java.util.List;
 
 /**
- * Service for implementing CQRS
+ * Implements the same context of Viewer and Reader in the CQRS pattern. For this example they both can have names.
+ * And they are listen to the Event Source with EventListener.
+ *
+ * As well the CQRS pattern allows us that we can share storage ressources (e.g. in-memory) across Reader and Writer.
  *
  * Created by mmuller on 26/03/2018.
  */
-public interface CqrsService
+public abstract class CqrsWriterAndReader implements EventListener
 {
-    /**
-     * Commands are capable of changing the database. They will be evaluated and either accepted or refused.
-     * If they are refused they will not change the database.
-     *
-     * @param diffObject
-     */
-    public void executeCommand(Object diffObject);
+    private String name;
+
+    public CqrsWriterAndReader(String name)
+    {
+        this.name = name;
+    }
 
     /**
-     * Represents the context from which the service was called.
+     * Returns the name of the Writer or Reader
      *
-     * @return context in which the service is called
+     * @return
      */
-    public Context getContext();
+    public String getName()
+    {
+        return name;
+    }
+
+    /**
+     * Returns the store which was used for the writes or readers.
+     *
+     * @return the used store as object. Can be null if no store was used.
+     */
+    public abstract List<Object> getUsedStores();
 }

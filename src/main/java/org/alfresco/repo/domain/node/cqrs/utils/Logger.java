@@ -24,7 +24,7 @@
  * #L%
  */
 
-package org.alfresco.repo.domain.node.ibatis.cqrs.utils;
+package org.alfresco.repo.domain.node.cqrs.utils;
 
 /**
  * Created by mmuller on 26/03/2018.

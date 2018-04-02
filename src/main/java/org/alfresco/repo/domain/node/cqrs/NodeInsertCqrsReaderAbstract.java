@@ -24,12 +24,17 @@
  * #L%
  */
 
-package org.alfresco.repo.domain.node.ibatis.cqrs.utils;
+package org.alfresco.repo.domain.node.cqrs;
 
 /**
- * Created by mmuller on 26/03/2018.
+ * Created by mmuller on 27/03/2018.
  */
-public interface Context
+public abstract class NodeInsertCqrsReaderAbstract extends CqrsWriterAndReader
 {
-    public CqrsLogger getLogger();
+    public NodeInsertCqrsReaderAbstract(String name)
+    {
+        super(name);
+    }
+
+    public abstract String getValue(String col, Object node);
 }

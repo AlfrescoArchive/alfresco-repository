@@ -24,14 +24,14 @@
  * #L%
  */
 
-package org.alfresco.repo.domain.node.ibatis.cqrs;
+package org.alfresco.repo.domain.node.cqrs;
 
 /**
  * Created by mmuller on 27/03/2018.
  */
-public abstract class IbatisNodeInsertCqrsWriterAbstract extends CqrsWriterAndReader
+public abstract class NodeInsertCqrsWriterAbstract extends CqrsWriterAndReader
 {
-    public IbatisNodeInsertCqrsWriterAbstract(String name)
+    public NodeInsertCqrsWriterAbstract(String name)
     {
         super(name);
     }

@@ -24,29 +24,29 @@
  * #L%
  */
 
-package org.alfresco.repo.domain.node.ibatis.cqrs;
+package org.alfresco.repo.domain.node.cqrs;
 
 import org.alfresco.repo.domain.node.NodeEntity;
-import org.alfresco.repo.domain.node.ibatis.cqrs.utils.Logger;
+import org.alfresco.repo.domain.node.cqrs.utils.Logger;
 
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Writer which uses the ibatis insert node feature for storing the node in its database
+ * Writer which uses the insert node feature for storing the node in its database
  *
  * Created by mmuller on 26/03/2018.
  */
-public class IbatisNodeInsertCqrsWriter1 extends IbatisNodeInsertCqrsWriterAbstract
+public class NodeInsertCqrsWriter1 extends NodeInsertCqrsWriterAbstract
 {
     private String name;
-    private IbatisNodeInsertCqrsServiceImpl ibatisCqrsService;
+    private NodeInsertCqrsServiceImpl cqrsService;
 
-    public IbatisNodeInsertCqrsWriter1(String name, IbatisNodeInsertCqrsServiceImpl ibatisCqrsService)
+    public NodeInsertCqrsWriter1(String name, NodeInsertCqrsServiceImpl cqrsService)
     {
         super(name);
         this.name = name;
-        this.ibatisCqrsService = ibatisCqrsService;
+        this.cqrsService = cqrsService;
     }
 
     @Override
@@ -58,19 +58,19 @@ public class IbatisNodeInsertCqrsWriter1 extends IbatisNodeInsertCqrsWriterAbstr
     @Override
     public void onCreate(List<Event> events)
     {
-        Logger.logDebug("", ibatisCqrsService.getContext());
-        Logger.logDebug(name + " detected " + events.size() + " new events:" , ibatisCqrsService.getContext());
+        Logger.logDebug("", cqrsService.getContext());
+        Logger.logDebug(name + " detected " + events.size() + " new events:" , cqrsService.getContext());
         events.forEach(e -> {
             Object passStatementObject = e.getDiffObject();
-            Logger.logDebug("", ibatisCqrsService.getContext());
-            Logger.logDebug("  ---------------------------------", ibatisCqrsService.getContext());
-            Logger.logDebug("  " + e.toString(), ibatisCqrsService.getContext());
-            Logger.logDebug("  ---------------------------------", ibatisCqrsService.getContext());
-            Logger.logDebug("", ibatisCqrsService.getContext());
+            Logger.logDebug("", cqrsService.getContext());
+            Logger.logDebug("  ---------------------------------", cqrsService.getContext());
+            Logger.logDebug("  " + e.toString(), cqrsService.getContext());
+            Logger.logDebug("  ---------------------------------", cqrsService.getContext());
+            Logger.logDebug("", cqrsService.getContext());
             if(passStatementObject instanceof NodeEntity)
             {
-                Logger.logDebug("  Writing NodeEntity object to database", ibatisCqrsService.getContext());
-                ibatisCqrsService.getNodeDAOImpl().insertNode((NodeEntity) passStatementObject);
+                Logger.logDebug("  Writing NodeEntity object to database", cqrsService.getContext());
+                cqrsService.getNodeDAOImpl().insertNode((NodeEntity) passStatementObject);
             }
         });
     }
@@ -79,7 +79,7 @@ public class IbatisNodeInsertCqrsWriter1 extends IbatisNodeInsertCqrsWriterAbstr
     public List<Object> getUsedStores()
     {
         ArrayList<Object> stores = new ArrayList<>();
-        stores.add(ibatisCqrsService.getNodeDAOImpl());
+        stores.add(cqrsService.getNodeDAOImpl());
         return stores;
     }
 

@@ -24,26 +24,25 @@
  * #L%
  */
 
-package org.alfresco.repo.domain.node.ibatis.cqrs;
-
-import org.alfresco.repo.domain.node.ibatis.cqrs.utils.Context;
+package org.alfresco.repo.domain.node.cqrs.utils;
 
 /**
- * Command handler for CQRS using plain old java object as input and output. It validates the commands.
- * For that Writer or ?Reader? instances can be used
+ * Currently only used for logging. Describes the context in which the service was called.
  *
- * @param <C> The command which needs to be handled
- * @param <R> The result of the command
+ * Created by mmuller on 26/03/2018.
  */
-public interface CommandHandler<C, R>
+public class CqrsContext implements Context
 {
+    public SimpleCqrsLogger getLogger()
+    {
+        return new SimpleCqrsLogger();
+    }
 
-    /**
-     * Handles the command
-     *
-     * @param command Command saved as object e.g. ibatis statement
-     * @param context Context outside of the service
-     * @return the result of the command
-     */
-    public R handleCommand(C command, Context context);
+    private class SimpleCqrsLogger implements CqrsLogger
+    {
+        public void log(String string)
+        {
+            System.out.println(string);
+        }
+    }
 }

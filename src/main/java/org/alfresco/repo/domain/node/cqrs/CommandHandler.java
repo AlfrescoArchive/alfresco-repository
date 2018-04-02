@@ -24,17 +24,26 @@
  * #L%
  */
 
-package org.alfresco.repo.domain.node.ibatis.cqrs;
+package org.alfresco.repo.domain.node.cqrs;
+
+import org.alfresco.repo.domain.node.cqrs.utils.Context;
 
 /**
- * Created by mmuller on 27/03/2018.
+ * Command handler for CQRS using plain old java object as input and output. It validates the commands.
+ * For that Writer or ?Reader? instances can be used
+ *
+ * @param <C> The command which needs to be handled
+ * @param <R> The result of the command
  */
-public abstract class IbatisNodeInsertCqrsReaderAbstract extends CqrsWriterAndReader
+public interface CommandHandler<C, R>
 {
-    public IbatisNodeInsertCqrsReaderAbstract(String name)
-    {
-        super(name);
-    }
 
-    public abstract String getValue(String col, Object node);
+    /**
+     * Handles the command
+     *
+     * @param command Command saved as object e.g. node object
+     * @param context Context outside of the service
+     * @return the result of the command
+     */
+    public R handleCommand(C command, Context context);
 }

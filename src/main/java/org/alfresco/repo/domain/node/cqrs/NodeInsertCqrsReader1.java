@@ -24,39 +24,48 @@
  * #L%
  */
 
-package org.alfresco.repo.domain.node.ibatis.cqrs;
+package org.alfresco.repo.domain.node.cqrs;
 
 import org.alfresco.repo.domain.node.NodeEntity;
-import org.alfresco.repo.domain.node.ibatis.cqrs.utils.Logger;
+import org.alfresco.repo.domain.node.cqrs.utils.Logger;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Reader which uses our implementation for retrieve the node from his own.
- * Uses org.alfresco.repo.domain.node.AbstractNodeDAOImpl#getNodePair(java.lang.Long) for retrieve the id.
- *
- * NOTICE Thise reader isn't used in this example
+ * A Reader which returns the node id from the NodeEntity object.
  *
  * Created by mmuller on 26/03/2018.
  */
-public class IbatisNodeInsertCqrsReader3 extends IbatisNodeInsertCqrsReaderAbstract {
-    private IbatisNodeInsertCqrsServiceImpl ibatisCqrsService;
+public class NodeInsertCqrsReader1 extends NodeInsertCqrsReaderAbstract {
+    private NodeInsertCqrsServiceImpl cqrsService;
 
-    public IbatisNodeInsertCqrsReader3(String name, IbatisNodeInsertCqrsServiceImpl ibatisCqrsService) {
+    public NodeInsertCqrsReader1(String name, NodeInsertCqrsServiceImpl cqrsService)
+    {
         super(name);
-        this.ibatisCqrsService = ibatisCqrsService;
+        this.cqrsService = cqrsService;
     }
 
     @Override
     public String getValue(String col, Object node)
     {
-        if(col.equalsIgnoreCase("id"))
+        if(node == null || col == null || col.isEmpty())
         {
-            Long searchId = ((NodeEntity) node).getId();
-            return ibatisCqrsService.getNodeDAOImpl().getNodePair(searchId).getFirst().toString();
+            return null;
         }
-        return null;
+
+        Logger.logDebug(this.getName() + " getValue with col=" + col + ", object=" + node.toString(), cqrsService.getContext());
+        // check instance
+        String result = null;
+        if(node instanceof NodeEntity && col.equalsIgnoreCase("id"))
+        {
+            result = ((NodeEntity) node).getId().toString();
+        }
+        else if(node instanceof String && col.equalsIgnoreCase("self"))
+        {
+            result = node.toString();
+        }
+        Logger.logDebug(this.getName() + " getValue returns=" + result, cqrsService.getContext());
+        return result;
     }
 
     @Override
@@ -68,13 +77,15 @@ public class IbatisNodeInsertCqrsReader3 extends IbatisNodeInsertCqrsReaderAbstr
     @Override
     public void onCreate(List<Event> events)
     {
-        Logger.logDebug(this.getName() + " detected " + events.size() + " new events:", ibatisCqrsService.getContext());
+        Logger.logDebug("", cqrsService.getContext());
+        Logger.logDebug(this.getName() + " detected " + events.size() + " new events:", cqrsService.getContext());
         events.forEach(e -> {
             Object passStatementObject = e.getDiffObject();
-            Logger.logDebug("  ---------------------------------", ibatisCqrsService.getContext());
-            Logger.logDebug("  " + e.toString(), ibatisCqrsService.getContext());
-            Logger.logDebug("  ---------------------------------", ibatisCqrsService.getContext());
-            ibatisCqrsService.getNodeDAOImpl().insertNode((NodeEntity) passStatementObject);
+            Logger.logDebug("", cqrsService.getContext());
+            Logger.logDebug("  ---------------------------------", cqrsService.getContext());
+            Logger.logDebug("  " + e.toString(), cqrsService.getContext());
+            Logger.logDebug("  ---------------------------------", cqrsService.getContext());
+            Logger.logDebug("", cqrsService.getContext());
         });
     }
 
@@ -87,8 +98,6 @@ public class IbatisNodeInsertCqrsReader3 extends IbatisNodeInsertCqrsReaderAbstr
     @Override
     public List<Object> getUsedStores()
     {
-        ArrayList<Object> stores = new ArrayList<>();
-        stores.add(ibatisCqrsService.getNodeDAOImpl());
-        return stores;
+        return null;
     }
 }

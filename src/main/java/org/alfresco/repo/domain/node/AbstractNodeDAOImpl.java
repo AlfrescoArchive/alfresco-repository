@@ -59,8 +59,8 @@ import org.alfresco.repo.cache.lookup.EntityLookupCache.EntityLookupCallbackDAOA
 import org.alfresco.repo.domain.contentdata.ContentDataDAO;
 import org.alfresco.repo.domain.control.ControlDAO;
 import org.alfresco.repo.domain.locale.LocaleDAO;
-import org.alfresco.repo.domain.node.ibatis.cqrs.IbatisNodeInsertCqrsServiceImpl;
-import org.alfresco.repo.domain.node.ibatis.cqrs.utils.CqrsContext;
+import org.alfresco.repo.domain.node.cqrs.NodeInsertCqrsServiceImpl;
+import org.alfresco.repo.domain.node.cqrs.utils.CqrsContext;
 import org.alfresco.repo.domain.permissions.AccessControlListDAO;
 import org.alfresco.repo.domain.permissions.AclDAO;
 import org.alfresco.repo.domain.qname.QNameDAO;
@@ -146,7 +146,7 @@ public abstract class AbstractNodeDAOImpl implements NodeDAO, BatchingDAO
     private LocaleDAO localeDAO;
     private UsageDAO usageDAO;
 
-    private IbatisNodeInsertCqrsServiceImpl ibatisCqrsService;
+    private NodeInsertCqrsServiceImpl ibatisCqrsService;
 
     private int cachingThreshold = 10;
 
@@ -221,7 +221,7 @@ public abstract class AbstractNodeDAOImpl implements NodeDAO, BatchingDAO
         childByNameCache = new NullCache<ChildByNameKey, ChildAssocEntity>();
 
         CqrsContext cqrsContext = new CqrsContext();
-        ibatisCqrsService = new IbatisNodeInsertCqrsServiceImpl(cqrsContext);
+        ibatisCqrsService = new NodeInsertCqrsServiceImpl(cqrsContext);
         ibatisCqrsService.setNodeDAOImpl(this);
     }
 

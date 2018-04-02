@@ -24,35 +24,43 @@
  * #L%
  */
 
-package org.alfresco.repo.domain.node.ibatis.cqrs;
-
-import java.util.UUID;
+package org.alfresco.repo.domain.node.cqrs;
 
 /**
- * Class represents an event from stored in the Event Store. Typically this event needs to contain the changes
- * which leaded the state A to state B. Think of that like diff changes from commits.
+ * Encapsulate the diff object (e.g. node object)
  *
  * Created by mmuller on 26/03/2018.
  */
-public class Event
+public class CommandHandlerResult
 {
-    private long timestamp;
-    /** Every event has an id */
-    private UUID id;
+
+    /** The command can be rejected or accepted */
+    private boolean accepted = false;
+    /** Contains the diff object (e.g. node object) */
     private Object diffObject;
 
     /**
-     * Creates an event which can be stored in an Event Store
      *
-     * @param diffObject contains the diff object (e.g. ibatis statement)
+     * @param diffObject Contains the diff object (e.g. node object)
+     * @param accepted The command can be rejected or accepted
      */
-    public Event(Object diffObject)
+    public CommandHandlerResult(Object diffObject, boolean accepted)
     {
         this.diffObject = diffObject;
-        timestamp = System.currentTimeMillis();
-        id = UUID.randomUUID();
+        this.accepted = accepted;
     }
 
+    public boolean isAccepted()
+    {
+        return accepted;
+    }
+
+    public Object getDiffObject()
+    {
+        return diffObject;
+    }
+
+    @Override
     public String toString()
     {
         String commandObjectString = "null";
@@ -60,21 +68,6 @@ public class Event
         {
             commandObjectString = diffObject.toString();
         }
-        return "Event id=" + id + " Created=" + timestamp + " DiffObject=" + commandObjectString;
-    }
-
-    public long getTimestamp()
-    {
-        return timestamp;
-    }
-
-    public UUID getId()
-    {
-        return id;
-    }
-
-    public Object getDiffObject()
-    {
-        return diffObject;
+        return "Accepted=" + accepted + ", the diffOjbect=" + commandObjectString;
     }
 }

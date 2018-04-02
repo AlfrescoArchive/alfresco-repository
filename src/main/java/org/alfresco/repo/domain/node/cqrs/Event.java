@@ -24,43 +24,35 @@
  * #L%
  */
 
-package org.alfresco.repo.domain.node.ibatis.cqrs;
+package org.alfresco.repo.domain.node.cqrs;
+
+import java.util.UUID;
 
 /**
- * Encapsulate the diff object (e.g. ibatis statement)
+ * Class represents an event from stored in the Event Store. Typically this event needs to contain the changes
+ * which leaded the state A to state B. Think of that like diff changes from commits.
  *
  * Created by mmuller on 26/03/2018.
  */
-public class CommandHandlerResult
+public class Event
 {
-
-    /** The command can be rejected or accepted */
-    private boolean accepted = false;
-    /** Contains the diff object (e.g. ibatis statement) */
+    private long timestamp;
+    /** Every event has an id */
+    private UUID id;
     private Object diffObject;
 
     /**
+     * Creates an event which can be stored in an Event Store
      *
-     * @param diffObject Contains the diff object (e.g. ibatis statement)
-     * @param accepted The command can be rejected or accepted
+     * @param diffObject contains the diff object (e.g. node object)
      */
-    public CommandHandlerResult(Object diffObject, boolean accepted)
+    public Event(Object diffObject)
     {
         this.diffObject = diffObject;
-        this.accepted = accepted;
+        timestamp = System.currentTimeMillis();
+        id = UUID.randomUUID();
     }
 
-    public boolean isAccepted()
-    {
-        return accepted;
-    }
-
-    public Object getDiffObject()
-    {
-        return diffObject;
-    }
-
-    @Override
     public String toString()
     {
         String commandObjectString = "null";
@@ -68,6 +60,21 @@ public class CommandHandlerResult
         {
             commandObjectString = diffObject.toString();
         }
-        return "Accepted=" + accepted + ", the diffOjbect=" + commandObjectString;
+        return "Event id=" + id + " Created=" + timestamp + " DiffObject=" + commandObjectString;
+    }
+
+    public long getTimestamp()
+    {
+        return timestamp;
+    }
+
+    public UUID getId()
+    {
+        return id;
+    }
+
+    public Object getDiffObject()
+    {
+        return diffObject;
     }
 }

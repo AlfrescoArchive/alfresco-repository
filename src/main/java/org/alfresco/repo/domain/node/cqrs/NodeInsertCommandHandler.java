@@ -24,21 +24,21 @@
  * #L%
  */
 
-package org.alfresco.repo.domain.node.ibatis.cqrs;
+package org.alfresco.repo.domain.node.cqrs;
 
-import org.alfresco.repo.domain.node.ibatis.cqrs.utils.Context;
-import org.alfresco.repo.domain.node.ibatis.cqrs.utils.Logger;
+import org.alfresco.repo.domain.node.cqrs.utils.Context;
+import org.alfresco.repo.domain.node.cqrs.utils.Logger;
 
 /**
  * Created by mmuller on 26/03/2018.
  */
-public class IbatisNodeInsertCommandHandler implements CommandHandler<Object, CommandHandlerResult>
+public class NodeInsertCommandHandler implements CommandHandler<Object, CommandHandlerResult>
 {
-    private IbatisNodeInsertCqrsServiceImpl ibatisCqrsService;
+    private NodeInsertCqrsServiceImpl nodeqrsService;
 
-    public IbatisNodeInsertCommandHandler(IbatisNodeInsertCqrsServiceImpl ibatisCqrsService)
+    public NodeInsertCommandHandler(NodeInsertCqrsServiceImpl nodeqrsService)
     {
-        this.ibatisCqrsService = ibatisCqrsService;
+        this.nodeqrsService = nodeqrsService;
     }
 
     @Override
@@ -51,7 +51,7 @@ public class IbatisNodeInsertCommandHandler implements CommandHandler<Object, Co
         }
         catch(IllegalArgumentException e)
         {
-            Logger.logError(e, ibatisCqrsService.getContext());
+            Logger.logError(e, nodeqrsService.getContext());
             return new CommandHandlerResult(commandObject, false);
         }
         return new CommandHandlerResult(commandObject, true);
@@ -65,7 +65,7 @@ public class IbatisNodeInsertCommandHandler implements CommandHandler<Object, Co
             commandObjectString = commandObject.toString();
         }
         // use writer1 for validate object
-        IbatisNodeInsertCqrsWriter1 writer1 = (IbatisNodeInsertCqrsWriter1) ibatisCqrsService.getWriters().getFirst();
+        NodeInsertCqrsWriter1 writer1 = (NodeInsertCqrsWriter1) nodeqrsService.getWriters().getFirst();
         Object store = null;
         if(writer1.getUsedStores() != null)
         {
@@ -73,12 +73,12 @@ public class IbatisNodeInsertCommandHandler implements CommandHandler<Object, Co
         }
         if(store == null)
         {
-            Logger.logDebug(writer1.getName() + " validates the command: " + commandObjectString + ", without a store", ibatisCqrsService.getContext());
+            Logger.logDebug(writer1.getName() + " validates the command: " + commandObjectString + ", without a store", nodeqrsService.getContext());
         }
         else
         {
             Logger.logDebug(writer1.getName() + " validates the command: " + commandObjectString + ", against the store: "
-                    + store.toString(), ibatisCqrsService.getContext());
+                    + store.toString(), nodeqrsService.getContext());
             // Do something with the store for validate the command object
             // Throw the IllegalArgumentException if you are not happy with the command
         }
