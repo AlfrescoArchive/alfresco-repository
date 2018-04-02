@@ -29,7 +29,8 @@ package org.alfresco.repo.forms.processor.action;
 import static org.alfresco.repo.forms.processor.node.FormFieldConstants.ON;
 
 import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.POJONode;
+import com.fasterxml.jackson.databind.node.BooleanNode;
+import com.fasterxml.jackson.databind.node.TextNode;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -60,6 +61,7 @@ import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.cmr.repository.datatype.DefaultTypeConverter;
 import org.alfresco.service.namespace.NamespaceService;
 import org.alfresco.service.namespace.QName;
+import org.alfresco.util.json.JsonUtil;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
@@ -218,8 +220,9 @@ public class ActionFormProcessor extends FilteredFormProcessor<ActionDefinition,
                 Object convertedObj = null;
                 if (actionParamDef.isMultiValued())
                 {
-                    if (fieldValueObj instanceof String)
+                    if (fieldValueObj instanceof String || fieldValueObj instanceof TextNode)
                     {
+                        fieldValueObj = fieldValueObj instanceof TextNode ? ((TextNode) fieldValueObj).textValue() : fieldValueObj;
                         if(((String)fieldValueObj).length() == 0)
                         {
                             // empty string for multi-valued parameters
@@ -269,15 +272,7 @@ public class ActionFormProcessor extends FilteredFormProcessor<ActionDefinition,
                     {
                         // if value is a ArrayNode convert to List of Object
                         ArrayNode jsonArr = (ArrayNode) fieldValueObj;
-                        int arrLength = jsonArr.size();
-                        List<Object> list = new ArrayList<Object>(arrLength);
-                        for (int x = 0; x < arrLength; x++)
-                        {
-                            list.add(((POJONode) jsonArr.get(x)).getPojo());
-                        }
-
-                        // persist the list
-                        fieldValueObj = list;
+                        fieldValueObj = JsonUtil.convertJSONArrayToList(jsonArr);
                     }
                     
                     if (fieldValueObj instanceof Collection<?>)
@@ -291,8 +286,9 @@ public class ActionFormProcessor extends FilteredFormProcessor<ActionDefinition,
                 }
                 else
                 {
-                    if (fieldValueObj instanceof String)
+                    if (fieldValueObj instanceof String || fieldValueObj instanceof TextNode)
                     {
+                        fieldValueObj = fieldValueObj instanceof TextNode ? ((TextNode) fieldValueObj).textValue() : fieldValueObj;
                         if(((String)fieldValueObj).length() == 0)
                         {
                             if(!DataTypeDefinition.TEXT.equals(expectedParamType))
@@ -351,7 +347,17 @@ public class ActionFormProcessor extends FilteredFormProcessor<ActionDefinition,
         // executer implementations will throw an exception on execution.
         if (actionedUponNodeRef != null)
         {
-            String nodeRefString = (String)actionedUponNodeRef.getValue();
+            Object fieldValue = actionedUponNodeRef.getValue();
+            String value = null;
+            if (fieldValue instanceof String)
+            {
+                value = (String) fieldValue;
+            }
+            else if (fieldValue instanceof TextNode)
+            {
+                value = ((TextNode) fieldValue).textValue();
+            }
+            String nodeRefString = value;
             if (NodeRef.isNodeRef(nodeRefString))
             {
                 result = new NodeRef(nodeRefString);
@@ -376,7 +382,16 @@ public class ActionFormProcessor extends FilteredFormProcessor<ActionDefinition,
         boolean result = false;
         if (executeAsynchronously != null)
         {
-            result = Boolean.valueOf((String)executeAsynchronously.getValue());
+            Object fieldValue = executeAsynchronously.getValue();
+            Boolean value = null;
+            if (fieldValue instanceof String)
+            {
+                result = Boolean.valueOf((String) fieldValue);
+            }
+            else if (fieldValue instanceof BooleanNode)
+            {
+                result = ((BooleanNode) fieldValue).booleanValue();
+            }
         }
         
         return result;

@@ -65,7 +65,7 @@ public class JsonUtil
     /**
      * Converts ArrayNode to Java List of Objects
      */
-    public static List<Object> convertJSONArrayToList(ArrayNode arrayNode) throws IOException
+    public static List<Object> convertJSONArrayToList(ArrayNode arrayNode)
     {
         List<Object> result = new ArrayList<Object>();
 
@@ -116,7 +116,7 @@ public class JsonUtil
     /**
      * convert JSONObject to Map
      */
-    public static Map<String, Object> convertJSONObjectToMap(ObjectNode jo) throws IOException
+    public static Map<String, Object> convertJSONObjectToMap(ObjectNode jo)
     {
         Map<String, Object> model = new HashMap<String, Object>();
 

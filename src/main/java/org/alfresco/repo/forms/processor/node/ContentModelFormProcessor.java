@@ -35,6 +35,9 @@ import static org.alfresco.repo.forms.processor.node.FormFieldConstants.ON;
 import static org.alfresco.repo.forms.processor.node.FormFieldConstants.PROP_DATA_PREFIX;
 
 import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.BooleanNode;
+import com.fasterxml.jackson.databind.node.TextNode;
+import com.fasterxml.jackson.databind.node.ValueNode;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -75,6 +78,7 @@ import org.alfresco.service.cmr.repository.NodeService;
 import org.alfresco.service.cmr.security.PermissionService;
 import org.alfresco.service.namespace.NamespaceService;
 import org.alfresco.service.namespace.QName;
+import org.alfresco.util.json.JsonUtil;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.extensions.surf.util.I18NUtil;
@@ -364,8 +368,7 @@ public abstract class ContentModelFormProcessor<ItemType, PersistType> extends
                     if (propDef.isMultiValued())
                     {
                         // depending on client the value could be a comma
-                        // separated
-                        // string, a List object or a JSONArray object
+                        // separated string, a List object or a JsonNode object (text or array)
                         if (value instanceof String)
                         {
                             if (((String) value).length() == 0)
@@ -379,6 +382,25 @@ public abstract class ContentModelFormProcessor<ItemType, PersistType> extends
                                 // if value is a String convert to List of
                                 // String
                                 List<String> list = Arrays.asList(((String)value).split(",", -1));
+
+                                // persist the List
+                                value = list;
+                            }
+                        }
+                        else if (value instanceof TextNode)
+                        {
+                            String textValue = ((TextNode) value).textValue();
+                            if (textValue == null || textValue.length() == 0)
+                            {
+                                // empty string for multi-valued properties
+                                // should be stored as null
+                                value = null;
+                            }
+                            else
+                            {
+                                // if value is a String convert to List of
+                                // String
+                                List<String> list = Arrays.asList(textValue.split(",", -1));
 
                                 // persist the List
                                 value = list;
@@ -406,10 +428,21 @@ public abstract class ContentModelFormProcessor<ItemType, PersistType> extends
                         {
                             value = Boolean.TRUE;
                         }
+                        else if (value instanceof BooleanNode)
+                        {
+                            value = ((BooleanNode) value).booleanValue();
+                        }
                     }
                     else if (propDef.getDataType().getName().equals(DataTypeDefinition.LOCALE))
                     {
-                        value = I18NUtil.parseLocale((String) value);
+                        if (value instanceof String)
+                        {
+                            value = I18NUtil.parseLocale((String) value);
+                        }
+                        else if (value instanceof TextNode)
+                        {
+                            value = ((TextNode) value).textValue();
+                        }
                     }
                     else if ((value instanceof String) && ((String) value).length() == 0)
                     {
@@ -438,7 +471,10 @@ public abstract class ContentModelFormProcessor<ItemType, PersistType> extends
                             }
                         }
                     }
-
+                    else if (value instanceof ValueNode)
+                    {
+                        value = JsonUtil.convertJSONValue((ValueNode) value);
+                    }
                     // add the property to the map
                     propsToPersist.put(fullQName, (Serializable) value);
                 }
@@ -541,7 +577,16 @@ public abstract class ContentModelFormProcessor<ItemType, PersistType> extends
                 }
             }
 
-            String value = (String) fieldData.getValue();
+            Object fieldValue = fieldData.getValue();
+            String value = null;
+            if (fieldValue instanceof String)
+            {
+                value = (String) fieldValue;
+            }
+            else if (fieldValue instanceof TextNode)
+            {
+                value = ((TextNode) fieldValue).textValue();
+            }
             String[] nodeRefs = value.split(",");
 
             // Each element in this array will be a new target node in association
@@ -626,9 +671,19 @@ public abstract class ContentModelFormProcessor<ItemType, PersistType> extends
         {
             try
             {
+                Object fieldValue = fieldData.getValue();
+                String value = null;
+                if (fieldValue instanceof String)
+                {
+                    value = (String) fieldValue;
+                }
+                else if (fieldValue instanceof TextNode)
+                {
+                    value = ((TextNode) fieldValue).textValue();
+                }
                 // if the name property changes the rename method of the file folder
                 // service should be called rather than updating the property directly
-                this.fileFolderService.rename(nodeRef, (String) fieldData.getValue());
+                this.fileFolderService.rename(nodeRef, value);
             }
             catch (FileExistsException fee)
             {
@@ -671,8 +726,18 @@ public abstract class ContentModelFormProcessor<ItemType, PersistType> extends
 
         if (contentData != null)
         {
+            Object fieldValue = fieldData.getValue();
+            String value = null;
+            if (fieldValue instanceof String)
+            {
+                value = (String) fieldValue;
+            }
+            else if (fieldValue instanceof TextNode)
+            {
+                value = ((TextNode) fieldValue).textValue();
+            }
             // update content data if we found the property
-            contentData = ContentData.setMimetype(contentData, (String) fieldData.getValue());
+            contentData = ContentData.setMimetype(contentData, value);
             propsToPersist.put(ContentModel.PROP_CONTENT, contentData);
         }
     }
@@ -696,8 +761,18 @@ public abstract class ContentModelFormProcessor<ItemType, PersistType> extends
 
         if (contentData != null)
         {
+            Object fieldValue = fieldData.getValue();
+            String value = null;
+            if (fieldValue instanceof String)
+            {
+                value = (String) fieldValue;
+            }
+            else if (fieldValue instanceof TextNode)
+            {
+                value = ((TextNode) fieldValue).textValue();
+            }
             // update content data if we found the property
-            contentData = ContentData.setEncoding(contentData, (String) fieldData.getValue());
+            contentData = ContentData.setEncoding(contentData, value);
             propsToPersist.put(ContentModel.PROP_CONTENT, contentData);
         }
     }
@@ -720,9 +795,20 @@ public abstract class ContentModelFormProcessor<ItemType, PersistType> extends
         {
             // determine whether there is any content for the node yet i.e. it's a create
             boolean defaultMimetypeRequired = (this.nodeService.getProperty(nodeRef, ContentModel.PROP_CONTENT) == null);
-            
+
+            Object fieldValue = fieldData.getValue();
+            String value = null;
+            if (fieldValue instanceof String)
+            {
+                value = (String) fieldValue;
+            }
+            else if (fieldValue instanceof TextNode)
+            {
+                value = ((TextNode) fieldValue).textValue();
+            }
+
             // write the content
-            writer.putContent((String)fieldData.getValue());
+            writer.putContent(value);
             
             // if there was no content set a sensible default mimetype if necessary
             if (defaultMimetypeRequired)
