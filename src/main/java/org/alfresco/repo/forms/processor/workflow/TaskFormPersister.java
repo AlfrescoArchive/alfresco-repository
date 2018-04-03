@@ -26,6 +26,7 @@
 
 package org.alfresco.repo.forms.processor.workflow;
 
+import com.fasterxml.jackson.databind.node.TextNode;
 import java.io.Serializable;
 import java.util.List;
 
@@ -157,7 +158,7 @@ public class TaskFormPersister extends ContentModelFormPersister<WorkflowTask>
                 value = "";
             }
             
-            transitionId = value.toString();
+            transitionId = value instanceof TextNode ? ((TextNode) value).textValue() : value.toString();
             return true;
         }
         

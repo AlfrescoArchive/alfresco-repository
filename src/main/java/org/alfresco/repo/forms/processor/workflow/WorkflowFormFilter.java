@@ -26,6 +26,7 @@
 
 package org.alfresco.repo.forms.processor.workflow;
 
+import com.fasterxml.jackson.databind.node.TextNode;
 import java.util.List;
 import java.util.Map;
 
@@ -89,7 +90,9 @@ public class WorkflowFormFilter<ItemType, PersistType> extends AbstractFilter<It
         FieldData bpmComment = data.getFieldData(PROP_BPM_COMMENT);
         if (bpmComment != null)
         {
-            int value = ((String) bpmComment.getValue()).getBytes().length;
+            String bpmCommentValue = bpmComment.getValue() instanceof TextNode ?
+                    ((TextNode) bpmComment.getValue()).textValue() : (String) bpmComment.getValue();
+            int value = bpmCommentValue.getBytes().length;
 
             if (maxLengthBpmCommentProperty < value)
             {

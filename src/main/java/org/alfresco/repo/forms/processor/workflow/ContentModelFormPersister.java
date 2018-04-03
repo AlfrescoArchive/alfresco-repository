@@ -26,6 +26,8 @@
 
 package org.alfresco.repo.forms.processor.workflow;
 
+import com.fasterxml.jackson.databind.node.TextNode;
+import com.fasterxml.jackson.databind.node.ValueNode;
 import java.io.Serializable;
 import java.util.List;
 
@@ -36,6 +38,7 @@ import org.alfresco.service.cmr.dictionary.PropertyDefinition;
 import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.namespace.NamespaceService;
 import org.alfresco.service.namespace.QName;
+import org.alfresco.util.json.JsonUtil;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -148,15 +151,19 @@ public abstract class ContentModelFormPersister<T> implements FormPersister<T>
         {
             return valueGetter.getValue(value, propDef);
         }
-        return (Serializable) value;
+        Serializable defaultResult = value instanceof ValueNode ?
+                (Serializable) JsonUtil.convertJSONValue((ValueNode) value) : (Serializable) value;
+        return defaultResult;
     }
 
     protected boolean changeAssociation(DataKeyInfo info, FieldData fieldData)
     {
         Object rawValue = fieldData.getValue();
-        if (rawValue instanceof String)
+        if (rawValue instanceof String || rawValue instanceof TextNode)
         {
-            List<NodeRef> values = NodeRef.getNodeRefs((String)rawValue, LOGGER);
+            String rawValueString = rawValue instanceof TextNode ?
+                    ((TextNode) rawValue).textValue() : (String) rawValue;
+            List<NodeRef> values = NodeRef.getNodeRefs(rawValueString, LOGGER);
             if (values.isEmpty()==false)
             {
                 boolean add = info.isAdd();

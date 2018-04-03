@@ -27,6 +27,8 @@
 package org.alfresco.repo.forms.processor.workflow;
 
 import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.BooleanNode;
+import com.fasterxml.jackson.databind.node.TextNode;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -72,9 +74,9 @@ public class TypedPropertyValueGetter
         {
             return processLocaleValue(value);
         }
-        else if (value instanceof String)
+        else if (value instanceof String || value instanceof TextNode)
         {
-            String valStr = (String) value;
+            String valStr = value instanceof TextNode ? ((TextNode) value).textValue() : (String) value;
 
             // make sure empty strings stay as empty strings, everything else
             // should be represented as null
@@ -122,6 +124,21 @@ public class TypedPropertyValueGetter
                 return Boolean.valueOf((String)value);
             }
         }
+        if (value instanceof TextNode)
+        {
+            if (ON.equals(((TextNode)value).textValue()))
+            {
+                return Boolean.TRUE;
+            }
+            else
+            {
+                return Boolean.valueOf(((TextNode)value).textValue());
+            }
+        }
+        if (value instanceof BooleanNode)
+        {
+            return ((BooleanNode) value).booleanValue();
+        }
         else
         {
             return Boolean.FALSE;
@@ -143,6 +160,10 @@ public class TypedPropertyValueGetter
         if (value instanceof String) 
         {
             return I18NUtil.parseLocale((String) value);
+        }
+        else if (value instanceof TextNode)
+        {
+            return I18NUtil.parseLocale(((TextNode) value).textValue());
         }
         else
         {
