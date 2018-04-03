@@ -59,6 +59,8 @@ import org.alfresco.repo.cache.lookup.EntityLookupCache.EntityLookupCallbackDAOA
 import org.alfresco.repo.domain.contentdata.ContentDataDAO;
 import org.alfresco.repo.domain.control.ControlDAO;
 import org.alfresco.repo.domain.locale.LocaleDAO;
+import org.alfresco.repo.domain.node.cqrs.NodeInsertCqrsServiceImpl;
+import org.alfresco.repo.domain.node.cqrs.utils.CqrsContext;
 import org.alfresco.repo.domain.permissions.AccessControlListDAO;
 import org.alfresco.repo.domain.permissions.AclDAO;
 import org.alfresco.repo.domain.qname.QNameDAO;
@@ -144,6 +146,8 @@ public abstract class AbstractNodeDAOImpl implements NodeDAO, BatchingDAO
     private LocaleDAO localeDAO;
     private UsageDAO usageDAO;
 
+    private NodeInsertCqrsServiceImpl ibatisCqrsService;
+
     private int cachingThreshold = 10;
 
     /**
@@ -215,6 +219,10 @@ public abstract class AbstractNodeDAOImpl implements NodeDAO, BatchingDAO
         aspectsCache = new EntityLookupCache<NodeVersionKey, Set<QName>, Serializable>(new AspectsCallbackDAO());
         propertiesCache = new EntityLookupCache<NodeVersionKey, Map<QName, Serializable>, Serializable>(new PropertiesCallbackDAO());
         childByNameCache = new NullCache<ChildByNameKey, ChildAssocEntity>();
+
+        CqrsContext cqrsContext = new CqrsContext();
+        ibatisCqrsService = new NodeInsertCqrsServiceImpl(cqrsContext);
+        ibatisCqrsService.setNodeDAOImpl(this);
     }
 
     /**
@@ -1421,7 +1429,16 @@ public abstract class AbstractNodeDAOImpl implements NodeDAO, BatchingDAO
         try
         {
             // First try a straight insert and risk the constraint violation if the node exists
-            id = insertNode(node);
+            //id = insertNode(node);
+            ibatisCqrsService.executeCommand(node);
+            try
+            {
+                id = Long.valueOf(ibatisCqrsService.query("reader1", "id", node));
+            }
+            catch (IllegalAccessException e1)
+            {
+                //id=node.getId();
+            }
             controlDAO.releaseSavepoint(savepoint);
         }
         catch (Throwable e)
@@ -1443,7 +1460,16 @@ public abstract class AbstractNodeDAOImpl implements NodeDAO, BatchingDAO
                 deleteNodeProperties(dbTargetNodeId, (Set<Long>) null);
                 deleteNodeById(dbTargetNodeId);
                 // Now repeat the insert but let any further problems just be thrown out
-                id = insertNode(node);
+                //id = insertNode(node);
+                ibatisCqrsService.executeCommand(node);
+                try
+                {
+                    id = Long.valueOf(ibatisCqrsService.query("reader1", "id", node));
+                }
+                catch (IllegalAccessException e1)
+                {
+                    //id=node.getId();
+                }
             }
             else
             {
@@ -4976,7 +5002,7 @@ public abstract class AbstractNodeDAOImpl implements NodeDAO, BatchingDAO
     protected abstract int updateStoreRoot(StoreEntity store);
     protected abstract int updateStore(StoreEntity store);
     protected abstract int updateNodesInStore(Long txnId, Long storeId);
-    protected abstract Long insertNode(NodeEntity node);
+    public abstract Long insertNode(NodeEntity node);
     protected abstract int updateNode(NodeUpdateEntity nodeUpdate);
     protected abstract int updateNodes(Long txnId, List<Long> nodeIds);
     protected abstract void updatePrimaryChildrenSharedAclId(
