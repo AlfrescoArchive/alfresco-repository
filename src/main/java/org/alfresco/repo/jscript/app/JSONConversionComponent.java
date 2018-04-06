@@ -28,7 +28,10 @@ package org.alfresco.repo.jscript.app;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.DoubleNode;
+import com.fasterxml.jackson.databind.node.FloatNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.databind.node.TextNode;
 import java.io.Serializable;
 import java.text.MessageFormat;
 import java.util.ArrayList;
@@ -196,7 +199,7 @@ public class JSONConversionComponent
      */
     public String toJSON(final NodeRef nodeRef, final boolean useShortQNames) throws JsonProcessingException
     {
-        return toJSONObject(nodeRef, useShortQNames).toString();
+        return AlfrescoDefaultObjectMapper.writeValueAsString(toJSONObject(nodeRef, useShortQNames));
     }
     
     /**
@@ -322,17 +325,17 @@ public class JSONConversionComponent
      * Handles the work of converting values to JSON.
      */
     @SuppressWarnings({ "unchecked", "rawtypes" })
-    protected String propertyToJSON(final NodeRef nodeRef, final QName propertyName, final String key, final Serializable value) throws JsonProcessingException
+    protected JsonNode propertyToJSON(final NodeRef nodeRef, final QName propertyName, final String key, final Serializable value) throws JsonProcessingException
     {
     	if (value != null)
         {
             // Has a decorator has been registered for this property?
             if (propertyDecorators.containsKey(propertyName))
             {
-                String jsonString = propertyDecorators.get(propertyName).decorate(propertyName, nodeRef, value);
-                if (jsonString != null)
+                JsonNode json = propertyDecorators.get(propertyName).decorate(propertyName, nodeRef, value);
+                if (json != null)
                 {
-                	return jsonString;
+                	return json;
                 }
             }
             else
@@ -343,29 +346,31 @@ public class JSONConversionComponent
                     ObjectNode dateObj = AlfrescoDefaultObjectMapper.createObjectNode();
                     dateObj.put("value", value.toString());
                     dateObj.put("iso8601", ISO8601DateFormat.format((Date)value));
-                    return dateObj.toString();
+                    return dateObj;
                 }
                 else if (value instanceof List)
                 {
-                	// Convert the List to a JSON list by recursively calling propertyToJSON
-                	List<Object> jsonList = new ArrayList<Object>(((List<Serializable>) value).size());
+                	// Convert the List to a JSON array by recursively calling propertyToJSON
+                    ArrayNode jsonList = AlfrescoDefaultObjectMapper.createArrayNode();
                 	for (Serializable listItem : (List<Serializable>) value)
                 	{
                 	    jsonList.add(propertyToJSON(nodeRef, propertyName, key, listItem));
                 	}
-                	return AlfrescoDefaultObjectMapper.writeValueAsString(jsonList);
+                	return jsonList;
                 }
                 else if (value instanceof Double)
                 {
-                    return (Double.isInfinite((Double)value) || Double.isNaN((Double)value) ? null : value.toString());
+                    return (Double.isInfinite((Double)value) || Double.isNaN((Double)value) ?
+                            null : DoubleNode.valueOf((Double) value));
                 }
                 else if (value instanceof Float)
                 {
-                    return (Float.isInfinite((Float)value) || Float.isNaN((Float)value) ? null : value.toString());
+                    return (Float.isInfinite((Float)value) || Float.isNaN((Float)value) ?
+                            null : FloatNode.valueOf((Float) value));
                 }
                 else
                 {
-                	return value.toString();
+                	return TextNode.valueOf(value.toString());
                 }
             }
         }
@@ -383,7 +388,7 @@ public class JSONConversionComponent
                 String key = nameToString(propertyName, useShortQNames);
                 Serializable value = properties.get(propertyName);
                 
-                propertiesJSON.put(key, propertyToJSON(nodeRef, propertyName, key, value));
+                propertiesJSON.set(key, propertyToJSON(nodeRef, propertyName, key, value));
             }
             catch (NamespaceException ne)
             {

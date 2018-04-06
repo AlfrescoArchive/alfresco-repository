@@ -25,6 +25,7 @@
  */
 package org.alfresco.repo.jscript.app;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.io.Serializable;
 
@@ -56,7 +57,7 @@ public class UsernamePropertyDecorator extends BasePropertyDecorator
      * @see org.alfresco.repo.jscript.app.PropertyDecorator#decorate(QName, org.alfresco.service.cmr.repository.NodeRef, java.io.Serializable)
      */
     @SuppressWarnings("unchecked")
-    public String decorate(QName propertyName, NodeRef nodeRef, Serializable value)
+    public JsonNode decorate(QName propertyName, NodeRef nodeRef, Serializable value)
     {
         String username = value.toString();
         String firstName = null;
@@ -86,12 +87,12 @@ public class UsernamePropertyDecorator extends BasePropertyDecorator
         else
         {
             map.put("isDeleted", true);
-            return map.toString();
+            return map;
         }
         
         map.put("firstName", firstName);
         map.put("lastName", lastName);
         map.put("displayName", ((firstName != null ? firstName + " " : "") + (lastName != null ? lastName : "")).replaceAll("^\\s+|\\s+$", ""));
-        return map.toString();
+        return map;
     }
 }

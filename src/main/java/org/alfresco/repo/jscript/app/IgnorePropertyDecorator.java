@@ -25,6 +25,7 @@
  */
 package org.alfresco.repo.jscript.app;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import java.io.Serializable;
 
 import org.alfresco.service.cmr.repository.NodeRef;
@@ -41,7 +42,7 @@ public class IgnorePropertyDecorator extends BasePropertyDecorator
     /**
      * @see org.alfresco.repo.jscript.app.PropertyDecorator#decorate(QName, org.alfresco.service.cmr.repository.NodeRef, java.io.Serializable)
      */
-    public String decorate(QName propertyName, NodeRef nodeRef, Serializable value)
+    public JsonNode decorate(QName propertyName, NodeRef nodeRef, Serializable value)
     {
         return null;
     }

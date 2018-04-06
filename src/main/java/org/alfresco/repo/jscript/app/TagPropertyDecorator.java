@@ -25,6 +25,7 @@
  */
 package org.alfresco.repo.jscript.app;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.io.Serializable;
@@ -51,7 +52,7 @@ public class TagPropertyDecorator extends BasePropertyDecorator
      * @see org.alfresco.repo.jscript.app.PropertyDecorator#decorate(org.alfresco.service.namespace.QName, org.alfresco.service.cmr.repository.NodeRef, java.io.Serializable)
      */
     @SuppressWarnings("unchecked")
-    public String decorate(QName propertyName, NodeRef nodeRef, Serializable value)
+    public JsonNode decorate(QName propertyName, NodeRef nodeRef, Serializable value)
     {
         Collection<NodeRef> collection = (Collection<NodeRef>)value;
         ArrayNode array = AlfrescoDefaultObjectMapper.createArrayNode();
@@ -71,6 +72,6 @@ public class TagPropertyDecorator extends BasePropertyDecorator
             }
         }
 
-        return array.toString();
+        return array;
     }
 }

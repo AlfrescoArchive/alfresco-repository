@@ -25,6 +25,7 @@
  */
 package org.alfresco.repo.jscript.app;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import java.io.Serializable;
 import java.util.Set;
 
@@ -43,5 +44,5 @@ public interface PropertyDecorator
     /**
      * @return Decorated property as JSON string
      */
-    String decorate(QName propertyName, NodeRef nodeRef, Serializable value);
+    JsonNode decorate(QName propertyName, NodeRef nodeRef, Serializable value);
 }
