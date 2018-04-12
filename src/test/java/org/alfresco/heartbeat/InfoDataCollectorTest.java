@@ -36,6 +36,8 @@ import java.util.List;
 import java.util.Map;
 
 import org.alfresco.heartbeat.datasender.HBData;
+import org.alfresco.repo.deployment.DeploymentMethod;
+import org.alfresco.repo.deployment.DeploymentMethodProvider;
 import org.alfresco.repo.descriptor.DescriptorDAO;
 import org.alfresco.repo.descriptor.DescriptorServiceImpl.BaseDescriptor;
 import org.alfresco.service.cmr.repository.HBDataCollectorService;
@@ -53,6 +55,7 @@ public class InfoDataCollectorTest
     private DescriptorDAO mockServerDescriptorDAO;
     private List<HBData> collectedData;
     private BaseDescriptor spyDescriptor;
+    private DeploymentMethodProvider mockDeploymentMethodProvider;
 
     @Before
     public void setUp()
@@ -61,15 +64,19 @@ public class InfoDataCollectorTest
         mockDescriptorDAO = mock(DescriptorDAO.class);
         mockServerDescriptorDAO = mock(DescriptorDAO.class);
         mockCollectorService = mock(HBDataCollectorService.class);
+        mockDeploymentMethodProvider = mock(DeploymentMethodProvider.class);
+
 
         when(spyDescriptor.getId()).thenReturn("mock_id");
         when(mockServerDescriptorDAO.getDescriptor()).thenReturn(spyDescriptor);
         when(mockDescriptorDAO.getDescriptor()).thenReturn(spyDescriptor);
+        when(mockDeploymentMethodProvider.getDeploymentMethod()).thenReturn(DeploymentMethod.DEFAULT);
 
         infoCollector = new InfoDataCollector("acs.repository.info", "1.0", "0 0 0 ? * *");
         infoCollector.setHbDataCollectorService(mockCollectorService);
         infoCollector.setCurrentRepoDescriptorDAO(mockDescriptorDAO);
         infoCollector.setServerDescriptorDAO(mockServerDescriptorDAO);
+        infoCollector.setDeploymentMethodProvider(mockDeploymentMethodProvider);
     }
 
     @Test
@@ -104,6 +111,7 @@ public class InfoDataCollectorTest
         assertEquals("repository", data.get("repoName"));
         assertEquals(1000, data.get("schema"));
         assertEquals("Community", data.get("edition"));
+        assertEquals(DeploymentMethod.DEFAULT, data.get("deploymentMethod"));
         assertTrue(data.containsKey("version"));
         Map<String, Object> version = (Map<String, Object>) data.get("version");
         assertEquals("5.1.2 (.4)", version.get("full"));
@@ -112,6 +120,7 @@ public class InfoDataCollectorTest
         assertEquals("1", version.get("minor"));
         assertEquals("2", version.get("patch"));
         assertEquals("4", version.get("hotfix"));
+
     }
     
     @Test
