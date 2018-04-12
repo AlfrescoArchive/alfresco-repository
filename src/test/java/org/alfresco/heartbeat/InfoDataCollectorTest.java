@@ -111,7 +111,7 @@ public class InfoDataCollectorTest
         assertEquals("repository", data.get("repoName"));
         assertEquals(1000, data.get("schema"));
         assertEquals("Community", data.get("edition"));
-        assertEquals(DeploymentMethod.DEFAULT, data.get("deploymentMethod"));
+        assertEquals(DeploymentMethod.DEFAULT.toString(), data.get("deploymentMethod"));
         assertTrue(data.containsKey("version"));
         Map<String, Object> version = (Map<String, Object>) data.get("version");
         assertEquals("5.1.2 (.4)", version.get("full"));
