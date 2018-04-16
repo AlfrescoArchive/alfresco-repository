@@ -49,22 +49,27 @@ import org.alfresco.test_category.BaseSpringTestsCategory;
 import org.alfresco.test_category.OwnJVMTestsCategory;
 import org.alfresco.util.BaseAlfrescoSpringTest;
 import org.alfresco.util.GUID;
-import org.alfresco.util.testing.category.LuceneTests;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Unit test for classes related to the {@link NodeCrawler} interface
  * 
  * @author Brian Remmington
  */
+@Transactional
 @Category({BaseSpringTestsCategory.class})
 public class NodeCrawlerTest extends BaseAlfrescoSpringTest
 {
     private ServiceRegistry serviceRegistry;
     private NodeRef companyHome;
     private NodeCrawlerFactory nodeCrawlerFactory;
+
+    private static final Log logger = LogFactory.getLog(NodeCrawlerTest.class);
 
     /**
      * Called during the transaction setup
@@ -207,6 +212,7 @@ public class NodeCrawlerTest extends BaseAlfrescoSpringTest
         String uuid = GUID.generate();
         Map<QName, Serializable> props = new HashMap<QName, Serializable>();
         props.put(ContentModel.PROP_NAME, uuid);
+        logger.info("NodeCrawlerTest.makeNode (parent="+parent + "), (nodeType="+nodeType+"), (uuid="+uuid+")");
         ChildAssociationRef assoc = nodeService.createNode(parent, ContentModel.ASSOC_CONTAINS, QName.createQName(
                 NamespaceService.APP_MODEL_1_0_URI, uuid), nodeType, props);
         return assoc.getChildRef();
