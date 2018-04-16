@@ -212,8 +212,7 @@ public class NodeCrawlerTest extends BaseAlfrescoSpringTest
         String uuid = GUID.generate();
         Map<QName, Serializable> props = new HashMap<QName, Serializable>();
         props.put(ContentModel.PROP_NAME, uuid);
-        logger.error("NodeCrawlerTest.makeNode (parent="+parent + "), (nodeType="+nodeType+"), (uuid="+uuid+")");
-        System.out.println("NodeCrawlerTest.makeNode (parent="+parent + "), (nodeType="+nodeType+"), (uuid="+uuid+")");
+        logger.debug("NodeCrawlerTest.makeNode (parent="+parent + "), (nodeType="+nodeType+"), (uuid="+uuid+")");
         ChildAssociationRef assoc = nodeService.createNode(parent, ContentModel.ASSOC_CONTAINS, QName.createQName(
                 NamespaceService.APP_MODEL_1_0_URI, uuid), nodeType, props);
         return assoc.getChildRef();
