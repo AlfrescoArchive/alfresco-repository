@@ -796,12 +796,9 @@ public class SchemaBootstrap extends AbstractLifecycleBean
 
     /**
      * Used to identify the case where one of the nodes (!maybe even this one!)
-     * has created the alf_bootstrap_lock - This table indicates that a schema initialization
+     * has created the alf_bootstrap_lock table - This table indicates that a schema initialization
      * or schema DB update is in progress.
      *
-     * Please be careful with what kind of messages you display in the console for the user,
-     * based on the return value of this method. It may be possible that the schema bootstrap
-     * to fail from other reasons that would fail to remove the alf_bootstrap_lock.
      * Advice: Do not consider this locking system as bullet proof!
      *
      * @return true if the alf_bootstrap_lock exists; false otherwise
@@ -809,7 +806,6 @@ public class SchemaBootstrap extends AbstractLifecycleBean
      */
     private synchronized boolean isBootstrapInProgress(Connection connection) throws Exception
     {
-        // Create the marker table
         Statement stmt = connection.createStatement();
         try
         {
