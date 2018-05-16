@@ -253,7 +253,6 @@ public class AlfrescoPdfRendererContentTransformerWorker extends ContentTransfor
                 "   target: " + writer + "\n" +
                 "   options: " + options);
         }
-
     }
 
     private void transformLocal(ContentReader reader, ContentWriter writer, TransformationOptions options,
