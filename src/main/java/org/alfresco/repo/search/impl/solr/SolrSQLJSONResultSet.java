@@ -85,7 +85,11 @@ public class SolrSQLJSONResultSet implements ResultSet, JSONResult
                 }
                 else
                 {
-                    throw new RuntimeException("Unable to execute the query, error caused by: " + error);
+                    //Check if the format is solr which requires the direct error response.
+                    if(!"solr".equalsIgnoreCase(searchParameters.getExtraParameters().get("format")))
+                    {
+                        throw new RuntimeException("Unable to execute the query, error caused by: " + error);
+                    }
                 }
             }
             //Check if it has an error
