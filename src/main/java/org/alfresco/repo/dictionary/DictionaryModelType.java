@@ -766,8 +766,10 @@ public class DictionaryModelType implements ContentServicePolicies.OnContentUpda
         {
             return false;
         }
+        // this also allows the AuthenticationUtil.SYSTEM_USER_NAME ("System") user
         return this.authorityService.isAdminAuthority(userName)
-                    || this.authorityService.getAuthoritiesForUser(userName).contains(GROUP_ALFRESCO_MODEL_ADMINISTRATORS_AUTHORITY);
+               || this.authorityService.getAuthoritiesForUser(userName).contains(GROUP_ALFRESCO_MODEL_ADMINISTRATORS_AUTHORITY)
+               || AuthenticationUtil.isRunAsUserTheSystemUser();
     }
         
 }
