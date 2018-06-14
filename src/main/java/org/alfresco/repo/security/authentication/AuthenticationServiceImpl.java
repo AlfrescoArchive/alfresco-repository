@@ -71,6 +71,11 @@ public class AuthenticationServiceImpl extends AbstractAuthenticationService imp
         this.protectionEnabled = protectionEnabled;
     }
 
+    public boolean isProtectionEnabled()
+    {
+        return protectionEnabled;
+    }
+
     public void setProtectionLimit(int protectionLimit)
     {
         this.protectionLimit = protectionLimit;
@@ -107,6 +112,15 @@ public class AuthenticationServiceImpl extends AbstractAuthenticationService imp
     {
         return !(this.authenticationComponent instanceof ActivateableBean)
                 || ((ActivateableBean) this.authenticationComponent).isActive();
+    }
+
+    private boolean getUserNamesAreCaseSensitive()
+    {
+        if (personService != null)
+        {
+            return personService.getUserNamesAreCaseSensitive();
+        }
+        return false;
     }
 
     public void authenticate(String userName, char[] password) throws AuthenticationException
@@ -204,6 +218,10 @@ public class AuthenticationServiceImpl extends AbstractAuthenticationService imp
      */
     public String getProtectedUserKey(String userName)
     {
+        if (!getUserNamesAreCaseSensitive())
+        {
+            userName = userName.toLowerCase();
+        }
         return serviceInstanceId + "@@" + userName;
     }
 

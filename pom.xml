@@ -2,7 +2,7 @@
     <modelVersion>4.0.0</modelVersion>
     <artifactId>alfresco-repository</artifactId>
     <name>Alfresco Repository</name>
-    <version>6.12-SNAPSHOT</version>
+    <version>6.53-SNAPSHOT</version>
     <packaging>jar</packaging>
 
     <parent>
@@ -36,31 +36,40 @@
         <img.exe>convert</img.exe>
 
         <dependency.alfresco-legacy-lucene.version>6.2</dependency.alfresco-legacy-lucene.version>
-        <dependency.alfresco-mbeans.version>6.0</dependency.alfresco-mbeans.version>
-        <dependency.alfresco-core.version>6.15</dependency.alfresco-core.version>
+        <dependency.alfresco-core.version>7.3</dependency.alfresco-core.version>
         <dependency.alfresco-greenmail.version>6.1</dependency.alfresco-greenmail.version>
-        <dependency.alfresco-data-model.version>6.22</dependency.alfresco-data-model.version>
-        <dependency.alfresco-jlan.version>6.3</dependency.alfresco-jlan.version>
-        <dependency.alfresco-pdf-renderer.version>1.0</dependency.alfresco-pdf-renderer.version>
-        <dependency.alfresco-hb-data-sender.version>1.0.2</dependency.alfresco-hb-data-sender.version>
+        <dependency.alfresco-data-model.version>8.8</dependency.alfresco-data-model.version>
+        <dependency.alfresco-jlan.version>7.1</dependency.alfresco-jlan.version>
+        <dependency.alfresco-pdf-renderer.version>1.1</dependency.alfresco-pdf-renderer.version>
+        <dependency.alfresco-hb-data-sender.version>1.0.9</dependency.alfresco-hb-data-sender.version>
 
 
-        <dependency.spring.version>3.2.17.RELEASE</dependency.spring.version>
+        <dependency.spring.version>5.0.4.RELEASE</dependency.spring.version>
         <dependency.httpcomponents.version>4.5.2</dependency.httpcomponents.version>
         <dependency.truezip.version>7.7.9</dependency.truezip.version>
-        <dependency.poi.version>3.10.1-20151016-alfresco-patched</dependency.poi.version>
-        <dependency.webscripts.version>6.13</dependency.webscripts.version>
+        <dependency.poi.version>3.17</dependency.poi.version>
+        <dependency.webscripts.version>6.19</dependency.webscripts.version>
         <dependency.opencmis.version>1.0.0</dependency.opencmis.version>
-        <dependency.jackson2.version>2.8.3</dependency.jackson2.version>
         <dependency.activiti-engine.version>5.22.0</dependency.activiti-engine.version>
         <dependency.activiti.version>5.22.0</dependency.activiti.version>
-        <dependency.postgresql.version>9.4.1212</dependency.postgresql.version>
+        <dependency.postgresql.version>42.2.1</dependency.postgresql.version>
         <dependency.mysql.version>5.1.40</dependency.mysql.version>
         <dependency.mariadb.version>2.0.1</dependency.mariadb.version>
         <dependency.antlr.version>3.5.2</dependency.antlr.version>
-
+        <dependency.keycloak.version>3.4.3.Final</dependency.keycloak.version>
+        <dependency.jboss.logging.version>3.3.1.Final</dependency.jboss.logging.version>
     </properties>
-    
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.apache.commons</groupId>
+                <artifactId>commons-email</artifactId>
+                <version>1.5</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
     <dependencies>
         <dependency>
             <groupId>org.alfresco</groupId>
@@ -80,23 +89,18 @@
         </dependency>
         <dependency>
             <groupId>org.alfresco</groupId>
-            <artifactId>alfresco-mbeans</artifactId>
-            <version>${dependency.alfresco-mbeans.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.alfresco</groupId>
             <artifactId>alfresco-core</artifactId>
             <version>${dependency.alfresco-core.version}</version>
         </dependency>
         <dependency>
             <groupId>org.alfresco</groupId>
             <artifactId>alfresco-text-gen</artifactId>
-            <version>1.3</version>
+            <version>1.4</version>
         </dependency>
         <dependency>
             <groupId>org.alfresco.services</groupId>
             <artifactId>alfresco-events</artifactId>
-            <version>1.2.5</version>
+            <version>1.2.12</version>
         </dependency>
         <dependency>
             <groupId>org.alfresco</groupId>
@@ -106,7 +110,7 @@
         <dependency>
             <groupId>com.sun.mail</groupId>
             <artifactId>javax.mail</artifactId>
-            <version>1.5.5</version>
+            <version>1.6.1</version>
         </dependency>
         <dependency>
             <groupId>org.alfresco</groupId>
@@ -119,11 +123,6 @@
             <version>1.4-DBCP330</version>
         </dependency>
         <dependency>
-            <groupId>commons-digester</groupId>
-            <artifactId>commons-digester</artifactId>
-            <version>2.1</version>
-        </dependency>
-        <dependency>
             <groupId>commons-discovery</groupId>
             <artifactId>commons-discovery</artifactId>
             <version>0.5</version>
@@ -131,17 +130,17 @@
         <dependency>
             <groupId>commons-fileupload</groupId>
             <artifactId>commons-fileupload</artifactId>
-            <version>1.3.2</version>
+            <version>1.3.3</version>
         </dependency>
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-compress</artifactId>
-            <version>1.12</version>
+            <version>1.15</version>
         </dependency>
         <dependency>
             <groupId>commons-codec</groupId>
             <artifactId>commons-codec</artifactId>
-            <version>1.10</version>
+            <version>1.11</version>
         </dependency>
         <dependency>
             <groupId>commons-beanutils</groupId>
@@ -176,7 +175,7 @@
         <dependency>
             <groupId>commons-validator</groupId>
             <artifactId>commons-validator</artifactId>
-            <version>1.5.1</version>
+            <version>1.6</version>
         </dependency>
         <dependency>
             <groupId>org.apache.httpcomponents</groupId>
@@ -209,11 +208,30 @@
                 </exclusion>
             </exclusions>
         </dependency>
-        <!-- Dependency on Alfresco patched version of Rhino available in artfifact.alfresco.com -->
         <dependency>
             <groupId>org.mozilla</groupId>
             <artifactId>rhino</artifactId>
-            <version>1.7R4-alfresco-patched</version>
+            <version>1.7.9</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-core</artifactId>
+            <version>${dependency.spring.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-orm</artifactId>
+            <version>${dependency.spring.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-context</artifactId>
+            <version>${dependency.spring.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-context-support</artifactId>
+            <version>${dependency.spring.version}</version>
         </dependency>
         <dependency>
             <groupId>org.springframework</groupId>
@@ -249,11 +267,6 @@
             <scope>provided</scope>
         </dependency>
         <dependency>
-            <groupId>com.thoughtworks.xstream</groupId>
-            <artifactId>xstream</artifactId>
-            <version>1.3.1</version>
-        </dependency>
-        <dependency>
             <groupId>com.sun.pdfview</groupId>
             <artifactId>pdfrenderer</artifactId>
             <version>0.9.1-patched</version>
@@ -286,12 +299,12 @@
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
-            <version>1.7.21</version>
+            <version>1.7.24</version>
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-log4j12</artifactId>
-            <version>1.7.21</version>
+            <version>1.7.25</version>
         </dependency>
         <dependency>
             <groupId>org.beanshell</groupId>
@@ -301,12 +314,12 @@
         <dependency>
             <groupId>xerces</groupId>
             <artifactId>xercesImpl</artifactId>
-            <version>2.10.0-alfresco-patched</version>
+            <version>2.11.0-alfresco-patched-20180402</version>
         </dependency>
         <dependency>
             <groupId>xalan</groupId>
             <artifactId>xalan</artifactId>
-            <version>2.7.2-alfresco</version>
+            <version>2.7.2</version>
         </dependency>
         <dependency>
             <groupId>xml-apis</groupId>
@@ -345,21 +358,6 @@
             <version>2.3.20-alfresco-patched</version>
         </dependency>
         <dependency>
-            <groupId>org.codehaus.jackson</groupId>
-            <artifactId>jackson-mapper-asl</artifactId>
-            <version>1.9.13</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.myfaces.core</groupId>
-            <artifactId>myfaces-api</artifactId>
-            <version>1.1.10</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.myfaces.core</groupId>
-            <artifactId>myfaces-impl</artifactId>
-            <version>1.1.10</version>
-        </dependency>
-        <dependency>
             <groupId>org.apache.xmlbeans</groupId>
             <artifactId>xmlbeans</artifactId>
             <version>2.6.0</version>
@@ -367,37 +365,43 @@
         <dependency>
             <groupId>org.apache.pdfbox</groupId>
             <artifactId>pdfbox</artifactId>
-            <version>1.8.10-alfresco-patched</version>
+            <version>2.0.8</version>
         </dependency>
         <dependency>
             <groupId>org.apache.pdfbox</groupId>
             <artifactId>fontbox</artifactId>
-            <version>1.8.10</version>
+            <version>2.0.8</version>
+        </dependency>
+        <dependency>
+            <!-- we need this for TextToPdfContentTransformer -->
+            <groupId>org.apache.pdfbox</groupId>
+            <artifactId>pdfbox-tools</artifactId>
+            <version>2.0.8</version>
         </dependency>
         <dependency>
             <groupId>org.apache.pdfbox</groupId>
             <artifactId>jempbox</artifactId>
-            <version>1.8.10</version>
+            <version>1.8.13</version>
         </dependency>
         <dependency>
             <groupId>org.bouncycastle</groupId>
-            <artifactId>bcprov-jdk15</artifactId>
-            <version>1.46</version>
+            <artifactId>bcprov-jdk15on</artifactId>
+            <version>1.59</version>
         </dependency>
         <dependency>
             <groupId>org.bouncycastle</groupId>
-            <artifactId>bcmail-jdk15</artifactId>
-            <version>1.46</version>
+            <artifactId>bcmail-jdk15on</artifactId>
+            <version>1.59</version>
         </dependency>
         <dependency>
             <groupId>com.googlecode.mp4parser</groupId>
             <artifactId>isoparser</artifactId>
-            <version>1.1.21</version>
+            <version>1.1.22</version>
         </dependency>
         <dependency>
             <groupId>com.drewnoakes</groupId>
             <artifactId>metadata-extractor</artifactId>
-            <version>2.7.2</version>
+            <version>2.10.1</version>
         </dependency>
         <dependency>
             <groupId>org.ccil.cowan.tagsoup</groupId>
@@ -466,27 +470,10 @@
             <version>2.4.7</version>
             <classifier>indy</classifier>
         </dependency>
-        <!-- OpenOffice -->
         <dependency>
-            <groupId>com.artofsolving</groupId>
-            <artifactId>jodconverter</artifactId>
-            <version>2.1.0-alfresco-patched</version>
-        </dependency>
-        <dependency>
-            <groupId>org.openoffice</groupId>
-            <artifactId>unoil</artifactId>
-            <version>3.1.0</version>
-            <exclusions>
-                <exclusion>
-                    <artifactId>ridl</artifactId>
-                    <groupId>org.openoffice</groupId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
-            <groupId>org.openoffice</groupId>
-            <artifactId>juh</artifactId>
-            <version>3.1.0</version>
+            <groupId>org.alfresco</groupId>
+            <artifactId>alfresco-jodconverter-core</artifactId>
+            <version>3.0.1.1</version>
         </dependency>
         <dependency>
             <groupId>net.sf.javamusictag</groupId>
@@ -499,20 +486,9 @@
             <version>6.6.9</version>
         </dependency>
         <dependency>
-            <groupId>org.openoffice</groupId>
-            <artifactId>jut</artifactId>
-            <version>1.0-alfresco</version>
-        </dependency>
-        <dependency>
             <groupId>org.htmlparser</groupId>
             <artifactId>htmlparser</artifactId>
             <version>2.1</version>
-        </dependency>
-        <!-- Old version of AntLR is still required as a dependency of Hibernate -->
-        <dependency>
-            <groupId>antlr</groupId>
-            <artifactId>antlr</artifactId>
-            <version>2.7.7</version>
         </dependency>
         <!-- Apache POI -->
         <dependency>
@@ -529,11 +505,6 @@
             <groupId>org.apache.poi</groupId>
             <artifactId>poi-scratchpad</artifactId>
             <version>${dependency.poi.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.poi</groupId>
-            <artifactId>ooxml-schemas</artifactId>
-            <version>1.1</version>
         </dependency>
         <dependency>
             <groupId>org.livetribe</groupId>
@@ -577,44 +548,20 @@
                     <groupId>nu.validator.htmlparser</groupId>
                     <artifactId>htmlparser</artifactId>
                 </exclusion>
+                <exclusion>
+                    <groupId>org.apache.myfaces.core</groupId>
+                    <artifactId>myfaces-api</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.apache.myfaces.core</groupId>
+                    <artifactId>myfaces-impl</artifactId>
+                </exclusion>
             </exclusions>
         </dependency>
         <dependency>
             <groupId>org.alfresco.surf</groupId>
             <artifactId>spring-webscripts-api</artifactId>
             <version>${dependency.webscripts.version}</version>
-        </dependency>
-
-        <!-- Spring Social -->
-        <dependency>
-            <groupId>org.springframework.social</groupId>
-            <artifactId>spring-social-core</artifactId>
-            <version>1.0.3.RELEASE</version>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.social</groupId>
-            <artifactId>spring-social-linkedin</artifactId>
-            <version>1.0.0-20110711</version>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.social</groupId>
-            <artifactId>spring-social-facebook</artifactId>
-            <version>1.1.1.RELEASE</version>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.social</groupId>
-            <artifactId>spring-social-facebook-web</artifactId>
-            <version>1.1.1.RELEASE</version>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.social</groupId>
-            <artifactId>spring-social-web</artifactId>
-            <version>1.1.4.RELEASE</version>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.social</groupId>
-            <artifactId>spring-social-twitter</artifactId>
-            <version>1.1.2.RELEASE</version>
         </dependency>
 
         <!-- Chemistry -->
@@ -674,12 +621,12 @@
         <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
-            <version>11.0.2</version>
+            <version>24.0-jre</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.security</groupId>
             <artifactId>spring-security-core</artifactId>
-            <version>3.1.7.RELEASE</version>
+            <version>5.0.1.RELEASE</version>
             <exclusions>
                 <exclusion>
                     <groupId>org.springframework</groupId>
@@ -688,21 +635,19 @@
             </exclusions>
         </dependency>
         <dependency>
-            <groupId>com.fasterxml.jackson.core</groupId>
-            <artifactId>jackson-core</artifactId>
-            <version>${dependency.jackson2.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.fasterxml.jackson.core</groupId>
-            <artifactId>jackson-databind</artifactId>
-            <version>${dependency.jackson2.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.fasterxml.jackson.core</groupId>
-            <artifactId>jackson-annotations</artifactId>
-            <version>${dependency.jackson2.version}</version>
+            <groupId>org.quartz-scheduler</groupId>
+            <artifactId>quartz</artifactId>
+            <version>2.3.0</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>com.mchange</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <!-- Activiti -->
+        <!-- Updated commons-email to 1.5 -->
+        <!-- see dependencyManagement section -->
         <dependency>
             <groupId>org.activiti</groupId>
             <artifactId>activiti-engine</artifactId>
@@ -746,6 +691,68 @@
             </exclusions>
         </dependency>
 
+        <!-- Keycloak dependencies -->
+        <dependency>
+            <groupId>org.keycloak</groupId>
+            <artifactId>keycloak-core</artifactId>
+            <version>${dependency.keycloak.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>*</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>org.keycloak</groupId>
+            <artifactId>keycloak-common</artifactId>
+            <version>${dependency.keycloak.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>*</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>org.keycloak</groupId>
+            <artifactId>keycloak-adapter-core</artifactId>
+            <version>${dependency.keycloak.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>*</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>org.keycloak</groupId>
+            <artifactId>keycloak-adapter-spi</artifactId>
+            <version>${dependency.keycloak.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>*</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>org.keycloak</groupId>
+            <artifactId>keycloak-servlet-adapter-spi</artifactId>
+            <version>${dependency.keycloak.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>*</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>org.jboss.logging</groupId>
+            <artifactId>jboss-logging</artifactId>
+            <version>${dependency.jboss.logging.version}</version>
+        </dependency>
+        
         <!-- Test dependencies -->
         <dependency>
             <groupId>org.mockito</groupId>
@@ -807,12 +814,6 @@
             <groupId>org.mariadb.jdbc</groupId>
             <artifactId>mariadb-java-client</artifactId>
             <version>${dependency.mariadb.version}</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.h2database</groupId>
-            <artifactId>h2</artifactId>
-            <version>1.4.192</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -1074,51 +1075,6 @@
                                     <mapper type="regexp" from="^([^_]*).properties$" to="\1_en.properties" />
                                 </copy>
                             </target>
-                        </configuration>
-                    </execution>
-                    <!-- ACE-4563 Package h2 dialect files, copying the PostgreSQL ones, to be reused by Maven SDK -->
-                    <execution>
-                        <id>package-h2scripts</id>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>run</goal>
-                        </goals>
-                        <configuration>
-                            <target>
-                                <zip destfile="${project.build.directory}/h2scripts.jar">
-                                    <mappedresources>
-                                        <zipfileset dir="${basedir}/src/main/resources">
-                                            <include name="alfresco/ibatis/org.hibernate.dialect.PostgreSQLDialect/*" />
-                                            <include name="alfresco/dbscripts/create/org.hibernate.dialect.PostgreSQLDialect/*" /> 
-                                        </zipfileset>
-                                        <regexpmapper from="(.*)PostgreSQLDialect(.*)" to="\1H2Dialect\2" />
-                                    </mappedresources>
-                                </zip>
-                            </target>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-
-            <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>build-helper-maven-plugin</artifactId>
-                 <executions>
-                    <!-- ACE-4563 Attach h2 dialect file to project -->
-                    <execution>
-                        <id>attach-h2scripts</id>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>attach-artifact</goal>
-                        </goals>
-                        <configuration>
-                            <artifacts>
-                                <artifact>
-                                    <file>${project.build.directory}/h2scripts.jar</file>
-                                    <type>jar</type>
-                                    <classifier>h2scripts</classifier>
-                                </artifact>
-                            </artifacts>
                         </configuration>
                     </execution>
                 </executions>

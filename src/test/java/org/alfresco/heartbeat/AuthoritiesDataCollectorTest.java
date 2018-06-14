@@ -44,7 +44,6 @@ import static org.mockito.Mockito.when;
  */
 public class AuthoritiesDataCollectorTest
 {
-
     private AuthoritiesDataCollector authorityDataCollector;
     private List<HBData> collectedData;
 
@@ -59,7 +58,7 @@ public class AuthoritiesDataCollectorTest
         DescriptorDAO descriptorDAO = mock(DescriptorDAO.class);
         when(descriptorDAO.getDescriptor()).thenReturn(mockDescriptor);
 
-        authorityDataCollector = new AuthoritiesDataCollector();
+        authorityDataCollector = new AuthoritiesDataCollector("acs.repository.usage.authorities", "1.0", "0 0 0 ? * *");
         authorityDataCollector.setAuthorityService(authorityService);
         authorityDataCollector.setCurrentRepoDescriptorDAO(descriptorDAO);
         authorityDataCollector.setHbDataCollectorService(mockCollectorService);
@@ -77,13 +76,12 @@ public class AuthoritiesDataCollectorTest
             assertNotNull(data.getSystemId());
             assertNotNull(data.getTimestamp());
         }
-
     }
 
     @Test
-    public void testInfoDataIsCollected()
+    public void testAuthDataIsCollected()
     {
-        HBData authorityInfo = grabDataByCollectorId("acs.repository.usage.authorities");
+        HBData authorityInfo = grabDataByCollectorId(authorityDataCollector.getCollectorId());
         assertNotNull("Authority info data missing.", authorityInfo);
 
         Map<String,Object> data = authorityInfo.getData();
@@ -91,12 +89,11 @@ public class AuthoritiesDataCollectorTest
         assertTrue(data.containsKey("numGroups"));
     }
 
-
     private HBData grabDataByCollectorId(String collectorId)
     {
         for (HBData d : this.collectedData)
         {
-            if(d.getCollectorId()!=null && d.getCollectorId().equals(collectorId))
+            if (d.getCollectorId() != null && d.getCollectorId().equals(collectorId))
             {
                 return d;
             }

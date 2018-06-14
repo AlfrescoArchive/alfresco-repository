@@ -1,8 +1,9 @@
 <?xml version='1.0' encoding='UTF-8'?>
-<!DOCTYPE beans PUBLIC '-//SPRING//DTD BEAN//EN' 'http://www.springframework.org/dtd/spring-beans.dtd'>
-
 <!-- Core and miscellaneous bean definitions -->
-<beans>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+        http://www.springframework.org/schema/beans/spring-beans.xsd">
     <!-- SOLR Tracking   -->
     
     <bean id="search.solrTrackingComponent" class="org.alfresco.repo.solr.SOLRTrackingComponentImpl" init-method="init">
@@ -30,7 +31,7 @@
         <property name="dictionaryService" ref="dictionaryService"/>
     </bean>
     
-    <bean id="search.TypeIndexFilter" class="org.alfresco.repo.search.TypeIndexFilter" parent="search.abstractIndexFilter" singleton="true" >
+    <bean id="search.TypeIndexFilter" class="org.alfresco.repo.search.TypeIndexFilter" parent="search.abstractIndexFilter">
         <property name="ignorePathsForSpecificTypes">
             <value>${search.solrTrackingSupport.ignorePathsForSpecificTypes}</value>
         </property>
@@ -43,7 +44,7 @@
         </property>
     </bean>
     
-    <bean id="search.AspectIndexFilter" class="org.alfresco.repo.search.AspectIndexFilter" parent="search.abstractIndexFilter" singleton="true" >
+    <bean id="search.AspectIndexFilter" class="org.alfresco.repo.search.AspectIndexFilter" parent="search.abstractIndexFilter">
         <property name="ignorePathsForSpecificAspects">
             <value>${search.solrTrackingSupport.ignorePathsForSpecificAspects}</value>
         </property>
@@ -65,10 +66,10 @@
     </bean>
     
     <bean id="search.fts.alfresco.switching" class="org.alfresco.repo.search.impl.solr.DbOrIndexSwitchingQueryLanguage" >
-	    <property name="factories">
-			<list>
-			    <ref bean="search.indexerAndSearcherFactory" />
-			</list>
+        <property name="factories">
+            <list>
+                <ref bean="search.indexerAndSearcherFactory" />
+            </list>
         </property>
         <property name="name">
             <value>fts-alfresco</value>
@@ -84,22 +85,18 @@
         </property>
         <property name="solrDao" ref="solrDAO"/>
         <property name="hybridEnabled" value="${solr.query.hybrid.enabled}"/>
-    </bean>
-    
+    </bean> 
+
     <bean id="search.fts.alfresco.db" class="org.alfresco.repo.search.impl.solr.DbAftsQueryLanguage" >
-	    <property name="factories">
-			<list>
-			    <ref bean="search.indexerAndSearcherFactory" />
-			</list>
+        <property name="dictionaryService" ref="dictionaryService" />
+        <property name="namespaceService" ref="namespaceService" />
+        <property name="factories">
+            <list>
+                <ref bean="search.indexerAndSearcherFactory" />
+            </list>
         </property>
         <property name="queryEngine">
             <ref bean="search.dbQueryEngine" />
-        </property>
-        <property name="dictionaryService">
-            <ref bean="dictionaryService" />
-        </property>
-        <property name="namespaceService">
-            <ref bean="namespaceService" />
         </property>
          <property name="metadataIndexCheck1">
             <ref bean="metadataQueryIndexesCheck" />
@@ -110,12 +107,8 @@
     </bean>
     
     <bean id="search.dbQueryEngineImpl" class="org.alfresco.repo.search.impl.querymodel.impl.db.DBQueryEngine" >
-        <property name="dictionaryService">
-            <ref bean="dictionaryService" />
-        </property>
-        <property name="namespaceService">
-            <ref bean="namespaceService" />
-        </property>
+        <property name="dictionaryService" ref="dictionaryService" />
+        <property name="namespaceService" ref="namespaceService" />
         <property name="sqlSessionTemplate" ref="repoSqlSessionTemplate"/>
         <property name="qnameDAO" ref="qnameDAO"/>
         <property name="nodeService" ref="nodeService"/>

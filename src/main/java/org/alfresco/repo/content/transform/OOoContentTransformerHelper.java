@@ -25,23 +25,7 @@
  */
 package org.alfresco.repo.content.transform;
 
-import java.io.BufferedOutputStream;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
-import java.io.Reader;
-import java.io.Writer;
-
 import com.sun.star.task.ErrorCodeIOException;
-import net.sf.jooreports.converter.DocumentFamily;
-import net.sf.jooreports.converter.DocumentFormat;
-import net.sf.jooreports.converter.DocumentFormatRegistry;
-import net.sf.jooreports.converter.XmlDocumentFormatRegistry;
-import net.sf.jooreports.openoffice.connection.OpenOfficeException;
-
 import org.alfresco.error.AlfrescoRuntimeException;
 import org.alfresco.repo.content.MimetypeMap;
 import org.alfresco.service.cmr.repository.ContentIOException;
@@ -51,12 +35,16 @@ import org.alfresco.service.cmr.repository.MimetypeService;
 import org.alfresco.service.cmr.repository.TransformationOptions;
 import org.alfresco.util.TempFileProvider;
 import org.apache.commons.logging.Log;
-import org.apache.pdfbox.exceptions.COSVisitorException;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
-import org.apache.pdfbox.pdmodel.edit.PDPageContentStream;
+import org.apache.pdfbox.pdmodel.PDPageContentStream;
+import org.artofsolving.jodconverter.document.*;
+import org.artofsolving.jodconverter.office.OfficeException;
+import org.json.JSONException;
 import org.springframework.core.io.DefaultResourceLoader;
 import org.springframework.util.FileCopyUtils;
+
+import java.io.*;
 
 /**
  * A class providing basic OOo-related functionality shared by both
@@ -68,6 +56,8 @@ public abstract class OOoContentTransformerHelper extends ContentTransformerHelp
     private DocumentFormatRegistry formatRegistry;
     protected TransformerDebug transformerDebug;
     private static final int JODCONVERTER_TRANSFORMATION_ERROR_CODE = 3088;
+
+    protected RemoteTransformerClient remoteTransformerClient;
 
     /**
      * Set a non-default location from which to load the document format mappings.
@@ -98,28 +88,52 @@ public abstract class OOoContentTransformerHelper extends ContentTransformerHelp
         this.transformerDebug = transformerDebug;
     }
 
-    public void afterPropertiesSet() throws Exception
+    /**
+     * Sets the optional remote transformer client which will be used in preference to a local command if available.
+     *
+     * @param remoteTransformerClient may be null;
+     */
+    public void setRemoteTransformerClient(RemoteTransformerClient remoteTransformerClient)
+    {
+        this.remoteTransformerClient = remoteTransformerClient;
+    }
+
+    protected boolean remoteTransformerClientConfigured()
+    {
+        return remoteTransformerClient != null && remoteTransformerClient.getBaseUrl() != null;
+    }
+
+    public void afterPropertiesSet()
     {
         // load the document conversion configuration
-        if (documentFormatsConfiguration != null)
+        if (formatRegistry == null)
         {
-            DefaultResourceLoader resourceLoader = new DefaultResourceLoader();
-            try
+            if (documentFormatsConfiguration != null)
             {
-                InputStream is = resourceLoader.getResource(this.documentFormatsConfiguration).getInputStream();
-                formatRegistry = new XmlDocumentFormatRegistry(is);
-                // We do not need to explicitly close this InputStream as it is closed for us within the XmlDocumentFormatRegistry
+                DefaultResourceLoader resourceLoader = new DefaultResourceLoader();
+                try
+                {
+                    InputStream is = resourceLoader.getResource(this.documentFormatsConfiguration).getInputStream();
+                    formatRegistry = new JsonDocumentFormatRegistry(is);
+                    // We do not need to explicitly close this InputStream as it is closed for us within the XmlDocumentFormatRegistry
+                }
+                catch (IOException e)
+                {
+                    throw new AlfrescoRuntimeException(
+                            "Unable to load document formats configuration file: "
+                                    + this.documentFormatsConfiguration);
+                }
+                catch (JSONException e)
+                {
+                    throw new AlfrescoRuntimeException(
+                            "Unable to read document formats configuration file: "
+                                    + this.documentFormatsConfiguration);
+                }
             }
-            catch (IOException e)
+            else
             {
-                throw new AlfrescoRuntimeException(
-                        "Unable to load document formats configuration file: "
-                        + this.documentFormatsConfiguration);
+                formatRegistry = new DefaultDocumentFormatRegistry();
             }
-        }
-        else
-        {
-            formatRegistry = new XmlDocumentFormatRegistry();
         }
     }
 
@@ -187,14 +201,14 @@ public abstract class OOoContentTransformerHelper extends ContentTransformerHelp
         String sourceExtension = mimetypeService.getExtension(sourceMimetype);
         String targetExtension = mimetypeService.getExtension(targetMimetype);
         // query the registry for the source format
-        DocumentFormat sourceFormat = formatRegistry.getFormatByFileExtension(sourceExtension);
+        DocumentFormat sourceFormat = formatRegistry.getFormatByExtension(sourceExtension);
         if (sourceFormat == null)
         {
             // no document format
             return false;
         }
         // query the registry for the target format
-        DocumentFormat targetFormat = formatRegistry.getFormatByFileExtension(targetExtension);
+        DocumentFormat targetFormat = formatRegistry.getFormatByExtension(targetExtension);
         if (targetFormat == null)
         {
             // no document format
@@ -202,17 +216,10 @@ public abstract class OOoContentTransformerHelper extends ContentTransformerHelp
         }
 
         // get the family of the target document
-        DocumentFamily sourceFamily = sourceFormat.getFamily();
+        DocumentFamily sourceFamily = sourceFormat.getInputFamily();
         // does the format support the conversion
-        if (!targetFormat.isExportableFrom(sourceFamily))
-        {
-            // unable to export from source family of documents to the target format
-            return false;
-        }
-        else
-        {
-            return true;
-        }
+        boolean transformable = formatRegistry.getOutputFormats(sourceFamily).contains(targetFormat); // same as: targetFormat.getStoreProperties(sourceFamily) != null
+        return transformable;
     }
     
     @Override
@@ -245,10 +252,6 @@ public abstract class OOoContentTransformerHelper extends ContentTransformerHelp
             // Now write the in-memory PDF document into the temporary file.
             pdfDoc.save(tempToFile.getAbsolutePath());
 
-        }
-        catch (COSVisitorException cvx)
-        {
-            throw new ContentIOException("Error creating empty PDF file", cvx);
         }
         catch (IOException iox)
         {
@@ -319,23 +322,23 @@ public abstract class OOoContentTransformerHelper extends ContentTransformerHelp
         String sourceExtension = mimetypeService.getExtension(sourceMimetype);
         String targetExtension = mimetypeService.getExtension(targetMimetype);
         // query the registry for the source format
-        DocumentFormat sourceFormat = formatRegistry.getFormatByFileExtension(sourceExtension);
+        DocumentFormat sourceFormat = formatRegistry.getFormatByExtension(sourceExtension);
         if (sourceFormat == null)
         {
             // source format is not recognised
             throw new ContentIOException("No OpenOffice document format for source extension: " + sourceExtension);
         }
         // query the registry for the target format
-        DocumentFormat targetFormat = formatRegistry.getFormatByFileExtension(targetExtension);
+        DocumentFormat targetFormat = formatRegistry.getFormatByExtension(targetExtension);
         if (targetFormat == null)
         {
             // target format is not recognised
             throw new ContentIOException("No OpenOffice document format for target extension: " + targetExtension);
         }
         // get the family of the target document
-        DocumentFamily sourceFamily = sourceFormat.getFamily();
+        DocumentFamily sourceFamily = sourceFormat.getInputFamily();
         // does the format support the conversion
-        if (!targetFormat.isExportableFrom(sourceFamily))
+        if (!formatRegistry.getOutputFormats(sourceFamily).contains(targetFormat)) // same as: targetFormat.getStoreProperties(sourceFamily) == null
         {
             throw new ContentIOException(
                     "OpenOffice conversion not supported: \n" +
@@ -343,14 +346,6 @@ public abstract class OOoContentTransformerHelper extends ContentTransformerHelp
                     "   writer: " + writer);
         }
 
-        // create temporary files to convert from and to
-        File tempFromFile = TempFileProvider.createTempFile(
-                getTempFilePrefix()+"-source-",
-                "." + sourceExtension);
-        File tempToFile = TempFileProvider.createTempFile(
-                getTempFilePrefix()+"-target-",
-                "." + targetExtension);
-        
         // There is a bug (reported in ALF-219) whereby JooConverter (the Alfresco Community Edition's 3rd party
         // OpenOffice connector library) struggles to handle zero-size files being transformed to pdf.
         // For zero-length .html files, it throws NullPointerExceptions.
@@ -362,67 +357,89 @@ public abstract class OOoContentTransformerHelper extends ContentTransformerHelp
         final long documentSize = reader.getSize();
         if (documentSize == 0L || temporaryMsFile(options))
         {
+            File tempToFile = TempFileProvider.createTempFile(
+                    getTempFilePrefix()+"-target-",
+                    "." + targetExtension);
             produceEmptyPdfFile(tempToFile);
+            writer.putContent(tempToFile);
         }
         else
         {
-            // download the content from the source reader
-            saveContentInFile(sourceMimetype, reader, tempFromFile);
-            
-            // We have some content, so we'll use OpenOffice to render the pdf document.
-            // Currently, OpenOffice does a better job of rendering documents into PDF and so
-            // it is preferred over PDFBox.
-            try
+            if (remoteTransformerClientConfigured())
             {
-                convert(tempFromFile, sourceFormat, tempToFile, targetFormat);
+                transformRemote(reader, writer, options, sourceMimetype, sourceExtension, targetExtension);
             }
-            catch (OpenOfficeException e)
+            else
             {
-                throw new ContentIOException("OpenOffice server conversion failed: \n" +
-                        "   reader: " + reader + "\n" +
-                        "   writer: " + writer + "\n" +
-                        "   from file: " + tempFromFile + "\n" +
-                        "   to file: " + tempToFile,
-                        e);
-            }
-            catch (Throwable throwable)
-            {
-                // Because of the known bug with empty Spreadsheets in JodConverter try to catch exception and produce empty pdf file
-                if (throwable.getCause() instanceof ErrorCodeIOException &&
-                        ((ErrorCodeIOException) throwable.getCause()).ErrCode == JODCONVERTER_TRANSFORMATION_ERROR_CODE)
-                {
-                    getLogger().warn("Transformation failed: \n" +
-                                             "from file: " + tempFromFile + "\n" +
-                                             "to file: " + tempToFile +
-                                             "Source file " + tempFromFile + " has no content");
-                    produceEmptyPdfFile(tempToFile);
-                }
-				else
-				{
-                    throw throwable;
-				}
+                transformLocal(reader, writer, options, sourceMimetype,
+                        sourceExtension, targetExtension, sourceFormat, targetFormat);
             }
         }
-
-        if (getLogger().isDebugEnabled())
-        {
-                StringBuilder msg = new StringBuilder();
-                msg.append("transforming ")
-                    .append(tempFromFile.getName())
-                    .append(" to ")
-                    .append(tempToFile.getName());
-                getLogger().debug(msg.toString());
-        }
-        
-        // upload the temp output to the writer given us
-        writer.putContent(tempToFile);
 
         if (getLogger().isDebugEnabled())
         {
             getLogger().debug("transformation successful");
         }
     }
-    
+
+    protected void transformLocal(ContentReader reader, ContentWriter writer, TransformationOptions options,
+                                  String sourceMimetype, String sourceExtension, String targetExtension,
+                                  DocumentFormat sourceFormat, DocumentFormat targetFormat)
+    {
+        // create temporary files to convert from and to
+        File tempFromFile = TempFileProvider.createTempFile(
+                getTempFilePrefix()+"-source-",
+                "." + sourceExtension);
+        File tempToFile = TempFileProvider.createTempFile(
+                getTempFilePrefix()+"-target-",
+                "." + targetExtension);
+
+        // download the content from the source reader
+        saveContentInFile(sourceMimetype, reader, tempFromFile);
+
+        try
+        {
+            convert(tempFromFile, sourceFormat, tempToFile, targetFormat);
+            writer.putContent(tempToFile);
+        }
+        catch (OfficeException e)
+        {
+            throw new ContentIOException("OpenOffice server conversion failed: \n" +
+                    "   reader: " + reader + "\n" +
+                    "   writer: " + writer + "\n" +
+                    "   from file: " + tempFromFile + "\n" +
+                    "   to file: " + tempToFile,
+                    e);
+        }
+        catch (Throwable throwable)
+        {
+            // Because of the known bug with empty Spreadsheets in JodConverter try to catch exception and produce empty pdf file
+            if (throwable.getCause() instanceof ErrorCodeIOException &&
+                    ((ErrorCodeIOException) throwable.getCause()).ErrCode == JODCONVERTER_TRANSFORMATION_ERROR_CODE)
+            {
+                getLogger().warn("Transformation failed: \n" +
+                        "from file: " + tempFromFile + "\n" +
+                        "to file: " + tempToFile +
+                        "Source file " + tempFromFile + " has no content");
+                produceEmptyPdfFile(tempToFile);
+            }
+            else
+            {
+                throw throwable;
+            }
+        }
+    }
+
+    protected void transformRemote(ContentReader reader, ContentWriter writer, TransformationOptions options,
+                                   String sourceMimetype,
+                                   String sourceExtension, String targetExtension) throws IllegalAccessException
+    {
+        long timeoutMs = options.getTimeoutMs();
+        Log logger = getLogger();
+        remoteTransformerClient.request(reader, writer, sourceMimetype, sourceExtension, targetExtension,
+                timeoutMs, logger);
+    }
+
     private boolean temporaryMsFile(TransformationOptions options)
     {
         String fileName = transformerDebug == null ? null : transformerDebug.getFileName(options, true, -1);

@@ -27,15 +27,14 @@ package org.alfresco.service.cmr.repository;
 
 import org.alfresco.heartbeat.HBBaseDataCollector;
 
+/**
+ * Interface for implementing a service to manage multiple heartbeat collectors
+ */
 public interface HBDataCollectorService
 {
     void registerCollector(HBBaseDataCollector collector);
-    
-    void collectAndSendData();
 
-    void enabled(boolean enabled);
+    void deregisterCollector(HBBaseDataCollector collector);
 
     boolean isEnabledByDefault();
-    
-    
 }

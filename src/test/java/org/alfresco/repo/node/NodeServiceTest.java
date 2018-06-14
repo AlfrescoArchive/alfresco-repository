@@ -51,6 +51,7 @@ import org.alfresco.model.ContentModel;
 import org.alfresco.repo.cache.SimpleCache;
 import org.alfresco.repo.cache.TransactionalCache;
 import org.alfresco.repo.cache.TransactionalCache.ValueHolder;
+import org.alfresco.repo.domain.dialect.Dialect;
 import org.alfresco.repo.domain.node.Node;
 import org.alfresco.repo.domain.node.NodeDAO;
 import org.alfresco.repo.domain.node.NodeEntity;
@@ -68,7 +69,6 @@ import org.alfresco.repo.node.NodeServicePolicies.OnUpdateNodePolicy;
 import org.alfresco.repo.node.NodeServicePolicies.OnUpdatePropertiesPolicy;
 import org.alfresco.repo.node.db.NodeHierarchyWalker;
 import org.alfresco.repo.node.db.NodeHierarchyWalker.VisitedNode;
-import org.alfresco.repo.node.index.NodeIndexer;
 import org.alfresco.repo.policy.BehaviourFilter;
 import org.alfresco.repo.policy.JavaBehaviour;
 import org.alfresco.repo.policy.Policy;
@@ -97,7 +97,6 @@ import org.alfresco.util.PropertyMap;
 import org.alfresco.util.test.junitrules.ApplicationContextInit;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.hibernate.dialect.Dialect;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
@@ -113,6 +112,7 @@ import org.springframework.extensions.surf.util.I18NUtil;
  * @author Derek Hulley
  * @since 4.0
  */
+
 @Category(OwnJVMTestsCategory.class)
 public class NodeServiceTest
 {
@@ -132,7 +132,6 @@ public class NodeServiceTest
     
     private static ServiceRegistry serviceRegistry;
     private static NodeService nodeService;
-    private static NodeIndexer nodeIndexer;
     private static NodeDAO nodeDAO;
     private static TransactionService txnService;
     private static PolicyComponent policyComponent;
@@ -153,7 +152,6 @@ public class NodeServiceTest
 
         serviceRegistry = (ServiceRegistry) APP_CONTEXT_INIT.getApplicationContext().getBean(ServiceRegistry.SERVICE_REGISTRY);
         nodeService = serviceRegistry.getNodeService();
-        nodeIndexer = (NodeIndexer) APP_CONTEXT_INIT.getApplicationContext().getBean("nodeIndexer");
         nodeDAO = (NodeDAO) APP_CONTEXT_INIT.getApplicationContext().getBean("nodeDAO");
         txnService = serviceRegistry.getTransactionService();
         policyComponent = (PolicyComponent) APP_CONTEXT_INIT.getApplicationContext().getBean("policyComponent");
@@ -391,10 +389,9 @@ public class NodeServiceTest
      * <p/>
      * See: <a href="https://issues.alfresco.com/jira/browse/ALF-5714">ALF-5714</a><br/>
      * See: <a href="https://issues.alfresco.com/jira/browse/ALF-16888">ALF-16888</a>
+     * See: <a href="https://issues.alfresco.com/jira/browse/REPO-2783">REPO-2783</a>
      * <p/>
      * Note: if this test hangs for MySQL then check if 'innodb_locks_unsafe_for_binlog = true' (and restart MySQL + test)
-     * 
-     * TODO add @Test marker back to the test after REPO-2783 is fixed
      */
     public void testConcurrentArchive() throws Exception
     {
@@ -404,11 +401,11 @@ public class NodeServiceTest
             // See ALF-16888.  DB2 fails this test persistently.
             return;
         }
-        
+
         final NodeRef workspaceRootNodeRef = nodeService.getRootNode(StoreRef.STORE_REF_WORKSPACE_SPACESSTORE);
-        final NodeRef[] nodesPrimer = new NodeRef[1];
+        final NodeRef[] nodesPrimer = new NodeRef[2];
         buildNodeHierarchy(workspaceRootNodeRef, nodesPrimer);
-        final NodeRef[] nodesOne = new NodeRef[10];
+        final NodeRef[] nodesOne = new NodeRef[15];
         buildNodeHierarchy(workspaceRootNodeRef, nodesOne);
         final NodeRef[] nodesTwo = new NodeRef[10];
         buildNodeHierarchy(workspaceRootNodeRef, nodesTwo);
@@ -1274,7 +1271,7 @@ public class NodeServiceTest
                     try
                     {
                         wait(1000L);     // A short wait before we kick off (should be notified)
-                        for (int i = 0; i < 200; i++)
+                        for (int i = 0; i < 100; i++)
                         {
                             NodeRef nodeRef = txnService.getRetryingTransactionHelper().doInTransaction(createChildCallback);
                             // Store the node for later checks
@@ -1311,6 +1308,9 @@ public class NodeServiceTest
                     // Short wait to give thread a chance to run
                     synchronized(this) { try { wait(10L); } catch (Throwable e) {} };
                 }
+                //add the Temporary aspect to make the deletion faster (it will not be moved to the archival store)
+                nodeService.addAspect(nodeRefs[0], ContentModel.ASPECT_TEMPORARY, null);
+
                 // Delete the parent node
                 nodeService.deleteNode(nodeRefs[0]);
                 return null;
@@ -1433,36 +1433,27 @@ public class NodeServiceTest
         }
 
         // forcefully delete the root, a random connecting one, and a random leaf
-        // We'll need to disable indexing to do this or the transaction will be thrown out
-        nodeIndexer.setDisabled(true);
-        try
+        txnService.getRetryingTransactionHelper().doInTransaction(new RetryingTransactionCallback<Void>()
         {
-            txnService.getRetryingTransactionHelper().doInTransaction(new RetryingTransactionCallback<Void>()
+            @Override
+            public Void execute() throws Throwable
             {
-                @Override
-                public Void execute() throws Throwable
-                {
-                    Long nodeId = (Long) nodeService.getProperty(nodeRefs[0], ContentModel.PROP_NODE_DBID);
-                    nodeDAO.updateNode(nodeId, ContentModel.TYPE_DELETED, null);
-                    nodeDAO.removeNodeAspects(nodeId);
-                    nodeDAO.removeNodeProperties(nodeId, nodeDAO.getNodeProperties(nodeId).keySet());
-                    nodeId = (Long) nodeService.getProperty(nodeRefs[2], ContentModel.PROP_NODE_DBID);
-                    nodeDAO.updateNode(nodeId, ContentModel.TYPE_DELETED, null);
-                    nodeDAO.removeNodeAspects(nodeId);
-                    nodeDAO.removeNodeProperties(nodeId, nodeDAO.getNodeProperties(nodeId).keySet());
-                    nodeId = (Long) nodeService.getProperty(childNodeRefs.get(childNodeRefs.size() - 1),
-                            ContentModel.PROP_NODE_DBID);
-                    nodeDAO.updateNode(nodeId, ContentModel.TYPE_DELETED, null);
-                    nodeDAO.removeNodeAspects(nodeId);
-                    nodeDAO.removeNodeProperties(nodeId, nodeDAO.getNodeProperties(nodeId).keySet());
-                    return null;
-                }
-            });
-        }
-        finally
-        {
-            nodeIndexer.setDisabled(false);
-        }
+                Long nodeId = (Long) nodeService.getProperty(nodeRefs[0], ContentModel.PROP_NODE_DBID);
+                nodeDAO.updateNode(nodeId, ContentModel.TYPE_DELETED, null);
+                nodeDAO.removeNodeAspects(nodeId);
+                nodeDAO.removeNodeProperties(nodeId, nodeDAO.getNodeProperties(nodeId).keySet());
+                nodeId = (Long) nodeService.getProperty(nodeRefs[2], ContentModel.PROP_NODE_DBID);
+                nodeDAO.updateNode(nodeId, ContentModel.TYPE_DELETED, null);
+                nodeDAO.removeNodeAspects(nodeId);
+                nodeDAO.removeNodeProperties(nodeId, nodeDAO.getNodeProperties(nodeId).keySet());
+                nodeId = (Long) nodeService.getProperty(childNodeRefs.get(childNodeRefs.size() - 1),
+                        ContentModel.PROP_NODE_DBID);
+                nodeDAO.updateNode(nodeId, ContentModel.TYPE_DELETED, null);
+                nodeDAO.removeNodeAspects(nodeId);
+                nodeDAO.removeNodeProperties(nodeId, nodeDAO.getNodeProperties(nodeId).keySet());
+                return null;
+            }
+        });
 
         // Now need to identify the problem nodes
         final List<Long> childNodeIds = getChildNodesWithDeletedParentNode(params, nodesWithDeletedParents.size());
@@ -1604,25 +1595,16 @@ public class NodeServiceTest
             
             // forcefully remove the primary parent assoc
             final Long childNodeId = (Long)nodeService.getProperty(childNodeRef, ContentModel.PROP_NODE_DBID);
-            // We'll need to disable indexing to do this or the transaction will be thrown out
-            nodeIndexer.setDisabled(true);
-            try
+            txnService.getRetryingTransactionHelper().doInTransaction(new RetryingTransactionCallback<Void>()
             {
-                txnService.getRetryingTransactionHelper().doInTransaction(new RetryingTransactionCallback<Void>()
+                @Override
+                public Void execute() throws Throwable
                 {
-                    @Override
-                    public Void execute() throws Throwable
-                    {
-                        Pair<Long, ChildAssociationRef> assocPair = nodeDAO.getPrimaryParentAssoc(childNodeId);
-                        nodeDAO.deleteChildAssoc(assocPair.getFirst());
-                        return null;
-                    }
-                });
-            }
-            finally
-            {
-                nodeIndexer.setDisabled(false);
-            }
+                    Pair<Long, ChildAssociationRef> assocPair = nodeDAO.getPrimaryParentAssoc(childNodeId);
+                    nodeDAO.deleteChildAssoc(assocPair.getFirst());
+                    return null;
+                }
+            });
         }
         
         // Now need to identify the problem nodes

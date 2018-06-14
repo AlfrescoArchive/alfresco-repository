@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE beans PUBLIC "-//SPRING/DTD BEAN//EN"
-    "http://www.springframework.org/dtd/spring-beans.dtd">
-<beans>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+        http://www.springframework.org/schema/beans/spring-beans.xsd">
 
    <bean id="fileServerConfiguration"
          parent="fileServerConfigurationBase"
@@ -19,16 +20,13 @@
       <property name="securityConfigBean">
          <ref bean="fileSecurityConfig" />
       </property>
-      <property name="clusterConfigBean">
-         <ref bean="fileSystemClusterConfig" />
-      </property>
    </bean>
 
    <!-- CIFS Server -->
 
    <bean id="cifsServer" class="org.alfresco.filesys.CIFSServerBean" destroy-method="stopServer">
       <constructor-arg>
-         <ref local="fileServerConfiguration" />
+         <ref bean="fileServerConfiguration" />
       </constructor-arg>
       <property name="sessionListeners">
          <list>
@@ -42,7 +40,7 @@
 
    <bean id="ftpServer" class="org.alfresco.filesys.FTPServerBean" destroy-method="stopServer">
       <constructor-arg>
-         <ref local="fileServerConfiguration" />
+         <ref bean="fileServerConfiguration" />
       </constructor-arg>
    </bean>
 
@@ -228,7 +226,11 @@
 	  <property name="dataPortTo">
 		  <value>${ftp.dataPortTo}</value>
 	  </property>
-	   
+
+       <property name="externalAddress">
+           <value>${ftp.externalAddress}</value>
+       </property>
+
 	 <!-- FTPS support -->
 	 <property name="keyStorePath">
 		 <value>${ftp.keyStore}</value>
@@ -257,13 +259,6 @@
 	 <property name="sslEngineDebug">
 		 <value>${ftp.sslEngineDebug}</value>
 	 </property>
-   </bean>
-
-   <!-- Cluster Configuration -->
-   <bean id="fileSystemClusterConfig" factory-bean="fileServerConfigurationFactory" factory-method="createClusterConfigBean">
-      <property name="debugFlags">
-          <value>${filesystem.cluster.debugFlags}</value>
-      </property>
    </bean>
    
    <!-- Home Share Mapper -->

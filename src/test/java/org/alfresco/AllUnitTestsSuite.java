@@ -186,8 +186,19 @@ import org.junit.runners.Suite;
     org.alfresco.repo.workflow.activiti.WorklfowObjectFactoryTest.class,
     org.alfresco.repo.workflow.WorkflowSuiteContextShutdownTest.class,
     org.alfresco.repo.search.impl.lucene.analysis.PathTokenFilterTest.class,
+    
     org.alfresco.heartbeat.HBDataCollectorServiceImplTest.class,
-    org.alfresco.heartbeat.AuthoritiesDataCollectorTest.class
+    org.alfresco.heartbeat.HeartBeatJobTest.class,
+    org.alfresco.heartbeat.AuthoritiesDataCollectorTest.class,
+    org.alfresco.heartbeat.ConfigurationDataCollectorTest.class,
+    org.alfresco.heartbeat.InfoDataCollectorTest.class,
+    org.alfresco.heartbeat.ModelUsageDataCollectorTest.class,
+    org.alfresco.heartbeat.SystemUsageDataCollectorTest.class,
+
+    org.alfresco.repo.domain.DialectFactoryBeanTest.class,
+    org.alfresco.util.BeanExtenderUnitTest.class,
+    org.alfresco.util.bean.HierarchicalBeanLoaderTest.class,
+    org.alfresco.util.resource.HierarchicalResourceLoaderTest.class
 })
 public class AllUnitTestsSuite
 {

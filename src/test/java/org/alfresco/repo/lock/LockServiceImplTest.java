@@ -2,7 +2,7 @@
  * #%L
  * Alfresco Repository
  * %%
- * Copyright (C) 2005 - 2017 Alfresco Software Limited
+ * Copyright (C) 2005 - 2018 Alfresco Software Limited
  * %%
  * This file is part of the Alfresco software. 
  * If the software was purchased under a paid Alfresco license, the terms of 
@@ -26,6 +26,9 @@
 package org.alfresco.repo.lock;
 
 import static org.junit.Assert.assertNotEquals;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 import java.io.Serializable;
 import java.util.HashMap;
@@ -39,6 +42,10 @@ import org.alfresco.model.ContentModel;
 import org.alfresco.repo.lock.mem.Lifetime;
 import org.alfresco.repo.lock.mem.LockState;
 import org.alfresco.repo.lock.mem.LockStore;
+import org.alfresco.repo.policy.BehaviourDefinition;
+import org.alfresco.repo.policy.ClassBehaviourBinding;
+import org.alfresco.repo.policy.JavaBehaviour;
+import org.alfresco.repo.policy.PolicyComponent;
 import org.alfresco.repo.search.IndexerAndSearcher;
 import org.alfresco.repo.search.SearcherComponent;
 import org.alfresco.repo.security.authentication.AuthenticationComponent;
@@ -62,17 +69,20 @@ import org.alfresco.service.namespace.QName;
 import org.alfresco.test_category.BaseSpringTestsCategory;
 import org.alfresco.util.BaseSpringTest;
 import org.alfresco.util.TestWithUserUtils;
-import org.alfresco.util.testing.category.LuceneTests;
 import org.alfresco.util.testing.category.RedundantTests;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
+import org.springframework.test.context.transaction.TestTransaction;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Simple lock service test
  * 
  * @author Roy Wetherall
  */
-@Category({BaseSpringTestsCategory.class, LuceneTests.class})
+@Category({BaseSpringTestsCategory.class})
+@Transactional
 public class LockServiceImplTest extends BaseSpringTest
 {
     /**
@@ -101,10 +111,35 @@ public class LockServiceImplTest extends BaseSpringTest
     NodeRef rootNodeRef;
     private StoreRef storeRef;
 
-    /**
-     * Called during the transaction setup
-     */
-    protected void onSetUpInTransaction() throws Exception
+    private PolicyComponent policyComponent;
+
+
+    private class LockServicePoliciesImpl implements LockServicePolicies.BeforeLock,
+            LockServicePolicies.BeforeUnlock
+    {
+        @Override
+        public void beforeLock(NodeRef nodeRef, LockType lockType)
+        {
+            if (logger.isDebugEnabled())
+            {
+                logger.debug("Invoked beforeLock() for nodeRef: " + nodeRef +
+                        lockType != null ? (" and lockType: " + lockType) : "");
+            }
+        }
+
+        @Override
+        public void beforeUnlock(NodeRef nodeRef)
+        {
+            if (logger.isDebugEnabled())
+            {
+                logger.debug("Invoked beforeUnlock() for nodeRef: " + nodeRef);
+            }
+        }
+    }
+
+
+    @Before
+    public void before() throws Exception
     {
         this.nodeService = (NodeService)applicationContext.getBean("dbNodeService");
         this.lockService = (LockService)applicationContext.getBean("lockService");
@@ -114,6 +149,8 @@ public class LockServiceImplTest extends BaseSpringTest
         
         this.authenticationService = (MutableAuthenticationService)applicationContext.getBean("authenticationService");
         this.cociService = (CheckOutCheckInService) applicationContext.getBean("checkOutCheckInService");
+
+        this.policyComponent = (PolicyComponent)applicationContext.getBean("policyComponent");
         
         // Set the authentication
         AuthenticationComponent authComponent = (AuthenticationComponent)this.applicationContext.getBean("authenticationComponent");
@@ -198,7 +235,33 @@ public class LockServiceImplTest extends BaseSpringTest
         TestWithUserUtils.authenticateUser(BAD_USER_NAME, PWD, rootNodeRef, this.authenticationService);
         TestWithUserUtils.authenticateUser(GOOD_USER_NAME, PWD, rootNodeRef, this.authenticationService);
     }
-    
+
+    @Test
+    public void testLockServicePolicies()
+    {
+        LockServicePoliciesImpl mockedLockServicePoliciesImpl = mock(LockServicePoliciesImpl.class);
+
+        BehaviourDefinition<ClassBehaviourBinding> lockDef =
+                this.policyComponent.bindClassBehaviour(LockServicePolicies.BeforeLock.QNAME, ContentModel.TYPE_BASE,
+                        new JavaBehaviour(mockedLockServicePoliciesImpl, "beforeLock"));
+
+        BehaviourDefinition<ClassBehaviourBinding> unlockDef =
+                this.policyComponent.bindClassBehaviour(LockServicePolicies.BeforeUnlock.QNAME, ContentModel.TYPE_BASE,
+                        new JavaBehaviour(mockedLockServicePoliciesImpl, "beforeUnlock"));
+
+        this.lockService.lock(this.parentNode, LockType.WRITE_LOCK);
+
+        verify(mockedLockServicePoliciesImpl, times(1)).beforeLock(this.parentNode, LockType.WRITE_LOCK);
+
+        this.lockService.unlock(this.parentNode);
+
+        verify(mockedLockServicePoliciesImpl, times(1)).beforeUnlock(this.parentNode);
+
+        // cleanup:
+        this.policyComponent.removeClassDefinition(lockDef);
+        this.policyComponent.removeClassDefinition(unlockDef);
+    }
+
     /**
      * Test lock
      */
@@ -594,7 +657,7 @@ public class LockServiceImplTest extends BaseSpringTest
         lockService.lock(rootNodeRef, LockType.NODE_LOCK, 3600, Lifetime.EPHEMERAL);
         
         // Rollback
-        endTransaction();
+        TestTransaction.end();
         
         // This lock should not be present.
         assertEquals(LockStatus.NO_LOCK, lockService.getLockStatus(noAspectNode));
