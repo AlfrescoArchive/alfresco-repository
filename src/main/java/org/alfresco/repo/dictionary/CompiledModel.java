@@ -123,6 +123,10 @@ public class CompiledModel implements ModelQuery
         }
         catch(Exception e)
         {
+            if (logger.isDebugEnabled())
+            {
+                logger.debug("Failed to compile model:" + model.getName(), e);
+            }
             throw new DictionaryException(ERR_COMPILE_MODEL_FAILURE, e, model.getName());
         }
     }
