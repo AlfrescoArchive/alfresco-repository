@@ -578,7 +578,7 @@ implements TenantDeployer, DictionaryListener, /*TenantDictionaryListener, */Mes
             catch (AlfrescoRuntimeException e)
             {
                 // note: skip with warning - to allow server to start, and hence allow the possibility of fixing the broken model(s)
-                logger.warn("Failed to load model '" + modelName + "' : " + e);
+                logger.warn("Failed to load model '" + modelName + "' : " + e, e);
             }
         }
     }
