@@ -2,7 +2,7 @@
  * #%L
  * Alfresco Repository
  * %%
- * Copyright (C) 2005 - 2017 Alfresco Software Limited
+ * Copyright (C) 2005 - 2018 Alfresco Software Limited
  * %%
  * This file is part of the Alfresco software.
  * If the software was purchased under a paid Alfresco license, the terms of
@@ -29,20 +29,28 @@ import org.alfresco.heartbeat.datasender.HBData;
 import org.alfresco.repo.descriptor.DescriptorDAO;
 import org.alfresco.service.cmr.security.AuthorityService;
 import org.alfresco.service.cmr.security.AuthorityType;
+import org.alfresco.util.PropertyCheck;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.beans.factory.InitializingBean;
+
 import java.util.*;
 
 /**
- * This class collects authorities data for HeartBeat.
- * <br>
- * <b>Collector ID:</b> acs.repository.usage.authorities
- * <br>
- * <b>Data points:</b> numUsers, numGroups
+ * A collector of data related authorities. The AuthorityService encapsulates authorities granted to users.
+ * <ul>
+ *  <li>Collector ID: <b>acs.repository.usage.authorities</b></li>
+ *  <li>Data:
+ *      <ul>
+ *          <li><b>numUsers:</b> Integer - The total number of users in the system. {@link AuthorityService#getAllAuthoritiesInZone(String, AuthorityType)}</li>
+ *          <li><b>numGroups:</b> Integer - The total number of groups in the system. {@link AuthorityService#getAllAuthoritiesInZone(String, AuthorityType)}</li>
+ *      </ul>
+ *  </li>
+ * </ul>
  *
  * @author eknizat
  */
-public class AuthoritiesDataCollector extends HBBaseDataCollector
+public class AuthoritiesDataCollector extends HBBaseDataCollector implements InitializingBean
 {
 
     /** The logger. */
@@ -53,6 +61,11 @@ public class AuthoritiesDataCollector extends HBBaseDataCollector
 
     /** The authority service. */
     private AuthorityService authorityService;
+
+    public AuthoritiesDataCollector(String collectorId, String collectorVersion, String cronExpression)
+    {
+        super(collectorId, collectorVersion, cronExpression);
+    }
 
     public void setCurrentRepoDescriptorDAO(DescriptorDAO currentRepoDescriptorDAO)
     {
@@ -65,13 +78,17 @@ public class AuthoritiesDataCollector extends HBBaseDataCollector
     }
 
     @Override
+    public void afterPropertiesSet() throws Exception
+    {
+        PropertyCheck.mandatory(this, "authorityService", authorityService);
+        PropertyCheck.mandatory(this, "currentRepoDescriptorDAO", currentRepoDescriptorDAO);
+    }
+
+    @Override
     public List<HBData> collectData()
     {
-
-        List<HBData> collectedData = new LinkedList<>();
-
-        // Collect repository usage (authorities) data
         this.logger.debug("Preparing repository usage (authorities) data...");
+
         Map<String, Object> authoritiesUsageValues = new HashMap<>();
         authoritiesUsageValues.put("numUsers", new Integer(this.authorityService.getAllAuthoritiesInZone(
                 AuthorityService.ZONE_APP_DEFAULT, AuthorityType.USER).size()));
@@ -79,12 +96,11 @@ public class AuthoritiesDataCollector extends HBBaseDataCollector
                 AuthorityService.ZONE_APP_DEFAULT, AuthorityType.GROUP).size()));
         HBData authoritiesUsageData = new HBData(
                 this.currentRepoDescriptorDAO.getDescriptor().getId(),
-                "acs.repository.usage.authorities",
-                "1.0",
+                this.getCollectorId(),
+                this.getCollectorVersion(),
                 new Date(),
                 authoritiesUsageValues);
-        collectedData.add(authoritiesUsageData);
 
-        return collectedData;
+        return Arrays.asList(authoritiesUsageData);
     }
 }

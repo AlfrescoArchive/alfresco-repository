@@ -2,7 +2,7 @@
  * #%L
  * Alfresco Repository
  * %%
- * Copyright (C) 2005 - 2017 Alfresco Software Limited
+ * Copyright (C) 2005 - 2018 Alfresco Software Limited
  * %%
  * This file is part of the Alfresco software. 
  * If the software was purchased under a paid Alfresco license, the terms of 
@@ -41,6 +41,7 @@ import org.alfresco.repo.copy.CopyDetails;
 import org.alfresco.repo.copy.CopyServicePolicies;
 import org.alfresco.repo.copy.DoNothingCopyBehaviourCallback;
 import org.alfresco.repo.lock.LockServicePolicies.BeforeLock;
+import org.alfresco.repo.lock.LockServicePolicies.BeforeUnlock;
 import org.alfresco.repo.lock.mem.Lifetime;
 import org.alfresco.repo.lock.mem.LockState;
 import org.alfresco.repo.lock.mem.LockStore;
@@ -48,7 +49,6 @@ import org.alfresco.repo.lock.mem.LockableAspectInterceptor;
 import org.alfresco.repo.lock.traitextender.LockServiceExtension;
 import org.alfresco.repo.lock.traitextender.LockServiceTrait;
 import org.alfresco.repo.node.NodeServicePolicies;
-import org.alfresco.repo.node.index.NodeIndexer;
 import org.alfresco.repo.policy.BehaviourFilter;
 import org.alfresco.repo.policy.ClassPolicyDelegate;
 import org.alfresco.repo.policy.JavaBehaviour;
@@ -76,10 +76,10 @@ import org.alfresco.service.cmr.search.ResultSet;
 import org.alfresco.service.cmr.search.SearchService;
 import org.alfresco.service.cmr.security.AuthenticationService;
 import org.alfresco.service.namespace.QName;
+import org.alfresco.traitextender.AJProxyTrait;
 import org.alfresco.traitextender.Extend;
 import org.alfresco.traitextender.ExtendedTrait;
 import org.alfresco.traitextender.Extensible;
-import org.alfresco.traitextender.AJProxyTrait;
 import org.alfresco.traitextender.Trait;
 import org.alfresco.util.Pair;
 import org.alfresco.util.PropertyCheck;
@@ -116,9 +116,8 @@ public class LockServiceImpl implements LockService,
     
     /** Class policy delegate's */
     private ClassPolicyDelegate<BeforeLock> beforeLock;
+    private ClassPolicyDelegate<BeforeUnlock> beforeUnlock;
 
-    private NodeIndexer nodeIndexer;
-    
     private int ephemeralExpiryThreshold;
 
     private final ExtendedTrait<LockServiceTrait> lockServiceTrait;
@@ -176,7 +175,8 @@ public class LockServiceImpl implements LockService,
         PropertyCheck.mandatory(this, "policyComponent",  policyComponent);
         
         // Register the policies
-        beforeLock = policyComponent.registerClassPolicy(LockServicePolicies.BeforeLock.class);
+        beforeLock   = policyComponent.registerClassPolicy(LockServicePolicies.BeforeLock.class);
+        beforeUnlock = policyComponent.registerClassPolicy(LockServicePolicies.BeforeUnlock.class);
         
         // Register the various class behaviours to enable lock checking
         this.policyComponent.bindAssociationBehaviour(
@@ -232,7 +232,7 @@ public class LockServiceImpl implements LockService,
     }
     
     /**
-     * Invoke the before log policy
+     * Invoke the before lock policy
      * 
      * @param nodeRef       the node to be locked
      * @param lockType      the lock type
@@ -252,6 +252,31 @@ public class LockServiceImpl implements LockService,
             for (BeforeLock policy : policies) 
             {
                 policy.beforeLock(nodeRef, lockType);
+            }
+        }
+    }
+
+    /**
+     * Invoke the before unlock policy
+     *
+     * @param nodeRef       the node to be unlocked
+     */
+    private void invokeBeforeUnlock(NodeRef nodeRef)
+    {
+        if (!nodeService.exists(nodeRef))
+        {
+            return;
+        }
+
+        List<QName> classes = getInvokeClasses(nodeRef);
+
+        for (QName invokeClass : classes)
+        {
+            Collection<BeforeUnlock> policies = beforeUnlock.getList(invokeClass);
+
+            for (BeforeUnlock policy : policies)
+            {
+                policy.beforeUnlock(nodeRef);
             }
         }
     }
@@ -409,8 +434,6 @@ public class LockServiceImpl implements LockService,
                 // it to be reverted to this state on rollback.
                 TransactionalResourceHelper.getMap(KEY_MODIFIED_NODES).put(nodeRef, currentLockInfo);
                 AlfrescoTransactionSupport.bindListener(this);
-                
-                nodeIndexer.indexUpdateNode(nodeRef);
             }
             else
             {
@@ -510,6 +533,8 @@ public class LockServiceImpl implements LockService,
     public void unlock(NodeRef nodeRef, boolean unlockChildren, boolean allowCheckedOut)
             throws UnableToReleaseLockException
     {
+        invokeBeforeUnlock(nodeRef);
+
         // Unlock the parent
         nodeRef = tenantService.getName(nodeRef);
         	
@@ -549,7 +574,6 @@ public class LockServiceImpl implements LockService,
             {
                 // Remove the ephemeral lock.
                 lockStore.set(nodeRef, LockState.createUnlocked(nodeRef));
-                nodeIndexer.indexUpdateNode(nodeRef);
             }
             else
             {
@@ -977,11 +1001,6 @@ public class LockServiceImpl implements LockService,
     public BehaviourFilter getBehaviourFilter()
     {
         return behaviourFilter;
-    }
-
-    public void setNodeIndexer(NodeIndexer nodeIndexer)
-    {
-        this.nodeIndexer = nodeIndexer;
     }
 
     @Override

@@ -33,7 +33,10 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import org.alfresco.model.ContentModel;
 import org.alfresco.repo.action.ParameterDefinitionImpl;
@@ -64,8 +67,14 @@ import org.alfresco.service.namespace.NamespaceService;
 import org.alfresco.service.namespace.QName;
 import org.alfresco.test_category.BaseSpringTestsCategory;
 import org.alfresco.util.ApplicationContextHelper;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.alfresco.util.BaseAlfrescoSpringTest;
+import org.springframework.extensions.surf.util.I18NUtil;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Test class for the {@link ActionFormProcessor}.
@@ -74,6 +83,9 @@ import org.alfresco.util.BaseAlfrescoSpringTest;
  * @since 4.0
  */
 @Category(BaseSpringTestsCategory.class)
+@Transactional
+@ContextConfiguration({ "classpath:alfresco/application-context.xml",
+        "classpath:org/alfresco/repo/forms/MNT-7383-context.xml"})
 public class ActionFormProcessorTest extends BaseAlfrescoSpringTest
 {
     private RetryingTransactionHelper transactionHelper;
@@ -85,24 +97,11 @@ public class ActionFormProcessorTest extends BaseAlfrescoSpringTest
     private List<NodeRef> testNodesToBeTidiedUp;
 
 
-    @Override
-    protected String[] getConfigLocations()
-    {
-        String[] existingConfigLocations = ApplicationContextHelper.CONFIG_LOCATIONS;
-
-        List<String> locations = Arrays.asList(existingConfigLocations);
-        List<String> mutableLocationsList = new ArrayList<String>(locations);
-        mutableLocationsList.add("classpath:org/alfresco/repo/forms/MNT-7383-context.xml");
-
-        String[] result = mutableLocationsList.toArray(new String[mutableLocationsList.size()]);
-        return result;
-    }
-
     @SuppressWarnings("deprecation")
-	@Override
-    protected void onSetUpInTransaction() throws Exception
+	@Before
+    public void before() throws Exception
     {
-        super.onSetUpInTransaction();
+        super.before();
 
         this.formService = (FormService)this.applicationContext.getBean("FormService");
         this.namespaceService = (NamespaceService)this.applicationContext.getBean("NamespaceService");
@@ -125,9 +124,10 @@ public class ActionFormProcessorTest extends BaseAlfrescoSpringTest
         AuthenticationUtil.setFullyAuthenticatedUser(AuthenticationUtil.getAdminUserName());
     }
 
-    @Override
-    protected void onTearDownInTransaction() throws Exception
+    @After
+    public void after() throws Exception
     {
+        super.after();
         AuthenticationUtil.setFullyAuthenticatedUser(AuthenticationUtil.getAdminUserName());
 
         for (NodeRef node : testNodesToBeTidiedUp)
@@ -135,7 +135,6 @@ public class ActionFormProcessorTest extends BaseAlfrescoSpringTest
             if (nodeService.exists(node)) nodeService.deleteNode(node);
         }
         authenticationService.clearCurrentSecurityContext();
-        super.onTearDownInTransaction();
     }
 
     /**
@@ -154,6 +153,7 @@ public class ActionFormProcessorTest extends BaseAlfrescoSpringTest
         return node;
     }
 
+    @Test
     public void testRequestFormForNonExistentAction() throws Exception
     {
         try
@@ -168,6 +168,7 @@ public class ActionFormProcessorTest extends BaseAlfrescoSpringTest
 
     }
 
+    @Test
     public void testGenerateDefaultFormForParameterlessAction() throws Exception
     {
         this.transactionHelper.doInTransaction(new RetryingTransactionHelper.RetryingTransactionCallback<Void>()
@@ -198,6 +199,7 @@ public class ActionFormProcessorTest extends BaseAlfrescoSpringTest
             });
     }
     
+    @Test
     public void testGenerateDefaultFormForActionWithNodeRefParam() throws Exception
     {
         this.transactionHelper.doInTransaction(new RetryingTransactionHelper.RetryingTransactionCallback<Void>() {
@@ -247,8 +249,36 @@ public class ActionFormProcessorTest extends BaseAlfrescoSpringTest
         assertNull("'executeAsynchronously' description was wrong", execAsync.getDescription());
         assertEquals("'executeAsynchronously' datatype was wrong", "boolean", execAsync.getDataType());
     }
+
+    /**
+     * REPO-2253 Community: ALF-21854 Action parameter lookup for "de_DE" falls back to "root" locale instead of "de"
+     */
+    @Test
+    public void testGenerateFormWithSpecificLocale()
+    {
+        final Locale originalLocale = I18NUtil.getLocale();
+        try
+        {
+            I18NUtil.setLocale(Locale.GERMANY); // de-DE
+            
+            transactionHelper.doInTransaction(() -> {
+                Form form = formService.getForm(new Item(ActionFormProcessor.ITEM_KIND, "transform"));
+                // Field definitions keyed by name.
+                Map<String, FieldDefinition> fieldDefMap = form.getFieldDefinitions().stream().
+                        collect(Collectors.toMap(FieldDefinition::getName, Function.identity()));
+                
+                assertEquals("Zielordner", fieldDefMap.get(TransformActionExecuter.PARAM_DESTINATION_FOLDER).getLabel());
+                assertEquals("MIME-Type", fieldDefMap.get(TransformActionExecuter.PARAM_MIME_TYPE).getLabel());
+                return null;
+            });
+        }
+        finally
+        {
+            I18NUtil.setLocale(originalLocale);
+        }
+    }
     
-    
+    @Test
     public void testGenerateFormWithSelectedFields() throws Exception
     {
         this.transactionHelper.doInTransaction(new RetryingTransactionHelper.RetryingTransactionCallback<Void>()
@@ -288,6 +318,7 @@ public class ActionFormProcessorTest extends BaseAlfrescoSpringTest
             });
     }
     
+    @Test
     public void testPersistForm_executeTransformAction() throws Exception
     {
         this.transactionHelper.doInTransaction(new RetryingTransactionHelper.RetryingTransactionCallback<Void>() {
@@ -323,6 +354,7 @@ public class ActionFormProcessorTest extends BaseAlfrescoSpringTest
         });
     }
 
+    @Test
     public void testMNT7383() throws Exception
     {
         this.transactionHelper.doInTransaction(new RetryingTransactionHelper.RetryingTransactionCallback<Void>()

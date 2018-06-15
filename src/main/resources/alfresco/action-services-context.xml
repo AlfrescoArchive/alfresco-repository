@@ -1,7 +1,8 @@
 <?xml version='1.0' encoding='UTF-8'?>
-<!DOCTYPE beans PUBLIC '-//SPRING//DTD BEAN//EN' 'http://www.springframework.org/dtd/spring-beans.dtd'>
-
-<beans>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+        http://www.springframework.org/schema/beans/spring-beans.xsd">
 
     <!-- Action Service Configuration -->
 
@@ -516,6 +517,9 @@
     <bean id="mail" class="org.alfresco.repo.management.subsystems.SubsystemProxyFactory">
         <property name="sourceApplicationContextFactory">
             <ref bean="OutboundSMTP" />
+        </property>
+        <property name="sourceBeanName">
+            <value>mail</value>
         </property>
         <property name="interfaces">
             <list>

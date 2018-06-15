@@ -78,7 +78,7 @@ import org.springframework.context.ApplicationContext;
     org.alfresco.repo.content.metadata.MP3MetadataExtracterTest.class,
     org.alfresco.repo.content.metadata.OfficeMetadataExtracterTest.class,
     org.alfresco.repo.content.metadata.OpenDocumentMetadataExtracterTest.class,
-    org.alfresco.repo.content.metadata.OpenOfficeMetadataExtracterTest.class,
+    org.alfresco.repo.content.metadata.JodMetadataExtractorOOoTest.class,
     org.alfresco.repo.content.metadata.PdfBoxMetadataExtracterTest.class,
     org.alfresco.repo.content.metadata.ConcurrencyPdfBoxMetadataExtracterTest.class,
     org.alfresco.repo.content.metadata.PoiMetadataExtracterTest.class,
@@ -97,7 +97,6 @@ import org.springframework.context.ApplicationContext;
     // [classpath*:alfresco/ibatis/ibatis-test-context.xml, classpath:alfresco/application-context.xml,
     // classpath:alfresco/test/global-integration-test-context.xml]
     org.alfresco.repo.domain.query.CannedQueryDAOTest.class,
-    // REPO-2783 only passes on a dirty DB. fails to pass on a clean DB - testConcurrentArchive
     org.alfresco.repo.node.NodeServiceTest.class,
 
     // [classpath:alfresco/application-context.xml, classpath:alfresco/minimal-context.xml]
@@ -122,17 +121,6 @@ import org.springframework.context.ApplicationContext;
     // [module/module-component-test-beans.xml]
     org.alfresco.repo.module.ComponentsTest.class,
 
-    // TODO can we remove this? Was it EOLed?
-    // [classpath:test/alfresco/test-web-publishing-context.xml]
-    org.alfresco.repo.publishing.ChannelServiceImplTest.class,
-    org.alfresco.repo.publishing.PublishingEventHelperTest.class,
-
-    // [alfresco/scheduler-core-context.xml, org/alfresco/util/test-scheduled-jobs-context.xml]
-    org.alfresco.util.CronTriggerBeanTest.class,
-
-    // [alfresco/scheduler-core-context.xml, org/alfresco/heartbeat/test-heartbeat-context.xml]
-    org.alfresco.heartbeat.HeartBeatTest.class,
-
     // ----------------------------------------------------------------------
     // Transformer/Rendition contexts
     //
@@ -149,8 +137,8 @@ import org.springframework.context.ApplicationContext;
     // this does NOT passes locally
     org.alfresco.repo.rendition.RenditionServicePermissionsTest.class,
 
-    // [alfresco/scheduler-core-context.xml, org/alfresco/heartbeat/test-heartbeat-context.xml]
-    org.alfresco.heartbeat.HeartBeatTest.class,
+    // [ibatis/hierarchy-test/hierarchy-test-context.xml]
+    org.alfresco.ibatis.HierarchicalSqlSessionFactoryBeanTest.class
 })
 public class MiscContextTestSuite
 {

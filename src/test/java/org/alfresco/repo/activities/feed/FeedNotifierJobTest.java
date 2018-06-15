@@ -48,10 +48,7 @@ import org.alfresco.service.cmr.security.PersonService;
 import org.alfresco.service.cmr.site.SiteService;
 import org.alfresco.service.namespace.NamespaceService;
 import org.alfresco.service.transaction.TransactionService;
-import org.alfresco.util.ApplicationContextHelper;
-import org.alfresco.util.GUID;
-import org.alfresco.util.Pair;
-import org.alfresco.util.PropertyMap;
+import org.alfresco.util.*;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -59,6 +56,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+import org.quartz.JobBuilder;
 import org.quartz.JobDataMap;
 import org.quartz.JobDetail;
 import org.quartz.JobExecutionContext;
@@ -132,6 +130,7 @@ public class FeedNotifierJobTest
         repoAdminService = (RepoAdminService) ctx.getBean("repoAdminService");
         actionService = (ActionService) ctx.getBean("ActionService");
         authenticationContext = (AuthenticationContext) ctx.getBean("authenticationContext");
+        EmailHelper emailHelper = (EmailHelper) ctx.getBean("emailHelper");
         
         AuthenticationUtil.setAdminUserAsFullyAuthenticatedUser();
         // create some users
@@ -157,15 +156,18 @@ public class FeedNotifierJobTest
         userNotifier.setActivitiesFeedModelBuilderFactory(feedModelBuilderFactory);
         userNotifier.setAuthenticationContext(authenticationContext);
         userNotifier.setExcludedEmailSuffixes(emailUserNotifier.getExcludedEmailSuffixes());
-        
+        userNotifier.setEmailHelper(emailHelper);
         feedNotifier.setUserNotifier(userNotifier);
-        
-        jobDetail = new JobDetail("feedNotifier", FeedNotifierJob.class);
-        JobDataMap jobDataMap = jobDetail.getJobDataMap();
+
+        JobDataMap jobDataMap = new JobDataMap();
         jobDataMap.put("tenantAdminService", tenantAdminService);
         jobDataMap.put("feedNotifier", feedNotifier);
+        jobDetail = JobBuilder.newJob()
+                .withIdentity("feedNotifier")
+                .ofType(FeedNotifierJob.class)
+                .setJobData(jobDataMap)
+                .build();
         feedNotifierJob = new FeedNotifierJob();
-        
         when(jobCtx.getJobDetail()).thenReturn(jobDetail);
     }
 

@@ -30,14 +30,11 @@ import java.util.Date;
 import javax.transaction.Status;
 import javax.transaction.UserTransaction;
 
-import junit.framework.TestCase;
-
 import org.alfresco.opencmis.dictionary.CMISDictionaryService;
 import org.alfresco.opencmis.mapping.CMISMapping;
 import org.alfresco.opencmis.search.CMISQueryService;
 import org.alfresco.repo.dictionary.DictionaryDAO;
 import org.alfresco.repo.dictionary.NamespaceDAO;
-import org.alfresco.repo.search.impl.lucene.fts.FullTextSearchIndexer;
 import org.alfresco.repo.security.authentication.AuthenticationComponent;
 import org.alfresco.repo.security.authentication.AuthenticationUtil;
 import org.alfresco.repo.security.authentication.MutableAuthenticationDao;
@@ -58,8 +55,11 @@ import org.alfresco.service.namespace.NamespaceService;
 import org.alfresco.service.transaction.TransactionService;
 import org.alfresco.util.ApplicationContextHelper;
 import org.alfresco.util.testing.category.LuceneTests;
+import org.junit.After;
 import org.junit.experimental.categories.Category;
 import org.springframework.context.ApplicationContext;
+
+import junit.framework.TestCase;
 
 /**
  * Base CMIS test
@@ -158,7 +158,8 @@ public abstract class BaseCMISTest extends TestCase
 
         testTX = transactionService.getUserTransaction();
         testTX.begin();
-        this.authenticationComponent.setSystemUserAsCurrentUser();
+        // Authenticate as the admin user
+        AuthenticationUtil.setFullyAuthenticatedUser(AuthenticationUtil.getAdminUserName());
         
         String storeName = "CMISTest-" + getStoreName() + "-" + (new Date().getTime());
         this.storeRef = nodeService.createStore(StoreRef.PROTOCOL_WORKSPACE, storeName);
@@ -194,5 +195,7 @@ public abstract class BaseCMISTest extends TestCase
             testTX.rollback();
         }
         super.tearDown();
+    
+        AuthenticationUtil.clearCurrentSecurityContext();
     }
 }
