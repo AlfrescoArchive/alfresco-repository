@@ -147,6 +147,7 @@ public abstract class AbstractRemoteContentTransformer extends AbstractContentTr
         {
             String sourceMimetype = getMimetype(reader);
             String targetMimetype = writer.getMimetype();
+            String targetEncoding = writer.getEncoding();
 
             MimetypeService mimetypeService = getMimetypeService();
             String sourceExtension = mimetypeService.getExtension(sourceMimetype);
@@ -157,11 +158,12 @@ public abstract class AbstractRemoteContentTransformer extends AbstractContentTr
                         "   source mimetype: " + sourceMimetype + "\n" +
                         "   source extension: " + sourceExtension + "\n" +
                         "   target mimetype: " + targetMimetype + "\n" +
-                        "   target extension: " + targetExtension);
+                        "   target extension: " + targetExtension + "\n" +
+                        "   target encoding: " + targetEncoding);
             }
 
             transformRemote(remoteTransformerClient, reader, writer, options, sourceMimetype, targetMimetype,
-                    sourceExtension, targetExtension);
+                    sourceExtension, targetExtension, targetEncoding);
         }
         else
         {
@@ -184,5 +186,6 @@ public abstract class AbstractRemoteContentTransformer extends AbstractContentTr
     protected abstract void transformRemote(RemoteTransformerClient remoteTransformerClient, ContentReader reader,
                                             ContentWriter writer, TransformationOptions options,
                                             String sourceMimetype, String targetMimetype,
-                                            String sourceExtension, String targetExtension) throws Exception;
+                                            String sourceExtension, String targetExtension,
+                                            String targetEncoding) throws Exception;
 }

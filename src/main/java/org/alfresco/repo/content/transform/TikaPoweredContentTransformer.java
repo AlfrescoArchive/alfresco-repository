@@ -286,12 +286,14 @@ public abstract class TikaPoweredContentTransformer extends AbstractRemoteConten
     protected void transformRemote(RemoteTransformerClient remoteTransformerClient, ContentReader reader,
                                    ContentWriter writer, TransformationOptions options,
                                    String sourceMimetype, String targetMimetype,
-                                   String sourceExtension, String targetExtension) throws Exception
+                                   String sourceExtension, String targetExtension,
+                                   String targetEncoding) throws Exception
     {
         String transform = getTransform();
         long timeoutMs = options.getTimeoutMs();
         remoteTransformerClient.request(reader, writer, sourceMimetype, sourceExtension, targetExtension,
-                timeoutMs, logger, "transform", transform);
+                timeoutMs, logger, "transform", transform,
+                "targetMimetype", targetMimetype, "targetEncoding", targetEncoding);
     }
 
     protected abstract String getTransform();
