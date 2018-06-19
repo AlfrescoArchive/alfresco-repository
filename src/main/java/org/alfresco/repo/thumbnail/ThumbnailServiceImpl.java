@@ -999,6 +999,11 @@ public class ThumbnailServiceImpl implements ThumbnailService,
                         {
                             for (NodeRef node : thumbnailToDelete)
                             {
+                                // Update lastThumbnailModification on parent node
+                                // so that the thumbnail will be recreated when browsing share
+                                String thumbnailName = (String) nodeService.getProperty(node, ContentModel.PROP_NAME);
+                                addThumbnailModificationData(node, thumbnailName);
+
                                 nodeService.deleteNode(node);
                             }
                             return null;
