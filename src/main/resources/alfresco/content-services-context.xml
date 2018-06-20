@@ -485,6 +485,7 @@
 
    <bean id="baseTikaContentTransformer"
          class="org.alfresco.repo.content.transform.TikaPoweredContentTransformer"
+         abstract="true"
          parent="baseContentTransformer">
        <property name="remoteTransformerClient">
           <ref bean="tikaRemoteTransformerClient" />
