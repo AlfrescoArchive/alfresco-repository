@@ -178,33 +178,33 @@ public class TransactionCleanupTest
 		return txnIds;
     }
 
-	private Map<NodeRef, List<String>> createTransactionsForNodePurgeTest()
-	{
-		Map<NodeRef, List<String>> txnIds = new HashMap<NodeRef, List<String>>();
-		DeleteNode deleteNode4 = new DeleteNode(nodeRef4);
-		DeleteNode deleteNode5 = new DeleteNode(nodeRef5);
-		List<String> txnIds4 = new ArrayList<String>();
-		List<String> txnIds5 = new ArrayList<String>();
-		txnIds.put(nodeRef4, txnIds4);
-		txnIds.put(nodeRef5, txnIds5);
+    private Map<NodeRef, List<String>> createTransactionsForNodePurgeTest()
+    {
+        Map<NodeRef, List<String>> txnIds = new HashMap<NodeRef, List<String>>();
+        DeleteNode deleteNode4 = new DeleteNode(nodeRef4);
+        DeleteNode deleteNode5 = new DeleteNode(nodeRef5);
+        List<String> txnIds4 = new ArrayList<String>();
+        List<String> txnIds5 = new ArrayList<String>();
+        txnIds.put(nodeRef4, txnIds4);
+        txnIds.put(nodeRef5, txnIds5);
 
-		String txnId4 = helper.doInTransaction(deleteNode4, false, true);
-		txnIds4.add(txnId4);
-		try
-		{
-			Thread.sleep(500);
-		}
-		catch (Exception e)
-		{
-			// not a problem
-		}
-		fromCustomCommitTime = System.currentTimeMillis();
+        String txnId4 = helper.doInTransaction(deleteNode4, false, true);
+        txnIds4.add(txnId4);
+        try
+        {
+            Thread.sleep(500);
+        }
+        catch (Exception e)
+        {
+            // not a problem
+        }
+        fromCustomCommitTime = System.currentTimeMillis();
 
-		String txnId5 = helper.doInTransaction(deleteNode5, false, true);
-		txnIds5.add(txnId5);
+        String txnId5 = helper.doInTransaction(deleteNode5, false, true);
+        txnIds5.add(txnId5);
 
-		return txnIds;
-	}
+        return txnIds;
+    }
 
     private boolean containsTransaction(List<Transaction> txns, String txnId)
     {
@@ -326,39 +326,38 @@ public class TransactionCleanupTest
         assertNull("Node 5 was not cleaned up", nodeDAO.getNodeRefStatus(nodeRef5));
     }
 
-	@Test
-	public void testPurgeNodeUseTransactionCommitTime() throws Exception
-	{
-		// make sure we clean up all the other nodes that may require purging
-		worker.setPurgeSize(7200000);// 2 hours
-		worker.doClean();
-		// delete the node 4 and node 5 with a half a second delay between the events
-		createTransactionsForNodePurgeTest();
+    @Test public void testPurgeNodeUseTransactionCommitTime() throws Exception
+    {
+        // make sure we clean up all the other nodes that may require purging
+        worker.setPurgeSize(7200000);// 2 hours
+        worker.doClean();
+        // delete the node 4 and node 5 with a half a second delay between the events
+        createTransactionsForNodePurgeTest();
 
-		// Double-check that n4 and n5 are present in deleted form
-		nodesCache.clear();
+        // Double-check that n4 and n5 are present in deleted form
+        nodesCache.clear();
 
-		assertNotNull("Node 4 is deleted but not purged", nodeDAO.getNodeRefStatus(nodeRef4));
-		assertNotNull("Node 5 is deleted but not purged", nodeDAO.getNodeRefStatus(nodeRef5));
+        assertNotNull("Node 4 is deleted but not purged", nodeDAO.getNodeRefStatus(nodeRef4));
+        assertNotNull("Node 5 is deleted but not purged", nodeDAO.getNodeRefStatus(nodeRef5));
 
-		// run the transaction cleaner
-		worker.setPurgeSize(5); // small purge size
-		// we want to clean all the transactions starting with the fromCustomCommitTime
-		worker.setFromCustomCommitTime(fromCustomCommitTime);
-		List<String> reports = worker.doClean();
-		for (String report : reports)
-		{
-			logger.debug(report);
-		}
+        // run the transaction cleaner
+        worker.setPurgeSize(5); // small purge size
+        // we want to clean all the transactions starting with the fromCustomCommitTime
+        worker.setFromCustomCommitTime(fromCustomCommitTime);
+        List<String> reports = worker.doClean();
+        for (String report : reports)
+        {
+            logger.debug(report);
+        }
 
-		// only node 5 should be purged,
-		// node 4 should still be present as the transaction happened before fromCustomCommitTime
-		nodesCache.clear();
+        // only node 5 should be purged,
+        // node 4 should still be present as the transaction happened before fromCustomCommitTime
+        nodesCache.clear();
 
-		assertNotNull("Node 4 is deleted but not purged", nodeDAO.getNodeRefStatus(nodeRef4));
+        assertNotNull("Node 4 is deleted but not purged", nodeDAO.getNodeRefStatus(nodeRef4));
 
-		assertNull("Node 5 was not cleaned up", nodeDAO.getNodeRefStatus(nodeRef5));
-	}
+        assertNull("Node 5 was not cleaned up", nodeDAO.getNodeRefStatus(nodeRef5));
+    }
 
     @After
     public void after()
