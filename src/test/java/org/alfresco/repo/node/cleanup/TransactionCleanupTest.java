@@ -71,7 +71,7 @@ import org.springframework.extensions.webscripts.GUID;
  * @author Derek Hulley
  * @since 4.0
  */
-@Category({OwnJVMTestsCategory.class, LuceneTests.class})
+@Category(OwnJVMTestsCategory.class)
 public class TransactionCleanupTest
 {
     private static Log logger = LogFactory.getLog(TransactionCleanupTest.class);

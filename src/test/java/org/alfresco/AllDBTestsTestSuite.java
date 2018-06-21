@@ -44,8 +44,9 @@ import org.junit.runners.Suite;
 	// From AppContext03TestSuite
     org.alfresco.repo.lock.JobLockServiceTest.class,
     org.alfresco.repo.node.db.DbNodeServiceImplPropagationTest.class,
+    org.alfresco.repo.node.cleanup.TransactionCleanupTest.class,
 
-//	// From AppContext04TestSuite
+    // From AppContext04TestSuite
     org.alfresco.util.schemacomp.DbToXMLTest.class,
     org.alfresco.util.schemacomp.ExportDbTest.class,
     org.alfresco.util.schemacomp.SchemaReferenceFileTest.class,
