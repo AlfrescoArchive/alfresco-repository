@@ -336,17 +336,9 @@ public class TransactionCleanupTest
 
 		// Double-check that n4 and n5 are present in deleted form
 		nodesCache.clear();
-		UserTransaction txn = transactionService.getUserTransaction(true);
-		txn.begin();
-		try
-		{
-			assertNotNull("Node 4 is deleted but not purged", nodeDAO.getNodeRefStatus(nodeRef4));
-			assertNotNull("Node 5 is deleted but not purged", nodeDAO.getNodeRefStatus(nodeRef5));
-		}
-		finally
-		{
-			txn.rollback();
-		}
+
+		assertNotNull("Node 4 is deleted but not purged", nodeDAO.getNodeRefStatus(nodeRef4));
+		assertNotNull("Node 5 is deleted but not purged", nodeDAO.getNodeRefStatus(nodeRef5));
 
 		// run the transaction cleaner
 		worker.setPurgeSize(5); // small purge size
@@ -361,16 +353,9 @@ public class TransactionCleanupTest
 		// only node 5 should be purged,
 		// node 4 should still be present as the transaction happened before fromCustomCommitTime
 		nodesCache.clear();
-		UserTransaction txn1 = transactionService.getUserTransaction(true);
-		txn1.begin();
-		try
-		{
-			assertNotNull("Node 4 is deleted but not purged", nodeDAO.getNodeRefStatus(nodeRef4));
-		}
-		finally
-		{
-			txn1.rollback();
-		}
+
+		assertNotNull("Node 4 is deleted but not purged", nodeDAO.getNodeRefStatus(nodeRef4));
+
 		assertNull("Node 5 was not cleaned up", nodeDAO.getNodeRefStatus(nodeRef5));
 	}
 
