@@ -78,7 +78,7 @@ public abstract class AbstractRemoteContentTransformer extends AbstractContentTr
             Log logger = getLogger();
             try
             {
-                Pair<Boolean, String> result = remoteTransformerClient.check(getLogger());
+                Pair<Boolean, String> result = remoteTransformerClient.check(logger);
                 Boolean isAvailable = result.getFirst();
                 if (isAvailable != null && isAvailable)
                 {
