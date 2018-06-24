@@ -80,16 +80,17 @@ public abstract class AbstractRemoteContentTransformer extends AbstractContentTr
             {
                 Pair<Boolean, String> result = remoteTransformerClient.check(logger);
                 Boolean isAvailable = result.getFirst();
+                String msg = result.getSecond() == null ? "" : result.getSecond();
                 if (isAvailable != null && isAvailable)
                 {
-                    String versionString = result.getSecond();
+                    String versionString = msg;
                     setAvailable(true);
                     logger.info("Using " + getName() + ": " + versionString);
                 }
                 else
                 {
                     setAvailable(false);
-                    String message = getName() + " is not available for transformations. " + result.getSecond();
+                    String message = getName() + " is not available for transformations. " + msg;
                     if (isAvailable == null)
                     {
                         logger.debug(message);
