@@ -85,12 +85,12 @@ public abstract class AbstractRemoteContentTransformer extends AbstractContentTr
                 {
                     String versionString = msg;
                     setAvailable(true);
-                    logger.info("Using " + getName() + ": " + versionString);
+                    logger.info("Using remote " + getName() + ": " + versionString);
                 }
                 else
                 {
                     setAvailable(false);
-                    String message = getName() + " is not available for transformations. " + msg;
+                    String message = "Remote " + getName() + " is not available for transformations. " + msg;
                     if (isAvailable == null)
                     {
                         logger.debug(message);
@@ -104,7 +104,7 @@ public abstract class AbstractRemoteContentTransformer extends AbstractContentTr
             catch (Throwable e)
             {
                 setAvailable(false);
-                logger.error(getClass().getSimpleName() + " not available: " + (e.getMessage() != null ? e.getMessage() : ""));
+                logger.error("Remote " + getName() + " is not available: " + (e.getMessage() != null ? e.getMessage() : ""));
                 // debug so that we can trace the issue if required
                 logger.debug(e);
             }
