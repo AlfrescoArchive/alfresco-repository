@@ -77,6 +77,6 @@ public class PoiContentTransformer extends TikaPoweredContentTransformer
     @Override
     protected String getTransform()
     {
-        return "poi";
+        return "Office";
     }
 }

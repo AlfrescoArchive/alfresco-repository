@@ -54,7 +54,6 @@ public class MailContentTransformerTest extends AbstractContentTransformerTest
         transformer.setTransformerDebug(transformerDebug);
         transformer.setTransformerConfig(transformerConfig);
         transformer.afterPropertiesSet();
-        transformer.afterPropertiesSet();
     }
     
     /**
