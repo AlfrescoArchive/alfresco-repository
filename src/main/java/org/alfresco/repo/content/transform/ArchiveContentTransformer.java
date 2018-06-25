@@ -141,7 +141,7 @@ public class ArchiveContentTransformer extends TikaPoweredContentTransformer
     @Override
     protected String getTransform()
     {
-        return "archive";
+        return "Archive";
     }
 
     @Override

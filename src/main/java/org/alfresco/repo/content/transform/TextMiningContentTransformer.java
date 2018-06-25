@@ -52,6 +52,6 @@ public class TextMiningContentTransformer extends TikaPoweredContentTransformer
     @Override
     protected String getTransform()
     {
-        return "textmining";
+        return "TextMining";
     }
 }

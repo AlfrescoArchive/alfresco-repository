@@ -212,6 +212,6 @@ public class PoiHssfContentTransformer extends TikaPoweredContentTransformer
     @Override
     protected String getTransform()
     {
-        return "poihssf";
+        return "Office";
     }
 }

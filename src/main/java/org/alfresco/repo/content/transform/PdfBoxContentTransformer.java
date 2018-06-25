@@ -82,6 +82,6 @@ public class PdfBoxContentTransformer extends TikaPoweredContentTransformer
     @Override
     protected String getTransform()
     {
-        return "pdfbox";
+        return "PdfBox";
     }
 }

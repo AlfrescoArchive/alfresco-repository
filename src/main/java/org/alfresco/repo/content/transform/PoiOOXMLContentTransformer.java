@@ -66,6 +66,6 @@ public class PoiOOXMLContentTransformer extends TikaPoweredContentTransformer
     @Override
     protected String getTransform()
     {
-        return "poiooxml";
+        return "OOXML";
     }
 }

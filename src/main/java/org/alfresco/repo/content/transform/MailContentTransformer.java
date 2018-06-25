@@ -52,6 +52,6 @@ public class MailContentTransformer extends TikaPoweredContentTransformer
     @Override
     protected String getTransform()
     {
-        return "mail";
+        return "OutlookMsg";
     }
 }
