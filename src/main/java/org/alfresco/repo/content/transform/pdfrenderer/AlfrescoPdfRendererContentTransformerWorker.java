@@ -26,10 +26,6 @@
 
 package org.alfresco.repo.content.transform.pdfrenderer;
 
-import java.io.File;
-import java.util.HashMap;
-import java.util.Map;
-
 import org.alfresco.error.AlfrescoRuntimeException;
 import org.alfresco.repo.content.MimetypeMap;
 import org.alfresco.repo.content.transform.ContentTransformerHelper;
@@ -37,12 +33,7 @@ import org.alfresco.repo.content.transform.ContentTransformerWorker;
 import org.alfresco.repo.content.transform.RemoteTransformerClient;
 import org.alfresco.repo.content.transform.magick.ImageResizeOptions;
 import org.alfresco.repo.content.transform.magick.ImageTransformationOptions;
-import org.alfresco.service.cmr.repository.ContentIOException;
-import org.alfresco.service.cmr.repository.ContentReader;
-import org.alfresco.service.cmr.repository.ContentWriter;
-import org.alfresco.service.cmr.repository.MimetypeService;
-import org.alfresco.service.cmr.repository.PagedSourceOptions;
-import org.alfresco.service.cmr.repository.TransformationOptions;
+import org.alfresco.service.cmr.repository.*;
 import org.alfresco.util.Pair;
 import org.alfresco.util.PropertyCheck;
 import org.alfresco.util.TempFileProvider;
@@ -50,6 +41,10 @@ import org.alfresco.util.exec.RuntimeExec;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.InitializingBean;
+
+import java.io.File;
+import java.util.HashMap;
+import java.util.Map;
 
 public class AlfrescoPdfRendererContentTransformerWorker extends ContentTransformerHelper implements ContentTransformerWorker, InitializingBean
 {
@@ -109,7 +104,8 @@ public class AlfrescoPdfRendererContentTransformerWorker extends ContentTransfor
         this.remoteTransformerClient = remoteTransformerClient;
     }
 
-    private boolean remoteTransformerClientConfigured()
+    @Override
+    public boolean remoteTransformerClientConfigured()
     {
         return remoteTransformerClient != null && remoteTransformerClient.getBaseUrl() != null;
     }

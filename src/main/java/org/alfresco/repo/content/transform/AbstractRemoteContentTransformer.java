@@ -53,7 +53,7 @@ public abstract class AbstractRemoteContentTransformer extends AbstractContentTr
         this.remoteTransformerClient = remoteTransformerClient;
     }
 
-    private boolean remoteTransformerClientConfigured()
+    boolean remoteTransformerClientConfigured()
     {
         return remoteTransformerClient != null && remoteTransformerClient.getBaseUrl() != null;
     }
