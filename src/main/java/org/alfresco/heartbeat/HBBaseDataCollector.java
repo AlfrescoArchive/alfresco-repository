@@ -30,14 +30,22 @@ import java.util.List;
 import org.alfresco.heartbeat.datasender.HBData;
 import org.alfresco.service.cmr.repository.HBDataCollectorService;
 import org.alfresco.util.PropertyCheck;
+import org.quartz.SchedulerException;
 
 /**
  *
+ * <p>
  * This class is to be extended by HeartBeat data collectors.
- * Every new collector needs to provide details of the data it collects. As good examples use one
+ * Every new collector needs to provide details of the data it collects. As an example use one
  * of the existing collectors {@link AuthoritiesDataCollector}, {@link ConfigurationDataCollector},
  * {@link InfoDataCollector}, {@link ModelUsageDataCollector}, {@link SystemUsageDataCollector}.
- * They are all following this layout:
+ * </p>
+ * <p>
+ * Each collector can provide a reference to a {@link HeartBeatJobScheduler} which
+ * is then used by the {@link HBDataCollectorService} to schedule and unschedule jobs for this collector.
+ * </p>
+ *
+ * Example Javadoc for implementations:
  *
  * <ul>
  *  <li>Collector ID: <b>a.collector.id</b></li>
@@ -58,10 +66,11 @@ public abstract class HBBaseDataCollector
     private final String collectorVersion;
     private final String cronExpression;
 
-    /**
-     * The collector service managing this collector.
-     */
+    /** The collector service managing this collector. */
     private HBDataCollectorService hbDataCollectorService;
+
+    /** The job scheduler used to schedule a job for this collector */
+    private HeartBeatJobScheduler hbJobScheduler;
 
     /**
      *
@@ -98,6 +107,25 @@ public abstract class HBBaseDataCollector
     public void setHbDataCollectorService(HBDataCollectorService hbDataCollectorService)
     {
         this.hbDataCollectorService = hbDataCollectorService;
+    }
+
+    /**
+     *
+     * @param hbJobScheduler used to schedule jobs for this collector.
+     */
+    public void setHbJobScheduler(HeartBeatJobScheduler hbJobScheduler)
+    {
+        this.hbJobScheduler = hbJobScheduler;
+    }
+
+    /**
+     *
+     * @return JobScheduler used to schedule jobs for this collector.
+     */
+    public HeartBeatJobScheduler getHbJobScheduler()
+    {
+        PropertyCheck.mandatory(this, "hbJobScheduler", hbJobScheduler);
+        return this.hbJobScheduler;
     }
 
     /**
