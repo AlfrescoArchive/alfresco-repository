@@ -34,130 +34,32 @@ import org.alfresco.service.namespace.QName;
 import org.alfresco.util.ParameterCheck;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.quartz.*;
+import org.quartz.Job;
+import org.quartz.JobDataMap;
+import org.quartz.JobExecutionContext;
+import org.quartz.JobExecutionException;
 
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  *
- * The scheduler responsible for scheduling and unscheduling of locking Heartbeat jobs.
- * This scheduler schedules jobs which lock execution on collector id.
- * Only one repository node in a cluster will send data for collectors with this type of job
+ * This Heartbeat job collects data and passes it to the {@link HBDataSenderService}.
+ * Collectors using this job will collect data in one cluster node per execution, this is achieved by a job lock on collector id.
+ * The job lock is obtained by the first repository node which requests it for its collector id.
  */
-
-public class HeartBeatJob implements HeartBeatJobScheduler, Job
+public class LockingJob implements Job
 {
     /** The logger. */
-    private static final Log logger = LogFactory.getLog(HeartBeatJob.class);
+    private static final Log logger = LogFactory.getLog(LockingJob.class);
 
     /** Time to live 5 seconds */
     private static final long LOCK_TTL = 5000L;
-    /** schedule set for all jobs scheduled with this scheduler if testMode is on */
-    private boolean testMode = false;
-    private final String testCronExpression = "0 0/1 * * * ?";
-    /** Services needed to schedule and execute this job */
-    private JobLockService jobLockService;
-    private HBDataSenderService hbDataSenderService;
-    private Scheduler scheduler;
 
-    private static final String COLLECTOR_KEY = "collector";
-    private static final String DATA_SENDER_SERVICE_KEY = "hbDataSenderService";
-    private static final String JOB_LOCK_SERVICE_KEY = "jobLockService";
+    public static final String COLLECTOR_KEY = "collector";
+    public static final String DATA_SENDER_SERVICE_KEY = "hbDataSenderService";
+    public static final String JOB_LOCK_SERVICE_KEY = "jobLockService";
 
-    public void setScheduler(Scheduler scheduler)
-    {
-        this.scheduler = scheduler;
-    }
-
-    public void setJobLockService(JobLockService jobLockService)
-    {
-        this.jobLockService = jobLockService;
-    }
-
-    public void setHbDataSenderService(HBDataSenderService hbDataSenderService)
-    {
-        this.hbDataSenderService = hbDataSenderService;
-    }
-
-    public void setTestMode(boolean testMode)
-    {
-        this.testMode = testMode;
-    }
-
-    public String getJobName(String collectorId)
-    {
-        return "heartbeat-" + collectorId;
-    }
-
-    public String getTriggerName(String collectorId)
-    {
-        return getJobName(collectorId) + "-Trigger";
-    }
-
-    /**
-     *
-     * Schedules a job for the provided collector, the scheduled job will lock execution causing it to
-     * execute once in a clustered environment
-     * @param collector
-     */
-    @Override
-    public void scheduleJob(final HBBaseDataCollector collector)
-    {
-        JobDataMap jobDataMap = new JobDataMap();
-        jobDataMap.put(HeartBeatJob.COLLECTOR_KEY, collector);
-        jobDataMap.put(HeartBeatJob.DATA_SENDER_SERVICE_KEY, hbDataSenderService);
-        jobDataMap.put(HeartBeatJob.JOB_LOCK_SERVICE_KEY, jobLockService);
-        final JobDetail jobDetail = JobBuilder.newJob()
-                .withIdentity(getJobName(collector.getCollectorId()))
-                .usingJobData(jobDataMap)
-                .ofType(HeartBeatJob.class)
-                .build();
-
-        final String cronExpression = testMode ? testCronExpression : collector.getCronExpression();
-        // Schedule job
-        final CronTrigger cronTrigger = TriggerBuilder.newTrigger()
-                .withIdentity(getTriggerName(collector.getCollectorId()))
-                .withSchedule(CronScheduleBuilder.cronSchedule(cronExpression))
-                .build();
-
-        try{
-            // Ensure the job wasn't already scheduled in an earlier retry of this transaction
-            scheduler.unscheduleJob(cronTrigger.getKey());
-            scheduler.scheduleJob(jobDetail, cronTrigger);
-
-            if (logger.isDebugEnabled())
-            {
-                logger.debug("HeartBeat job scheduled for collector: " +
-                        collector.getCollectorId());
-            }
-        }
-        catch (SchedulerException e)
-        {
-            throw new RuntimeException("Heartbeat failed to schedule job for collector: "
-                    + collector.getCollectorId(), e);
-        }
-    }
-
-    @Override
-    public void unscheduleJob(final HBBaseDataCollector collector)
-    {
-        try
-        {
-            scheduler.unscheduleJob(new TriggerKey(getTriggerName(collector.getCollectorId())));
-
-            if (logger.isDebugEnabled())
-            {
-                logger.debug("HeartBeat unscheduled job for collector: " +
-                        collector.getCollectorId());
-            }
-        }
-        catch (SchedulerException e)
-        {
-            throw new RuntimeException("Heartbeat failed to unschedule job for collector: "
-                    + collector.getCollectorId(), e);
-        }
-    }
 
     @Override
     public void execute(final JobExecutionContext jobexecutioncontext) throws JobExecutionException
@@ -190,7 +92,7 @@ public class HeartBeatJob implements HeartBeatJobScheduler, Job
             }
 
             // Collect data and pass it to the data sender service
-            collectAndSendData(collector, hbDataSenderService);
+            collectAndSendDataLocked(collector, hbDataSenderService);
         }
         catch (LockAcquisitionException e)
         {
@@ -209,7 +111,7 @@ public class HeartBeatJob implements HeartBeatJobScheduler, Job
         }
     }
 
-    private void collectAndSendData(final HBBaseDataCollector collector, final HBDataSenderService hbDataSenderService) throws JobExecutionException
+    private void collectAndSendDataLocked(final HBBaseDataCollector collector, final HBDataSenderService hbDataSenderService) throws JobExecutionException
     {
         try
         {

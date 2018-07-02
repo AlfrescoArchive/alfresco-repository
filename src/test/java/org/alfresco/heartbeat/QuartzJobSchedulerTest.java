@@ -1,32 +1,6 @@
-/*
- * #%L
- * Alfresco Repository
- * %%
- * Copyright (C) 2005 - 2018 Alfresco Software Limited
- * %%
- * This file is part of the Alfresco software.
- * If the software was purchased under a paid Alfresco license, the terms of
- * the paid license agreement will prevail.  Otherwise, the software is
- * provided under the following open source license terms:
- *
- * Alfresco is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * Alfresco is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public License
- * along with Alfresco. If not, see <http://www.gnu.org/licenses/>.
- * #L%
- */
 package org.alfresco.heartbeat;
 
 import org.alfresco.heartbeat.datasender.HBData;
-import org.alfresco.heartbeat.datasender.HBDataSenderService;
 import org.alfresco.repo.scheduler.AlfrescoSchedulerFactory;
 import org.junit.Before;
 import org.junit.Test;
@@ -40,14 +14,12 @@ import java.util.List;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.mock;
 
-public class NonLockingHeartbeatJobTest
+public class QuartzJobSchedulerTest
 {
 
-    private HBDataSenderService mockDataSenderService;
     private Scheduler scheduler;
-    NonLockingHeartbeatJob hbJobScheduler = new NonLockingHeartbeatJob();
+    QuartzJobScheduler hbJobScheduler ;
 
     @Before
     public void setUp() throws Exception
@@ -58,27 +30,9 @@ public class NonLockingHeartbeatJobTest
         sfb.setAutoStartup(false);
         sfb.afterPropertiesSet();
         scheduler = sfb.getScheduler();
-
-        hbJobScheduler.setHbDataSenderService(mockDataSenderService);
+        hbJobScheduler = createSimpleJobScheduler();
         hbJobScheduler.setScheduler(scheduler);
 
-        mockDataSenderService = mock(HBDataSenderService.class);
-    }
-
-    private class SimpleHBDataCollector extends HBBaseDataCollector
-    {
-
-        public SimpleHBDataCollector(String collectorId, String cron)
-        {
-            super(collectorId,"1.0",cron);
-        }
-
-        public List<HBData> collectData()
-        {
-            List<HBData> result = new LinkedList<>();
-            result.add(new HBData("systemId2", this.getCollectorId(), "1", new Date()));
-            return result;
-        }
     }
 
     /**
@@ -153,11 +107,55 @@ public class NonLockingHeartbeatJobTest
         hbJobScheduler.scheduleJob(c2);
     }
 
+    private class SimpleHBDataCollector extends HBBaseDataCollector
+    {
+
+        public SimpleHBDataCollector(String collectorId, String cron)
+        {
+            super(collectorId,"1.0",cron);
+        }
+
+        public List<HBData> collectData()
+        {
+            List<HBData> result = new LinkedList<>();
+            result.add(new HBData("systemId2", this.getCollectorId(), "1", new Date()));
+            return result;
+        }
+    }
+
     private boolean isJobScheduledForCollector(String collectorId, Scheduler scheduler) throws Exception
     {
         String jobName = "heartbeat-" + collectorId;
         String triggerName = jobName + "-Trigger";
         return scheduler.checkExists(new JobKey(jobName, Scheduler.DEFAULT_GROUP))
                 && scheduler.checkExists(new TriggerKey(triggerName, Scheduler.DEFAULT_GROUP));
+    }
+
+    private QuartzJobScheduler createSimpleJobScheduler()
+    {
+        return new QuartzJobScheduler()
+        {
+
+            @Override
+            protected JobDataMap getJobDetailMap(HBBaseDataCollector collector)
+            {
+                return new JobDataMap();
+            }
+
+            @Override
+            protected Class<? extends Job> getHeartBeatJobClass()
+            {
+                return SimpleJob.class;
+            }
+        };
+    }
+
+    private class SimpleJob implements Job
+    {
+        @Override
+        public void execute(JobExecutionContext jobExecutionContext) throws JobExecutionException
+        {
+
+        }
     }
 }

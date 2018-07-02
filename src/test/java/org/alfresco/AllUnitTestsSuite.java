@@ -25,6 +25,7 @@
  */
 package org.alfresco;
 
+import org.alfresco.heartbeat.LockingJobTest;
 import org.alfresco.util.testing.category.DBTests;
 import org.alfresco.util.testing.category.NonBuildTests;
 import org.junit.experimental.categories.Categories;
@@ -188,7 +189,7 @@ import org.junit.runners.Suite;
     org.alfresco.repo.search.impl.lucene.analysis.PathTokenFilterTest.class,
     
     org.alfresco.heartbeat.HBDataCollectorServiceImplTest.class,
-    org.alfresco.heartbeat.HeartBeatJobTest.class,
+    LockingJobTest.class,
     org.alfresco.heartbeat.AuthoritiesDataCollectorTest.class,
     org.alfresco.heartbeat.ConfigurationDataCollectorTest.class,
     org.alfresco.heartbeat.InfoDataCollectorTest.class,
