@@ -28,9 +28,9 @@ package org.alfresco.heartbeat;
 import java.util.List;
 
 import org.alfresco.heartbeat.datasender.HBData;
+import org.alfresco.heartbeat.jobs.HeartBeatJobScheduler;
 import org.alfresco.service.cmr.repository.HBDataCollectorService;
 import org.alfresco.util.PropertyCheck;
-import org.quartz.SchedulerException;
 
 /**
  *

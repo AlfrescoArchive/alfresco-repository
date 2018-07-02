@@ -27,21 +27,13 @@ package org.alfresco.heartbeat;
 
 import org.alfresco.heartbeat.datasender.HBData;
 import org.alfresco.heartbeat.datasender.HBDataSenderService;
-import org.alfresco.repo.scheduler.AlfrescoSchedulerFactory;
+import org.alfresco.heartbeat.jobs.HeartBeatJobScheduler;
 import org.alfresco.service.license.LicenseDescriptor;
 import org.junit.Before;
 import org.junit.Test;
-import org.quartz.CronTrigger;
-import org.quartz.JobKey;
-import org.quartz.Scheduler;
-import org.quartz.TriggerKey;
-import org.springframework.scheduling.quartz.SchedulerFactoryBean;
-import org.junit.rules.ExpectedException;
 
-import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;

@@ -23,8 +23,9 @@
  * along with Alfresco. If not, see <http://www.gnu.org/licenses/>.
  * #L%
  */
-package org.alfresco.heartbeat;
+package org.alfresco.heartbeat.jobs;
 
+import org.alfresco.heartbeat.HBBaseDataCollector;
 import org.alfresco.heartbeat.datasender.HBData;
 import org.alfresco.heartbeat.datasender.HBDataSenderService;
 import org.alfresco.util.ParameterCheck;

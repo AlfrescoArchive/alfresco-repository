@@ -23,33 +23,23 @@
  * along with Alfresco. If not, see <http://www.gnu.org/licenses/>.
  * #L%
  */
-package org.alfresco.heartbeat;
+package org.alfresco.heartbeat.jobs;
 
-import org.quartz.*;
-
+import org.alfresco.heartbeat.HBBaseDataCollector;
+import org.alfresco.heartbeat.HBDataCollectorServiceImpl;
 
 /**
- * This scheduler is responsible for the scheduling and unscheduling of non locking jobs {@link NonLockingJob}.
- * All repository nodes in a cluster will send data for collectors which have jobs scheduled by this scheduler.
+ *
+ * The implementations of this interface are used by {@link HBDataCollectorServiceImpl} to schedule and unschedule jobs
+ * for associated collectors.
  *
  * @author eknizat
- *
  */
-public class NonLockingJobScheduler extends QuartzJobScheduler
+public interface HeartBeatJobScheduler
 {
 
-    @Override
-    protected JobDataMap getJobDetailMap(HBBaseDataCollector collector)
-    {
-        JobDataMap jobDataMap = new JobDataMap();
-        jobDataMap.put(NonLockingJob.COLLECTOR_KEY, collector);
-        jobDataMap.put(NonLockingJob.DATA_SENDER_SERVICE_KEY, hbDataSenderService);
-        return jobDataMap;
-    }
+    void scheduleJob(HBBaseDataCollector collector);
 
-    @Override
-    protected Class<? extends Job> getHeartBeatJobClass()
-    {
-        return NonLockingJob.class;
-    }
+    void unscheduleJob(HBBaseDataCollector collector);
+
 }
