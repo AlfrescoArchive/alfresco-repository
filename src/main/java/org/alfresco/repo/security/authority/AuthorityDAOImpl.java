@@ -1599,7 +1599,7 @@ public class AuthorityDAOImpl implements AuthorityDAO, NodeServicePolicies.Befor
 
     public void onUpdateProperties(NodeRef nodeRef, Map<QName, Serializable> before, Map<QName, Serializable> after)
     {
-        if(!authorityService.hasAdminAuthority())
+        if(!(AuthenticationUtil.isRunAsUserTheSystemUser() || authorityService.hasAdminAuthority()))
         {
             throw new AccessDeniedException("Only users with ROLE_ADMINISTRATOR are allowed to manage users.");
         }
