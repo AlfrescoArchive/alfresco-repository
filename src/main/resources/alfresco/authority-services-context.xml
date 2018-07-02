@@ -77,6 +77,9 @@
         <property name="personService">
             <ref bean="personService" />
         </property>
+        <property name="authorityService">
+            <ref bean="authorityService" />
+        </property>
         <property name="tenantService">
             <ref bean="tenantService" />
         </property>
