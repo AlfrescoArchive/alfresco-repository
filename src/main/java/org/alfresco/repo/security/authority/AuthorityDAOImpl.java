@@ -49,6 +49,8 @@ import org.alfresco.query.CannedQueryResults;
 import org.alfresco.query.PagingRequest;
 import org.alfresco.query.PagingResults;
 import org.alfresco.repo.cache.AsynchronouslyRefreshedCache;
+import org.alfresco.repo.security.permissions.AccessDeniedException;
+import org.alfresco.service.cmr.security.AuthorityService;
 import org.alfresco.util.cache.RefreshableCacheEvent;
 import org.alfresco.util.cache.RefreshableCacheListener;
 import org.alfresco.repo.cache.SimpleCache;
@@ -123,7 +125,8 @@ public class AuthorityDAOImpl implements AuthorityDAO, NodeServicePolicies.Befor
     private DictionaryService dictionaryService;
     private PersonService personService;
     private TenantService tenantService;
-    
+    private AuthorityService authorityService;
+
     private SimpleCache<Pair<String, String>, NodeRef> authorityLookupCache;
     private SimpleCache<String, Set<String>> userAuthorityCache;
     private SimpleCache<Pair<String, String>, List<ChildAssociationRef>> zoneAuthorityCache;
@@ -236,7 +239,12 @@ public class AuthorityDAOImpl implements AuthorityDAO, NodeServicePolicies.Befor
     {
         this.tenantService = tenantService;
     }
-    
+
+    public void setAuthorityService(AuthorityService authorityService)
+    {
+        this.authorityService = authorityService;
+    }
+
     public void setSingletonCache(SimpleCache<String, Object> singletonCache)
     {
         this.singletonCache = singletonCache;
@@ -1591,6 +1599,10 @@ public class AuthorityDAOImpl implements AuthorityDAO, NodeServicePolicies.Befor
 
     public void onUpdateProperties(NodeRef nodeRef, Map<QName, Serializable> before, Map<QName, Serializable> after)
     {
+        if(!authorityService.hasAdminAuthority())
+        {
+            throw new AccessDeniedException("Only users with ROLE_ADMINISTRATOR are allowed to manage users.");
+        }
         boolean isAuthority = dictionaryService.isSubClass(nodeService.getType(nodeRef), ContentModel.TYPE_AUTHORITY_CONTAINER);
         QName idProp = isAuthority ? ContentModel.PROP_AUTHORITY_NAME  : ContentModel.PROP_USERNAME;
         String authBefore = DefaultTypeConverter.INSTANCE.convert(String.class, before.get(idProp));
@@ -1795,6 +1807,7 @@ public class AuthorityDAOImpl implements AuthorityDAO, NodeServicePolicies.Befor
         PropertyCheck.mandatory(this, "searchService", searchService);
         PropertyCheck.mandatory(this, "storeRef", storeRef);
         PropertyCheck.mandatory(this, "tenantService", tenantService);
+        PropertyCheck.mandatory(this, "authorityService", authorityService);
         PropertyCheck.mandatory(this, "userAuthorityCache", userAuthorityCache);
         PropertyCheck.mandatory(this, "zoneAuthorityCache", zoneAuthorityCache);
         PropertyCheck.mandatory(this, "storeRef", storeRef);
