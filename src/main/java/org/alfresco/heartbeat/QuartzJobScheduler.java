@@ -34,7 +34,7 @@ public abstract class QuartzJobScheduler implements HeartBeatJobScheduler
 {
 
     /** The logger. */
-    private static final Log logger = LogFactory.getLog(LockingJob.class);
+    private static final Log logger = LogFactory.getLog(QuartzJobScheduler.class);
 
     /** schedule set for all jobs scheduled with this scheduler if testMode is on */
     protected boolean testMode = false;
