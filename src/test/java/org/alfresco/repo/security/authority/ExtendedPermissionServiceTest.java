@@ -53,7 +53,9 @@ public class ExtendedPermissionServiceTest extends AbstractPermissionTest
         authorityService.addAuthority("GROUP_test", "andy");
         runAs("andy");
         assertTrue(permissionService.hasPermission(rootNodeRef, getPermission(PermissionService.READ)) == AccessStatus.ALLOWED);
+        runAs("admin");
         authorityService.removeAuthority("GROUP_test", "andy");
+        runAs("andy");
         assertFalse(permissionService.hasPermission(rootNodeRef, getPermission(PermissionService.READ)) == AccessStatus.ALLOWED);
         permissionService.clearPermission(rootNodeRef, "andy");
     }
