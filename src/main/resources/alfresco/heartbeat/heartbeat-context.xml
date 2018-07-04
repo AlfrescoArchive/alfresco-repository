@@ -22,8 +22,8 @@
 
     <!-- HeartBeat template data collector with a default job scheduler-->
     <bean id="hbBaseDataCollector" abstract="true" init-method="register">
+        <constructor-arg name="hbJobScheduler" ref="hbLockingJobScheduler"/>
         <property name="hbDataCollectorService" ref="hbDataCollectorService"/>
-        <property name="hbJobScheduler" ref="hbLockingJobScheduler"/>
     </bean>
 
     <!-- The default HeartBeat job scheduler, this scheduler schedules jobs which lock execution on collector id.
@@ -42,5 +42,4 @@
         <property name="scheduler" ref="schedulerFactory" />
         <property name="hbDataSenderService" ref="hbDataSenderService" />
     </bean>
-
 </beans>

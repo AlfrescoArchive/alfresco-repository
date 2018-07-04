@@ -38,7 +38,6 @@ import org.quartz.JobDataMap;
  */
 public class LockingJobScheduler extends QuartzJobScheduler
 {
-
     /** Services needed to schedule and execute this job */
     private JobLockService jobLockService;
 

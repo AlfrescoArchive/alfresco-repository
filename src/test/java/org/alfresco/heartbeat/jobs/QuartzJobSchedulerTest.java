@@ -139,7 +139,7 @@ public class QuartzJobSchedulerTest
 
         public SimpleHBDataCollector(String collectorId, String cron)
         {
-            super(collectorId,"1.0",cron);
+            super(collectorId,"1.0",cron, hbJobScheduler);
         }
 
         public List<HBData> collectData()

@@ -69,8 +69,22 @@ public abstract class QuartzJobScheduler implements HeartBeatJobScheduler
         return getJobName(collectorId) + "-Trigger";
     }
 
+    /**
+     * This method is called when a job is being scheduled by this scheduler for the given collector. <br>
+     * The job is scheduled using the {@link Job} returned from {@link #getHeartBeatJobClass()}
+     * and the job map returned from this method, therefor the job map should provide what the job needs to execute.
+     * @param collector the collector
+     * @return The job map returned from this method will be used to build up {@link JobDetail} for the job that is being scheduled.
+     */
     protected abstract JobDataMap getJobDetailMap(HBBaseDataCollector collector);
 
+    /**
+     * Jobs scheduled by the scheduler will use the returned implementation of {@link Job}. <br>
+     * The jobs are scheduled together with a {@link JobDataMap} returned from {@link #getJobDetailMap(HBBaseDataCollector)} <br>
+     * which will be accessible during job execution.
+     *
+     * @return {@link Job} implementation which this scheduler will use to schedule jobs for heartbeat collectors.
+     */
     protected abstract Class<? extends Job> getHeartBeatJobClass();
 
     @Override

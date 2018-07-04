@@ -45,7 +45,6 @@ import java.util.List;
  */
 public class NonLockingJob implements Job
 {
-
     /** The logger. */
     private static final Log logger = LogFactory.getLog(NonLockingJob.class);
 

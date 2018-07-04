@@ -36,8 +36,8 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 /**
- * This service lets implementations of {@link HBBaseDataCollector} to register.
- * Registered collectors have jobs scheduled or unscheduled based on the enabled state of Heartbeat.
+ * This service lets implementations of {@link HBBaseDataCollector} register. <br>
+ * Registered collectors have jobs scheduled or unscheduled based on the enabled state of Heartbeat. <br>
  * This service listens to events from {@link LicenseChangeHandler} and enables or disables Heartbeat accordingly.
  *
  */
@@ -94,8 +94,8 @@ public class HBDataCollectorServiceImpl implements HBDataCollectorService, Licen
         // Check collector with the same ID does't already exist
         if(collectors.containsKey(collector.getCollectorId()))
         {
-            throw new IllegalArgumentException("HeartBeat did not registered collector, ID must be unique. ID: "
-                    + collector.getCollectorId());
+            throw new IllegalArgumentException("HeartBeat did not registered collector because a collector with ID: \n"
+                    + collector.getCollectorId() + " already exists. Collectors must have unique collector IDs" );
         }
         // Schedule collector job
         scheduleCollector(collector);
@@ -185,16 +185,16 @@ public class HBDataCollectorServiceImpl implements HBDataCollectorService, Licen
 
     private void restartAllCollectorSchedules()
     {
-        for( Map.Entry<String, HBBaseDataCollector>  entry : collectors.entrySet() )
+        for( HBBaseDataCollector collector : collectors.values() )
         {
             try
             {
-                scheduleCollector(entry.getValue());
+                scheduleCollector(collector);
             }
             catch (Exception e)
             {
                 // Log and ignore
-                logger.error("HeartBeat failed to restart collector: " + entry.getKey() ,e);
+                logger.error("HeartBeat failed to restart collector: " + collector.getCollectorId() ,e);
             }
         }
     }

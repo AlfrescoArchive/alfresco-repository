@@ -53,14 +53,12 @@ public class LockingJob implements Job
 {
     /** The logger. */
     private static final Log logger = LogFactory.getLog(LockingJob.class);
-
     /** Time to live 5 seconds */
     private static final long LOCK_TTL = 5000L;
 
     public static final String COLLECTOR_KEY = "collector";
     public static final String DATA_SENDER_SERVICE_KEY = "hbDataSenderService";
     public static final String JOB_LOCK_SERVICE_KEY = "jobLockService";
-
 
     @Override
     public void execute(final JobExecutionContext jobexecutioncontext) throws JobExecutionException

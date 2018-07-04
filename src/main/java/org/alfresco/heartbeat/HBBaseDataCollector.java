@@ -31,6 +31,7 @@ import org.alfresco.heartbeat.datasender.HBData;
 import org.alfresco.heartbeat.jobs.HeartBeatJobScheduler;
 import org.alfresco.service.cmr.repository.HBDataCollectorService;
 import org.alfresco.util.PropertyCheck;
+import org.springframework.extensions.surf.util.ParameterCheck;
 
 /**
  *
@@ -41,7 +42,7 @@ import org.alfresco.util.PropertyCheck;
  * {@link InfoDataCollector}, {@link ModelUsageDataCollector}, {@link SystemUsageDataCollector}.
  * </p>
  * <p>
- * Each collector can provide a reference to a {@link HeartBeatJobScheduler} which
+ * Each collector provides a reference to a {@link HeartBeatJobScheduler} which
  * is then used by the {@link HBDataCollectorService} to schedule and unschedule jobs for this collector.
  * </p>
  *
@@ -77,16 +78,20 @@ public abstract class HBBaseDataCollector
      * @param collectorId Unique name of the collector e.g.: acs.repository.info
      * @param collectorVersion Version of the collector e.g.: 1.0
      * @param cronExpression Cron expression for frequently time scheduling e.g.: "0 0 0 ? * SUN" (Weekly)
+     * @param hbJobScheduler The scheduler responsible for scheduling jobs for this collector.
      */
-    public HBBaseDataCollector(String collectorId, String collectorVersion, String cronExpression)
+    public HBBaseDataCollector(String collectorId, String collectorVersion, String cronExpression,
+                               HeartBeatJobScheduler hbJobScheduler)
     {
         PropertyCheck.mandatory(this, "collectorId", collectorId);
         PropertyCheck.mandatory(this, "collectorVersion", collectorVersion);
         PropertyCheck.mandatory(this, "cronExpression", cronExpression);
+        PropertyCheck.mandatory(this, "hbJobScheduler", hbJobScheduler);
 
         this.collectorId = collectorId;
         this.collectorVersion = collectorVersion;
         this.cronExpression = cronExpression;
+        this.hbJobScheduler = hbJobScheduler;
     }
 
     public String getCollectorId()
@@ -115,6 +120,7 @@ public abstract class HBBaseDataCollector
      */
     public void setHbJobScheduler(HeartBeatJobScheduler hbJobScheduler)
     {
+        ParameterCheck.mandatory("hbJobScheduler", hbJobScheduler);
         this.hbJobScheduler = hbJobScheduler;
     }
 
@@ -124,7 +130,6 @@ public abstract class HBBaseDataCollector
      */
     public HeartBeatJobScheduler getHbJobScheduler()
     {
-        PropertyCheck.mandatory(this, "hbJobScheduler", hbJobScheduler);
         return this.hbJobScheduler;
     }
 
@@ -133,7 +138,10 @@ public abstract class HBBaseDataCollector
      */
     public void register()
     {
-        PropertyCheck.mandatory(this, "hbDataCollectorService", hbDataCollectorService);
+        if (hbDataCollectorService == null)
+        {
+            throw new IllegalStateException("HbDataCollectorService needs to be set before calling this method.");
+        }
         hbDataCollectorService.registerCollector(this);
     }
 
@@ -142,7 +150,10 @@ public abstract class HBBaseDataCollector
      */
     public void deregister()
     {
-        PropertyCheck.mandatory(this, "hbDataCollectorService", hbDataCollectorService);
+        if (hbDataCollectorService == null)
+        {
+            throw new IllegalStateException("HbDataCollectorService needs to be set before calling this method.");
+        }
         hbDataCollectorService.deregisterCollector(this);
     }
 

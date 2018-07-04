@@ -62,12 +62,14 @@ public class LockingJobTest
 
     private HBDataSenderService mockDataSenderService;
     private JobLockService mockJobLockService;
+    private HeartBeatJobScheduler mockScheduler;
 
     @Before
     public void setUp()
     {
         mockDataSenderService = mock(HBDataSenderService.class);
         mockJobLockService = mock(JobLockService.class);
+        mockScheduler = mock(HeartBeatJobScheduler.class);
     }
 
     private class SimpleHBDataCollector extends HBBaseDataCollector
@@ -75,7 +77,7 @@ public class LockingJobTest
 
         public SimpleHBDataCollector(String collectorId)
         {
-            super(collectorId,"1.0","0 0 0 ? * *");
+            super(collectorId,"1.0","0 0 0 ? * *", mockScheduler);
         }
 
         public List<HBData> collectData()

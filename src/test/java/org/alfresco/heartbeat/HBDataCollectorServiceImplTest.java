@@ -275,8 +275,7 @@ public class HBDataCollectorServiceImplTest
     {
         public SimpleHBDataCollector(String collectorId, String cron)
         {
-            super(collectorId,"1.0",cron);
-            setHbJobScheduler(new SimpleHBJobScheduler());
+            super(collectorId,"1.0",cron, new SimpleHBJobScheduler());
         }
 
         public List<HBData> collectData()
