@@ -867,9 +867,11 @@ public class PersonServiceImpl extends TransactionListenerAdapter implements Per
     
     private NodeRef createMissingPersonAsSystem(final String userName, final boolean autoCreateHomeFolder)
     {
-        return AuthenticationUtil.runAsSystem(new AuthenticationUtil.RunAsWork<NodeRef>(){
+        return AuthenticationUtil.runAsSystem(new AuthenticationUtil.RunAsWork<NodeRef>()
+        {
             @Override
-            public NodeRef doWork() throws Exception {
+            public NodeRef doWork() throws Exception
+            {
                 HashMap<QName, Serializable> properties = getDefaultProperties(userName);
                 NodeRef person = createPerson(properties);
 
