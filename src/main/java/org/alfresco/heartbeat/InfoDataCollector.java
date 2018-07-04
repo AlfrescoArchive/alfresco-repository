@@ -34,6 +34,10 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.InitializingBean;
 
+import javax.sql.DataSource;
+import java.sql.Connection;
+import java.sql.DatabaseMetaData;
+import java.sql.SQLException;
 import java.util.*;
 
 /**
@@ -73,6 +77,8 @@ public class InfoDataCollector extends HBBaseDataCollector implements Initializi
 
     private DeploymentMethodProvider deploymentMethodProvider;
 
+    private DataSource dataSource;
+    
     public InfoDataCollector(String collectorId, String collectorVersion, String cronExpression)
     {
         super(collectorId, collectorVersion, cronExpression);
@@ -91,6 +97,11 @@ public class InfoDataCollector extends HBBaseDataCollector implements Initializi
     public void setDeploymentMethodProvider(DeploymentMethodProvider deploymentMethodProvider)
     {
         this.deploymentMethodProvider = deploymentMethodProvider;
+    }
+    
+    public void setDataSource(DataSource dataSource)
+    {
+        this.dataSource = dataSource;
     }
 
     @Override
@@ -117,6 +128,7 @@ public class InfoDataCollector extends HBBaseDataCollector implements Initializi
         version.put("major", serverDescriptor.getVersionMajor());
         version.put("minor", serverDescriptor.getVersionMinor());
         version.put("patch", serverDescriptor.getVersionRevision());
+        version.put("build", serverDescriptor.getVersionBuild());
         String hotfix = serverDescriptor.getVersionLabel();
         if (hotfix != null && hotfix.length() > 0)
         {
@@ -126,7 +138,43 @@ public class InfoDataCollector extends HBBaseDataCollector implements Initializi
         infoValues.put("schema", new Integer(serverDescriptor.getSchema()));
         infoValues.put("edition", serverDescriptor.getEdition());
         infoValues.put("deploymentMethod", deploymentMethodProvider.getDeploymentMethod().toString());
+        infoValues.put("os.vendor",System.getProperty("os.name"));
+        infoValues.put("os.version",System.getProperty("os.version"));
+        infoValues.put("os.arch",System.getProperty("os.arch"));
 
+        infoValues.put("java.vendor",System.getProperty("java.vendor"));
+        infoValues.put("java.version",System.getProperty("java.version"));
+        
+
+        Connection con = null;
+        try
+        {
+            con = dataSource.getConnection();
+            DatabaseMetaData dbmeta = con.getMetaData();
+
+            infoValues.put("db.vendor", dbmeta.getDatabaseProductName());
+            infoValues.put("db.version", dbmeta.getDatabaseProductVersion());
+            infoValues.put("db.driverName", dbmeta.getDriverName());
+            infoValues.put("db.driverVersion", dbmeta.getDriverVersion());
+//            infoValues.put("db driverClass", dbmeta.getDriver); IS THERE ANY ? 
+        } 
+        catch (SQLException e)
+        { //TODO:            
+            // log SQL Exception
+        }
+        finally
+        {
+            if (con != null)
+            {
+                try
+                {
+                    con.close();
+                }
+                catch (SQLException e)
+                {
+                }
+            }
+        }
         HBData infoData = new HBData(
                 this.currentRepoDescriptorDAO.getDescriptor().getId(),
                 this.getCollectorId(),
