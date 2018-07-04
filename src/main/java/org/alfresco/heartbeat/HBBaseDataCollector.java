@@ -75,10 +75,10 @@ public abstract class HBBaseDataCollector
 
     /**
      *
-     * @param collectorId Unique name of the collector e.g.: acs.repository.info
+     * @param collectorId Unique collector ID e.g.: acs.repository.info
      * @param collectorVersion Version of the collector e.g.: 1.0
-     * @param cronExpression Cron expression for frequently time scheduling e.g.: "0 0 0 ? * SUN" (Weekly)
-     * @param hbJobScheduler The scheduler responsible for scheduling jobs for this collector.
+     * @param cronExpression Cron expression that will be used to schedule jobs for this collector. e.g.: "0 0 0 ? * SUN" (Weekly)
+     * @param hbJobScheduler Scheduler that will be used to schedule jobs for this collector.
      */
     public HBBaseDataCollector(String collectorId, String collectorVersion, String cronExpression,
                                HeartBeatJobScheduler hbJobScheduler)
@@ -116,7 +116,7 @@ public abstract class HBBaseDataCollector
 
     /**
      *
-     * @param hbJobScheduler used to schedule jobs for this collector.
+     * @param hbJobScheduler The scheduler which will be used to schedule jobs for this collector.
      */
     public void setHbJobScheduler(HeartBeatJobScheduler hbJobScheduler)
     {

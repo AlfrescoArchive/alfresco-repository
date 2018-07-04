@@ -109,9 +109,9 @@ public class HBDataCollectorServiceImpl implements HBDataCollectorService, Licen
     }
 
     /**
-     * Deregister data collector. Removed collector and unscheduled associated job
      *
-     * @param collector
+     *
+     * @param collector - Deregister data collector. Removed collector and unscheduled associated job.
      */
     @Override
     public synchronized void deregisterCollector(final HBBaseDataCollector collector)

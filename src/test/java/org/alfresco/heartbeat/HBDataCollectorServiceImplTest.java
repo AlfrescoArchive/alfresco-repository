@@ -49,7 +49,6 @@ public class HBDataCollectorServiceImplTest
 {
 
     private final String VALID_CRON = "0 0/2 * * * ?";
-    private final String INVALID_CRON = "0 no no * * ?";
     private final HBBaseDataCollector validCollector1 = new SimpleHBDataCollector("validCollector1", VALID_CRON);
     private final HBBaseDataCollector validCollector2 = new SimpleHBDataCollector("validCollector2", VALID_CRON);
 
@@ -137,7 +136,6 @@ public class HBDataCollectorServiceImplTest
         final HBDataCollectorServiceImpl collectorService = new HBDataCollectorServiceImpl(true);
         final HBDataSenderService sender = mock( HBDataSenderService.class);
         collectorService.setHbDataSenderService(sender);
-        //collectorService.setScheduler(scheduler);
 
         // Register few collectors
         registerValidCollectors(collectorService);
@@ -163,7 +161,6 @@ public class HBDataCollectorServiceImplTest
         final HBDataCollectorServiceImpl collectorService = new HBDataCollectorServiceImpl(false);
         final HBDataSenderService sender = mock( HBDataSenderService.class);
         collectorService.setHbDataSenderService(sender);
-        //collectorService.setScheduler(scheduler);
 
         // Register few collectors
         registerValidCollectors(collectorService);
@@ -187,7 +184,6 @@ public class HBDataCollectorServiceImplTest
     {
         // Enable heartbeat by setting the default enabled state ( as if set in prop file)
         final HBDataCollectorServiceImpl collectorService = new HBDataCollectorServiceImpl(true);
-        //collectorService.setScheduler(scheduler);
 
         // Register few collectors
         registerValidCollectors(collectorService);
@@ -211,7 +207,6 @@ public class HBDataCollectorServiceImplTest
     {
         // Disable heartbeat by setting the default enabled state ( as if set in prop file)
         final HBDataCollectorServiceImpl collectorService = new HBDataCollectorServiceImpl(false);
-        //collectorService.setScheduler(scheduler);
 
         // Register few collectors
         registerValidCollectors(collectorService);

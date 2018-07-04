@@ -108,8 +108,6 @@ public class QuartzJobSchedulerTest
         final HBBaseDataCollector c2 = new SimpleHBDataCollector("c2", cron2);
         final HBBaseDataCollector c3 = new SimpleHBDataCollector("c3", cron3);
 
-        final String triggerName3 = "heartbeat-" + c3.getCollectorId() + "-Trigger";
-
         // Register 3 collectors with 3 different cron expressions
         hbJobScheduler.scheduleJob(c1);
         hbJobScheduler.scheduleJob(c2);
