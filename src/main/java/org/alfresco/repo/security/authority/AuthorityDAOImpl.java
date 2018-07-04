@@ -125,7 +125,6 @@ public class AuthorityDAOImpl implements AuthorityDAO, NodeServicePolicies.Befor
     private DictionaryService dictionaryService;
     private PersonService personService;
     private TenantService tenantService;
-    private AuthorityService authorityService;
 
     private SimpleCache<Pair<String, String>, NodeRef> authorityLookupCache;
     private SimpleCache<String, Set<String>> userAuthorityCache;
@@ -238,11 +237,6 @@ public class AuthorityDAOImpl implements AuthorityDAO, NodeServicePolicies.Befor
     public void setTenantService(TenantService tenantService)
     {
         this.tenantService = tenantService;
-    }
-
-    public void setAuthorityService(AuthorityService authorityService)
-    {
-        this.authorityService = authorityService;
     }
 
     public void setSingletonCache(SimpleCache<String, Object> singletonCache)
@@ -1599,10 +1593,6 @@ public class AuthorityDAOImpl implements AuthorityDAO, NodeServicePolicies.Befor
 
     public void onUpdateProperties(NodeRef nodeRef, Map<QName, Serializable> before, Map<QName, Serializable> after)
     {
-        if(!(AuthenticationUtil.isRunAsUserTheSystemUser() || authorityService.hasAdminAuthority()))
-        {
-            throw new AccessDeniedException("Only users with ROLE_ADMINISTRATOR are allowed to manage users.");
-        }
         boolean isAuthority = dictionaryService.isSubClass(nodeService.getType(nodeRef), ContentModel.TYPE_AUTHORITY_CONTAINER);
         QName idProp = isAuthority ? ContentModel.PROP_AUTHORITY_NAME  : ContentModel.PROP_USERNAME;
         String authBefore = DefaultTypeConverter.INSTANCE.convert(String.class, before.get(idProp));
@@ -1807,7 +1797,6 @@ public class AuthorityDAOImpl implements AuthorityDAO, NodeServicePolicies.Befor
         PropertyCheck.mandatory(this, "searchService", searchService);
         PropertyCheck.mandatory(this, "storeRef", storeRef);
         PropertyCheck.mandatory(this, "tenantService", tenantService);
-        PropertyCheck.mandatory(this, "authorityService", authorityService);
         PropertyCheck.mandatory(this, "userAuthorityCache", userAuthorityCache);
         PropertyCheck.mandatory(this, "zoneAuthorityCache", zoneAuthorityCache);
         PropertyCheck.mandatory(this, "storeRef", storeRef);
