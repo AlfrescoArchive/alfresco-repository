@@ -49,8 +49,6 @@ import org.alfresco.query.CannedQueryResults;
 import org.alfresco.query.PagingRequest;
 import org.alfresco.query.PagingResults;
 import org.alfresco.repo.cache.AsynchronouslyRefreshedCache;
-import org.alfresco.repo.security.permissions.AccessDeniedException;
-import org.alfresco.service.cmr.security.AuthorityService;
 import org.alfresco.util.cache.RefreshableCacheEvent;
 import org.alfresco.util.cache.RefreshableCacheListener;
 import org.alfresco.repo.cache.SimpleCache;
@@ -125,7 +123,7 @@ public class AuthorityDAOImpl implements AuthorityDAO, NodeServicePolicies.Befor
     private DictionaryService dictionaryService;
     private PersonService personService;
     private TenantService tenantService;
-
+    
     private SimpleCache<Pair<String, String>, NodeRef> authorityLookupCache;
     private SimpleCache<String, Set<String>> userAuthorityCache;
     private SimpleCache<Pair<String, String>, List<ChildAssociationRef>> zoneAuthorityCache;
