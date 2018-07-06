@@ -21,7 +21,6 @@
         <property name="hbDataSenderService" ref="hbDataSenderService" />
         <property name="scheduler" ref="schedulerFactory" />
         <property name="jobLockService" ref="jobLockService" />
-        <property name="dataSource" ref="dataSource" />
     </bean>
 
     <!-- HeartBeat template data collector -->

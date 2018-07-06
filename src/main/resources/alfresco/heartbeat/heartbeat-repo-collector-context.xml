@@ -12,6 +12,7 @@
         <property name="currentRepoDescriptorDAO"   ref="currentRepoDescriptorDAO"/>
         <property name="serverDescriptorDAO"        ref="serverDescriptorDAO"/>
         <property name="deploymentMethodProvider"   ref="deploymentMethodProvider"/>
+        <property name="dataSource"                 ref="dataSource" />
     </bean>
 
     <!-- HeartBeat repository usage model data collector -->
