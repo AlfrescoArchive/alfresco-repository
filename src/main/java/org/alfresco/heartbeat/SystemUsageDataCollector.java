@@ -54,8 +54,8 @@ import java.util.*;
  *          <li><b>openFileDescriptorCount:</b> Long - The number of open file descriptors. {@link UnixOperatingSystemMXBean#getOpenFileDescriptorCount()}</li>
  *          <li><b>cpu: Object which contains processor information:</b>
  *              <ul>
- *                  <li>percentageProcessCpuLoad: Double - The "recent cpu usage" for the JVM process (as a percentage). {@link OperatingSystemMXBean#getProcessCpuLoad()}</li>
- *                  <li>percentageSystemCpuLoad: Double - The "recent cpu usage" for the whole system (as a percentage). {@link OperatingSystemMXBean#getSystemCpuLoad()}</li>
+ *                  <li>percentageProcessCpuLoad: Integer - The "recent cpu usage" for the JVM process (as a percentage). {@link OperatingSystemMXBean#getProcessCpuLoad()}</li>
+ *                  <li>percentageSystemCpuLoad: Integer - The "recent cpu usage" for the whole system (as a percentage). {@link OperatingSystemMXBean#getSystemCpuLoad()}</li>
  *                  <li>systemLoadAverage: Double - The system load average as returned by {@link OperatingSystemMXBean#getSystemLoadAverage()}</li>
  *                  <li>availableProcessors: Integer - The number of available processors. {@link Runtime#availableProcessors()}</li>
  *              </ul>
@@ -126,8 +126,11 @@ public class SystemUsageDataCollector extends HBBaseDataCollector implements Ini
             // processor info
             double processCpuLoad = osMBean.getProcessCpuLoad() * 100;
             double systemCpuLoad  = osMBean.getSystemCpuLoad()  * 100;
-            cpu.put("percentageProcessCpuLoad", new Double(processCpuLoad) );
-            cpu.put("percentageSystemCpuLoad", new Double(systemCpuLoad));
+            int intProcessCpuLoad = (int) Math.round(processCpuLoad);
+            int intSystemCpuLoad  = (int) Math.round(systemCpuLoad);
+
+            cpu.put("percentageProcessCpuLoad", new Integer(intProcessCpuLoad) );
+            cpu.put("percentageSystemCpuLoad", new Integer(intSystemCpuLoad));
             cpu.put("systemLoadAverage", new Double(osMBean.getSystemLoadAverage()));
         }
         cpu.put("availableProcessors", new Integer( runtime.availableProcessors()));
