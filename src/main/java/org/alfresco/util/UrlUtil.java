@@ -88,14 +88,11 @@ public class UrlUtil
         {
             return sysAdminParams.getApiExplorerUrl();
         }
-        else
+        if (!requestURI.isEmpty() && !requestURL.isEmpty())
         {
-            if (!requestURI.isEmpty() && !requestURL.isEmpty())
-            {
-                return requestURL.replace(requestURI,"/api-explorer");
-            }
+            return requestURL.replace(requestURI,"/api-explorer");
         }
-        return new String();
+        return "";
     }
 
     /**
