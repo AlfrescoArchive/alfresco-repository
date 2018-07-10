@@ -23,9 +23,8 @@
  * along with Alfresco. If not, see <http://www.gnu.org/licenses/>.
  * #L%
  */
-package org.alfresco.heartbeat.jobs;
+package org.alfresco.heartbeat;
 
-import org.alfresco.heartbeat.HBBaseDataCollector;
 import org.alfresco.heartbeat.datasender.HBData;
 import org.alfresco.heartbeat.datasender.HBDataSenderService;
 import org.alfresco.repo.lock.JobLockService;
@@ -44,21 +43,21 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
- *
- * This Heartbeat job collects data and passes it to the {@link HBDataSenderService}.
- * Collectors using this job will collect data in one cluster node per execution, this is achieved by a job lock on collector id.
- * The job lock is obtained by the first repository node which requests it for its collector id.
+ * The scheduler job responsible for triggering a heartbeat on a regular basis.
  */
-public class LockingJob implements Job
+
+public class HeartBeatJob implements Job
 {
     /** The logger. */
-    private static final Log logger = LogFactory.getLog(LockingJob.class);
+    private static final Log logger = LogFactory.getLog(HeartBeatJob.class);
+
     /** Time to live 5 seconds */
     private static final long LOCK_TTL = 5000L;
 
     public static final String COLLECTOR_KEY = "collector";
     public static final String DATA_SENDER_SERVICE_KEY = "hbDataSenderService";
     public static final String JOB_LOCK_SERVICE_KEY = "jobLockService";
+
 
     @Override
     public void execute(final JobExecutionContext jobexecutioncontext) throws JobExecutionException

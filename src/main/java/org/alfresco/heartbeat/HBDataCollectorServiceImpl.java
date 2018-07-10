@@ -25,20 +25,29 @@
  */
 package org.alfresco.heartbeat;
 
-import java.util.HashMap;
-import java.util.Map;
-
+import java.text.ParseException;
+import java.util.LinkedList;
+import java.util.List;
 import org.alfresco.heartbeat.datasender.HBDataSenderService;
+import org.alfresco.repo.lock.JobLockService;
 import org.alfresco.service.cmr.repository.HBDataCollectorService;
 import org.alfresco.service.license.LicenseDescriptor;
 import org.alfresco.service.license.LicenseService.LicenseChangeHandler;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.quartz.CronScheduleBuilder;
+import org.quartz.CronTrigger;
+import org.quartz.JobBuilder;
+import org.quartz.JobDataMap;
+import org.quartz.JobDetail;
+import org.quartz.Scheduler;
+import org.quartz.SchedulerException;
+import org.quartz.TriggerBuilder;
+import org.quartz.TriggerKey;
 
 /**
- * This service lets implementations of {@link HBBaseDataCollector} register. <br>
- * Registered collectors have jobs scheduled or unscheduled based on the enabled state of Heartbeat. <br>
- * This service listens to events from {@link LicenseChangeHandler} and enables or disables Heartbeat accordingly.
+ * HBDataCollectorService implementation. This service manages multiple collectors. The collectors containing cron expression
+ * which will be used to create time scheduled jobs for executing the tasks from the collector
  *
  */
 public class HBDataCollectorServiceImpl implements HBDataCollectorService, LicenseChangeHandler
@@ -47,13 +56,20 @@ public class HBDataCollectorServiceImpl implements HBDataCollectorService, Licen
     private static final Log logger = LogFactory.getLog(HBDataCollectorServiceImpl.class);
 
     /** List of collectors registered with this service */
-    private Map<String, HBBaseDataCollector> collectors = new HashMap<>();
+    private List<HBBaseDataCollector> collectors = new LinkedList<>();
 
     /** The service responsible for sending the collected data */
     private HBDataSenderService hbDataSenderService;
+    private JobLockService jobLockService;
 
     /** The default enable state */
     private final boolean defaultHbState;
+
+    private Scheduler scheduler;
+
+    /** schedule set for all collectors if testMode is on */
+    private boolean testMode = false;
+    private final String testCronExpression = "0 0/1 * * * ?";
 
     /** Current enabled state */
     private boolean enabled = false;
@@ -75,14 +91,29 @@ public class HBDataCollectorServiceImpl implements HBDataCollectorService, Licen
         this.hbDataSenderService = hbDataSenderService;
     }
 
+    public void setJobLockService(JobLockService jobLockService)
+    {
+        this.jobLockService = jobLockService;
+    }
+
+    public void setScheduler(Scheduler scheduler)
+    {
+        this.scheduler = scheduler;
+    }
+
     public synchronized boolean isEnabled()
     {
         return this.enabled;
     }
 
+    public void setTestMode(boolean testMode)
+    {
+        this.testMode = testMode;
+    }
+
     /**
      *
-     * Register data collector with this service, a job will be scheduled for the collector if Heartbeat is enabled.
+     * Register data collector with this service and start the schedule.
      * The registered collector will be called to provide heartbeat data at the scheduled interval.
      * Each collector registered via this method must have a unique collector id.
      *
@@ -92,37 +123,57 @@ public class HBDataCollectorServiceImpl implements HBDataCollectorService, Licen
     public synchronized void registerCollector(final HBBaseDataCollector collector)
     {
         // Check collector with the same ID does't already exist
-        if(collectors.containsKey(collector.getCollectorId()))
+        for (HBBaseDataCollector col : collectors)
         {
-            throw new IllegalArgumentException("HeartBeat did not registered collector because a collector with ID: \n"
-                    + collector.getCollectorId() + " already exists. Collectors must have unique collector IDs" );
+            if(collector.getCollectorId().equals(col.getCollectorId()))
+            {
+                throw new IllegalArgumentException("HeartBeat did not registered collector, ID must be unique. ID: "
+                        + collector.getCollectorId());
+            }
         }
-        // Schedule collector job
-        scheduleCollector(collector);
-        // Add collector to list of registered collectors
-        collectors.put(collector.getCollectorId(), collector);
 
-        if (logger.isDebugEnabled())
+        // Schedule collector job and add collector to list of registered collectors
+        try
         {
-            logger.debug("HeartBeat registered collector: " + collector.getCollectorId());
+            scheduleCollector(collector);
+            collectors.add(collector);
+
+            if (logger.isDebugEnabled())
+            {
+                logger.debug("HeartBeat registered collector: " + collectorInfo(collector));
+            }
+        }
+        catch (Exception e)
+        {
+            throw new RuntimeException("HeartBeat did not registered collector: "
+                    + collectorInfo(collector), e);
         }
     }
 
     /**
+     * Deregister data collector. Before the collector will be removed the collector job will be unscheduled
      *
-     *
-     * @param collector - Deregister data collector. Removed collector and unscheduled associated job.
+     * @param collector
      */
-    @Override
     public synchronized void deregisterCollector(final HBBaseDataCollector collector)
     {
-        if (collectors.remove(collector.getCollectorId(), collector))
+        if (collectors.remove(collector))
         {
-            collector.getHbJobScheduler().unscheduleJob(collector);
-
-            if (logger.isDebugEnabled())
+            try
             {
-                logger.debug("HeartBeat unscheduled job and deregistered collector: " + collector.getCollectorId());
+                final String jobName = "heartbeat-" + collector.getCollectorId();
+                final String triggerName = jobName + "-Trigger";
+                unscheduleJob(triggerName, collector);
+
+                if (logger.isDebugEnabled())
+                {
+                    logger.debug("HeartBeat deregistered collector: " + collectorInfo(collector));
+                }
+            }
+            catch (Exception e)
+            {
+                throw new RuntimeException("HeartBeat did not deregister collector: "
+                        + collectorInfo(collector), e);
             }
         }
     }
@@ -133,15 +184,61 @@ public class HBDataCollectorServiceImpl implements HBDataCollectorService, Licen
         return defaultHbState;
     }
 
-    private void scheduleCollector(final HBBaseDataCollector collector)
+    /**
+     * Start or stop the HertBeat jobs for all registered collectors
+     * depending on whether the heartbeat is enabled or not
+     */
+    private void scheduleCollector(final HBBaseDataCollector collector) throws ParseException, SchedulerException
     {
+        final String jobName = "heartbeat-" + collector.getCollectorId();
+        final String triggerName = jobName + "-Trigger";
+
         if (this.enabled)
         {
-            collector.getHbJobScheduler().scheduleJob(collector);
+            scheduleJob(jobName, triggerName, collector);
         }
         else
         {
-            collector.getHbJobScheduler().unscheduleJob(collector);
+            unscheduleJob(triggerName, collector);
+        }
+
+    }
+
+    private void scheduleJob(final String jobName, final String triggerName, final HBBaseDataCollector collector) throws SchedulerException
+    {
+        JobDataMap jobDataMap = new JobDataMap();
+        jobDataMap.put(HeartBeatJob.COLLECTOR_KEY, collector);
+        jobDataMap.put(HeartBeatJob.DATA_SENDER_SERVICE_KEY, hbDataSenderService);
+        jobDataMap.put(HeartBeatJob.JOB_LOCK_SERVICE_KEY, jobLockService);
+        final JobDetail jobDetail = JobBuilder.newJob()
+                .withIdentity(jobName)
+                .usingJobData(jobDataMap)
+                .ofType(HeartBeatJob.class)
+                .build();
+
+        final String cronExpression = testMode ? testCronExpression : collector.getCronExpression();
+        // Schedule job
+        final CronTrigger cronTrigger = TriggerBuilder.newTrigger()
+                .withIdentity(triggerName)
+                .withSchedule(CronScheduleBuilder.cronSchedule(cronExpression))
+                .build();
+        // Ensure the job wasn't already scheduled in an earlier retry of this transaction
+        scheduler.unscheduleJob(cronTrigger.getKey());
+        scheduler.scheduleJob(jobDetail, cronTrigger);
+
+        if (logger.isDebugEnabled())
+        {
+            logger.debug("HeartBeat job scheduled for collector: " + collectorInfo(collector));
+        }
+    }
+
+    private void unscheduleJob(final String triggerName, final HBBaseDataCollector collector) throws SchedulerException
+    {
+        scheduler.unscheduleJob(new TriggerKey(triggerName));
+
+        if (logger.isDebugEnabled())
+        {
+            logger.debug("HeartBeat unscheduled job for collector: " + collectorInfo(collector));
         }
     }
 
@@ -185,7 +282,7 @@ public class HBDataCollectorServiceImpl implements HBDataCollectorService, Licen
 
     private void restartAllCollectorSchedules()
     {
-        for( HBBaseDataCollector collector : collectors.values() )
+        for(HBBaseDataCollector collector : collectors)
         {
             try
             {
@@ -206,5 +303,10 @@ public class HBDataCollectorServiceImpl implements HBDataCollectorService, Licen
         {
             hbDataSenderService.enable(enable);
         }
+    }
+
+    private String collectorInfo(HBBaseDataCollector collector)
+    {
+        return collector.getCollectorId() + " " + collector.getCollectorVersion();
     }
 }

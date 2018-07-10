@@ -36,7 +36,6 @@ import java.util.List;
 import java.util.Map;
 
 import org.alfresco.heartbeat.datasender.HBData;
-import org.alfresco.heartbeat.jobs.HeartBeatJobScheduler;
 import org.alfresco.repo.deployment.DeploymentMethod;
 import org.alfresco.repo.deployment.DeploymentMethodProvider;
 import org.alfresco.repo.descriptor.DescriptorDAO;
@@ -57,7 +56,6 @@ public class InfoDataCollectorTest
     private List<HBData> collectedData;
     private BaseDescriptor spyDescriptor;
     private DeploymentMethodProvider mockDeploymentMethodProvider;
-    private HeartBeatJobScheduler mockScheduler;
 
     @Before
     public void setUp()
@@ -67,14 +65,13 @@ public class InfoDataCollectorTest
         mockServerDescriptorDAO = mock(DescriptorDAO.class);
         mockCollectorService = mock(HBDataCollectorService.class);
         mockDeploymentMethodProvider = mock(DeploymentMethodProvider.class);
-        mockScheduler = mock(HeartBeatJobScheduler.class);
 
         when(spyDescriptor.getId()).thenReturn("mock_id");
         when(mockServerDescriptorDAO.getDescriptor()).thenReturn(spyDescriptor);
         when(mockDescriptorDAO.getDescriptor()).thenReturn(spyDescriptor);
         when(mockDeploymentMethodProvider.getDeploymentMethod()).thenReturn(DeploymentMethod.DEFAULT);
 
-        infoCollector = new InfoDataCollector("acs.repository.info", "1.0", "0 0 0 ? * *", mockScheduler);
+        infoCollector = new InfoDataCollector("acs.repository.info", "1.0", "0 0 0 ? * *");
         infoCollector.setHbDataCollectorService(mockCollectorService);
         infoCollector.setCurrentRepoDescriptorDAO(mockDescriptorDAO);
         infoCollector.setServerDescriptorDAO(mockServerDescriptorDAO);
