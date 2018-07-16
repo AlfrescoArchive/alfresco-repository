@@ -200,6 +200,14 @@ public class SolrSQLHttpClient extends AbstractSolrQueryHTTPClient implements So
                 locales.put(I18NUtil.getLocale());
             }
             body.put("locales", locales);
+
+            JSONArray filterQueries = new JSONArray();
+            for (String filterQuery : searchParameters.getFilterQueries())
+            {
+                filterQueries.put(filterQuery);
+            }
+            body.put("filterQueries", filterQueries);
+
             return (ResultSet) postSolrQuery(httpClient, url.toString(), body, json ->
             {
                 return new SolrSQLJSONResultSet(json, searchParameters);
