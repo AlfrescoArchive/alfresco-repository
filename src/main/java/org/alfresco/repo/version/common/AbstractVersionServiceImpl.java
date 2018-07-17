@@ -163,7 +163,7 @@ public abstract class AbstractVersionServiceImpl
 	}
 	
 	/**
-	 * Invoke the after create version policy bahaviour
+	 * Invoke the after create version policy behaviour
 	 * 
 	 * @param nodeRef	the nodeRef versioned
 	 * @param version 	the created version

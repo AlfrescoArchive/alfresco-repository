@@ -117,16 +117,16 @@ public class VersionServiceImplTest extends BaseVersionStoreTest
     private static final String UPDATED_CONTENT_1 = "updatedContent1";
     private static final String UPDATED_CONTENT_2 = "updatedContent2";
     private static final String UPDATED_CONTENT_3 = "updatedContent3";
-    
+
     private static final String PWD_A = "passA";
     private static final String USER_NAME_A = "userA";
-    
+
     private PersonService personService;
     private VersionableAspect versionableAspect;
     private List<String> excludedOnUpdateProps;
     private Properties globalProperties;
     private TestVersionPolicy versionBehavior;
-    
+
     @Before
     public void before() throws Exception
     {
@@ -2990,14 +2990,14 @@ public class VersionServiceImplTest extends BaseVersionStoreTest
         assertTrue(nodeService.hasAspect(node, ContentModel.ASPECT_DUBLINCORE));
         
     }
-    
+
     @Test
     public void testbehaviourCreateVersion() throws Exception
     {
         behaviourVersionTestWork(false, false, false);
         assertBehaviourCreateVersionWithoutRevert();
     }
-    
+
     @Test
     public void testbehaviourRevertVersion() throws Exception
     {
@@ -3013,14 +3013,14 @@ public class VersionServiceImplTest extends BaseVersionStoreTest
         assertTrue("Behavior should be executed", versionBehavior.isExecuted(OnRevertVersionPolicy.QNAME));
         assertEquals(3, versionBehavior.getExecutionCount(OnRevertVersionPolicy.QNAME));
     }
-    
+
     @Test
     public void testbehaviourCreateVersionDisableNode() throws Exception
     {
         behaviourVersionTestWork(false, true, true);
         assertBehaviourCreateVersionDisable();
     }
-    
+
     @Test
     public void testbehaviourCreateVersionDisable() throws Exception
     {
@@ -3028,8 +3028,9 @@ public class VersionServiceImplTest extends BaseVersionStoreTest
         assertBehaviourCreateVersionDisable();
     }
 
-	private void assertBehaviourCreateVersionDisable() {
-		assertFalse("Behavior should not be executed", versionBehavior.isExecuted(BeforeCreateVersionPolicy.QNAME));
+    private void assertBehaviourCreateVersionDisable()
+    {
+        assertFalse("Behavior should not be executed", versionBehavior.isExecuted(BeforeCreateVersionPolicy.QNAME));
         assertEquals(0, versionBehavior.getExecutionCount(BeforeCreateVersionPolicy.QNAME));
         assertFalse("Behavior should not be executed", versionBehavior.isExecuted(AfterCreateVersionPolicy.QNAME));
         assertEquals(0, versionBehavior.getExecutionCount(AfterCreateVersionPolicy.QNAME));
@@ -3039,15 +3040,15 @@ public class VersionServiceImplTest extends BaseVersionStoreTest
         assertEquals(0, versionBehavior.getExecutionCount(AfterVersionRevertPolicy.QNAME));
         assertFalse("Behavior should not be executed", versionBehavior.isExecuted(OnRevertVersionPolicy.QNAME));
         assertEquals(0, versionBehavior.getExecutionCount(OnRevertVersionPolicy.QNAME));
-	}
-    
+    }
+
     @Test
     public void testbehaviourRevertVersionDisableNode() throws Exception
     {
         behaviourVersionTestWork(true, true, true);
         assertBehaviourCreateVersionWithoutRevert();
     }
-    
+
     @Test
     public void testbehaviourRevertVersionDisable() throws Exception
     {
@@ -3055,8 +3056,9 @@ public class VersionServiceImplTest extends BaseVersionStoreTest
         assertBehaviourCreateVersionWithoutRevert();
     }
 
-	private void assertBehaviourCreateVersionWithoutRevert() {
-		assertTrue("Behavior should be executed", versionBehavior.isExecuted(BeforeCreateVersionPolicy.QNAME));
+    private void assertBehaviourCreateVersionWithoutRevert()
+    {
+        assertTrue("Behavior should be executed", versionBehavior.isExecuted(BeforeCreateVersionPolicy.QNAME));
         assertEquals(1, versionBehavior.getExecutionCount(BeforeCreateVersionPolicy.QNAME));
         assertTrue("Behavior should be executed", versionBehavior.isExecuted(AfterCreateVersionPolicy.QNAME));
         assertEquals(1, versionBehavior.getExecutionCount(AfterCreateVersionPolicy.QNAME));
@@ -3066,17 +3068,19 @@ public class VersionServiceImplTest extends BaseVersionStoreTest
         assertEquals(0, versionBehavior.getExecutionCount(AfterVersionRevertPolicy.QNAME));
         assertFalse("Behavior should not be executed", versionBehavior.isExecuted(OnRevertVersionPolicy.QNAME));
         assertEquals(0, versionBehavior.getExecutionCount(OnRevertVersionPolicy.QNAME));
-	}
-    
-    private void behaviourVersionTestWork(boolean revert, boolean disableBehaviour, boolean disableBehaviourNode) throws Exception
+    }
+
+    private void behaviourVersionTestWork(boolean revert, boolean disableBehaviour, boolean disableBehaviourNode)
+            throws Exception
     {
         UserTransaction transaction = transactionService.getUserTransaction();
         try
         {
             transaction.begin();
             NodeRef nodeRef = createNode(false, TEST_TYPE_QNAME);
-            if (revert) {
-               createVersion(nodeRef);
+            if (revert)
+            {
+                createVersion(nodeRef);
             }
             if (disableBehaviour)
             {
@@ -3094,7 +3098,8 @@ public class VersionServiceImplTest extends BaseVersionStoreTest
                 if (revert)
                 {
                     versionService.revert(nodeRef);
-                } else
+                }
+                else
                 {
                     createVersion(nodeRef);
                 }
@@ -3115,19 +3120,25 @@ public class VersionServiceImplTest extends BaseVersionStoreTest
             }
             transaction.commit();
         }
-        catch(Exception e)
+        catch (Exception e)
         {
-            try { transaction.rollback(); } catch (IllegalStateException ee) {}
+            try
+            {
+                transaction.rollback();
+            }
+            catch (IllegalStateException ee)
+            {
+            }
             throw e;
         }
     }
-    
+
     public class TestVersionPolicy implements BeforeCreateVersionPolicy, AfterCreateVersionPolicy,
             OnCreateVersionPolicy, AfterVersionRevertPolicy, OnRevertVersionPolicy
     {
         private Map<QName, Boolean> executed;
         private Map<QName, Integer> executionCount;
-        
+
         protected void execute(QName className)
         {
             executed = Optional.ofNullable(executed).orElseGet(HashMap::new);
@@ -3135,44 +3146,44 @@ public class VersionServiceImplTest extends BaseVersionStoreTest
             executionCount = Optional.ofNullable(executionCount).orElseGet(HashMap::new);
             executionCount.merge(className, 1, Integer::sum);
         }
-        
+
         public boolean isExecuted(QName className)
         {
             executed = Optional.ofNullable(executed).orElseGet(HashMap::new);
             return executed.getOrDefault(className, false);
         }
-        
+
         public int getExecutionCount(QName className)
         {
             executionCount = Optional.ofNullable(executionCount).orElseGet(HashMap::new);
             return executionCount.getOrDefault(className, 0);
         }
-        
+
         @Override
         public void beforeCreateVersion(NodeRef versionableNode)
         {
             execute(BeforeCreateVersionPolicy.QNAME);
         }
-        
+
         @Override
         public void afterCreateVersion(NodeRef versionableNode, Version version)
         {
             execute(AfterCreateVersionPolicy.QNAME);
         }
-        
+
         @Override
         public void onCreateVersion(QName classRef, NodeRef versionableNode,
                 Map<String, Serializable> versionProperties, PolicyScope nodeDetails)
         {
             execute(OnCreateVersionPolicy.QNAME);
         }
-        
+
         @Override
         public void afterVersionRevert(NodeRef nodeRef, Version version)
         {
             execute(AfterVersionRevertPolicy.QNAME);
         }
-        
+
         @Override
         public VersionRevertCallback getRevertVersionCallback(QName classRef, VersionRevertDetails copyDetails)
         {
