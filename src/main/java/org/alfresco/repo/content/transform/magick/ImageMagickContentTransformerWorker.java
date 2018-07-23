@@ -260,12 +260,16 @@ public class ImageMagickContentTransformerWorker extends AbstractImageMagickCont
         String allowEnlargement = null;
         String maintainAspectRatio = null;
 
+        String commandOptions = null;
+
 
         if (options instanceof ImageTransformationOptions)
         {
             ImageTransformationOptions imageOptions = (ImageTransformationOptions)options;
             CropSourceOptions cropOptions = imageOptions.getSourceOptions(CropSourceOptions.class);
             ImageResizeOptions resizeOptions = imageOptions.getResizeOptions();
+            commandOptions = imageOptions.getCommandOptions();
+            commandOptions = commandOptions == null || "".equals(commandOptions.trim()) ? null : commandOptions.trim();
 
             // MNT-10882 :  JPEG File Format, does not save the alpha (transparency) channel.
             if (MimetypeMap.MIMETYPE_IMAGE_JPEG.equalsIgnoreCase(targetMimetype) && isAlphaOptionSupported())
@@ -374,7 +378,9 @@ public class ImageMagickContentTransformerWorker extends AbstractImageMagickCont
                 "resizeHeight", resizeHeight,
                 "resizePercentage", resizePercentage,
                 "allowEnlargement", allowEnlargement,
-                "maintainAspectRatio", maintainAspectRatio);
+                "maintainAspectRatio", maintainAspectRatio,
+
+                "commandOptions", commandOptions);
     }
 
     protected String getImageMagickVersionNumber()
