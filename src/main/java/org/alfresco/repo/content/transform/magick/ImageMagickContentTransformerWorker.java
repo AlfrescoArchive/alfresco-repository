@@ -380,6 +380,7 @@ public class ImageMagickContentTransformerWorker extends AbstractImageMagickCont
                 "allowEnlargement", allowEnlargement,
                 "maintainAspectRatio", maintainAspectRatio,
 
+                // Parameter not to be taken forward into the Transform Service version
                 "commandOptions", commandOptions);
     }
 
