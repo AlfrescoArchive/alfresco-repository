@@ -25,20 +25,16 @@
  */
 package org.alfresco.repo.content.transform;
 
-import org.alfresco.repo.management.subsystems.ChildApplicationContextFactory;
+import org.alfresco.rest.framework.resource.parameters.Params;
 import org.alfresco.util.TransformServiceDictionary;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.Matchers;
-import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
-import java.util.Properties;
-import java.util.Set;
+import java.util.List;
+import java.util.Map;
 
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.when;
 
 public class TransformServiceDictionaryTest
 {
@@ -49,13 +45,16 @@ public class TransformServiceDictionaryTest
     {
         MockitoAnnotations.initMocks(this);
         dictionary = TransformServiceDictionary.getInstance();
+
     }
 
     @Test
     public void testDictionaryGetProperties()
     {
-        Properties defaultProps = dictionary.getProperties();
+        Map<String , Map<String, List<Params>>> propertyMap = dictionary.getDictionary();
 
-        System.out.println(defaultProps.propertyNames().toString());
+        assertTrue(propertyMap.containsKey("docx"));
+        assertTrue(propertyMap.get("docx").containsKey("pdf"));
+        assertTrue(!propertyMap.get("docx").containsKey("dummy1"));
     }
 }
