@@ -25,27 +25,26 @@
  */
 package org.alfresco.repo.content.transform;
 
-import org.alfresco.util.Params;
-import org.alfresco.util.TransformServiceDictionary;
+import org.alfresco.service.transform.TransformServiceRegistry;
+import org.alfresco.service.transform.TransformServiceRegistryImpl;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.MockitoAnnotations;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import static org.junit.Assert.assertTrue;
 
-public class TransformServiceDictionaryTest
+public class TransformServiceRegistryImplTest
 {
-    private TransformServiceDictionary dictionary;
+    private TransformServiceRegistry registry;
 
     @Before
     public void setUp() throws Exception
     {
         MockitoAnnotations.initMocks(this);
-        dictionary = TransformServiceDictionary.getInstance();
+        registry = new TransformServiceRegistryImpl();
 
     }
 
@@ -55,8 +54,8 @@ public class TransformServiceDictionaryTest
 
         Map<String, String> props = new HashMap<>();
         props.put("timeout","636");
-        assertTrue(dictionary.isSupported("docx", "pdf", props));
-        assertTrue(!dictionary.isSupported("docx", "pdf", new HashMap<String, String>()));
-        assertTrue(!dictionary.isSupported("pdf", "docx", props));
+        assertTrue(registry.isSupported("docx", "pdf", props));
+        assertTrue(!registry.isSupported("docx", "pdf", new HashMap<String, String>()));
+        assertTrue(!registry.isSupported("pdf", "docx", props));
     }
 }

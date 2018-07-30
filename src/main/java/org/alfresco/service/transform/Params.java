@@ -1,4 +1,4 @@
-package org.alfresco.util;
+package org.alfresco.service.transform;
 
 public class Params {
     private final String name;
