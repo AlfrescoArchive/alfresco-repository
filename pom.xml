@@ -1029,12 +1029,6 @@
             <version>${dependency.activemq.version}</version>
             <scope>test</scope>
         </dependency>
-        <dependency>
-            <groupId>org.alfresco</groupId>
-            <artifactId>alfresco-remote-api</artifactId>
-            <version>6.40-SNAPSHOT</version>
-            <scope>compile</scope>
-        </dependency>
     </dependencies>
 
     <profiles>

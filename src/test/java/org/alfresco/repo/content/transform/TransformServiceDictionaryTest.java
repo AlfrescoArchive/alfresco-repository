@@ -25,12 +25,13 @@
  */
 package org.alfresco.repo.content.transform;
 
-import org.alfresco.rest.framework.resource.parameters.Params;
+import org.alfresco.util.Params;
 import org.alfresco.util.TransformServiceDictionary;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.MockitoAnnotations;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -51,10 +52,11 @@ public class TransformServiceDictionaryTest
     @Test
     public void testDictionaryGetProperties()
     {
-        Map<String , Map<String, List<Params>>> propertyMap = dictionary.getDictionary();
 
-        assertTrue(propertyMap.containsKey("docx"));
-        assertTrue(propertyMap.get("docx").containsKey("pdf"));
-        assertTrue(!propertyMap.get("docx").containsKey("dummy1"));
+        Map<String, String> props = new HashMap<>();
+        props.put("timeout","636");
+        assertTrue(dictionary.isSupported("docx", "pdf", props));
+        assertTrue(!dictionary.isSupported("docx", "pdf", new HashMap<String, String>()));
+        assertTrue(!dictionary.isSupported("pdf", "docx", props));
     }
 }
