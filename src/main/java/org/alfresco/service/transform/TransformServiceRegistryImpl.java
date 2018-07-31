@@ -25,7 +25,7 @@ public class TransformServiceRegistryImpl implements TransformServiceRegistry {
      *              └─> png(target) |-> timeout (property)
      *                              └─> true (required)
      */
-    private Map<String , Map<String, List<Params>>> registry = new HashMap<String, Map<String, List<Params>>>();
+    private Map<String , Map<String, List<Params>>> registry = new HashMap<>();
 
     // Logger.
     private static Log logger = LogFactory.getLog(TransformServiceRegistryImpl.class);
@@ -58,7 +58,7 @@ public class TransformServiceRegistryImpl implements TransformServiceRegistry {
 
         // Map<String, List<Params>> used for holding params and add them to the corresponding
         // mimetypes once all of them are added into the registry.
-        Map<String, List<Params>> temporaryPlaceToStoreProperties= new HashMap<String, List<Params>>();
+        Map<String, List<Params>> temporaryPlaceToStoreProperties= new HashMap<>();
 
         // Parse properties read from file (REGISTRY_PROPERTIES) in order to initialize the registry.
         Enumeration propertyEntry = defaultProperties.propertyNames();
@@ -78,29 +78,7 @@ public class TransformServiceRegistryImpl implements TransformServiceRegistry {
             Matcher propsTypeMatcher = propertyPattern.matcher(propertyEntryKey);
                 if (propsTypeMatcher.find())
                 {
-                    String paramsEntryKey = propertyEntryKey.replaceFirst(PATTERN_ANY_CHARACTERS + PATTERN_PARAMS_OPTIONS + ".", "");
-
-                    boolean required = Boolean.valueOf(defaultProperties.getProperty(propertyEntryKey).toString());
-                    if(propertyEntryKey.contains("."+ PATTERN_PARAMS_REQUIRED))
-                    {
-                        paramsEntryKey = paramsEntryKey.replaceFirst("."+ PATTERN_PARAMS_REQUIRED, "");
-                    }
-
-                    // propertyInfo = sourceMimetype + . + targetMimetype + . + option
-                    String[] propertyInfo = paramsEntryKey.split("\\.");
-                    String mimetypeTransformation = propertyInfo[0]+"."+propertyInfo[1];
-                    if(temporaryPlaceToStoreProperties.containsKey(mimetypeTransformation))
-                    {
-                        List<Params> propertyList = temporaryPlaceToStoreProperties.get(mimetypeTransformation);
-                        propertyList.add (new Params(propertyInfo[2], required));
-                        temporaryPlaceToStoreProperties.put(mimetypeTransformation, propertyList);
-                    }
-                    else
-                    {
-                        List<Params> propertyList = new ArrayList<>();
-                        propertyList.add(new Params(propertyInfo[2], required));
-                        temporaryPlaceToStoreProperties.put(mimetypeTransformation, propertyList);
-                    }
+                    parseProp(temporaryPlaceToStoreProperties,propertyEntryKey,defaultProperties.getProperty(propertyEntryKey));
                 }
         }
         // Add properties/options to registry.
@@ -116,13 +94,41 @@ public class TransformServiceRegistryImpl implements TransformServiceRegistry {
 
         if (registry.containsKey(mimetypes[0]))
         {
-        registry.get(mimetypes[0]).put(mimetypes[1],new ArrayList<Params>());
+        registry.get(mimetypes[0]).put(mimetypes[1],new ArrayList<>());
         }
         else
         {
-        Map<String, List<Params>> targetMimetype = new HashMap<String, List<Params>>();
-        targetMimetype.put(mimetypes[1],new ArrayList<Params>());
+        Map<String, List<Params>> targetMimetype = new HashMap<>();
+        targetMimetype.put(mimetypes[1],new ArrayList<>());
         registry.put(mimetypes[0], targetMimetype);
+        }
+    }
+
+    private void  parseProp(Map<String, List<Params>> temporaryPlaceToStoreProperties, String propertyEntryKey, String propValue)
+    {
+        String paramsEntryKey = propertyEntryKey.replaceFirst(PATTERN_ANY_CHARACTERS + PATTERN_PARAMS_OPTIONS + ".", "");
+
+        boolean required = Boolean.valueOf(propValue);
+        if(propertyEntryKey.contains("."+ PATTERN_PARAMS_REQUIRED))
+        {
+            paramsEntryKey = paramsEntryKey.replaceFirst("."+ PATTERN_PARAMS_REQUIRED, "");
+        }
+
+        // propertyInfo = sourceMimetype + . + targetMimetype + . + option
+        String[] propertyInfo = paramsEntryKey.split("\\.");
+        String mimetypeTransformation = propertyInfo[0]+"."+propertyInfo[1];
+
+        if(temporaryPlaceToStoreProperties.containsKey(mimetypeTransformation))
+        {
+            List<Params> propertyList = temporaryPlaceToStoreProperties.get(mimetypeTransformation);
+            propertyList.add (new Params(propertyInfo[2], required));
+            temporaryPlaceToStoreProperties.put(mimetypeTransformation, propertyList);
+        }
+        else
+        {
+            List<Params> propertyList = new ArrayList<>();
+            propertyList.add(new Params(propertyInfo[2], required));
+            temporaryPlaceToStoreProperties.put(mimetypeTransformation, propertyList);
         }
     }
 
@@ -140,21 +146,18 @@ public class TransformServiceRegistryImpl implements TransformServiceRegistry {
 
     public boolean isSupported(String sourceMimetype, String targetMimetype, Map<String,String> params)
     {
-        if (registry.containsKey(sourceMimetype))
+        if (registry.containsKey(sourceMimetype) && registry.get(sourceMimetype).containsKey(targetMimetype))
         {
-            if (registry.get(sourceMimetype).containsKey(targetMimetype))
+            List<Params> transformationParameters = registry.get(sourceMimetype).get(targetMimetype);
+            for (Params p : transformationParameters)
             {
-                List<Params> transformationParameters = registry.get(sourceMimetype).get(targetMimetype);
-                for (Params p : transformationParameters)
+                // Verify that all the required parameters are part of the transformation request
+                if (!params.containsKey(p.getName()) && p.isRequired())
                 {
-                    // Verify that all the required parameters are part of the transformation request
-                    if (!params.containsKey(p.getName()) && p.isRequired())
-                    {
-                        return false;
-                    }
+                    return false;
                 }
-                // TO DO: Implement validation of bad request parameters
             }
+            // TO DO: Implement validation of bad request parameters
         }
         else
         {

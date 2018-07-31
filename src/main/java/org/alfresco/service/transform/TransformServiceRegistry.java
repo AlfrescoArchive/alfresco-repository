@@ -5,6 +5,7 @@ import java.util.Map;
 public interface TransformServiceRegistry {
 
     /**
+     * Validate if a transformation request can pe processed by Transformation Service.
      * @param sourceMimetype
      * @param targetMimetype
      * @param params

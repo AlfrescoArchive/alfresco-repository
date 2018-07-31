@@ -26,36 +26,55 @@
 package org.alfresco.repo.content.transform;
 
 import org.alfresco.service.transform.TransformServiceRegistry;
-import org.alfresco.service.transform.TransformServiceRegistryImpl;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.MockitoAnnotations;
+import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.junit.Assert.assertTrue;
-
+@RunWith(SpringJUnit4ClassRunner.class)
+@ContextConfiguration({"classpath:alfresco/subsystems/TransformService/transform-service-context.xml"})
 public class TransformServiceRegistryImplTest
 {
     private TransformServiceRegistry registry;
+    @Autowired
+    protected ApplicationContext applicationContext;
 
     @Before
     public void setUp() throws Exception
     {
-        MockitoAnnotations.initMocks(this);
-        registry = new TransformServiceRegistryImpl();
-
+        registry = (TransformServiceRegistry) applicationContext.getBean("transformServiceRegistryContext");
     }
 
     @Test
-    public void testDictionaryGetProperties()
+    public void testIsSupportedTransformationRegistry()
     {
-
+        // +ve
+        // Source, Target and Props are in dictionary.properties
         Map<String, String> props = new HashMap<>();
         props.put("timeout","636");
-        assertTrue(registry.isSupported("docx", "pdf", props));
-        assertTrue(!registry.isSupported("docx", "pdf", new HashMap<String, String>()));
-        assertTrue(!registry.isSupported("pdf", "docx", props));
+        Assert.assertTrue(registry.isSupported("docx", "pdf", props));
+
+        // -ve
+        // Bad Source
+        Assert.assertFalse(registry.isSupported("docxBad", "pdf", props));
+        // Bad Target
+        Assert.assertFalse(registry.isSupported("docx", "pdfBad", props));
+        // Bad Props
+        Assert.assertFalse(registry.isSupported("docx", "pdf", new HashMap<>()));
+        // Bad Source and Target
+        Assert.assertFalse(registry.isSupported("docxBad", "pdfBad", props));
+        // Bad Source and Props
+        Assert.assertFalse(registry.isSupported("docxBad", "pdf", new HashMap<>()));
+        // Bad Target and Props
+        Assert.assertFalse(registry.isSupported("docx", "pdfBad", new HashMap<>()));
+        // Bad Source Target and Props
+        Assert.assertFalse(registry.isSupported("docxBad", "pdfBad", new HashMap<>()));
     }
 }
