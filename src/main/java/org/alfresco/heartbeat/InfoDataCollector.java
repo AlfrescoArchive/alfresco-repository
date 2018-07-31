@@ -33,12 +33,21 @@ import org.alfresco.util.PropertyCheck;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.web.context.ServletConfigAware;
 
+import javax.servlet.ServletConfig;
 import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.SQLException;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.TimeZone;
+import java.util.concurrent.TimeUnit;
 
 /**
  * A collector of data related to the meta-data for the Alfresco stack.
@@ -64,7 +73,8 @@ import java.util.*;
  *  </li>
  * </ul>
  */
-public class InfoDataCollector extends HBBaseDataCollector implements InitializingBean
+public class InfoDataCollector extends HBBaseDataCollector implements InitializingBean,
+        ServletConfigAware
 {
     /** The logger. */
     private static final Log logger = LogFactory.getLog(InfoDataCollector.class);
@@ -78,6 +88,8 @@ public class InfoDataCollector extends HBBaseDataCollector implements Initializi
     private DeploymentMethodProvider deploymentMethodProvider;
 
     private DataSource dataSource;
+    
+    private ServletConfig servletConfig;
     
     public InfoDataCollector(String collectorId, String collectorVersion, String cronExpression)
     {
@@ -138,29 +150,39 @@ public class InfoDataCollector extends HBBaseDataCollector implements Initializi
         infoValues.put("schema", new Integer(serverDescriptor.getSchema()));
         infoValues.put("edition", serverDescriptor.getEdition());
         infoValues.put("deploymentMethod", deploymentMethodProvider.getDeploymentMethod().toString());
+        
         infoValues.put("os.vendor",System.getProperty("os.name"));
         infoValues.put("os.version",System.getProperty("os.version"));
         infoValues.put("os.arch",System.getProperty("os.arch"));
-
         infoValues.put("java.vendor",System.getProperty("java.vendor"));
         infoValues.put("java.version",System.getProperty("java.version"));
+
+        infoValues.put("user.language", Locale.getDefault().getLanguage());
+        infoValues.put("user.timezone",displayTimeZone(TimeZone.getDefault()));
+
+        infoValues.put("server.info", servletConfig.getServletContext().getServerInfo());
         
+        System.out.println("---- " + servletConfig.getServletContext().getServerInfo());
+        logger.info("Application server info --- " + servletConfig.getServletContext().getServerInfo());
 
         Connection con = null;
         try
         {
             con = dataSource.getConnection();
             DatabaseMetaData dbmeta = con.getMetaData();
+            Map<String, Object> db = new HashMap<>();
 
-            infoValues.put("db.vendor", dbmeta.getDatabaseProductName());
-            infoValues.put("db.version", dbmeta.getDatabaseProductVersion());
-            infoValues.put("db.driverName", dbmeta.getDriverName());
-            infoValues.put("db.driverVersion", dbmeta.getDriverVersion());
-//            infoValues.put("db driverClass", dbmeta.getDriver); IS THERE ANY ? 
+            db.put("vendor", dbmeta.getDatabaseProductName());
+            db.put("version", dbmeta.getDatabaseProductVersion());
+            db.put("driverName", dbmeta.getDriverName());
+            db.put("driverVersion", dbmeta.getDriverVersion());
+//            infoValues.put("db driverClass", dbmeta.getDriver); IS THERE ANY ?
+            infoValues.put("database", db);
+
         } 
         catch (SQLException e)
-        { //TODO:            
-            // log SQL Exception
+        { 
+            // No need to log exception if the data cannot be retrieved
         }
         finally
         {
@@ -185,4 +207,27 @@ public class InfoDataCollector extends HBBaseDataCollector implements Initializi
         return Arrays.asList(infoData);
     }
 
+    private static String displayTimeZone(TimeZone tz) {
+
+        long hours = TimeUnit.MILLISECONDS.toHours(tz.getRawOffset());
+        long minutes = TimeUnit.MILLISECONDS.toMinutes(tz.getRawOffset())
+                - TimeUnit.HOURS.toMinutes(hours);
+        // avoid -4:-30 issue
+        minutes = Math.abs(minutes);
+
+        String result = "";
+        if (hours > 0) {
+            result = String.format("GMT+%d:%02d", hours, minutes);
+        } else {
+            result = String.format("GMT%d:%02d", hours, minutes);
+        }
+
+        return result;
+    }
+
+    @Override 
+    public void setServletConfig(ServletConfig servletConfig)
+    {
+        this.servletConfig = servletConfig;
+    }
 }

@@ -32,6 +32,9 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
+import java.sql.Connection;
+import java.sql.DatabaseMetaData;
+import java.sql.SQLException;
 import java.util.List;
 import java.util.Map;
 
@@ -43,6 +46,8 @@ import org.alfresco.repo.descriptor.DescriptorServiceImpl.BaseDescriptor;
 import org.alfresco.service.cmr.repository.HBDataCollectorService;
 import org.junit.Before;
 import org.junit.Test;
+
+import javax.sql.DataSource;
 
 /**
  * @author eknizat
@@ -56,16 +61,23 @@ public class InfoDataCollectorTest
     private List<HBData> collectedData;
     private BaseDescriptor spyDescriptor;
     private DeploymentMethodProvider mockDeploymentMethodProvider;
+    private DatabaseMetaData mockDatabaseMetaData;
 
     @Before
-    public void setUp()
+    public void setUp() throws SQLException
     {
         spyDescriptor = spy(BaseDescriptor.class);
         mockDescriptorDAO = mock(DescriptorDAO.class);
         mockServerDescriptorDAO = mock(DescriptorDAO.class);
         mockCollectorService = mock(HBDataCollectorService.class);
         mockDeploymentMethodProvider = mock(DeploymentMethodProvider.class);
-
+        mockDatabaseMetaData = mock(DatabaseMetaData.class);
+        
+        DataSource mockDataSource = mock(DataSource.class);
+        Connection mockCon = mock(Connection.class);
+        when(mockDataSource.getConnection()).thenReturn(mockCon);
+        when(mockCon.getMetaData()).thenReturn(mockDatabaseMetaData);
+        
         when(spyDescriptor.getId()).thenReturn("mock_id");
         when(mockServerDescriptorDAO.getDescriptor()).thenReturn(spyDescriptor);
         when(mockDescriptorDAO.getDescriptor()).thenReturn(spyDescriptor);
@@ -76,12 +88,13 @@ public class InfoDataCollectorTest
         infoCollector.setCurrentRepoDescriptorDAO(mockDescriptorDAO);
         infoCollector.setServerDescriptorDAO(mockServerDescriptorDAO);
         infoCollector.setDeploymentMethodProvider(mockDeploymentMethodProvider);
+        infoCollector.setDataSource(mockDataSource);
     }
 
     @Test
     public void testHBDataFields()
     {
-        mockVersionDetails("6","0","0","");
+        mockVersionDetails("6","0","0","", "rc08e1b5a-b192");
         collectedData = infoCollector.collectData();
         HBData repoInfo = grabDataByCollectorId(infoCollector.getCollectorId());
         assertNotNull("Repository info data missing.", repoInfo);
@@ -100,7 +113,8 @@ public class InfoDataCollectorTest
     @Test
     public void testInfoDataIsCollected()
     {
-        mockVersionDetails("5","1","2",".4");
+        mockVersionDetails("5","1","2",".4", "rc08e1b5a-b192");
+        mockDatabaseMetaData("PostgreSQL","10.1","PostgreSQL JDBC Driver","42.2.1");
         collectedData = infoCollector.collectData();
 
         HBData repoInfo = grabDataByCollectorId(infoCollector.getCollectorId());
@@ -113,18 +127,48 @@ public class InfoDataCollectorTest
         assertEquals(DeploymentMethod.DEFAULT.toString(), data.get("deploymentMethod"));
         assertTrue(data.containsKey("version"));
         Map<String, Object> version = (Map<String, Object>) data.get("version");
-        assertEquals("5.1.2 (.4)", version.get("full"));
+        
+        assertEquals("5.1.2 (.4 rc08e1b5a-b192)", version.get("full"));
         assertEquals("5.1", version.get("servicePack"));
         assertEquals("5", version.get("major"));
         assertEquals("1", version.get("minor"));
         assertEquals("2", version.get("patch"));
         assertEquals("4", version.get("hotfix"));
+
+        System.out.println(data.get("os.vendor"));
+        System.out.println(data.get("os.version"));
+        System.out.println(data.get("os.arch"));
+        System.out.println(data.get("java.vendor"));
+        System.out.println(data.get("java.version"));
+
+        System.out.println(data.get("user.language"));
+        System.out.println(data.get("user.timezone"));
+
+        System.out.println("Server Info:");
+        System.out.println("-----> \n" + data.get("server.info"));
+        
+        assertNotNull("Check if the value is returned", data.get("os.vendor") );
+        assertNotNull("Check if the value is returned", data.get("os.version") );
+        assertNotNull("Check if the value is returned", data.get("os.arch") );
+        assertNotNull("Check if the value is returned", data.get("java.vendor") );
+        assertNotNull("Check if the value is returned", data.get("java.version") );
+
+        assertNotNull("Check if the value is returned", data.get("user.language") );
+        assertNotNull("Check if the value is returned", data.get("user.timezone") );
+
+        assertTrue(data.containsKey("database"));
+        Map<String, Object> db = (Map<String, Object>) data.get("database");
+        assertEquals("PostgreSQL", db.get("vendor"));
+        assertEquals("10.1", db.get("version"));
+        assertEquals("PostgreSQL JDBC Driver", db.get("driverName"));
+        assertEquals("42.2.1", db.get("driverVersion"));
+
     }
     
     @Test
     public void testInfoDataIsCollectedHotfixNoDot()
     {
-        mockVersionDetails("5","1","2","4");
+        mockVersionDetails("5","1","2","4", "rc08e1b5a-b192");
         collectedData = infoCollector.collectData();
         
         HBData repoInfo = grabDataByCollectorId(infoCollector.getCollectorId());
@@ -136,7 +180,7 @@ public class InfoDataCollectorTest
         assertEquals("Community", data.get("edition"));
         assertTrue(data.containsKey("version"));
         Map<String, Object> version = (Map<String, Object>) data.get("version");
-        assertEquals("5.1.2 (4)", version.get("full"));
+        assertEquals("5.1.2 (4 rc08e1b5a-b192)", version.get("full"));
         assertEquals("5.1", version.get("servicePack"));
         assertEquals("5", version.get("major"));
         assertEquals("1", version.get("minor"));
@@ -147,7 +191,7 @@ public class InfoDataCollectorTest
     @Test
     public void testInfoDataIsCollectedNoHotfix()
     {
-        mockVersionDetails("5","1","2","");
+        mockVersionDetails("5","1","2","", "rc08e1b5a-b192");
         collectedData = infoCollector.collectData();
         
         HBData repoInfo = grabDataByCollectorId(infoCollector.getCollectorId());
@@ -159,7 +203,7 @@ public class InfoDataCollectorTest
         assertEquals("Community", data.get("edition"));
         assertTrue(data.containsKey("version"));
         Map<String, Object> version = (Map<String, Object>) data.get("version");
-        assertEquals("5.1.2", version.get("full"));
+        assertEquals("5.1.2 (rc08e1b5a-b192)", version.get("full"));
         assertEquals("5.1", version.get("servicePack"));
         assertEquals("5", version.get("major"));
         assertEquals("1", version.get("minor"));
@@ -178,7 +222,7 @@ public class InfoDataCollectorTest
         return null;
     }
 
-    private void mockVersionDetails(String major, String minor, String patch, String hotfix)
+    private void mockVersionDetails(String major, String minor, String patch, String hotfix, String build)
     {
         when(spyDescriptor.getName()).thenReturn("repository");
         when(spyDescriptor.getVersionMajor()).thenReturn(major);
@@ -187,5 +231,21 @@ public class InfoDataCollectorTest
         when(spyDescriptor.getVersionLabel()).thenReturn(hotfix);
         when(spyDescriptor.getSchema()).thenReturn(1000);
         when(spyDescriptor.getEdition()).thenReturn("Community");
+        when(spyDescriptor.getVersionBuild()).thenReturn(build);
+    }
+    
+    private void mockDatabaseMetaData(String vendor, String version, String driverName, String driverVersion) 
+    {
+        try
+        {
+            when(mockDatabaseMetaData.getDatabaseProductName()).thenReturn(vendor);
+            when(mockDatabaseMetaData.getDatabaseProductVersion()).thenReturn(version);
+            when(mockDatabaseMetaData.getDriverName()).thenReturn(driverName);
+            when(mockDatabaseMetaData.getDriverVersion()).thenReturn(driverVersion); 
+        }
+        catch (SQLException e)
+        {
+            // No need to log exception if the data cannot be retrieved
+        }        
     }
 }
