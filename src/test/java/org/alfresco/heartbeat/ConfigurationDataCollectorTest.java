@@ -83,9 +83,6 @@ public class ConfigurationDataCollectorTest
     private static final ModuleVersionNumber MISSING_MODULE_VERSION_1 = new ModuleVersionNumber("3.0");
     private static final String AUDIT_APP_NAME = "auditapp1";
     private static final boolean AUDIT_APP_ENABLED = true;
-    private static final String AUTH_COMPONENT_1 = "auth1";
-    private static final String AUTH_COMPONENT_1_TYPE = "external";
-    private static final String AUTH_CHAIN = AUTH_COMPONENT_1+":"+AUTH_COMPONENT_1_TYPE+",otherComponent:otherType";
 
     @Before
     public void setUp()
@@ -112,7 +109,7 @@ public class ConfigurationDataCollectorTest
         WorkflowAdminService mockWorkflowAdminService = mock(WorkflowAdminService.class);
         ChildApplicationContextFactory mockInboundSMTPSubsystem = mock(ChildApplicationContextFactory.class);
         ChildApplicationContextFactory mockImapSubsystem = mock(ChildApplicationContextFactory.class);
-        ReplicationParams mockReplicationParams = mock(ReplicationParams.class);
+        ChildApplicationContextFactory mockReplication = mock(ChildApplicationContextFactory.class);
 
         // mock modules and module service
         ModuleService mockModuleService = mock(ModuleService.class);
@@ -131,10 +128,9 @@ public class ConfigurationDataCollectorTest
         // mock audit applications and audit service
         AuditService mockAuditService = mock(AuditService.class);
         AuditService.AuditApplication mockAuditApp = mock(AuditService.AuditApplication.class);
-        when(mockAuditApp.getName()).thenReturn(AUDIT_APP_NAME);
         when(mockAuditApp.isEnabled()).thenReturn(AUDIT_APP_ENABLED);
         Map<String, AuditService.AuditApplication> auditApps = new HashMap<>();
-        auditApps.put("key", mockAuditApp);
+        auditApps.put(AUDIT_APP_NAME, mockAuditApp);
 
         TransactionService mockTransactionService = mock(TransactionService.class);
         RetryingTransactionHelper mockRetryingTransactionHelper = mock(RetryingTransactionHelper.class);
@@ -147,7 +143,6 @@ public class ConfigurationDataCollectorTest
 
         // mock authentication chain
         DefaultChildApplicationContextManager mockAuthenticationSubsystem = mock(DefaultChildApplicationContextManager.class);
-        when(mockAuthenticationSubsystem.getProperty("chain")).thenReturn(AUTH_CHAIN);
 
         configurationCollector = new ConfigurationDataCollector("acs.repository.configuration", "1.0", "0 0 0 ? * SUN", mockScheduler);
         configurationCollector.setHbDataCollectorService(mockCollectorService);
@@ -165,7 +160,7 @@ public class ConfigurationDataCollectorTest
         configurationCollector.setWorkflowAdminService(mockWorkflowAdminService);
         configurationCollector.setInboundSMTPSubsystem(mockInboundSMTPSubsystem);
         configurationCollector.setImapSubsystem(mockImapSubsystem);
-        configurationCollector.setReplicationParams(mockReplicationParams);
+        configurationCollector.setReplicationSubsystem(mockReplication);
         configurationCollector.setModuleService(mockModuleService);
         configurationCollector.setAuditService(mockAuditService);
         configurationCollector.setAuthenticationSubsystem(mockAuthenticationSubsystem);
@@ -208,6 +203,7 @@ public class ConfigurationDataCollectorTest
         assertTrue(data.containsKey("activitiEngineEnabled"));
         assertTrue(data.containsKey("inboundServerEnabled"));
         assertTrue(data.containsKey("imapEnabled"));
+        assertTrue(data.containsKey("authenticationChain"));
 
         assertTrue(data.containsKey("replication"));
         Map<String, Object> replication = (Map<String, Object>)((Map<String, Object>)data.get("replication"));
@@ -244,13 +240,6 @@ public class ConfigurationDataCollectorTest
         assertTrue(auditApps.containsKey(AUDIT_APP_NAME));
         Map<String, Object> auditAppInfo = (Map<String, Object>) auditApps.get(AUDIT_APP_NAME);
         assertEquals(AUDIT_APP_ENABLED, auditAppInfo.get("enabled"));
-
-        assertTrue(data.containsKey("authentication"));
-        Map<String, Object> authChain = (Map<String, Object>)((Map<String, Object>)data.get("authentication")).get("chain");
-        assertTrue(authChain != null);
-        authChain.containsKey(AUTH_COMPONENT_1);
-        Map<String, Object> authCompInfo = (Map<String, Object>) authChain.get(AUTH_COMPONENT_1);
-        assertEquals(AUTH_COMPONENT_1_TYPE, authCompInfo.get("type"));
     }
 
     private HBData grabDataByCollectorId(String collectorId)

@@ -84,13 +84,22 @@ import javax.sql.DataSource;
  *          of the imap subsystem {@link ChildApplicationContextFactory#getProperty(String)}</li>
  *          <li><b>replication:</b> Replication configuration.
  *              <ul>
- *                  <li>enabled: Boolean - Replication enabled. {@link ReplicationParams#isEnabled()}</li>
- *                  <li>readOnly: Boolean - Replication transfer read only state. {@link ReplicationParams#getTransferReadOnly()}</li>
+ *                  <li>enabled: Boolean - Replication enabled state as reported by the <code>replication.enabled</code> property
+ *          of the Replication subsystem {@link ChildApplicationContextFactory#getProperty(String)}</li>
+ *                  <li>readOnly: Boolean - Replication transfer readonly as reported by the <code>replication.transfer.readonly</code> property
+ *          of the Replication subsystem {@link ChildApplicationContextFactory#getProperty(String)}</li>
  *              </ul>
  *          </li>
  *          <li><b>db:</b> Database configuration
  *              <ul>
  *                  <li>maxConnections: int - The maximum number of active connections. {@link BasicDataSource#getMaxActive()}</li>
+ *              </ul>
+ *          </li>
+ *          <li><b>authentication</b>: Authentication configuration.
+ *              <ul>
+ *                  <li><b>chain:</b> String - The authentication chain as reported by <code>chain</code> property
+ *                  {@link DefaultChildApplicationContextManager#getProperty(String)}
+ *                  </li>
  *              </ul>
  *          </li>
  *          <li><b>module:</b> Module configuration.
@@ -111,7 +120,7 @@ import javax.sql.DataSource;
  *                    </ul>
  *                </li>
  *
- *                <li><b>missing:</b> Information about the missing modules {@link ModuleService#getMissingModules()}
+ *                <li><b>missing:</b> Information about the missing modules, omitted if no missing modules, {@link ModuleService#getMissingModules()}
  *                    <ul>
  *                        <li><b>modules:</b> - List of missing modules.
  *                            <ul>
@@ -132,24 +141,9 @@ import javax.sql.DataSource;
  *                  <li><b>enabled</b> boolean - The audit enabled state {@link AuditService#isAuditEnabled()}</li>
  *                  <li><b>apps:</b> List of audit applications. {@link AuditService#getAuditApplications()}
  *                      <ul>
- *                          <li> <b>{@link AuditService.AuditApplication#getName()} Note that spaces in name are replaces with hyphens</b>
+ *                          <li> <b>map keys from {@link AuditService#getAuditApplications()}</b> Note that spaces are replaces with hyphens
  *                              <ul>
  *                                  <li><b>enabled</b> - Enabled state of this audit application. {@link AuditService.AuditApplication#isEnabled()}</li>
- *                              </ul>
- *                          </li>
- *                          ...
- *                      </ul>
- *                  </li>
- *              </ul>
- *          </li>
-            <li><b>authentication</b>: Authentication configuration.
- *              <ul>
- *                  <li><b>chain:</b> List of authentication chain as returned by <code>chain</code> property
- *                  {@link DefaultChildApplicationContextManager#getProperty(String)}
- *                      <ul>
- *                          <li> <b>name</b> String
- *                              <ul>
- *                                  <li><b>type</b> String</li>
  *                              </ul>
  *                          </li>
  *                          ...
@@ -180,7 +174,7 @@ public class ConfigurationDataCollector extends HBBaseDataCollector implements I
     private ThumbnailService thumbnailService;
     private WebDavService webdavService;
     private WorkflowAdminService workflowAdminService;
-    private ReplicationParams replicationParams;
+    private ChildApplicationContextFactory replicationSubsystem;
     private ChildApplicationContextFactory imapSubsystem;
     private ChildApplicationContextFactory inboundSMTPSubsystem;
     private ChildApplicationContextFactory activitiesFeedSubsystem;
@@ -192,6 +186,11 @@ public class ConfigurationDataCollector extends HBBaseDataCollector implements I
                                       HeartBeatJobScheduler hbJobScheduler)
     {
         super(collectorId, collectorVersion, cronExpression, hbJobScheduler);
+    }
+
+    public void setReplicationSubsystem(ChildApplicationContextFactory replicationSubsystem)
+    {
+        this.replicationSubsystem = replicationSubsystem;
     }
 
     public void setCurrentRepoDescriptorDAO(DescriptorDAO currentRepoDescriptorDAO)
@@ -227,11 +226,6 @@ public class ConfigurationDataCollector extends HBBaseDataCollector implements I
     public void setImapSubsystem(ChildApplicationContextFactory imapSubsystem)
     {
         this.imapSubsystem = imapSubsystem;
-    }
-
-    public void setReplicationParams(ReplicationParams replicationParams)
-    {
-        this.replicationParams = replicationParams;
     }
 
 
@@ -293,7 +287,7 @@ public class ConfigurationDataCollector extends HBBaseDataCollector implements I
         PropertyCheck.mandatory(this, "thumbnailService", thumbnailService);
         PropertyCheck.mandatory(this, "webdavService", webdavService);
         PropertyCheck.mandatory(this, "workflowAdminService", workflowAdminService);
-        PropertyCheck.mandatory(this, "replicationParams", replicationParams);
+        PropertyCheck.mandatory(this, "replicationSubsystem", replicationSubsystem);
         PropertyCheck.mandatory(this, "imapSubsystem", imapSubsystem);
         PropertyCheck.mandatory(this, "inboundSMTPSubsystem", inboundSMTPSubsystem);
         PropertyCheck.mandatory(this, "inboundSMTPSubsystem", inboundSMTPSubsystem);
@@ -330,8 +324,8 @@ public class ConfigurationDataCollector extends HBBaseDataCollector implements I
         configurationValues.put("imapEnabled", imapEnabled);
 
         Map<String, Object> replicationInfo = new HashMap<>();
-        replicationInfo.put("enabled", replicationParams.isEnabled());
-        replicationInfo.put("readOnly", replicationParams.getTransferReadOnly());
+        replicationInfo.put("enabled", replicationSubsystem.getProperty("replication.enabled"));
+        replicationInfo.put("readOnly", replicationSubsystem.getProperty("replication.transfer.readonly"));
         configurationValues.put("replication", replicationInfo);
 
         if (dataSource instanceof BasicDataSource)
@@ -383,12 +377,13 @@ public class ConfigurationDataCollector extends HBBaseDataCollector implements I
         Map<String, AuditService.AuditApplication> rawAppList = transactionService.getRetryingTransactionHelper()
                 .doInTransaction( () -> auditService.getAuditApplications(), true);
 
-        for (AuditService.AuditApplication app : rawAppList.values())
+        for (Map.Entry<String, AuditService.AuditApplication> entry : rawAppList.entrySet())
         {
+            AuditService.AuditApplication app = entry.getValue();
             Map<String, Object> appInfo = new HashMap<>();
             appInfo.put("enabled", app.isEnabled());
             // replace spaces with hyphens
-            String appName = app.getName().replace(" ","-");
+            String appName = entry.getKey().replace(" ","-");
             auditAppList.put(appName, appInfo);
         }
         if (!auditAppList.isEmpty())
@@ -399,21 +394,7 @@ public class ConfigurationDataCollector extends HBBaseDataCollector implements I
 
         // Authentication chain
         String chainString = authenticationSubsystem.getProperty("chain");
-        Map<String, Object> authentication = new HashMap<>();
-        Map<String, Object> authenticationChainList = new HashMap<>();
-        String[] chainTokens = ( chainString != null ? chainString.split(",") : new String[0]);
-        for(String authSubsystem: chainTokens)
-        {
-            Map<String, Object> authSubsystemInfo = new HashMap<>();
-            String[] nameType = authSubsystem.split(":");
-            authSubsystemInfo.put("type", nameType[1]);
-            authenticationChainList.put(nameType[0], authSubsystemInfo);
-        }
-        if (!authenticationChainList.isEmpty())
-        {
-            authentication.put("chain", authenticationChainList);
-            configurationValues.put("authentication", authentication);
-        }
+        configurationValues.put("authenticationChain", chainString);
 
         HBData configurationData = new HBData(
                 this.currentRepoDescriptorDAO.getDescriptor().getId(),
