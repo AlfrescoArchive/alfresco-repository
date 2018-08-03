@@ -34,8 +34,21 @@ import org.alfresco.util.PropertyCheck;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.web.context.ServletContextAware;
 
-import java.util.*;
+import javax.servlet.ServletContext;
+import javax.sql.DataSource;
+import java.sql.Connection;
+import java.sql.DatabaseMetaData;
+import java.sql.SQLException;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.TimeZone;
+import java.util.concurrent.TimeUnit;
 
 /**
  * A collector of data related to the meta-data for the Alfresco stack.
@@ -52,16 +65,34 @@ import java.util.*;
  *                  <li>minor: String - The minor version number, e.g. 1.<u>2</u>.3. {@link Descriptor#getVersionMinor()}</li>
  *                  <li>patch: String - The version revision number, e.g. 1.2.<u>3</u>. {@link Descriptor#getVersionRevision()}</li>
  *                  <li>hotfix: String - The version label. {@link Descriptor#getVersionLabel()}</li>
+ *                  <li>build: String - The number of the build. {@link Descriptor#getVersionBuild()}</li>
  *              </ul>
  *          </li>
  *          <li><b>schema:</b> Int - The schema number. {@link Descriptor#getSchema()}</li>
  *          <li><b>edition:</b> String - The edition. {@link Descriptor#getEdition()}</li>
  *          <li><b>deploymentMethod:</b> String - The deployment method used to deploy this Alfresco instance. {@link DeploymentMethodProvider#getDeploymentMethod()}</li>
+ *          <li><b>os.vendor:</b> String - The name of the Operating System vendor. {@link System#getProperty(String)}</li>
+ *          <li><b>os.version:</b> String - The version of the Operating System. {@link System#getProperty(String)}</li>
+ *          <li><b>os.arch:</b> String - The architecture of the Operating System. {@link System#getProperty(String)}</li>
+ *          <li><b>java.vendor:</b> String - The name of the Java vendor. {@link System#getProperty(String)}</li>
+ *          <li><b>java.version:</b> String - The version of Java used. {@link System#getProperty(String)}</li>
+ *          <li><b>user.language:</b> String - The language which this instance was installed with. {@link Locale#getLanguage()} </li>
+ *          <li><b>user.timezone:</b> String - The GMT offset for the timezone of this instance, e.g. GMT+2. {@link DeploymentMethodProvider#getDeploymentMethod()}</li>
+ *           <li><b>database: Object which contains database information:</b>
+ *              <ul>
+ *                  <li>vendor: String - The vendor of the database. {@link DatabaseMetaData#getDatabaseProductName()}</li>
+ *                  <li>version: String - The version of the database used. {@link DatabaseMetaData#getDatabaseProductVersion()}</li>
+ *                  <li>driverName: String - The name of the database driver. {@link DatabaseMetaData#getDriverName()}</li>
+ *                  <li>driverVersion: String - The version of the driver used. {@link DatabaseMetaData#getDriverVersion()}</li>
+ *              </ul>
+ *          </li>
+ *
  *      </ul>
  *  </li>
  * </ul>
  */
-public class InfoDataCollector extends HBBaseDataCollector implements InitializingBean
+public class InfoDataCollector extends HBBaseDataCollector implements InitializingBean,
+        ServletContextAware
 {
     /** The logger. */
     private static final Log logger = LogFactory.getLog(InfoDataCollector.class);
@@ -73,6 +104,10 @@ public class InfoDataCollector extends HBBaseDataCollector implements Initializi
     private DescriptorDAO serverDescriptorDAO;
 
     private DeploymentMethodProvider deploymentMethodProvider;
+
+    private DataSource dataSource;
+
+    private ServletContext servletContext;
 
     public InfoDataCollector(String collectorId, String collectorVersion, String cronExpression,
                              HeartBeatJobScheduler hbJobScheduler)
@@ -95,12 +130,24 @@ public class InfoDataCollector extends HBBaseDataCollector implements Initializi
         this.deploymentMethodProvider = deploymentMethodProvider;
     }
 
+    public void setDataSource(DataSource dataSource)
+    {
+        this.dataSource = dataSource;
+    }
+
+    @Override public void setServletContext(ServletContext servletContext)
+    {
+        this.servletContext = servletContext;
+    }
+    
     @Override
     public void afterPropertiesSet() throws Exception
     {
         PropertyCheck.mandatory(this, "serverDescriptorDAO", serverDescriptorDAO);
         PropertyCheck.mandatory(this, "currentRepoDescriptorDAO", currentRepoDescriptorDAO);
         PropertyCheck.mandatory(this, "deploymentMethodProvider", deploymentMethodProvider);
+        PropertyCheck.mandatory(this, "dataSource", dataSource);
+        PropertyCheck.mandatory(this, "servletContext", servletContext);
     }
 
     @Override
@@ -119,6 +166,8 @@ public class InfoDataCollector extends HBBaseDataCollector implements Initializi
         version.put("major", serverDescriptor.getVersionMajor());
         version.put("minor", serverDescriptor.getVersionMinor());
         version.put("patch", serverDescriptor.getVersionRevision());
+        version.put("build", serverDescriptor.getVersionBuild());
+
         String hotfix = serverDescriptor.getVersionLabel();
         if (hotfix != null && hotfix.length() > 0)
         {
@@ -129,6 +178,47 @@ public class InfoDataCollector extends HBBaseDataCollector implements Initializi
         infoValues.put("edition", serverDescriptor.getEdition());
         infoValues.put("deploymentMethod", deploymentMethodProvider.getDeploymentMethod().toString());
 
+        infoValues.put("os.vendor",System.getProperty("os.name"));
+        infoValues.put("os.version",System.getProperty("os.version"));
+        infoValues.put("os.arch",System.getProperty("os.arch"));
+        infoValues.put("java.vendor",System.getProperty("java.vendor"));
+        infoValues.put("java.version",System.getProperty("java.version"));
+
+        infoValues.put("user.language", Locale.getDefault().getLanguage());
+        infoValues.put("user.timezone",displayTimeZone(TimeZone.getDefault()));
+        
+        infoValues.put("server.info", servletContext.getServerInfo());   
+        
+        Connection con = null;
+        try
+        {
+            con = dataSource.getConnection();
+            DatabaseMetaData dbmeta = con.getMetaData();
+            Map<String, Object> db = new HashMap<>();
+            db.put("vendor", dbmeta.getDatabaseProductName());
+            db.put("version", dbmeta.getDatabaseProductVersion());
+            db.put("driverName", dbmeta.getDriverName());
+            db.put("driverVersion", dbmeta.getDriverVersion());
+            infoValues.put("database", db); 
+        }
+        catch (SQLException e)
+        {
+            // No need to log exception if the data cannot be retrieved
+        }
+        finally
+        {
+            if (con != null)
+            {
+                try
+                {
+                    con.close();
+                }
+                catch (SQLException e)
+                {
+                }
+            }
+        }
+                        
         HBData infoData = new HBData(
                 this.currentRepoDescriptorDAO.getDescriptor().getId(),
                 this.getCollectorId(),
@@ -137,5 +227,20 @@ public class InfoDataCollector extends HBBaseDataCollector implements Initializi
                 infoValues);
 
         return Arrays.asList(infoData);
+    }
+
+    private static String displayTimeZone(TimeZone tz) {
+        long hours = TimeUnit.MILLISECONDS.toHours(tz.getRawOffset());
+        long minutes = TimeUnit.MILLISECONDS.toMinutes(tz.getRawOffset())
+                - TimeUnit.HOURS.toMinutes(hours);
+        // avoid -4:-30 issue
+        minutes = Math.abs(minutes);
+        String result = "";
+        if (hours > 0) {
+            result = String.format("GMT+%d:%02d", hours, minutes);
+        } else {
+            result = String.format("GMT%d:%02d", hours, minutes);
+        }
+        return result;
     }
 }
