@@ -45,7 +45,6 @@ import org.alfresco.repo.management.subsystems.DefaultChildApplicationContextMan
 import org.alfresco.repo.mode.ServerMode;
 import org.alfresco.repo.mode.ServerModeProvider;
 import org.alfresco.repo.module.ModuleVersionNumber;
-import org.alfresco.repo.replication.ReplicationParams;
 import org.alfresco.repo.transaction.RetryingTransactionHelper;
 import org.alfresco.repo.usage.RepoUsageComponent;
 import org.alfresco.service.cmr.audit.AuditService;
@@ -137,8 +136,8 @@ public class ConfigurationDataCollectorTest
         // Mock transaction service calls
         when(mockRetryingTransactionHelper
                 .doInTransaction(any(RetryingTransactionHelper.RetryingTransactionCallback.class), anyBoolean()))
-                .thenReturn(true) // First call to get the
-                .thenReturn(auditApps);
+                .thenReturn(true) // First call made by the collector to get the server readOnly value via transformation service
+                .thenReturn(auditApps); // Second call to get the audit applications
         when(mockTransactionService.getRetryingTransactionHelper()).thenReturn(mockRetryingTransactionHelper);
 
         // mock authentication chain

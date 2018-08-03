@@ -38,7 +38,6 @@ import org.alfresco.repo.descriptor.DescriptorDAO;
 import org.alfresco.repo.management.subsystems.ChildApplicationContextFactory;
 import org.alfresco.repo.management.subsystems.DefaultChildApplicationContextManager;
 import org.alfresco.repo.mode.ServerModeProvider;
-import org.alfresco.repo.replication.ReplicationParams;
 import org.alfresco.repo.security.authentication.AuthenticationUtil;
 import org.alfresco.repo.usage.RepoUsageComponent;
 import org.alfresco.repo.workflow.activiti.ActivitiConstants;
@@ -290,7 +289,7 @@ public class ConfigurationDataCollector extends HBBaseDataCollector implements I
         PropertyCheck.mandatory(this, "replicationSubsystem", replicationSubsystem);
         PropertyCheck.mandatory(this, "imapSubsystem", imapSubsystem);
         PropertyCheck.mandatory(this, "inboundSMTPSubsystem", inboundSMTPSubsystem);
-        PropertyCheck.mandatory(this, "inboundSMTPSubsystem", inboundSMTPSubsystem);
+        PropertyCheck.mandatory(this, "serverModeProvider", serverModeProvider);
         PropertyCheck.mandatory(this, "activitiesFeedSubsystem", activitiesFeedSubsystem);
         PropertyCheck.mandatory(this, "fileServersSubsystem", fileServersSubsystem);
         PropertyCheck.mandatory(this, "authenticationSubsystem", authenticationSubsystem);
