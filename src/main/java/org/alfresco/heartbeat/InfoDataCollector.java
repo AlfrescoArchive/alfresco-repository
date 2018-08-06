@@ -178,16 +178,23 @@ public class InfoDataCollector extends HBBaseDataCollector implements Initializi
         infoValues.put("edition", serverDescriptor.getEdition());
         infoValues.put("deploymentMethod", deploymentMethodProvider.getDeploymentMethod().toString());
 
-        infoValues.put("os.vendor",System.getProperty("os.name"));
-        infoValues.put("os.version",System.getProperty("os.version"));
-        infoValues.put("os.arch",System.getProperty("os.arch"));
-        infoValues.put("java.vendor",System.getProperty("java.vendor"));
-        infoValues.put("java.version",System.getProperty("java.version"));
+        infoValues.put("os.vendor", System.getProperty("os.name"));
+        infoValues.put("os.version", System.getProperty("os.version"));
+        infoValues.put("os.arch", System.getProperty("os.arch"));
+        infoValues.put("java.vendor", System.getProperty("java.vendor"));
+        infoValues.put("java.version", System.getProperty("java.version"));
 
         infoValues.put("user.language", Locale.getDefault().getLanguage());
-        infoValues.put("user.timezone",displayTimeZone(TimeZone.getDefault()));
-        
-        infoValues.put("server.info", servletContext.getServerInfo());   
+        infoValues.put("user.timezone", displayTimeZone(TimeZone.getDefault()));
+
+        try
+        {
+            infoValues.put("server.info", servletContext.getServerInfo()); 
+        }
+        catch (NullPointerException e)
+        {
+            infoValues.put("server.info", null);
+        }
         
         Connection con = null;
         try
@@ -236,9 +243,12 @@ public class InfoDataCollector extends HBBaseDataCollector implements Initializi
         // avoid -4:-30 issue
         minutes = Math.abs(minutes);
         String result = "";
-        if (hours > 0) {
+        if (hours > 0) 
+        {
             result = String.format("GMT+%d:%02d", hours, minutes);
-        } else {
+        } 
+        else
+        {        
             result = String.format("GMT%d:%02d", hours, minutes);
         }
         return result;
