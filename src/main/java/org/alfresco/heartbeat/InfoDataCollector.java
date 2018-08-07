@@ -41,6 +41,7 @@ import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.SQLException;
+import java.time.OffsetDateTime;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
@@ -76,8 +77,9 @@ import java.util.TimeZone;
  *          <li><b>javaVendor:</b> String - The name of the Java vendor. {@link System#getProperty(String)}</li>
  *          <li><b>javaVersion:</b> String - The version of Java used. {@link System#getProperty(String)}</li>
  *          <li><b>userLanguage:</b> String - The language which this instance was installed with. {@link Locale#getLanguage()} </li>
- *          <li><b>userTimezone:</b> String - The GMT offset for the timezone of this instance, e.g. GMT+2. {@link DeploymentMethodProvider#getDeploymentMethod()}</li>
- *           <li><b>database: Object which contains database information:</b>
+ *          <li><b>userTimezone:</b> String - The timezone ID for this Alfresco instance. e.g. Europe/Athens {@link TimeZone#getID()} </li>
+ *          <li><b>userUTCOffset:</b> String - The UTC offset of the timezone for this Alfresco instance. e.g. +03.00 {@link OffsetDateTime#getOffset()} </li>
+ *          <li><b>database: Object which contains database information:</b>
  *              <ul>
  *                  <li>vendor: String - The vendor of the database. {@link DatabaseMetaData#getDatabaseProductName()}</li>
  *                  <li>version: String - The version of the database used. {@link DatabaseMetaData#getDatabaseProductVersion()}</li>
@@ -183,6 +185,7 @@ public class InfoDataCollector extends HBBaseDataCollector implements Initializi
 
         infoValues.put("userLanguage", Locale.getDefault().getLanguage());
         infoValues.put("userTimezone", TimeZone.getDefault().getID());
+        infoValues.put("userUTCOffset", OffsetDateTime.now().getOffset().getId());
 
         if(servletContext != null)
         {

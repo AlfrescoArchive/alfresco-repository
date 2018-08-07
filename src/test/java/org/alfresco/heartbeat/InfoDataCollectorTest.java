@@ -151,6 +151,7 @@ public class InfoDataCollectorTest
         assertNotNull("Check if data is collected", data.get("javaVersion") );
         assertNotNull("Check if data is collected", data.get("userLanguage") );
         assertNotNull("Check if data is collected", data.get("userTimezone") );
+        assertNotNull("Check if data is collected", data.get("userUTCOffset") );
         
         assertEquals("Apache Tomcat/7.0.47", data.get("serverInfo") );
                 
