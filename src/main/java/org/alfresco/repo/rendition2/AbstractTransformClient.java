@@ -25,20 +25,37 @@
  */
 package org.alfresco.repo.rendition2;
 
-import java.util.Set;
+import org.alfresco.model.ContentModel;
+import org.alfresco.service.cmr.repository.ContentData;
+import org.alfresco.service.cmr.repository.NodeRef;
+import org.alfresco.service.cmr.repository.NodeService;
 
 /**
- * A registry of rendition definitions.
+ * Contains common code used in TransformClients.
  *
  * @author adavis
  */
-public interface RenditionDefinitionRegistry2
+public class AbstractTransformClient
 {
-    public void register(RenditionDefinition2 renditionDefinition);
+    protected NodeService nodeService;
 
-    public void unregister(String renditionName);
+    public void setNodeService(NodeService nodeService)
+    {
+        this.nodeService = nodeService;
+    }
 
-    public Set<String> getRenditionNames();
+    protected ContentData getContentData(NodeRef sourceNodeRef)
+    {
+        if (!nodeService.exists(sourceNodeRef))
+        {
+            throw new IllegalArgumentException("The supplied sourceNodeRef "+sourceNodeRef+" does not exist any more.");
+        }
 
-    public RenditionDefinition2 getRenditionDefinition(String renditionName);
+        ContentData contentData = (ContentData) nodeService.getProperty(sourceNodeRef, ContentModel.PROP_CONTENT);
+        if (contentData == null || contentData.getContentUrl() == null)
+        {
+            throw new IllegalArgumentException("The supplied sourceNodeRef "+sourceNodeRef+" has no content.");
+        }
+        return contentData;
+    }
 }

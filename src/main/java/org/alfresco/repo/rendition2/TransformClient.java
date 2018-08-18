@@ -25,20 +25,21 @@
  */
 package org.alfresco.repo.rendition2;
 
-import java.util.Set;
+import org.alfresco.service.cmr.repository.NodeRef;
 
 /**
- * A registry of rendition definitions.
+ * Request rendition transforms.
  *
  * @author adavis
  */
-public interface RenditionDefinitionRegistry2
+public interface TransformClient
 {
-    public void register(RenditionDefinition2 renditionDefinition);
-
-    public void unregister(String renditionName);
-
-    public Set<String> getRenditionNames();
-
-    public RenditionDefinition2 getRenditionDefinition(String renditionName);
+    /**
+     * Requests the transform which triggers the subsequent linkage of the content as a rendition.
+     * @param sourceNodeRef the source node
+     * @param renditionDefinition which rendition to perform
+     * @throws UnsupportedOperationException if the transform is not supported.
+     * @throws IllegalArgumentException if the sourceNodeRef does not exist.
+     */
+    public void transform(NodeRef sourceNodeRef, RenditionDefinition2 renditionDefinition);
 }

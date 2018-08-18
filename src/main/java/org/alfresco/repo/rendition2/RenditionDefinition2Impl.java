@@ -25,20 +25,46 @@
  */
 package org.alfresco.repo.rendition2;
 
-import java.util.Set;
+import java.util.Map;
 
 /**
- * A registry of rendition definitions.
+ * Standard implementation.
  *
  * @author adavis
  */
-public interface RenditionDefinitionRegistry2
+public class RenditionDefinition2Impl implements RenditionDefinition2
 {
-    public void register(RenditionDefinition2 renditionDefinition);
+    private final String renditionName;
+    private final String targetMimetype;
+    private final Map<String, String> transformOptions;
 
-    public void unregister(String renditionName);
+    public RenditionDefinition2Impl(String renditionName, String targetMimetype, Map<String, String> transformOptions,
+                                    RenditionDefinitionRegistry2 registry)
+    {
+        this.renditionName = renditionName;
+        this.targetMimetype = targetMimetype;
+        this.transformOptions = transformOptions;
+        if (registry != null)
+        {
+            registry.register(this);
+        }
+    }
 
-    public Set<String> getRenditionNames();
+    @Override
+    public String getRenditionName()
+    {
+        return renditionName;
+    }
 
-    public RenditionDefinition2 getRenditionDefinition(String renditionName);
+    @Override
+    public String getTargetMimetype()
+    {
+        return targetMimetype;
+    }
+
+    @Override
+    public Map<String, String> getTransformOptions()
+    {
+        return transformOptions;
+    }
 }

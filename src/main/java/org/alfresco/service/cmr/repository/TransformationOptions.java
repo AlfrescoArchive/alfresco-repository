@@ -590,7 +590,21 @@ public class TransformationOptions implements Cloneable
     {
         return toMap().toString();
     }
-    
+
+    public String toStringAll()
+    {
+        return "TransformationOptions{" +
+                "sourceNodeRef=" + sourceNodeRef +
+                ", sourceContentProperty=" + sourceContentProperty +
+                ", targetNodeRef=" + targetNodeRef +
+                ", targetContentProperty=" + targetContentProperty +
+                ", includeEmbedded=" + includeEmbedded +
+                ", use='" + use + '\'' +
+                ", limits=" + limits +
+                ", sourceOptionsMap=" + sourceOptionsMap +
+                '}';
+    }
+
     public static TypeConverter.Converter<String, Boolean> relaxedBooleanTypeConverter = new TypeConverter.Converter<String, Boolean>()
     {
         public Boolean convert(String source)

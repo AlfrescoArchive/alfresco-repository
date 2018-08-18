@@ -29,17 +29,16 @@ package org.alfresco.repo.rendition.executer;
 import java.util.Collection;
 
 import org.alfresco.repo.action.ParameterDefinitionImpl;
-import org.alfresco.repo.content.transform.magick.ImageTransformationOptions;
-import org.alfresco.repo.rendition.executer.AbstractRenderingEngine.RenderingContext;
 import org.alfresco.service.cmr.action.ParameterDefinition;
 import org.alfresco.service.cmr.dictionary.DataTypeDefinition;
 import org.alfresco.service.cmr.rendition.RenditionService;
 import org.alfresco.service.cmr.rendition.RenditionServiceException;
 import org.alfresco.service.cmr.repository.ContentService;
-import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.cmr.repository.TransformationOptions;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
+import static org.alfresco.repo.rendition2.RenditionDefinition2.FLASH_VERSION;
 
 /**
  * This class is the implementation of the {@link RenditionService}'s "reformat"
@@ -64,7 +63,7 @@ public class ReformatRenderingEngine extends AbstractTransformationRenderingEngi
      * from pdf to Flash and is used to specify which Flash version to convert
      * to.
      */
-    public static final String PARAM_FLASH_VERSION = "flashVersion";
+    public static final String PARAM_FLASH_VERSION = FLASH_VERSION;
 
     /*
      * Action constants

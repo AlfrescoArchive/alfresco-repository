@@ -27,6 +27,7 @@ package org.alfresco.repo.content.transform;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 import org.alfresco.service.cmr.repository.TransformationOptions;
 
@@ -63,5 +64,30 @@ public class RuntimeExecutableContentTransformerOptions extends TransformationOp
         Map<String, Object> props = new HashMap<String, Object>(baseProps);
         props.putAll(propertyValues);
         return props;
+    }
+
+    @Override
+    public boolean equals(Object o)
+    {
+        if (this == o)
+        {
+            return true;
+        }
+        if (!(o instanceof RuntimeExecutableContentTransformerOptions))
+        {
+            return false;
+        }
+        if (!super.equals(o))
+        {
+            return false;
+        }
+        RuntimeExecutableContentTransformerOptions that = (RuntimeExecutableContentTransformerOptions) o;
+        return Objects.equals(propertyValues, that.propertyValues);
+    }
+
+    @Override
+    public int hashCode()
+    {
+        return Objects.hash(super.hashCode(), propertyValues);
     }
 }

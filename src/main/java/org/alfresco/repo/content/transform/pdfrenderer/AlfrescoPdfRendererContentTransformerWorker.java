@@ -46,6 +46,12 @@ import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 
+import static org.alfresco.repo.rendition2.RenditionDefinition2.ALLOW_ENLARGEMENT;
+import static org.alfresco.repo.rendition2.RenditionDefinition2.HEIGHT;
+import static org.alfresco.repo.rendition2.RenditionDefinition2.MAINTAIN_ASPECT_RATIO;
+import static org.alfresco.repo.rendition2.RenditionDefinition2.PAGE;
+import static org.alfresco.repo.rendition2.RenditionDefinition2.WIDTH;
+
 public class AlfrescoPdfRendererContentTransformerWorker extends ContentTransformerHelper implements ContentTransformerWorker, InitializingBean
 {
 
@@ -366,11 +372,11 @@ public class AlfrescoPdfRendererContentTransformerWorker extends ContentTransfor
         remoteTransformerClient.request(reader, writer, sourceMimetype, sourceExtension, targetExtension,
                 timeoutMs, logger,
 
-                "page", page,
-                "width", width,
-                "height", height,
-                "allowEnlargement", allowEnlargement,
-                "maintainAspectRatio", maintainAspectRatio);
+                PAGE, page,
+                WIDTH, width,
+                HEIGHT, height,
+                ALLOW_ENLARGEMENT, allowEnlargement,
+                MAINTAIN_ASPECT_RATIO, maintainAspectRatio);
     }
 
     @Override
