@@ -43,6 +43,8 @@ import org.alfresco.service.cmr.repository.TransformationOptionLimits;
 import org.alfresco.service.cmr.repository.TransformationOptions;
 import org.alfresco.service.cmr.repository.TransformationSourceOptions;
 import org.alfresco.util.PropertyCheck;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.InitializingBean;
 
 import java.util.ArrayList;
@@ -142,6 +144,7 @@ public class LocalTransformClient extends AbstractTransformClient implements Tra
         OPT_MAX_PAGES, OPT_PAGE_LIMIT
     }));
 
+    private static final Log logger = LogFactory.getLog(LocalTransformClient.class);
 
     private ContentService contentService;
 
@@ -191,6 +194,10 @@ public class LocalTransformClient extends AbstractTransformClient implements Tra
         {
             throw new UnsupportedOperationException("Unsupported rendition "+renditionName+" from "+sourceMimetype+" size: "+size);
         }
+        if (logger.isDebugEnabled())
+        {
+            logger.debug("Rendition (using local transform) of "+renditionName+" from "+sourceMimetype+" Will use "+transformer.getName());
+        }
 
         executorService.submit(new Runnable() {
             @Override
@@ -218,6 +225,11 @@ public class LocalTransformClient extends AbstractTransformClient implements Tra
 
     }
 
+    /**
+     * @deprecated as we do not plan to use TransformationOptions moving forwards as locla transformations will also
+     * use the same Transform Service options.
+     */
+    @Deprecated
     public static TransformationOptions getTransformationOptions(RenditionDefinition2 renditionDefinition)
     {
         TransformationOptions transformationOptions = null;
