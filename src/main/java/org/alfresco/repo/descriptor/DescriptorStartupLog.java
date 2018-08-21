@@ -132,10 +132,11 @@ public class DescriptorStartupLog extends AbstractLifecycleBean
             }
             
             Date validUntil = license.getValidUntil();
-            
+
+            Integer days = null;
             if (validUntil != null)
             {
-                Integer days = license.getDays();
+                days = license.getDays();
                 Integer remainingDays = license.getRemainingDays();
                 
                 msg += " limited to " + days + " days expiring " + validUntil + " (" + remainingDays + " days remaining).";
@@ -159,7 +160,14 @@ public class DescriptorStartupLog extends AbstractLifecycleBean
             /*
              * This is an important information logging since it logs the license
              */
+            String line = msg.replaceAll(".", "-");
+            logger.info(line);
             logger.info(msg);
+            if ("Trial User".equals(holder) && days != null && days == 2)
+            {
+                logger.info("To extend the trial period visit: https://www.alfresco.com/platform/content-services-ecm/trial/docker");
+            }
+            logger.info(line);
         }
         
         // Log Repository Descriptors
