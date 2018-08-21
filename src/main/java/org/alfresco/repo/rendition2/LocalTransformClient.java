@@ -45,7 +45,6 @@ import org.alfresco.service.cmr.repository.TransformationSourceOptions;
 import org.alfresco.util.PropertyCheck;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.springframework.beans.factory.InitializingBean;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -58,6 +57,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import static org.alfresco.repo.rendition2.RenditionDefinition2.ALLOW_ENLARGEMENT;
+import static org.alfresco.repo.rendition2.RenditionDefinition2.AUTO_ORIENT;
 import static org.alfresco.repo.rendition2.RenditionDefinition2.CROP_GRAVITY;
 import static org.alfresco.repo.rendition2.RenditionDefinition2.CROP_HEIGHT;
 import static org.alfresco.repo.rendition2.RenditionDefinition2.CROP_PERCENTAGE;
@@ -70,7 +70,6 @@ import static org.alfresco.repo.rendition2.RenditionDefinition2.FLASH_VERSION;
 import static org.alfresco.repo.rendition2.RenditionDefinition2.HEIGHT;
 import static org.alfresco.repo.rendition2.RenditionDefinition2.INCLUDE_CONTENTS;
 import static org.alfresco.repo.rendition2.RenditionDefinition2.MAINTAIN_ASPECT_RATIO;
-import static org.alfresco.repo.rendition2.RenditionDefinition2.AUTO_ORIENT;
 import static org.alfresco.repo.rendition2.RenditionDefinition2.OFFSET;
 import static org.alfresco.repo.rendition2.RenditionDefinition2.PAGE;
 import static org.alfresco.repo.rendition2.RenditionDefinition2.RESIZE_HEIGHT;
@@ -94,7 +93,7 @@ import static org.springframework.util.CollectionUtils.containsAny;
  *
  * @author adavis
  */
-public class LocalTransformClient extends AbstractTransformClient implements TransformClient, InitializingBean
+public class LocalTransformClient extends AbstractTransformClient implements TransformClient
 {
     private static Set<String> PAGED_OPTIONS = new HashSet<>(Arrays.asList(new String[]
     {
@@ -144,8 +143,6 @@ public class LocalTransformClient extends AbstractTransformClient implements Tra
         OPT_MAX_PAGES, OPT_PAGE_LIMIT
     }));
 
-    private static final Log logger = LogFactory.getLog(LocalTransformClient.class);
-
     private ContentService contentService;
 
     private ExecutorService executorService;
@@ -168,17 +165,20 @@ public class LocalTransformClient extends AbstractTransformClient implements Tra
     @Override
     public void afterPropertiesSet() throws Exception
     {
+        super.afterPropertiesSet();
         PropertyCheck.mandatory(this, "contentService", contentService);
-
         if (executorService == null)
         {
             executorService = Executors.newCachedThreadPool();
         }
+        logger = LogFactory.getLog(LocalTransformClient.class);
     }
 
     @Override
     public void transform(NodeRef sourceNodeRef, RenditionDefinition2 renditionDefinition)
     {
+        // checkSourceNodeForPreventionClass(sourceNodeRef); // No need to check, as RemoteTransformClient just did.
+
         ContentData contentData = getContentData(sourceNodeRef);
         String contentUrl = contentData.getContentUrl();
         String sourceMimetype = contentData.getMimetype();
@@ -192,11 +192,13 @@ public class LocalTransformClient extends AbstractTransformClient implements Tra
         ContentTransformer transformer = contentService.getTransformer(contentUrl, sourceMimetype, size, targetMimetype, transformationOptions);
         if (transformer == null)
         {
-            throw new UnsupportedOperationException("Unsupported rendition "+renditionName+" from "+sourceMimetype+" size: "+size);
+            String message = "Unsupported rendition " + renditionName + " from " + sourceMimetype + " size: " + size;
+            logger.debug(message);
+            throw new UnsupportedOperationException(message);
         }
         if (logger.isDebugEnabled())
         {
-            logger.debug("Rendition (using local transform) of "+renditionName+" from "+sourceMimetype+" Will use "+transformer.getName());
+            logger.debug("Rendition of "+renditionName+" from "+sourceMimetype+" will use "+transformer.getName());
         }
 
         executorService.submit(new Runnable() {
@@ -226,7 +228,7 @@ public class LocalTransformClient extends AbstractTransformClient implements Tra
     }
 
     /**
-     * @deprecated as we do not plan to use TransformationOptions moving forwards as locla transformations will also
+     * @deprecated as we do not plan to use TransformationOptions moving forwards as local transformations will also
      * use the same Transform Service options.
      */
     @Deprecated

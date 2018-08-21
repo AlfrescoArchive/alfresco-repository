@@ -70,7 +70,10 @@ import org.apache.commons.logging.LogFactory;
  * @author Nick Smith
  * @author Neil McErlean
  * @since 3.3
+ *
+ * @deprecated The RenditionService is being replace by the simpler async RenditionService2.
  */
+@Deprecated
 public class RenditionServiceImpl implements 
         RenditionService, 
         RenditionDefinitionPersister, 

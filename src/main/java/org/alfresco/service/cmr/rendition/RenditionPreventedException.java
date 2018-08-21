@@ -33,7 +33,10 @@ import org.alfresco.repo.rendition.RenditionPreventionRegistry;
  * 
  * @author Neil Mc Erlean
  * @since 4.0.1
+ *
+ * @deprecated The RenditionService is being replace by the simpler async RenditionService2.
  */
+@Deprecated
 public class RenditionPreventedException extends RenditionServiceException
 {
     private static final long serialVersionUID = 1L;

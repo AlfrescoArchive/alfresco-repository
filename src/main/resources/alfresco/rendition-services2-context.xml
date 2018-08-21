@@ -57,6 +57,15 @@
 
     <!-- Community transform client -->
     <bean id="localTransformClient" class="org.alfresco.repo.rendition2.LocalTransformClient">
+        <property name="nodeService" ref="NodeService" />
+        <property name="renditionPreventionRegistry" ref="renditionPreventionRegistry" />
+        <property name="contentService" ref="ContentService" />
+    </bean>
+
+    <!-- Community transform client -->
+    <bean id="localTransformClient" class="org.alfresco.repo.rendition2.LocalTransformClient">
+        <property name="nodeService" ref="NodeService" />
+        <property name="renditionPreventionRegistry" ref="renditionPreventionRegistry" />
         <property name="contentService" ref="ContentService" />
     </bean>
 

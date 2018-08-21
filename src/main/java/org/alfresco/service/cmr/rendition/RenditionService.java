@@ -40,7 +40,10 @@ import org.alfresco.service.namespace.QName;
  * The Rendition service.
  * @author Nick Smith
  * @author Neil McErlean
+ *
+ * @deprecated The RenditionService is being replace by the simpler async RenditionService2.
  */
+@Deprecated
 @AlfrescoPublicApi
 public interface RenditionService extends RenditionDefinitionPersister
 {
