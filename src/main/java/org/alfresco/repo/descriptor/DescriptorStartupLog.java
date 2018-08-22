@@ -160,14 +160,18 @@ public class DescriptorStartupLog extends AbstractLifecycleBean
             /*
              * This is an important information logging since it logs the license
              */
-            String line = msg.replaceAll(".", "-");
-            logger.info(line);
-            logger.info(msg);
             if ("Trial User".equals(holder) && days != null && days == 2)
             {
+                String line = msg.replaceAll(".", "-");
+                logger.info(line);
+                logger.info(msg);
                 logger.info("To extend the trial period visit: https://www.alfresco.com/platform/content-services-ecm/trial/docker");
+                logger.info(line);
             }
-            logger.info(line);
+            else
+            {
+                logger.info(msg);
+            }
         }
         
         // Log Repository Descriptors
