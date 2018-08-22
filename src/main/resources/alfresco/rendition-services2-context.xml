@@ -50,26 +50,21 @@
 
     <!-- Rendition Service 2 base bean -->
     <bean id="renditionService2" class="org.alfresco.repo.rendition2.RenditionService2Impl">
-        <property name="transformClient" ref="localTransformClient" />
+        <property name="nodeService" ref="NodeService" />
+        <property name="renditionPreventionRegistry" ref="renditionPreventionRegistry" />
+        <property name="transformClient" ref="transformClient" />
         <property name="renditionDefinitionRegistry2" ref="renditionDefinitionRegistry2" />
         <property name="policyComponent" ref="policyComponent" />
     </bean>
 
-    <!-- Community transform client -->
+    <bean id="transformClient" parent="localTransformClient"/>
+
     <bean id="localTransformClient" class="org.alfresco.repo.rendition2.LocalTransformClient">
         <property name="nodeService" ref="NodeService" />
-        <property name="renditionPreventionRegistry" ref="renditionPreventionRegistry" />
         <property name="contentService" ref="ContentService" />
+        <property name="renditionService2" ref="renditionService2" />
     </bean>
 
-    <!-- Community transform client -->
-    <bean id="localTransformClient" class="org.alfresco.repo.rendition2.LocalTransformClient">
-        <property name="nodeService" ref="NodeService" />
-        <property name="renditionPreventionRegistry" ref="renditionPreventionRegistry" />
-        <property name="contentService" ref="ContentService" />
-    </bean>
-
-    <!-- Rendition service 2 transaction bean -->
     <bean id="RenditionService2_transaction"
           class="org.springframework.transaction.interceptor.TransactionInterceptor">
         <property name="transactionManager">

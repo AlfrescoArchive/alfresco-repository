@@ -95,6 +95,8 @@ import static org.springframework.util.CollectionUtils.containsAny;
  */
 public class LocalTransformClient extends AbstractTransformClient implements TransformClient
 {
+    private static Log logger = LogFactory.getLog(LocalTransformClient.class);
+
     private static Set<String> PAGED_OPTIONS = new HashSet<>(Arrays.asList(new String[]
     {
         PAGE, START_PAGE, END_PAGE
@@ -145,16 +147,18 @@ public class LocalTransformClient extends AbstractTransformClient implements Tra
 
     private ContentService contentService;
 
-    private ExecutorService executorService;
+    private RenditionService2 renditionService2;
 
-    public ContentService getContentService()
-    {
-        return contentService;
-    }
+    private ExecutorService executorService;
 
     public void setContentService(ContentService contentService)
     {
         this.contentService = contentService;
+    }
+
+    public void setRenditionService2(RenditionService2 renditionService2)
+    {
+        this.renditionService2 = renditionService2;
     }
 
     public void setExecutorService(ExecutorService executorService)
@@ -167,18 +171,16 @@ public class LocalTransformClient extends AbstractTransformClient implements Tra
     {
         super.afterPropertiesSet();
         PropertyCheck.mandatory(this, "contentService", contentService);
+        PropertyCheck.mandatory(this, "renditionService2", renditionService2);
         if (executorService == null)
         {
             executorService = Executors.newCachedThreadPool();
         }
-        logger = LogFactory.getLog(LocalTransformClient.class);
     }
 
     @Override
     public void transform(NodeRef sourceNodeRef, RenditionDefinition2 renditionDefinition)
     {
-        // checkSourceNodeForPreventionClass(sourceNodeRef); // No need to check, as RemoteTransformClient just did.
-
         ContentData contentData = getContentData(sourceNodeRef);
         String contentUrl = contentData.getContentUrl();
         String sourceMimetype = contentData.getMimetype();
@@ -213,11 +215,14 @@ public class LocalTransformClient extends AbstractTransformClient implements Tra
                         try
                         {
                             ContentWriter writer = transform(transformer, sourceNodeRef, targetMimetype, transformationOptions);
-                            consume(sourceNodeRef, writer);
+                            consume(sourceNodeRef, writer, renditionDefinition);
                         }
                         catch (Exception e)
                         {
-                            // TODO log exceptions
+                            if (logger.isDebugEnabled())
+                            {
+                                logger.debug("Rendition of "+renditionName+" from "+sourceMimetype+" failed", e);
+                            }
                         }
                         return null;
                     }
@@ -232,7 +237,7 @@ public class LocalTransformClient extends AbstractTransformClient implements Tra
      * use the same Transform Service options.
      */
     @Deprecated
-    public static TransformationOptions getTransformationOptions(RenditionDefinition2 renditionDefinition)
+    static TransformationOptions getTransformationOptions(RenditionDefinition2 renditionDefinition)
     {
         TransformationOptions transformationOptions = null;
         String renditionName = renditionDefinition.getRenditionName();
@@ -377,8 +382,11 @@ public class LocalTransformClient extends AbstractTransformClient implements Tra
         return writer;
     }
 
-    private void consume(NodeRef sourceNodeRef, ContentWriter writer) // TODO add params for the type of rendition
+    void consume(NodeRef sourceNodeRef, ContentWriter writer, RenditionDefinition2 renditionDefinition)
     {
+        logger.debug("Link the transformation into a rendition node.");
 
+        // TODO pass file to RenditionService2 to link up
+        // TODO remove the temp file.
     }
 }

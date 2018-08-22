@@ -23,15 +23,12 @@
  * along with Alfresco. If not, see <http://www.gnu.org/licenses/>.
  * #L%
  */
-package org.alfresco.repo.rendition;
+package org.alfresco.repo.rendition2;
 
 import junit.framework.TestCase;
-import org.alfresco.repo.rendition2.LocalTransformClient;
-import org.alfresco.repo.rendition2.RenditionDefinition2;
-import org.alfresco.repo.rendition2.RenditionDefinitionRegistry2;
+import org.alfresco.repo.rendition.RenditionServiceImpl;
 import org.alfresco.repo.security.authentication.AuthenticationComponent;
 import org.alfresco.repo.thumbnail.ThumbnailDefinition;
-import org.alfresco.repo.thumbnail.ThumbnailRegistry;
 import org.alfresco.repo.thumbnail.ThumbnailRenditionConvertor;
 import org.alfresco.service.cmr.rendition.RenditionDefinition;
 import org.alfresco.service.cmr.rendition.RenditionService;
@@ -56,11 +53,9 @@ import java.util.StringJoiner;
 public class RenditionDefinitionTest extends TestCase
 {
     private RenditionServiceImpl renditionService;
-    private ThumbnailRegistry thumbnailRegistry;
     private RenditionDefinitionRegistry2 renditionDefinitionRegistry2;
 
     private static ApplicationContext ctx = ApplicationContextHelper.getApplicationContext();
-//    private static ApplicationContext ctx = ApplicationContextHelper.getApplicationContext(new String[] { "classpath:alfresco/minimal-context.xml" });
 
     private AuthenticationComponent authenticationComponent;
 
@@ -69,7 +64,6 @@ public class RenditionDefinitionTest extends TestCase
     {
         authenticationComponent = (AuthenticationComponent) ctx.getBean("AuthenticationComponent");
         renditionService = (RenditionServiceImpl) ctx.getBean("renditionService");
-        thumbnailRegistry = (ThumbnailRegistry) ctx.getBean("thumbnailRegistry");
         renditionDefinitionRegistry2 = (RenditionDefinitionRegistry2) ctx.getBean("renditionDefinitionRegistry2");
         authenticationComponent.setSystemUserAsCurrentUser();
     }
@@ -121,7 +115,7 @@ public class RenditionDefinitionTest extends TestCase
             TransformationOptions transformationOptions2 = LocalTransformClient.getTransformationOptions(definition2);
 
             // These 2 original thumbnails are wrong, as they don't include the 'limits' and in the
-            // case of pdf used the wrong TransformationOptions subclass, so don't use them.
+            // case of 'pdf' used the wrong TransformationOptions subclass, so don't use them.
             if (!renditionName.equals("pdf") && !renditionName.equals("webpreview"))
             {
                 assertEquals("The TransformationOptions used in transforms for " + renditionName + " should be the same",

@@ -27,6 +27,7 @@ package org.alfresco.repo.rendition2;
 
 import org.alfresco.service.cmr.repository.NodeRef;
 
+import java.io.InputStream;
 import java.util.List;
 
 /**
@@ -38,6 +39,4 @@ import java.util.List;
 public interface RenditionService2
 {
     public void render(NodeRef sourceNodeRef, String renditionName);
-
-    // TODO supporting methods used when the transform request for a rendition has taken place.
 }

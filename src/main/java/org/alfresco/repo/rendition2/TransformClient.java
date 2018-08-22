@@ -35,11 +35,10 @@ import org.alfresco.service.cmr.repository.NodeRef;
 public interface TransformClient
 {
     /**
-     * Requests the transform which triggers the subsequent linkage of the content as a rendition.
+     * Requests an asynchronous transform and the subsequent linkage of that transform as a rendition.
      * @param sourceNodeRef the source node
      * @param renditionDefinition which rendition to perform
      * @throws UnsupportedOperationException if the transform is not supported.
-     * @throws IllegalArgumentException if the sourceNodeRef does not exist.
      */
     public void transform(NodeRef sourceNodeRef, RenditionDefinition2 renditionDefinition);
 }
