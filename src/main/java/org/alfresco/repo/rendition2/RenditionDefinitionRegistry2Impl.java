@@ -25,7 +25,11 @@
  */
 package org.alfresco.repo.rendition2;
 
+import org.alfresco.util.Pair;
+
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -36,7 +40,17 @@ import java.util.Set;
  */
 public class RenditionDefinitionRegistry2Impl implements RenditionDefinitionRegistry2
 {
+    private static final Set<Pair<String, Long>> NONE = new HashSet();
+
+    private TransformServiceRegistry transformServiceRegistry;
+
     private final Map<String, RenditionDefinition2> renditionDefinitions = new HashMap();
+    private final Map<String, Set<Pair<String, Long>>> renditionsFor = new HashMap<>();
+
+    public void setTransformServiceRegistry(TransformServiceRegistry transformServiceRegistry)
+    {
+        this.transformServiceRegistry = transformServiceRegistry;
+    }
 
     /**
      * Obtains a {@link RenditionDefinition2} by name.
@@ -73,6 +87,59 @@ public class RenditionDefinitionRegistry2Impl implements RenditionDefinitionRegi
     public Set<String> getRenditionNames()
     {
         return renditionDefinitions.keySet();
+    }
+
+    @Override
+    public Set<String> getRenditionNamesFrom(String sourceMimetype, long size)
+    {
+        Set<Pair<String, Long>> renditionNamesWithMaxSize;
+        synchronized (renditionsFor)
+        {
+            renditionNamesWithMaxSize = renditionsFor.get(sourceMimetype);
+            if (renditionNamesWithMaxSize == null)
+            {
+                renditionNamesWithMaxSize = getRenditionNamesWithMaxSize(sourceMimetype);
+                renditionsFor.put(sourceMimetype, renditionNamesWithMaxSize);
+            }
+        }
+
+        if (renditionNamesWithMaxSize.isEmpty())
+        {
+            return Collections.emptySet();
+        }
+
+        Set<String> renditionNames = new HashSet<>();
+        for (Pair<String, Long> pair : renditionNamesWithMaxSize)
+        {
+            Long maxSize = pair.getSecond();
+            if (maxSize == -1L || maxSize >= size)
+            {
+                String renditionName = pair.getFirst();
+                renditionNames.add(renditionName);
+            }
+        }
+        return renditionNames;
+    }
+
+    // Gets a list of rendition names that can be created from the given sourceMimetype.
+    // Includes the maxSize for each.
+    private Set<Pair<String,Long>> getRenditionNamesWithMaxSize(String sourceMimetype)
+    {
+        Set<Pair<String,Long>> renditions = new HashSet();
+        for (Map.Entry<String, RenditionDefinition2> entry : renditionDefinitions.entrySet())
+        {
+            RenditionDefinition2 renditionDefinition2 = entry.getValue();
+            String targetMimetype = renditionDefinition2.getTargetMimetype();
+            Map<String, String> options = renditionDefinition2.getTransformOptions();
+            Long maxSize = transformServiceRegistry.getMaxSize(sourceMimetype, targetMimetype, options);
+            if (maxSize != null)
+            {
+                String renditionName = entry.getKey();
+                Pair<String, Long> pair = new Pair<>(renditionName, maxSize);
+                renditions.add(pair);
+            }
+        }
+        return renditions;
     }
 
     @Override

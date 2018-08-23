@@ -187,8 +187,9 @@ public class LocalTransformClient extends AbstractTransformClient implements Tra
         long size = contentData.getSize();
         String targetMimetype = renditionDefinition.getTargetMimetype();
         String renditionName = renditionDefinition.getRenditionName();
+        Map<String, String> options = renditionDefinition.getTransformOptions();
 
-        TransformationOptions transformationOptions = getTransformationOptions(renditionDefinition);
+        TransformationOptions transformationOptions = getTransformationOptions(renditionName, options);
         transformationOptions.setUse(renditionName);
 
         ContentTransformer transformer = contentService.getTransformer(contentUrl, sourceMimetype, size, targetMimetype, transformationOptions);
@@ -229,7 +230,6 @@ public class LocalTransformClient extends AbstractTransformClient implements Tra
                 });
             }
         });
-
     }
 
     /**
@@ -237,11 +237,9 @@ public class LocalTransformClient extends AbstractTransformClient implements Tra
      * use the same Transform Service options.
      */
     @Deprecated
-    static TransformationOptions getTransformationOptions(RenditionDefinition2 renditionDefinition)
+    static TransformationOptions getTransformationOptions(String renditionName, Map<String, String> options)
     {
         TransformationOptions transformationOptions = null;
-        String renditionName = renditionDefinition.getRenditionName();
-        Map<String, String> options = renditionDefinition.getTransformOptions();
         Set<String> optionNames = options.keySet();
 
         Set<String> subclassOptionNames = new HashSet<>(optionNames);
@@ -323,8 +321,8 @@ public class LocalTransformClient extends AbstractTransformClient implements Tra
         if (transformationOptions == null)
         {
             StringJoiner sj = new StringJoiner("\n    ");
-            sj.add("The RenditionDefinition2 "+ renditionName + " contains options that cannot be mapped to the " +
-                    "simpler TransformationOptions used by local transformers");
+            sj.add("The RenditionDefinition2 "+(renditionName == null ? "" : renditionName) +
+                " contains options that cannot be mapped to TransformationOptions used by local transformers");
             HashSet<String> otherNames = new HashSet<>(optionNames);
             otherNames.removeAll(FLASH_OPTIONS);
             otherNames.removeAll(IMAGE_OPTIONS);

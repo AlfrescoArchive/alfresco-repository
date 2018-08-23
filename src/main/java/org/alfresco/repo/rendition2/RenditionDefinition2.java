@@ -30,7 +30,8 @@ import org.alfresco.api.AlfrescoPublicApi;
 import java.util.Map;
 
 /**
- * Defines a rendition in terms of name, target mimetype and transformation transformOptions need to get there.
+ * Defines a rendition in terms of name, target mimetype and transform options need to get there.
+ * {@link RenditionDefinition2}s need to be registered in a {@link RenditionDefinitionRegistry2}.
  *
  * @author adavis
  */

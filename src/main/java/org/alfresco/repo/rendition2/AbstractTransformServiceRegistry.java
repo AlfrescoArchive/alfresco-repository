@@ -25,27 +25,19 @@
  */
 package org.alfresco.repo.rendition2;
 
-import java.util.Set;
+import java.util.Map;
 
 /**
- * A registry of rendition definitions.
+ * Contains common code used in TransformServiceRegistries.
  *
  * @author adavis
  */
-public interface RenditionDefinitionRegistry2
+public abstract class AbstractTransformServiceRegistry implements TransformServiceRegistry
 {
-    void register(RenditionDefinition2 renditionDefinition);
-
-    void unregister(String renditionName);
-
-    Set<String> getRenditionNames();
-
-    /**
-     * Obtains the names of renditions that are possible from a given source mimetype.
-     * @param sourceMimetype the mimetype of the source.
-     * @param size the size of the source. May be {@code -1} if the size should be ignored.
-     */
-    Set<String> getRenditionNamesFrom(String sourceMimetype, long size);
-
-    RenditionDefinition2 getRenditionDefinition(String renditionName);
+    @Override
+    public boolean isSupported(String sourceMimetype, long size, String targetMimetype, Map<String, String> options)
+    {
+        Long maxSize = getMaxSize(sourceMimetype, targetMimetype, options);
+        return maxSize != null && (maxSize == -1L || maxSize > size);
+    }
 }

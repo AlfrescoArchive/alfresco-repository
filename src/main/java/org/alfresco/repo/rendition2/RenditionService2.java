@@ -25,18 +25,61 @@
  */
 package org.alfresco.repo.rendition2;
 
+import org.alfresco.service.NotAuditable;
+import org.alfresco.service.cmr.repository.ChildAssociationRef;
 import org.alfresco.service.cmr.repository.NodeRef;
+import org.alfresco.service.namespace.QName;
 
 import java.io.InputStream;
 import java.util.List;
 
 /**
  * The Async Rendition service. Replaces the original rendition services which included synchronous renditions and
- * asynchronous methods with call backs.
+ * asynchronous methods with call backs.<p/>
+ *
+ * Renditions are defined as {@link RenditionDefinition2}s and may be registered and looked by the associated
+ * {@link RenditionDefinitionRegistry2}.
  *
  * @author adavis
  */
 public interface RenditionService2
 {
+    /**
+     * @return the {@link RenditionDefinitionRegistry2} being used by the service.
+     */
+    RenditionDefinitionRegistry2 getRenditionDefinitionRegistry2();
+
+    /**
+     * This method asynchronously renders content as specified by the {@code renditionName}. The content to be
+     * rendered is provided by {@code sourceNodeRef}.
+     *
+     * @param sourceNodeRef the node from which the content is retrieved.
+     * @param renditionName the rendition to be performed.
+     */
+    @NotAuditable
     public void render(NodeRef sourceNodeRef, String renditionName);
+
+    /**
+     * This method gets all the renditions of the {@code sourceNodeRef}.
+     *
+     * @return a list of {@link ChildAssociationRef}s which link the {@code sourceNodeRef} to the renditions.
+     */
+    @NotAuditable
+    List<ChildAssociationRef> getRenditions(NodeRef sourceNodeRef);
+
+    /**
+     * This method gets the rendition of the {@code sourceNodeRef} identified by its name.
+     *
+     * @param sourceNodeRef the source node for the renditions
+     * @param renditionName the renditionName used to identify a rendition.
+     * @return the {@link ChildAssociationRef} which links the source node to the
+     *         rendition or <code>null</code> if there is no such rendition.
+     */
+    @NotAuditable
+    ChildAssociationRef getRenditionByName(NodeRef sourceNodeRef, String renditionName);
+
+    /**
+     * Indicates if renditions are enabled. Set using the {@code system.thumbnail.generate} value.
+     */
+    boolean isEnabled();
 }

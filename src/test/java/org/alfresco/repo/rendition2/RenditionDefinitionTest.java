@@ -38,6 +38,7 @@ import org.springframework.context.ApplicationContext;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.StringJoiner;
 
@@ -112,7 +113,8 @@ public class RenditionDefinitionTest extends TestCase
             TransformationOptions transformationOptions = thumbnailDefinition.getTransformationOptions();
 
             RenditionDefinition2 definition2 = renditionDefinitionRegistry2.getRenditionDefinition(renditionName);
-            TransformationOptions transformationOptions2 = LocalTransformClient.getTransformationOptions(definition2);
+            Map<String, String> options = definition2.getTransformOptions();
+            TransformationOptions transformationOptions2 = LocalTransformClient.getTransformationOptions(renditionName, options);
 
             // These 2 original thumbnails are wrong, as they don't include the 'limits' and in the
             // case of 'pdf' used the wrong TransformationOptions subclass, so don't use them.

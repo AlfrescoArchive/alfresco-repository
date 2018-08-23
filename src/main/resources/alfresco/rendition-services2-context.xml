@@ -54,15 +54,27 @@
         <property name="renditionPreventionRegistry" ref="renditionPreventionRegistry" />
         <property name="transformClient" ref="transformClient" />
         <property name="renditionDefinitionRegistry2" ref="renditionDefinitionRegistry2" />
+        <property name="namespaceService" ref="namespaceService" />
         <property name="policyComponent" ref="policyComponent" />
+        <property name="enabled">
+            <value>${system.thumbnail.generate}</value>
+        </property>
     </bean>
 
+    <!-- Replaced in the enterprise edition -->
     <bean id="transformClient" parent="localTransformClient"/>
 
     <bean id="localTransformClient" class="org.alfresco.repo.rendition2.LocalTransformClient">
         <property name="nodeService" ref="NodeService" />
         <property name="contentService" ref="ContentService" />
         <property name="renditionService2" ref="renditionService2" />
+    </bean>
+
+    <!-- Replaced in the enterprise edition -->
+    <bean id="transformServiceRegistry" parent="localTransformServiceRegistry"/>
+
+    <bean id="localTransformServiceRegistry" class="org.alfresco.repo.rendition2.LocalTransformServiceRegistry" >
+        <property name="contentService" ref="contentService" />
     </bean>
 
     <bean id="RenditionService2_transaction"
@@ -82,7 +94,9 @@
           class="org.alfresco.repo.security.permissions.impl.AlwaysProceedMethodInterceptor" />
 
     <!-- Rendition Definition Registry 2 -->
-    <bean id="renditionDefinitionRegistry2" class="org.alfresco.repo.rendition2.RenditionDefinitionRegistry2Impl"/>
+    <bean id="renditionDefinitionRegistry2" class="org.alfresco.repo.rendition2.RenditionDefinitionRegistry2Impl">
+        <property name="transformServiceRegistry" ref="transformServiceRegistry" />
+    </bean>
 
     <!-- The definitions -->
 
