@@ -59,6 +59,7 @@ public class DescriptorStartupLog extends AbstractLifecycleBean
     
     private final String SYSTEM_INFO_STARTUP = "system.info.startup";
     private final String SYSTEM_WARN_READONLY = "system.warn.readonly";
+    private final String SYSTEM_INFO_NOTRAILID = "system.info.notrialid";
 
     /**
      * @param descriptorService  Descriptor Service
@@ -165,9 +166,7 @@ public class DescriptorStartupLog extends AbstractLifecycleBean
                 String line = msg.replaceAll(".", "-");
                 logger.info(line);
                 logger.info(msg);
-                logger.info("Note: this is a limited trial of the Enterprise version of Alfresco Content Services that " +
-                        "goes into read-only mode after 2-days. Request an extended 30-day trial at:" +
-                        " https://www.alfresco.com/platform/content-services-ecm/trial/docker");
+                logger.info(I18NUtil.getMessage(SYSTEM_INFO_NOTRAILID));
                 logger.info(line);
             }
             else
