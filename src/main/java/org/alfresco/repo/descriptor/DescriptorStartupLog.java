@@ -165,7 +165,9 @@ public class DescriptorStartupLog extends AbstractLifecycleBean
                 String line = msg.replaceAll(".", "-");
                 logger.info(line);
                 logger.info(msg);
-                logger.info("To extend the trial period visit: https://www.alfresco.com/platform/content-services-ecm/trial/docker");
+                logger.info("Note: this is a limited trial of the Enterprise version of Alfresco Content Services that " +
+                        "goes into read-only mode after 2-days. Request an extended 30-day trial at:" +
+                        " https://www.alfresco.com/platform/content-services-ecm/trial/docker");
                 logger.info(line);
             }
             else
