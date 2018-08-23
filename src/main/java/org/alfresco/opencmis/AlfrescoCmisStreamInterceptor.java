@@ -78,20 +78,18 @@ public class AlfrescoCmisStreamInterceptor implements MethodInterceptor
                         {
                             reusableContentStreams = new ArrayList<ReusableContentStream>();
                         }
-                        ReusableContentStream reuableContentStream = new ReusableContentStream(contentStream);
+                        // reusable streams are required for buffering in case of tx retry
+                        ReusableContentStream reusableContentStream = new ReusableContentStream(contentStream);
 
                         // ALF-18006
                         if (contentStream.getMimeType() == null)
                         {
-                            String mimeType = mimetypeService.guessMimetype(reuableContentStream.getFileName(), new FileContentReader(reuableContentStream.file));
-                            reuableContentStream.setMimeType(mimeType);
+                            String mimeType = mimetypeService.guessMimetype(reusableContentStream.getFileName(), new FileContentReader(reusableContentStream.file));
+                            reusableContentStream.setMimeType(mimeType);
                         }
 
-                        reusableContentStreams.add(reuableContentStream);
-
-                        // It is possible to just change the arguments. No need to call a setter.
-                        // Wow, did not expect that.
-                        arguments[i] = reuableContentStream;
+                        reusableContentStreams.add(reusableContentStream);
+                        arguments[i] = reusableContentStream;
                     }
                 }
             }
