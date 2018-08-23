@@ -29,6 +29,7 @@ import org.alfresco.repo.transaction.AlfrescoTransactionSupport;
 import org.alfresco.repo.transaction.RetryingTransactionInterceptor;
 import org.alfresco.util.transaction.TransactionListenerAdapter;
 import org.apache.chemistry.opencmis.commons.spi.Holder;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 /**
  * A Tx aware wrapper around {@link Holder}.
@@ -86,7 +87,10 @@ public class TransactionAwareHolder<T> extends Holder<T>
     @Override
     public T getValue()
     {
-        AlfrescoTransactionSupport.bindListener(txListener);
+        if (TransactionSynchronizationManager.isSynchronizationActive())
+        {
+            AlfrescoTransactionSupport.bindListener(txListener);
+        }
         return this.value;
     }
 
