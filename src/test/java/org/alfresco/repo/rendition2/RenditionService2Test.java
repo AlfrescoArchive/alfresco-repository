@@ -109,6 +109,7 @@ public class RenditionService2Test
         renditionService2.setTransformClient(localTransformClient);
         renditionService2.setPolicyComponent(policyComponent);
         renditionService2.setNamespaceService(namespaceService);
+        renditionService2.setEnabled(true);
         renditionService2.afterPropertiesSet();
     }
 
