@@ -59,7 +59,7 @@ public class DescriptorStartupLog extends AbstractLifecycleBean
     
     private final String SYSTEM_INFO_STARTUP = "system.info.startup";
     private final String SYSTEM_WARN_READONLY = "system.warn.readonly";
-    private final String SYSTEM_INFO_NOTRAILID = "system.info.notrialid";
+    private final String SYSTEM_INFO_NOTRAILID = "system.info.limited_trial";
 
     /**
      * @param descriptorService  Descriptor Service
@@ -163,7 +163,7 @@ public class DescriptorStartupLog extends AbstractLifecycleBean
              */
             if ("Trial User".equals(holder) && days != null && days == 2)
             {
-                String line = msg.replaceAll(".", "-");
+                String line = "================================================================";
                 logger.info(line);
                 logger.info(msg);
                 logger.info(I18NUtil.getMessage(SYSTEM_INFO_NOTRAILID));
