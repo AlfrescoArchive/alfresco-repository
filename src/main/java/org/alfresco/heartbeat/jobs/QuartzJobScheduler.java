@@ -39,7 +39,7 @@ public abstract class QuartzJobScheduler implements HeartBeatJobScheduler
 
     /** schedule set for all jobs scheduled with this scheduler if testMode is on */
     protected boolean testMode = false;
-    protected final String testCronExpression = "0 0/5 * * * ?";
+    protected final String testCronExpression = "0 0/1 * * * ?";
 
     protected HBDataSenderService hbDataSenderService;
     protected Scheduler scheduler;
