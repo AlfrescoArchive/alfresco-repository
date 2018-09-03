@@ -39,4 +39,13 @@
             </list>
         </property>
     </bean>
+
+    <bean id="messagingObjectMapper" class="org.gytheio.messaging.jackson.ObjectMapperFactory"
+          factory-method="createInstance" />
+
+    <bean id="alfrescoEventProducer" class="org.alfresco.repo.rawevents.EventProducer">
+        <property name="producer" ref="camelProducerTemplate" />
+        <property name="endpoint" value="direct-vm:alfresco.events" />
+        <property name="objectMapper" ref="messagingObjectMapper"/>
+    </bean>
 </beans>
