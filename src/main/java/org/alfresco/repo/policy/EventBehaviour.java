@@ -37,8 +37,8 @@ import org.springframework.extensions.surf.util.ParameterCheck;
 /**
  * Event based Behaviour. <br/>
  * <p/>
- * A client uses an <code>EventBehaviour</code> to bind a send event behaviour to a Class-level Policy.
- * <br/>
+ * A client uses an <code>EventBehaviour</code> to bind a send event behaviour
+ * to a Class-level Policy. <br/>
  * <p/>
  * The event behavior delegates the generation of the event to a method pointer.
  * The pointer is represented by an instance object and method name.
@@ -137,10 +137,17 @@ public class EventBehaviour extends BaseBehaviour
             throw new PolicyException("Policy interface " + policyIF.getCanonicalName() + " must have only one method");
         }
 
+        Method policyIFMethod = policyIFMethods[0];
+        String policyLocalName = policyIFMethod.getName();
+        if (!policyIFMethod.getReturnType().equals(Void.TYPE))
+        {
+            throw new PolicyException("EventBehaviour can only handle VOID policies, but " + policyLocalName + " expects " + policyIFMethod.getReturnType());
+        }
+
         try
         {
             Class instanceClass = instance.getClass();
-            Method delegateMethod = instanceClass.getMethod(method, (Class[]) policyIFMethods[0].getParameterTypes());
+            Method delegateMethod = instanceClass.getMethod(method, (Class[]) policyIFMethod.getParameterTypes());
             return new JavaMethodInvocationHandler(eventProducer, endpointUri, this, delegateMethod);
         }
         catch (NoSuchMethodException e)
