@@ -35,6 +35,20 @@ import org.apache.commons.lang.StringUtils;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+/**
+ * A client uses an <code>EventProducer</code> to send events to an endpoint.
+ * The <code>EventProducer</code> acts as a wrapper that provides marshalling
+ * for a Camel <code>ProducerTemplate</code>. <br/>
+ * <p/>
+ * A client has the option of creating an event producer without supplying an
+ * endpoint. In this case, a endpoint must be provided with every send
+ * operation. <br/>
+ * <p/>
+ * A client also has the option to provide an <code>ObjectMapper</code> that
+ * will be used to marshal basic POJOs (Plain Old Java Objects) to JSON before
+ * sending the event.
+ * <p/>
+ */
 public class EventProducer
 {
     protected static final String ERROR_SENDING = "Could not send event";

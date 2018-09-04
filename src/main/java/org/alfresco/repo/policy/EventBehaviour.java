@@ -35,32 +35,38 @@ import org.alfresco.repo.rawevents.EventProducer;
 import org.springframework.extensions.surf.util.ParameterCheck;
 
 /**
- * Event based Behaviour.
+ * Event based Behaviour. <br/>
+ * <p/>
+ * A client uses an <code>EventBehaviour</code> to bind a send event behaviour to a Class-level Policy.
+ * <br/>
+ * <p/>
+ * The event behavior delegates the generation of the event to a method pointer.
+ * The pointer is represented by an instance object and method name.
+ * <p/>
  * 
- * The event behavior delegates the generation of the event to a method pointer.  The pointer is
- * represented by an instance object and method name.
- *
  * @author Cristian Turlica
  */
 @AlfrescoPublicApi
 public class EventBehaviour extends BaseBehaviour
 {
 
-    EventProducer eventProducer;
+    private EventProducer eventProducer;
 
-    String endpointUri;
+    private String endpointUri;
 
     // The object instance holding the method
-    Object instance;
+    private Object instance;
 
     // The method name
-    String method;
+    private String method;
 
     /**
      * Construct.
      * 
-     * @param instance  the object instance holding the method
-     * @param method  the method name
+     * @param instance
+     *            the object instance holding the method
+     * @param method
+     *            the method name
      */
     public EventBehaviour(EventProducer eventProducer, String endpointUri, Object instance, String method)
     {
@@ -90,35 +96,38 @@ public class EventBehaviour extends BaseBehaviour
         this.method = method;
     }
 
-
     @Override
     public String toString()
     {
         return "Java method[class=" + instance.getClass().getName() + ", method=" + method + "]";
     }
-    
+
     @SuppressWarnings("unchecked")
-	public synchronized <T> T getInterface(Class<T> policy) 
-	{
-	    ParameterCheck.mandatory("Policy class", policy);
-	    Object proxy = proxies.get(policy);
-	    if (proxy == null)
-	    {
-	        InvocationHandler handler = getInvocationHandler(eventProducer, endpointUri, instance, method, policy);
-	        proxy = Proxy.newProxyInstance(policy.getClassLoader(), new Class[]{policy}, handler);
-	        proxies.put(policy, proxy);
-	    }
-	    return (T)proxy;
-	}
+    public synchronized <T> T getInterface(Class<T> policy)
+    {
+        ParameterCheck.mandatory("Policy class", policy);
+        Object proxy = proxies.get(policy);
+        if (proxy == null)
+        {
+            InvocationHandler handler = getInvocationHandler(eventProducer, endpointUri, instance, method, policy);
+            proxy = Proxy.newProxyInstance(policy.getClassLoader(), new Class[] { policy }, handler);
+            proxies.put(policy, proxy);
+        }
+        return (T) proxy;
+    }
 
     /**
      * Gets the Invocation Handler.
      * 
-     * @param <T>  the policy interface class
-     * @param instance  the object instance
-     * @param method  the method name
-     * @param policyIF  the policy interface class  
-     * @return  the invocation handler
+     * @param <T>
+     *            the policy interface class
+     * @param instance
+     *            the object instance
+     * @param method
+     *            the method name
+     * @param policyIF
+     *            the policy interface class
+     * @return the invocation handler
      */
     <T> InvocationHandler getInvocationHandler(EventProducer eventProducer, String endpointUri, Object instance, String method, Class<T> policyIF)
     {
@@ -131,15 +140,15 @@ public class EventBehaviour extends BaseBehaviour
         try
         {
             Class instanceClass = instance.getClass();
-            Method delegateMethod = instanceClass.getMethod(method, (Class[])policyIFMethods[0].getParameterTypes());
+            Method delegateMethod = instanceClass.getMethod(method, (Class[]) policyIFMethods[0].getParameterTypes());
             return new JavaMethodInvocationHandler(eventProducer, endpointUri, this, delegateMethod);
         }
         catch (NoSuchMethodException e)
         {
             throw new PolicyException("Method " + method + " not found or accessible on " + instance.getClass(), e);
         }
-    }    
-    
+    }
+
     /**
      * Java Method Invocation Handler
      *
@@ -150,12 +159,14 @@ public class EventBehaviour extends BaseBehaviour
         private String endpointUri;
         private EventBehaviour behaviour;
         private Method delegateMethod;
-        
+
         /**
          * Constuct.
          * 
-         * @param behaviour  the java behaviour
-         * @param delegateMethod  the method to invoke
+         * @param behaviour
+         *            the java behaviour
+         * @param delegateMethod
+         *            the method to invoke
          */
         private JavaMethodInvocationHandler(EventProducer eventProducer, String endpointUri, EventBehaviour behaviour, Method delegateMethod)
         {
@@ -165,9 +176,6 @@ public class EventBehaviour extends BaseBehaviour
             this.delegateMethod = delegateMethod;
         }
 
-        /* (non-Javadoc)
-         * @see java.lang.reflect.InvocationHandler#invoke(java.lang.Object, java.lang.reflect.Method, java.lang.Object[])
-         */
         public Object invoke(Object proxy, Method method, Object[] args) throws Throwable
         {
             // Handle Object level methods
@@ -195,7 +203,6 @@ public class EventBehaviour extends BaseBehaviour
                 {
                     behaviour.disable();
                     Object object = delegateMethod.invoke(behaviour.instance, args);
-
                     eventProducer.send(endpointUri, object);
                     return object;
                 }
@@ -222,7 +229,7 @@ public class EventBehaviour extends BaseBehaviour
             {
                 return false;
             }
-            JavaMethodInvocationHandler other = (JavaMethodInvocationHandler)obj;
+            JavaMethodInvocationHandler other = (JavaMethodInvocationHandler) obj;
             return behaviour.instance.equals(other.behaviour.instance) && delegateMethod.equals(other.delegateMethod);
         }
 
@@ -238,5 +245,5 @@ public class EventBehaviour extends BaseBehaviour
             return "EventBehaviour [instance=" + behaviour.instance.hashCode() + ", method=" + delegateMethod.toString() + "]";
         }
     }
-    
+
 }
