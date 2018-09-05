@@ -40,8 +40,6 @@ import java.util.Set;
  */
 public class RenditionDefinitionRegistry2Impl implements RenditionDefinitionRegistry2
 {
-    private static final Set<Pair<String, Long>> NONE = new HashSet();
-
     private TransformServiceRegistry transformServiceRegistry;
 
     private final Map<String, RenditionDefinition2> renditionDefinitions = new HashMap();
