@@ -46,6 +46,7 @@ import org.alfresco.util.PropertyCheck;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -147,7 +148,7 @@ public class LocalTransformClient extends AbstractTransformClient implements Tra
 
     private ContentService contentService;
 
-    private RenditionService2 renditionService2;
+    private RenditionService2Impl renditionService2;
 
     private ExecutorService executorService;
 
@@ -156,7 +157,7 @@ public class LocalTransformClient extends AbstractTransformClient implements Tra
         this.contentService = contentService;
     }
 
-    public void setRenditionService2(RenditionService2 renditionService2)
+    public void setRenditionService2(RenditionService2Impl renditionService2)
     {
         this.renditionService2 = renditionService2;
     }
@@ -216,7 +217,8 @@ public class LocalTransformClient extends AbstractTransformClient implements Tra
                         try
                         {
                             ContentWriter writer = transform(transformer, sourceNodeRef, targetMimetype, transformationOptions);
-                            consume(sourceNodeRef, writer, renditionDefinition);
+                            InputStream inputStream = writer.getReader().getContentInputStream();
+                            renditionService2.consume(sourceNodeRef, inputStream, renditionDefinition);
                         }
                         catch (Exception e)
                         {
@@ -234,7 +236,7 @@ public class LocalTransformClient extends AbstractTransformClient implements Tra
 
     /**
      * @deprecated as we do not plan to use TransformationOptions moving forwards as local transformations will also
-     * use the same Transform Service options.
+     * use the same options as the Transform Service.
      */
     @Deprecated
     static TransformationOptions getTransformationOptions(String renditionName, Map<String, String> options)
@@ -378,13 +380,5 @@ public class LocalTransformClient extends AbstractTransformClient implements Tra
         writer.setMimetype(targetMimetype);
         transformer.transform(reader, writer, transformationOptions);
         return writer;
-    }
-
-    void consume(NodeRef sourceNodeRef, ContentWriter writer, RenditionDefinition2 renditionDefinition)
-    {
-        logger.debug("Link the transformation into a rendition node.");
-
-        // TODO pass file to RenditionService2 to link up
-        // TODO remove the temp file.
     }
 }

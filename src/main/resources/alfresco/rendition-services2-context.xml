@@ -51,11 +51,13 @@
     <!-- Rendition Service 2 base bean -->
     <bean id="renditionService2" class="org.alfresco.repo.rendition2.RenditionService2Impl">
         <property name="nodeService" ref="NodeService" />
+        <property name="contentService" ref="ContentService" />
         <property name="renditionPreventionRegistry" ref="renditionPreventionRegistry" />
         <property name="transformClient" ref="transformClient" />
         <property name="renditionDefinitionRegistry2" ref="renditionDefinitionRegistry2" />
         <property name="namespaceService" ref="namespaceService" />
         <property name="policyComponent" ref="policyComponent" />
+        <property name="behaviourFilter" ref="policyBehaviourFilter" />
         <property name="enabled">
             <value>${system.thumbnail.generate}</value>
         </property>
