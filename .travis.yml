@@ -7,7 +7,7 @@ services:
 
 before_install:
 - docker pull postgres:10.1
-- docker run -d -p 127.0.0.1:5432:5432 -e POSTGRES_PASSWORD=alfresco -e POSTGRES_USER=alfresco -e POSTGRES_DB=alfresco postgres:10.1 postgres -c 'max_connections=300'
+- docker run -d -p 5432:5432 -e POSTGRES_PASSWORD=alfresco -e POSTGRES_USER=alfresco -e POSTGRES_DB=alfresco postgres:10.1 postgres -c 'max_connections=300'
 - docker ps -a
 
 
@@ -24,5 +24,5 @@ matrix:
   - name: "AppContext05TestSuite"
     env: TEST_SUITE=AppContext05TestSuite
   - name: "AppContext06TestSuite"
-    env: TEST_SUITE=AppContext06TestSuite    
+    env: TEST_SUITE=AppContext06TestSuite
   script: mvn test -Dtest=$TEST_SUITE -Ddb.driver=org.postgresql.Driver -Ddb.name=alfresco -Ddb.url=jdbc:postgresql:alfresco -Ddb.username=alfresco -Ddb.password=alfresco
