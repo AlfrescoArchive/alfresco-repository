@@ -26,4 +26,5 @@ matrix:
     env: TEST_SUITE=AppContext05TestSuite
   - name: "AppContext06TestSuite"
     env: TEST_SUITE=AppContext06TestSuite
-  script: mvn test -Dtest=$TEST_SUITE -Ddb.driver=org.postgresql.Driver -Ddb.name=alfresco -Ddb.url=jdbc:localhost:5433:alfresco -Ddb.username=alfresco -Ddb.password=alfresco --settings maven-config/settings.xml
+
+script: mvn test -B -Dtest=$TEST_SUITE -Ddb.driver=org.postgresql.Driver -Ddb.name=alfresco -Ddb.url=jdbc:localhost:5433:alfresco -Ddb.username=alfresco -Ddb.password=alfresco --settings maven-config/settings.xml
