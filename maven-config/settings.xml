@@ -1,0 +1,30 @@
+<settings>
+  <profiles>
+    <profile>
+      <id>alfresco-public</id>
+      <activation>
+        <activeByDefault>true</activeByDefault>
+      </activation>
+      <repositories>
+        <repository>
+          <id>alfresco-public</id>
+          <releases>
+            <enabled>true</enabled>
+          </releases>
+          <snapshots>
+            <enabled>false</enabled>
+          </snapshots>
+          <name>Alfresco Public Repository</name>
+          <url>https://artifacts.alfresco.com/nexus/content/groups/public</url>
+        </repository>
+      </repositories>
+      <pluginRepositories>
+        <pluginRepository>
+          <id>alfresco-public-plugins</id>
+          <name>Alfresco Public Repository</name>
+          <url>https://artifacts.alfresco.com/nexus/content/groups/public</url>
+        </pluginRepository>
+      </pluginRepositories>
+    </profile>
+  </profiles>
+</settings>
