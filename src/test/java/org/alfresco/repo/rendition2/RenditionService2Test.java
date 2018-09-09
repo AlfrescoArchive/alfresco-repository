@@ -73,7 +73,6 @@ public class RenditionService2Test
     @Mock private RenditionPreventionRegistry renditionPreventionRegistry;
     @Mock private ContentData contentData;
     @Mock private ContentTransformer contentTransformer;
-    @Mock private NamespaceService namespaceService;
     @Mock private PolicyComponent policyComponent;
     @Mock private BehaviourFilter behaviourFilter;
 
@@ -109,7 +108,6 @@ public class RenditionService2Test
         renditionService2.setRenditionPreventionRegistry(renditionPreventionRegistry);
         renditionService2.setRenditionDefinitionRegistry2(renditionDefinitionRegistry2);
         renditionService2.setTransformClient(localTransformClient);
-        renditionService2.setNamespaceService(namespaceService);
         renditionService2.setPolicyComponent(policyComponent);
         renditionService2.setBehaviourFilter(behaviourFilter);
         renditionService2.setEnabled(true);

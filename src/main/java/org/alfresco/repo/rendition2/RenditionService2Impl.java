@@ -38,10 +38,10 @@ import org.alfresco.service.cmr.repository.ContentService;
 import org.alfresco.service.cmr.repository.ContentWriter;
 import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.cmr.repository.NodeService;
+import org.alfresco.service.cmr.repository.datatype.DefaultTypeConverter;
 import org.alfresco.service.namespace.NamespaceService;
 import org.alfresco.service.namespace.QName;
 import org.alfresco.service.namespace.RegexQNamePattern;
-import org.alfresco.util.GUID;
 import org.alfresco.util.PropertyCheck;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -50,10 +50,15 @@ import org.springframework.beans.factory.InitializingBean;
 import java.io.InputStream;
 import java.io.Serializable;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import static org.alfresco.model.ContentModel.PROP_MODIFIED;
+import static org.alfresco.model.RenditionModel.PROP_RENDITION_VERSION;
+import static org.alfresco.service.namespace.QName.createQName;
 
 /**
  * The Async Rendition service. Replaces the original deprecated RenditionService.
@@ -75,7 +80,6 @@ public class RenditionService2Impl implements RenditionService2, InitializingBea
     private RenditionPreventionRegistry renditionPreventionRegistry;
     private RenditionDefinitionRegistry2 renditionDefinitionRegistry2;
     private TransformClient transformClient;
-    private NamespaceService namespaceService;
     private PolicyComponent policyComponent;
     private BehaviourFilter behaviourFilter;
     private boolean enabled;
@@ -106,11 +110,6 @@ public class RenditionService2Impl implements RenditionService2, InitializingBea
         return renditionDefinitionRegistry2;
     }
 
-    public void setNamespaceService(NamespaceService namespaceService)
-    {
-        this.namespaceService = namespaceService;
-    }
-
     public void setTransformClient(TransformClient transformClient)
     {
         this.transformClient = transformClient;
@@ -138,7 +137,6 @@ public class RenditionService2Impl implements RenditionService2, InitializingBea
         PropertyCheck.mandatory(this, "contentService", contentService);
         PropertyCheck.mandatory(this, "renditionPreventionRegistry", renditionPreventionRegistry);
         PropertyCheck.mandatory(this, "renditionDefinitionRegistry2", renditionDefinitionRegistry2);
-        PropertyCheck.mandatory(this, "namespaceService", namespaceService);
         PropertyCheck.mandatory(this, "transformClient", transformClient);
         PropertyCheck.mandatory(this, "policyComponent", policyComponent);
         PropertyCheck.mandatory(this, "behaviourFilter", behaviourFilter);
@@ -163,13 +161,51 @@ public class RenditionService2Impl implements RenditionService2, InitializingBea
                 throw new IllegalArgumentException("The rendition "+renditionName+" has not been registered.");
             }
 
-            transformClient.transform(sourceNodeRef, renditionDefinition);
+            // Avoid extra transforms that have already been done.
+            long version = getSourceVersion(sourceNodeRef);
+            NodeRef renditionNode = getRenditionNode(sourceNodeRef, renditionName);
+            long currentVersion = getRenditionVersion(renditionNode);
+            if (currentVersion >= version)
+            {
+                throw new IllegalStateException("The rendition "+renditionName+" has already been created.");
+            }
+
+            transformClient.transform(sourceNodeRef, renditionDefinition, version);
         }
         catch (Exception e)
         {
             logger.debug(e.getMessage());
             throw e;
         }
+    }
+
+    /**
+     * Returns a number to represent the current version of the sourceNodeRef. This is not the same as the node's
+     * version property (if it has one), but is simply a number that will be larger than the previous version if the
+     * source content is changed. As transformations may be returned in a different sequences to which they were
+     * requested, this version number is used work out if a rendition should be replaced.
+     */
+    private long getSourceVersion(NodeRef sourceNodeRef)
+    {
+        return DefaultTypeConverter.INSTANCE.convert(Date.class, nodeService.getProperty(sourceNodeRef, PROP_MODIFIED)).getTime();
+    }
+
+    /**
+     * Returns the version of the supplied rendition node. May be null if it does not exist.
+     * Used work out if a rendition should be replaced. {@code -1} is returned if the rendition does not exist.
+     */
+    private long getRenditionVersion(NodeRef renditionNode)
+    {
+        return renditionNode == null
+                ? -1
+                : DefaultTypeConverter.INSTANCE.convert(Date.class, nodeService.getProperty(renditionNode, PROP_RENDITION_VERSION)).getTime();
+    }
+
+    private NodeRef getRenditionNode(NodeRef sourceNodeRef, String renditionName)
+    {
+        QName renditionQName = createQName(NamespaceService.CONTENT_MODEL_1_0_URI, renditionName);
+        List<ChildAssociationRef> renditionAssocs = nodeService.getChildAssocs(sourceNodeRef, RenditionModel.ASSOC_RENDITION, renditionQName);
+        return renditionAssocs.isEmpty() ? null : renditionAssocs.get(0).getChildRef();
     }
 
     /**
@@ -222,7 +258,7 @@ public class RenditionService2Impl implements RenditionService2, InitializingBea
         List<ChildAssociationRef> renditions = Collections.emptyList();
 
         // Thumbnails have a cm: prefix.
-        QName renditionQName = QName.resolveToQName(namespaceService, renditionName);
+        QName renditionQName = createQName(NamespaceService.CONTENT_MODEL_1_0_URI, renditionName);
 
         // Check that the sourceNodeRef has the renditioned aspect applied
         if (nodeService.hasAspect(sourceNodeRef, RenditionModel.ASPECT_RENDITIONED) == true)
@@ -251,73 +287,110 @@ public class RenditionService2Impl implements RenditionService2, InitializingBea
         return enabled;
     }
 
-    // Takes a transformation (InputStream) and attach it as a rendition to the source node.
-    void consume(NodeRef sourceNodeRef, InputStream transformInputStream, RenditionDefinition2 renditionDefinition)
+    /**
+     *  Takes a transformation (InputStream) and attaches it as a rendition to the source node.
+     *  Does nothing if there is already a newer rendition.
+     */
+    void consume(NodeRef sourceNodeRef, InputStream transformInputStream, RenditionDefinition2 renditionDefinition,
+                 long version)
     {
-        logger.debug("Consume a transformation as a rendition node.");
-
-        // TODO work out how the original code gets away with creating a new association and not deleting any previous one if updating.
-        ChildAssociationRef childAssoc = createRenditionNodeAssoc(sourceNodeRef, renditionDefinition);
-        NodeRef renditionNode = childAssoc.getChildRef();
-
-        ContentWriter contentWriter = contentService.getWriter(renditionNode, DEFAULT_RENDITION_CONTENT_PROP, true);
-        String targetMimetype = renditionDefinition.getTargetMimetype();
-        contentWriter.setMimetype(targetMimetype);
-        contentWriter.setEncoding(DEFAULT_ENCODING);
-        ContentWriter renditionWriter = contentWriter;
-
-        try
+        String renditionName = renditionDefinition.getRenditionName();
+        NodeRef renditionNode = getRenditionNode(sourceNodeRef, renditionName);
+        long currentVersion = getRenditionVersion(renditionNode);
+        if (currentVersion >= version)
         {
-            renditionWriter.putContent(transformInputStream);
-        }
-        catch (Exception e)
-        {
-            // TODO remove the association on failure? The original appears to have a delete compensating action.
-            // Unwrap our cause and throw that
-            Throwable transformException = e.getCause();
-            if (transformException instanceof RuntimeException)
+            if (logger.isDebugEnabled())
             {
-                throw (RuntimeException) e.getCause();
+                logger.debug("Ignore transform for rendition " + renditionName + " as it is no longer needed, as version " + currentVersion + " >= " + version);
             }
-            throw new RenditionService2Exception(TRANSFORMING_ERROR_MESSAGE + e.getCause().getMessage(), e.getCause());
         }
+        else
+        {
+            if (logger.isDebugEnabled())
+            {
+                logger.debug("Consume transform in rendition " + renditionName + ", as version  " + currentVersion + " < " + version);
+            }
 
-        // TODO remove the temp file if needed.
+            // Ensure that the creation of a rendition does not cause updates to the modified, modifier properties on the source node
+            boolean createRenditionNode = renditionNode == null;
+            boolean sourceHasAspectRenditioned = nodeService.hasAspect(sourceNodeRef, RenditionModel.ASPECT_RENDITIONED);
+            boolean sourceBehaviourDisabled = !sourceHasAspectRenditioned || createRenditionNode;
+            try
+            {
+                if (sourceBehaviourDisabled)
+                {
+                    behaviourFilter.disableBehaviour(sourceNodeRef, ContentModel.ASPECT_AUDITABLE);
+                }
+
+                // If they do not exist create the rendition association and the rendition node.
+                if (createRenditionNode)
+                {
+                    renditionNode = createRenditionNode(sourceNodeRef, renditionDefinition, version);
+                }
+
+                behaviourFilter.disableBehaviour(renditionNode, ContentModel.ASPECT_AUDITABLE);
+                if (createRenditionNode)
+                {
+                    nodeService.addAspect(renditionNode, RenditionModel.ASPECT_RENDITION2, null);
+                    nodeService.addAspect(renditionNode, RenditionModel.ASPECT_HIDDEN_RENDITION, null);
+                }
+                nodeService.setProperty(renditionNode, RenditionModel.PROP_RENDITION_VERSION, new Date(version));
+
+                // Set or replace rendition content
+                ContentWriter contentWriter = contentService.getWriter(renditionNode, DEFAULT_RENDITION_CONTENT_PROP, true);
+                String targetMimetype = renditionDefinition.getTargetMimetype();
+                contentWriter.setMimetype(targetMimetype);
+                contentWriter.setEncoding(DEFAULT_ENCODING);
+                ContentWriter renditionWriter = contentWriter;
+                renditionWriter.putContent(transformInputStream);
+
+                if (!sourceHasAspectRenditioned)
+                {
+                    nodeService.addAspect(sourceNodeRef, RenditionModel.ASPECT_RENDITIONED, null);
+                }
+            }
+            catch (Exception e)
+            {
+                throw new RenditionService2Exception(TRANSFORMING_ERROR_MESSAGE + e.getMessage(), e);
+            }
+            finally
+            {
+                if (sourceBehaviourDisabled)
+                {
+                    behaviourFilter.enableBehaviour(sourceNodeRef, ContentModel.ASPECT_AUDITABLE);
+                }
+                if (renditionNode != null)
+                {
+                    behaviourFilter.enableBehaviour(renditionNode, ContentModel.ASPECT_AUDITABLE);
+                }
+            }
+        }
     }
 
-    private ChildAssociationRef createRenditionNodeAssoc(NodeRef sourceNode, RenditionDefinition2 renditionDefinition)
+    // Based on original AbstractRenderingEngine.createRenditionNodeAssoc
+    private NodeRef createRenditionNode(NodeRef sourceNode, RenditionDefinition2 renditionDefinition, long version)
     {
         String renditionName = renditionDefinition.getRenditionName();
 
         Map<QName, Serializable> nodeProps = new HashMap<QName, Serializable>();
         nodeProps.put(ContentModel.PROP_NAME, renditionName);
+        nodeProps.put(ContentModel.PROP_THUMBNAIL_NAME, renditionName);
         nodeProps.put(ContentModel.PROP_CONTENT_PROPERTY_NAME, ContentModel.PROP_CONTENT);
-        QName assocName = QName.createQName(NamespaceService.RENDITION_MODEL_1_0_URI, GUID.generate());
+        nodeProps.put(ContentModel.PROP_IS_INDEXED, Boolean.FALSE);
+
+        QName assocName = createQName(NamespaceService.CONTENT_MODEL_1_0_URI, renditionName);
         QName assocType = RenditionModel.ASSOC_RENDITION;
-        QName nodeType = ContentModel.TYPE_CONTENT;
+        QName nodeType = ContentModel.TYPE_THUMBNAIL;
 
-        // Ensure that the creation of rendition children does not cause updates
-        // to the modified, modifier properties on the source node
-        behaviourFilter.disableBehaviour(sourceNode, ContentModel.ASPECT_AUDITABLE);
-        ChildAssociationRef childAssoc = null;
-        try
+        ChildAssociationRef childAssoc = nodeService.createNode(sourceNode, assocType, assocName, nodeType, nodeProps);
+        NodeRef renditionNode = childAssoc.getChildRef();
+
+        if (logger.isDebugEnabled())
         {
-            childAssoc = nodeService.createNode(sourceNode, assocType, assocName, nodeType, nodeProps);
-
-            // Add marker aspect for RenditionService2
-            NodeRef renditionNode = childAssoc.getChildRef();
-            nodeService.addAspect(renditionNode, RenditionModel.ASPECT_RENDITION2, null);
-
-            if (logger.isDebugEnabled())
-            {
-                logger.debug("Created rendition node " + childAssoc + " as child of " + sourceNode + " with assoc-type " + assocType);
-            }
+            logger.debug("Created " + renditionName + " rendition node " + childAssoc.getChildRef() + " as a child of " + sourceNode);
         }
-        finally
-        {
-            behaviourFilter.enableBehaviour(sourceNode, ContentModel.ASPECT_AUDITABLE);
-        }
-        return childAssoc;
+
+        return renditionNode;
     }
 
     @Override

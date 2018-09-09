@@ -55,7 +55,6 @@
         <property name="renditionPreventionRegistry" ref="renditionPreventionRegistry" />
         <property name="transformClient" ref="transformClient" />
         <property name="renditionDefinitionRegistry2" ref="renditionDefinitionRegistry2" />
-        <property name="namespaceService" ref="namespaceService" />
         <property name="policyComponent" ref="policyComponent" />
         <property name="behaviourFilter" ref="policyBehaviourFilter" />
         <property name="enabled">

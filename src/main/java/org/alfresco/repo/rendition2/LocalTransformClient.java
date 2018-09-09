@@ -180,7 +180,7 @@ public class LocalTransformClient extends AbstractTransformClient implements Tra
     }
 
     @Override
-    public void transform(NodeRef sourceNodeRef, RenditionDefinition2 renditionDefinition)
+    public void transform(NodeRef sourceNodeRef, RenditionDefinition2 renditionDefinition, long version)
     {
         ContentData contentData = getContentData(sourceNodeRef);
         String contentUrl = contentData.getContentUrl();
@@ -205,11 +205,12 @@ public class LocalTransformClient extends AbstractTransformClient implements Tra
             logger.debug("Rendition of "+renditionName+" from "+sourceMimetype+" will use "+transformer.getName());
         }
 
+        String user = AuthenticationUtil.getRunAsUser();
         executorService.submit(new Runnable() {
             @Override
             public void run()
             {
-                AuthenticationUtil.runAsSystem(new AuthenticationUtil.RunAsWork<Void>()
+                AuthenticationUtil.runAs(new AuthenticationUtil.RunAsWork<Void>()
                 {
                     @Override
                     public Void doWork() throws Exception
@@ -218,7 +219,7 @@ public class LocalTransformClient extends AbstractTransformClient implements Tra
                         {
                             ContentWriter writer = transform(transformer, sourceNodeRef, targetMimetype, transformationOptions);
                             InputStream inputStream = writer.getReader().getContentInputStream();
-                            renditionService2.consume(sourceNodeRef, inputStream, renditionDefinition);
+                            renditionService2.consume(sourceNodeRef, inputStream, renditionDefinition, version);
                         }
                         catch (Exception e)
                         {
@@ -229,7 +230,7 @@ public class LocalTransformClient extends AbstractTransformClient implements Tra
                         }
                         return null;
                     }
-                });
+                }, user);
             }
         });
     }
