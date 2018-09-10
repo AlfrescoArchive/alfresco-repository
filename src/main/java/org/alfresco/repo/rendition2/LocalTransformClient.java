@@ -31,6 +31,8 @@ import org.alfresco.repo.content.transform.magick.ImageResizeOptions;
 import org.alfresco.repo.content.transform.magick.ImageTransformationOptions;
 import org.alfresco.repo.content.transform.swf.SWFTransformationOptions;
 import org.alfresco.repo.security.authentication.AuthenticationUtil;
+import org.alfresco.repo.solr.Transaction;
+import org.alfresco.repo.transaction.RetryingTransactionHelper;
 import org.alfresco.service.cmr.repository.ContentData;
 import org.alfresco.service.cmr.repository.ContentReader;
 import org.alfresco.service.cmr.repository.ContentService;
@@ -42,6 +44,7 @@ import org.alfresco.service.cmr.repository.TemporalSourceOptions;
 import org.alfresco.service.cmr.repository.TransformationOptionLimits;
 import org.alfresco.service.cmr.repository.TransformationOptions;
 import org.alfresco.service.cmr.repository.TransformationSourceOptions;
+import org.alfresco.service.transaction.TransactionService;
 import org.alfresco.util.PropertyCheck;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -152,6 +155,8 @@ public class LocalTransformClient extends AbstractTransformClient implements Tra
 
     private ExecutorService executorService;
 
+    private TransactionService transactionService;
+
     public void setContentService(ContentService contentService)
     {
         this.contentService = contentService;
@@ -165,6 +170,11 @@ public class LocalTransformClient extends AbstractTransformClient implements Tra
     public void setExecutorService(ExecutorService executorService)
     {
         this.executorService = executorService;
+    }
+
+    public void setTransactionService(TransactionService transactionService)
+    {
+        this.transactionService = transactionService;
     }
 
     @Override
@@ -206,32 +216,26 @@ public class LocalTransformClient extends AbstractTransformClient implements Tra
         }
 
         String user = AuthenticationUtil.getRunAsUser();
-        executorService.submit(new Runnable() {
-            @Override
-            public void run()
-            {
-                AuthenticationUtil.runAs(new AuthenticationUtil.RunAsWork<Void>()
+        executorService.submit(() ->
+        {
+            AuthenticationUtil.runAs((AuthenticationUtil.RunAsWork<Void>) () ->
+                transactionService.getRetryingTransactionHelper().doInTransaction(() ->
                 {
-                    @Override
-                    public Void doWork() throws Exception
+                    try
                     {
-                        try
-                        {
-                            ContentWriter writer = transform(transformer, sourceNodeRef, targetMimetype, transformationOptions);
-                            InputStream inputStream = writer.getReader().getContentInputStream();
-                            renditionService2.consume(sourceNodeRef, inputStream, renditionDefinition, version);
-                        }
-                        catch (Exception e)
-                        {
-                            if (logger.isDebugEnabled())
-                            {
-                                logger.debug("Rendition of "+renditionName+" from "+sourceMimetype+" failed", e);
-                            }
-                        }
-                        return null;
+                        ContentWriter writer = transform(transformer, sourceNodeRef, targetMimetype, transformationOptions);
+                        InputStream inputStream = writer.getReader().getContentInputStream();
+                        renditionService2.consume(sourceNodeRef, inputStream, renditionDefinition, version);
                     }
-                }, user);
-            }
+                    catch (Exception e)
+                    {
+                        if (logger.isDebugEnabled())
+                        {
+                            logger.debug("Rendition of "+renditionName+" from "+sourceMimetype+" failed", e);
+                        }
+                    }
+                    return null;
+                }), user);
         });
     }
 

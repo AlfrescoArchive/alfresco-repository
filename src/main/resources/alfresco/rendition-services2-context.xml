@@ -69,6 +69,7 @@
         <property name="nodeService" ref="NodeService" />
         <property name="contentService" ref="ContentService" />
         <property name="renditionService2" ref="renditionService2" />
+        <property name="transactionService" ref="transactionService" />
     </bean>
 
     <!-- Replaced in the enterprise edition -->
