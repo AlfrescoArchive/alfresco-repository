@@ -309,6 +309,7 @@ public class CMISConnector implements ApplicationContextAware, ApplicationListen
     private CheckOutCheckInService checkOutCheckInService;
     private LockService lockService;
     private ContentService contentService;
+    @Deprecated
     private RenditionService renditionService;
     private FileFolderService fileFolderService;
     private TenantAdminService tenantAdminService;
@@ -327,6 +328,7 @@ public class CMISConnector implements ApplicationContextAware, ApplicationListen
     private DictionaryService dictionaryService;
     private SiteService siteService;
     private ActionService actionService;
+    @Deprecated
     private ThumbnailService thumbnailService;
     private ServiceRegistry serviceRegistry;
     private EventPublisher eventPublisher;
@@ -498,6 +500,12 @@ public class CMISConnector implements ApplicationContextAware, ApplicationListen
         return openHttpSession;
     }
 
+    /**
+     *
+     *
+     * @deprecated The thumbnails code is being moved out of the codebase and replaced by the new async RenditionService2 or other external libraries.
+     */
+    @Deprecated
     public void setThumbnailService(ThumbnailService thumbnailService)
     {
 		this.thumbnailService = thumbnailService;
@@ -614,7 +622,10 @@ public class CMISConnector implements ApplicationContextAware, ApplicationListen
 
     /**
      * Sets the rendition service.
+     *
+     * @deprecated The RenditionService is being replace by the simpler async RenditionService2.
      */
+    @Deprecated
     public void setrenditionService(RenditionService renditionService)
     {
         this.renditionService = renditionService;
@@ -970,7 +981,10 @@ public class CMISConnector implements ApplicationContextAware, ApplicationListen
      * Asynchronously generates thumbnails for the given node.
      *
      * @param nodeRef NodeRef
+     *
+     * @deprecated The thumbnails code is being moved out of the codebase and replaced by the new async RenditionService2 or other external libraries.
      */
+    @Deprecated
     public void createThumbnails(NodeRef nodeRef, Set<String> thumbnailNames)
     {
     	if(thumbnailNames == null || thumbnailNames.size() == 0)
@@ -2481,6 +2495,11 @@ public class CMISConnector implements ApplicationContextAware, ApplicationListen
         return result;
     }
 
+    /**
+     *
+     * @deprecated The RenditionService is being replace by the simpler async RenditionService2.
+     */
+    @Deprecated
     public List<RenditionData> getRenditions(NodeRef nodeRef, String renditionFilter, BigInteger maxItems,
             BigInteger skipCount)
     {
@@ -4079,7 +4098,12 @@ public class CMISConnector implements ApplicationContextAware, ApplicationListen
 
         return result;
     }
-    
+
+    /**
+     *
+     * @deprecated The RenditionService is being replace by the simpler async RenditionService2.
+     */
+    @Deprecated
     private CMISRenditionMapping getRenditionMapping()
     {
         CMISRenditionMapping renditionMapping = (CMISRenditionMapping)singletonCache.get(KEY_CMIS_RENDITION_MAPPING_NODEREF);

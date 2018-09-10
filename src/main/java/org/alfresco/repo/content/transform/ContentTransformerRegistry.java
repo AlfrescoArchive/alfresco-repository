@@ -47,7 +47,10 @@ import org.apache.commons.logging.LogFactory;
  * @see org.alfresco.repo.content.transform.ContentTransformer
  * 
  * @author Derek Hulley
+ *
+ * @deprecated The RenditionService is being replace by the simpler async RenditionService2.
  */
+@Deprecated
 @AlfrescoPublicApi
 public class ContentTransformerRegistry
 {

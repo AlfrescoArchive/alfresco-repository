@@ -61,7 +61,10 @@ import org.apache.commons.logging.LogFactory;
 
 /**
  * @author Nick Smith
+ *
+ * @deprecated The RenditionService is being replace by the simpler async RenditionService2.
  */
+@Deprecated
 public abstract class AbstractTransformationRenderingEngine extends AbstractRenderingEngine
 {
     private static Log logger = LogFactory.getLog(AbstractTransformationRenderingEngine.class);

@@ -82,9 +82,11 @@ public abstract class AbstractContentReader extends AbstractContentAccessor impl
     private ReadableByteChannel channel;
     
     // Optional limits on reading
+    @Deprecated
     private TransformationOptionLimits limits;
     
     // Only needed if limits are set
+    @Deprecated
     private TransformerDebug transformerDebug;
     
     // For testing: Allows buffering to be turned off
@@ -100,22 +102,44 @@ public abstract class AbstractContentReader extends AbstractContentAccessor impl
         
         listeners = new ArrayList<ContentStreamListener>(2);
     }
-    
+
+    /**
+     *
+     * @deprecated The transformations code is being moved out of the codebase and replaced by the new async RenditionService2 or other external libraries.
+     */
+    @Deprecated
     public void setLimits(TransformationOptionLimits limits)
     {
         this.limits = limits;
     }
-    
+
+
+    /**
+     *
+     * @deprecated The transformations code is being moved out of the codebase and replaced by the new async RenditionService2 or other external libraries.
+     */
+    @Deprecated
     public TransformationOptionLimits getLimits()
     {
         return limits;
     }
 
+
+    /**
+     *
+     * @deprecated The transformations code is being moved out of the codebase and replaced by the new async RenditionService2 or other external libraries.
+     */
+    @Deprecated
     public void setTransformerDebug(TransformerDebug transformerDebug)
     {
         this.transformerDebug = transformerDebug;
     }
 
+    /**
+     *
+     * @deprecated The transformations code is being moved out of the codebase and replaced by the new async RenditionService2 or other external libraries.
+     */
+    @Deprecated
     public TransformerDebug getTransformerDebug()
     {
         return transformerDebug;
@@ -374,7 +398,10 @@ public abstract class AbstractContentReader extends AbstractContentAccessor impl
 
     /**
      * @see Channels#newInputStream(java.nio.channels.ReadableByteChannel)
+     *
+     * @deprecated The transformations code is being moved out of the codebase and replaced by the new async RenditionService2 or other external libraries.
      */
+    @Deprecated
     public InputStream getContentInputStream() throws ContentIOException
     {
         try
@@ -414,7 +441,10 @@ public abstract class AbstractContentReader extends AbstractContentAccessor impl
     /**
      * Copies the {@link #getContentInputStream() input stream} to the given
      * <code>OutputStream</code>
+     *
+     * @deprecated The transformations code is being moved out of the codebase and replaced by the new async RenditionService2 or other external libraries.
      */
+    @Deprecated
     public final void getContent(OutputStream os) throws ContentIOException
     {
         try
@@ -431,6 +461,11 @@ public abstract class AbstractContentReader extends AbstractContentAccessor impl
         }
     }
 
+    /**
+     *  *
+     * @deprecated The transformations code is being moved out of the codebase and replaced by the new async RenditionService2 or other external libraries.
+     */
+    @Deprecated
     public final void getContent(File file) throws ContentIOException
     {
         try
@@ -448,7 +483,13 @@ public abstract class AbstractContentReader extends AbstractContentAccessor impl
                     e);
         }
     }
-    
+
+    /**
+     *
+     *
+     * @deprecated The transformations code is being moved out of the codebase and replaced by the new async RenditionService2 or other external libraries.
+     */
+    @Deprecated
     public final String getContentString(int length) throws ContentIOException
     {
         if (length < 0 || length > Integer.MAX_VALUE)
@@ -500,7 +541,10 @@ public abstract class AbstractContentReader extends AbstractContentAccessor impl
      * be careful with this method.
      * 
      * @see ContentAccessor#getEncoding()
+     *
+     * @deprecated The transformations code is being moved out of the codebase and replaced by the new async RenditionService2 or other external libraries.
      */
+    @Deprecated
     public final String getContentString() throws ContentIOException
     {
         try
@@ -569,7 +613,10 @@ public abstract class AbstractContentReader extends AbstractContentAccessor impl
      * (-1) or throwing an IOException.
 
      * @author Alan Davis
+     *
+     * @deprecated The transformations code is being moved out of the codebase and replaced by the new async RenditionService2 or other external libraries.
      */
+    @Deprecated
     private class TimeSizeRestrictedInputStream extends InputStream
     {
         private final AtomicBoolean timeoutFlag = new AtomicBoolean(false);

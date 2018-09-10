@@ -105,7 +105,10 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Neil McErlean
  * @author Nick Smith
  * @since 3.3
+ *
+ * @deprecated We are introducing the new async RenditionService2.
  */
+@Deprecated
 @SuppressWarnings("deprecation")
 @Category({OwnJVMTestsCategory.class})
 @Transactional

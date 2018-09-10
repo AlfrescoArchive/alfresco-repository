@@ -43,7 +43,10 @@ import org.alfresco.service.namespace.QName;
  * 
  * @author Roy Wetherall
  * @since 3.0.0
+ *
+ * @deprecated The RenditionService is being replace by the simpler async RenditionService2.
  */
+@Deprecated
 @AlfrescoPublicApi
 public class TransformationOptions implements Cloneable
 {

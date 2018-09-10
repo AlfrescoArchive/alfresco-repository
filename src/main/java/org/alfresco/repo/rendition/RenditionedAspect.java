@@ -70,7 +70,10 @@ import org.apache.commons.logging.LogFactory;
  * 
  * @author Neil McErlean
  * @author Roy Wetherall
+ *
+ * @deprecated The RenditionService is being replace by the simpler async RenditionService2.
  */
+@Deprecated
 public class RenditionedAspect implements NodeServicePolicies.OnUpdatePropertiesPolicy,
                                           CopyServicePolicies.OnCopyNodePolicy
 {

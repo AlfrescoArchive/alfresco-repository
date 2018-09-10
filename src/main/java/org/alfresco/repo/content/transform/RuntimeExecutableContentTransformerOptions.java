@@ -38,7 +38,10 @@ import org.alfresco.service.cmr.repository.TransformationOptions;
  * execution string. 
  * 
  * @author Roy Wetherall
+ *
+ * @deprecated The transformations code is being moved out of the codebase and replaced by the new async RenditionService2 or other external libraries.
  */
+@Deprecated
 public class RuntimeExecutableContentTransformerOptions extends TransformationOptions
 {
     /** Map of property values */
