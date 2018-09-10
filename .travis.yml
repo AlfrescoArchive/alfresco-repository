@@ -5,26 +5,33 @@ jdk: oraclejdk8
 services:
   - docker
 
-before_install:
-- docker pull postgres:10.1
-- docker run -d -p 5433:5432 -e POSTGRES_PASSWORD=alfresco -e POSTGRES_USER=alfresco -e POSTGRES_DB=alfresco postgres:10.1 postgres -c 'max_connections=300'
-- docker ps -a
-
-install: mvn install -DskipTests=true -Dmaven.javadoc.skip=true -B -V --settings maven-config/settings.xml
-
 matrix:
   include:
   - name: "AppContext01TestSuite"
     env: TEST_SUITE=AppContext01TestSuite
+    before_install:
+    - docker run -d -p 5433:5432 -e POSTGRES_PASSWORD=alfresco -e POSTGRES_USER=alfresco -e POSTGRES_DB=alfresco postgres:10.1 postgres -c 'max_connections=300'
   - name: "AppContext02TestSuite"
     env: TEST_SUITE=AppContext02TestSuite
+    before_install:
+    - docker run -d -p 5433:5432 -e POSTGRES_PASSWORD=alfresco -e POSTGRES_USER=alfresco -e POSTGRES_DB=alfresco postgres:10.1 postgres -c 'max_connections=300'
   - name: "AppContext03TestSuite"
     env: TEST_SUITE=AppContext03TestSuite
+    before_install:
+    - docker run -d -p 5433:5432 -e POSTGRES_PASSWORD=alfresco -e POSTGRES_USER=alfresco -e POSTGRES_DB=alfresco postgres:10.1 postgres -c 'max_connections=300'
   - name: "AppContext04TestSuite"
     env: TEST_SUITE=AppContext04TestSuite
+    before_install:
+    - docker run -d -p 5433:5432 -e POSTGRES_PASSWORD=alfresco -e POSTGRES_USER=alfresco -e POSTGRES_DB=alfresco postgres:10.1 postgres -c 'max_connections=300'
   - name: "AppContext05TestSuite"
     env: TEST_SUITE=AppContext05TestSuite
+    before_install:
+    - docker run -d -p 5433:5432 -e POSTGRES_PASSWORD=alfresco -e POSTGRES_USER=alfresco -e POSTGRES_DB=alfresco postgres:10.1 postgres -c 'max_connections=300'
   - name: "AppContext06TestSuite"
     env: TEST_SUITE=AppContext06TestSuite
+    before_install:
+    - docker run -d -p 5433:5432 -e POSTGRES_PASSWORD=alfresco -e POSTGRES_USER=alfresco -e POSTGRES_DB=alfresco postgres:10.1 postgres -c 'max_connections=300'
+
+install: mvn install -DskipTests=true -Dmaven.javadoc.skip=true -B -V --settings maven-config/settings.xml
 
 script: mvn test -B -Dtest=$TEST_SUITE -Ddb.driver=org.postgresql.Driver -Ddb.name=alfresco -Ddb.url=jdbc:postgresql://localhost:5433/alfresco -Ddb.username=alfresco -Ddb.password=alfresco --settings maven-config/settings.xml
