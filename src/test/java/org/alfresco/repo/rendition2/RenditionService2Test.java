@@ -67,7 +67,7 @@ public class RenditionService2Test
 {
     private RenditionService2Impl renditionService2;
     private LocalTransformClient localTransformClient;
-    private RenditionDefinitionRegistry2 renditionDefinitionRegistry2;
+    private RenditionDefinitionRegistry2Impl renditionDefinitionRegistry2;
 
     @Mock private NodeService nodeService;
     @Mock private ContentService contentService;
@@ -79,7 +79,6 @@ public class RenditionService2Test
 
     private NodeRef nodeRef = new NodeRef("workspace://spacesStore/test-id");
     private static final String IMGPREVIEW = "imgpreview";
-    private static final String PDF = "application/pdf";
     private static final String JPEG = "image/jpeg";
     private String contentUrl = "test-content-url";
 

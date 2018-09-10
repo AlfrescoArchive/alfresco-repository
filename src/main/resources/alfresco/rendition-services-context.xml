@@ -211,6 +211,7 @@
        <property name="nodeService" ref="NodeService"/>
        <property name="policyComponent" ref="policyComponent"/>
        <property name="renditionService" ref="RenditionService"/>
+       <property name="renditionService2" ref="RenditionService2"/>
    </bean>
 
    <!-- This action is used as a compensating action in the event of a failure to update a rendition -->

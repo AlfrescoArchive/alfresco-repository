@@ -1326,8 +1326,8 @@
        <aspect name="rn:rendition2">
            <title>Rendition2</title>
            <properties>
-               <property name="rn:version">
-                   <title>Version</title>
+               <property name="rn:sourceModifiedDate">
+                   <title>Source Modified Date</title>
                    <type>d:datetime</type>
                </property>
            </properties>

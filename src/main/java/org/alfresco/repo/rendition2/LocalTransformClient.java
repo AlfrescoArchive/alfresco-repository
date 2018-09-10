@@ -190,7 +190,7 @@ public class LocalTransformClient extends AbstractTransformClient implements Tra
     }
 
     @Override
-    public void transform(NodeRef sourceNodeRef, RenditionDefinition2 renditionDefinition, long version)
+    public void transform(NodeRef sourceNodeRef, RenditionDefinition2 renditionDefinition, long sourceModifiedDate)
     {
         ContentData contentData = getContentData(sourceNodeRef);
         String contentUrl = contentData.getContentUrl();
@@ -225,7 +225,7 @@ public class LocalTransformClient extends AbstractTransformClient implements Tra
                     {
                         ContentWriter writer = transform(transformer, sourceNodeRef, targetMimetype, transformationOptions);
                         InputStream inputStream = writer.getReader().getContentInputStream();
-                        renditionService2.consume(sourceNodeRef, inputStream, renditionDefinition, version);
+                        renditionService2.consume(sourceNodeRef, inputStream, renditionDefinition, sourceModifiedDate);
                     }
                     catch (Exception e)
                     {

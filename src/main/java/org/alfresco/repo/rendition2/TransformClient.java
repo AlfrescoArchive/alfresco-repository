@@ -38,8 +38,8 @@ public interface TransformClient
      * Requests an asynchronous transform and the subsequent linkage of that transform as a rendition.
      * @param sourceNodeRef the source node
      * @param renditionDefinition which rendition to perform
-     * @param version a number that will be larger than the previous version if the source content is changed.
+     * @param sourceModifiedDate a number that will be larger than the previous version if the source content is changed.
      * @throws UnsupportedOperationException if the transform is not supported.
      */
-    public void transform(NodeRef sourceNodeRef, RenditionDefinition2 renditionDefinition, long version);
+    public void transform(NodeRef sourceNodeRef, RenditionDefinition2 renditionDefinition, long sourceModifiedDate);
 }

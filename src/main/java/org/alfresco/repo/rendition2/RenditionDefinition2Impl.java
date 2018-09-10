@@ -39,7 +39,7 @@ public class RenditionDefinition2Impl implements RenditionDefinition2
     private final Map<String, String> transformOptions;
 
     public RenditionDefinition2Impl(String renditionName, String targetMimetype, Map<String, String> transformOptions,
-                                    RenditionDefinitionRegistry2 registry)
+                                    RenditionDefinitionRegistry2Impl registry)
     {
         this.renditionName = renditionName;
         this.targetMimetype = targetMimetype;

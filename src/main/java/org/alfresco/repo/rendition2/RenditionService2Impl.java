@@ -57,7 +57,7 @@ import java.util.Map;
 import java.util.Set;
 
 import static org.alfresco.model.ContentModel.PROP_MODIFIED;
-import static org.alfresco.model.RenditionModel.PROP_RENDITION_VERSION;
+import static org.alfresco.model.RenditionModel.PROP_RENDITION_SOURCE_MODIFIED_DATE;
 import static org.alfresco.service.namespace.QName.createQName;
 
 /**
@@ -142,7 +142,7 @@ public class RenditionService2Impl implements RenditionService2, InitializingBea
         PropertyCheck.mandatory(this, "behaviourFilter", behaviourFilter);
 
         // TODO policy ...
-        policyComponent.bindClassBehaviour(ContentServicePolicies.OnContentUpdatePolicy.QNAME, this, new JavaBehaviour(this, "onContentUpdate"));
+//        policyComponent.bindClassBehaviour(ContentServicePolicies.OnContentUpdatePolicy.QNAME, this, new JavaBehaviour(this, "onContentUpdate"));
     }
 
     public void render(NodeRef sourceNodeRef, String renditionName)
@@ -162,15 +162,15 @@ public class RenditionService2Impl implements RenditionService2, InitializingBea
             }
 
             // Avoid extra transforms that have already been done.
-            long version = getSourceVersion(sourceNodeRef);
+            long sourceModifiedDate = getSourceModifiedDate(sourceNodeRef);
             NodeRef renditionNode = getRenditionNode(sourceNodeRef, renditionName);
-            long currentVersion = getRenditionVersion(renditionNode);
-            if (currentVersion >= version)
+            long renditionSourceModifiedDate = getRenditionSourceModifiedDate(renditionNode);
+            if (renditionSourceModifiedDate >= sourceModifiedDate)
             {
                 throw new IllegalStateException("The rendition "+renditionName+" has already been created.");
             }
 
-            transformClient.transform(sourceNodeRef, renditionDefinition, version);
+            transformClient.transform(sourceNodeRef, renditionDefinition, sourceModifiedDate);
         }
         catch (Exception e)
         {
@@ -180,25 +180,23 @@ public class RenditionService2Impl implements RenditionService2, InitializingBea
     }
 
     /**
-     * Returns a number to represent the current version of the sourceNodeRef. This is not the same as the node's
-     * version property (if it has one), but is simply a number that will be larger than the previous version if the
-     * source content is changed. As transformations may be returned in a different sequences to which they were
-     * requested, this version number is used work out if a rendition should be replaced.
+     * Returns the long of the 'modified' date of the sourceNodeRef. As transformations may be returned in a different
+     * sequences to which they were requested, this number is used work out if a rendition should be replaced.
      */
-    private long getSourceVersion(NodeRef sourceNodeRef)
+    private long getSourceModifiedDate(NodeRef sourceNodeRef)
     {
         return DefaultTypeConverter.INSTANCE.convert(Date.class, nodeService.getProperty(sourceNodeRef, PROP_MODIFIED)).getTime();
     }
 
     /**
-     * Returns the version of the supplied rendition node. May be null if it does not exist.
+     * Returns the long of the 'sourceModifiedDate' on the rendition node (may be null) if it does not exist.
      * Used work out if a rendition should be replaced. {@code -1} is returned if the rendition does not exist.
      */
-    private long getRenditionVersion(NodeRef renditionNode)
+    private long getRenditionSourceModifiedDate(NodeRef renditionNode)
     {
-        return renditionNode == null
+        return renditionNode == null || !nodeService.hasAspect(renditionNode, RenditionModel.ASPECT_RENDITION2)
                 ? -1
-                : DefaultTypeConverter.INSTANCE.convert(Date.class, nodeService.getProperty(renditionNode, PROP_RENDITION_VERSION)).getTime();
+                : DefaultTypeConverter.INSTANCE.convert(Date.class, nodeService.getProperty(renditionNode, PROP_RENDITION_SOURCE_MODIFIED_DATE)).getTime();
     }
 
     private NodeRef getRenditionNode(NodeRef sourceNodeRef, String renditionName)
@@ -206,6 +204,12 @@ public class RenditionService2Impl implements RenditionService2, InitializingBea
         QName renditionQName = createQName(NamespaceService.CONTENT_MODEL_1_0_URI, renditionName);
         List<ChildAssociationRef> renditionAssocs = nodeService.getChildAssocs(sourceNodeRef, RenditionModel.ASSOC_RENDITION, renditionQName);
         return renditionAssocs.isEmpty() ? null : renditionAssocs.get(0).getChildRef();
+    }
+
+    public boolean useRenditionService2(NodeRef sourceNodeRef, String renditionName)
+    {
+        NodeRef renditionNode = getRenditionNode(sourceNodeRef, renditionName);
+        return nodeService.hasAspect(renditionNode, RenditionModel.ASPECT_RENDITION2);
     }
 
     /**
@@ -292,23 +296,25 @@ public class RenditionService2Impl implements RenditionService2, InitializingBea
      *  Does nothing if there is already a newer rendition.
      */
     void consume(NodeRef sourceNodeRef, InputStream transformInputStream, RenditionDefinition2 renditionDefinition,
-                 long version)
+                 long sourceModifiedDate)
     {
         String renditionName = renditionDefinition.getRenditionName();
         NodeRef renditionNode = getRenditionNode(sourceNodeRef, renditionName);
-        long currentVersion = getRenditionVersion(renditionNode);
-        if (currentVersion >= version)
+        long renditionSourceModifiedDate = getRenditionSourceModifiedDate(renditionNode);
+        if (renditionSourceModifiedDate >= sourceModifiedDate)
         {
             if (logger.isDebugEnabled())
             {
-                logger.debug("Ignore transform for rendition " + renditionName + " as it is no longer needed, as version " + currentVersion + " >= " + version);
+                logger.debug("Ignore transform for rendition " + renditionName + " as it is no longer needed, as sourceModifiedDate " +
+                        renditionSourceModifiedDate + " >= " + sourceModifiedDate);
             }
         }
         else
         {
             if (logger.isDebugEnabled())
             {
-                logger.debug("Consume transform in rendition " + renditionName + ", as version  " + currentVersion + " < " + version);
+                logger.debug("Consume transform in rendition " + renditionName + ", as sourceModifiedDate  " +
+                        renditionSourceModifiedDate + " < " + sourceModifiedDate);
             }
 
             // Ensure that the creation of a rendition does not cause updates to the modified, modifier properties on the source node
@@ -325,7 +331,7 @@ public class RenditionService2Impl implements RenditionService2, InitializingBea
                 // If they do not exist create the rendition association and the rendition node.
                 if (createRenditionNode)
                 {
-                    renditionNode = createRenditionNode(sourceNodeRef, renditionDefinition, version);
+                    renditionNode = createRenditionNode(sourceNodeRef, renditionDefinition);
                 }
 
                 behaviourFilter.disableBehaviour(renditionNode, ContentModel.ASPECT_AUDITABLE);
@@ -334,7 +340,7 @@ public class RenditionService2Impl implements RenditionService2, InitializingBea
                     nodeService.addAspect(renditionNode, RenditionModel.ASPECT_RENDITION2, null);
                     nodeService.addAspect(renditionNode, RenditionModel.ASPECT_HIDDEN_RENDITION, null);
                 }
-                nodeService.setProperty(renditionNode, RenditionModel.PROP_RENDITION_VERSION, new Date(version));
+                nodeService.setProperty(renditionNode, RenditionModel.PROP_RENDITION_SOURCE_MODIFIED_DATE, new Date(sourceModifiedDate));
 
                 // Set or replace rendition content
                 ContentWriter contentWriter = contentService.getWriter(renditionNode, DEFAULT_RENDITION_CONTENT_PROP, true);
@@ -368,7 +374,7 @@ public class RenditionService2Impl implements RenditionService2, InitializingBea
     }
 
     // Based on original AbstractRenderingEngine.createRenditionNodeAssoc
-    private NodeRef createRenditionNode(NodeRef sourceNode, RenditionDefinition2 renditionDefinition, long version)
+    private NodeRef createRenditionNode(NodeRef sourceNode, RenditionDefinition2 renditionDefinition)
     {
         String renditionName = renditionDefinition.getRenditionName();
 

@@ -34,10 +34,6 @@ import java.util.Set;
  */
 public interface RenditionDefinitionRegistry2
 {
-    void register(RenditionDefinition2 renditionDefinition);
-
-    void unregister(String renditionName);
-
     Set<String> getRenditionNames();
 
     /**
