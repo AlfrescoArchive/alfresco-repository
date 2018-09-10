@@ -44,7 +44,7 @@ matrix:
     script: mvn test -B -Dtest=MiscContextTestSuite -Ddb.driver=org.postgresql.Driver -Ddb.name=alfresco -Ddb.url=jdbc:postgresql://localhost:5433/alfresco -Ddb.username=alfresco -Ddb.password=alfresco --settings maven-config/settings.xml
   - name: "MySQL tests"
     before_install:
-    - docker run -d -p 3306:3306 -e MYSQL_ROOT_PASSWORD=alfresco -e MYSQL_USER=alfresco -e MYSQL_DATABASE=alfresco -e MYSQL_PASSWORD=alfresco -e --transaction-isolation="'READ-COMMITTED'" mysql:5.7.19
+    - docker run -d -p 3306:3306 -e MYSQL_ROOT_PASSWORD=alfresco -e MYSQL_USER=alfresco -e MYSQL_DATABASE=alfresco -e MYSQL_PASSWORD=alfresco  mysql:5.7.19 --transaction-isolation='READ-COMMITTED'
     script: mvn test -B -Dtest=AllDBTestsTestSuite -Ddb.driver=com.mysql.jdbc.Driver -Ddb.name=alfresco -Ddb.url=jdbc:mysql://localhost/alfresco -Ddb.username=alfresco -Ddb.password=alfresco --settings maven-config/settings.xml
   - name: "PostgreSQL tests"
     before_install:
