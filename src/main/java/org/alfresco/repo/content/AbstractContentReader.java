@@ -398,10 +398,7 @@ public abstract class AbstractContentReader extends AbstractContentAccessor impl
 
     /**
      * @see Channels#newInputStream(java.nio.channels.ReadableByteChannel)
-     *
-     * @deprecated The transformations code is being moved out of the codebase and replaced by the new async RenditionService2 or other external libraries.
      */
-    @Deprecated
     public InputStream getContentInputStream() throws ContentIOException
     {
         try
@@ -441,10 +438,7 @@ public abstract class AbstractContentReader extends AbstractContentAccessor impl
     /**
      * Copies the {@link #getContentInputStream() input stream} to the given
      * <code>OutputStream</code>
-     *
-     * @deprecated The transformations code is being moved out of the codebase and replaced by the new async RenditionService2 or other external libraries.
      */
-    @Deprecated
     public final void getContent(OutputStream os) throws ContentIOException
     {
         try
@@ -461,11 +455,6 @@ public abstract class AbstractContentReader extends AbstractContentAccessor impl
         }
     }
 
-    /**
-     *  *
-     * @deprecated The transformations code is being moved out of the codebase and replaced by the new async RenditionService2 or other external libraries.
-     */
-    @Deprecated
     public final void getContent(File file) throws ContentIOException
     {
         try
@@ -484,12 +473,6 @@ public abstract class AbstractContentReader extends AbstractContentAccessor impl
         }
     }
 
-    /**
-     *
-     *
-     * @deprecated The transformations code is being moved out of the codebase and replaced by the new async RenditionService2 or other external libraries.
-     */
-    @Deprecated
     public final String getContentString(int length) throws ContentIOException
     {
         if (length < 0 || length > Integer.MAX_VALUE)
@@ -541,10 +524,7 @@ public abstract class AbstractContentReader extends AbstractContentAccessor impl
      * be careful with this method.
      * 
      * @see ContentAccessor#getEncoding()
-     *
-     * @deprecated The transformations code is being moved out of the codebase and replaced by the new async RenditionService2 or other external libraries.
      */
-    @Deprecated
     public final String getContentString() throws ContentIOException
     {
         try
@@ -611,12 +591,9 @@ public abstract class AbstractContentReader extends AbstractContentAccessor impl
      * InputStream that wraps another InputStream to terminate early after a timeout
      * or after reading a number of bytes. It terminates by either returning end of file
      * (-1) or throwing an IOException.
-
-     * @author Alan Davis
      *
-     * @deprecated The transformations code is being moved out of the codebase and replaced by the new async RenditionService2 or other external libraries.
+     * @author Alan Davis
      */
-    @Deprecated
     private class TimeSizeRestrictedInputStream extends InputStream
     {
         private final AtomicBoolean timeoutFlag = new AtomicBoolean(false);

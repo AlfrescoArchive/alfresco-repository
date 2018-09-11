@@ -981,10 +981,7 @@ public class CMISConnector implements ApplicationContextAware, ApplicationListen
      * Asynchronously generates thumbnails for the given node.
      *
      * @param nodeRef NodeRef
-     *
-     * @deprecated The thumbnails code is being moved out of the codebase and replaced by the new async RenditionService2 or other external libraries.
      */
-    @Deprecated
     public void createThumbnails(NodeRef nodeRef, Set<String> thumbnailNames)
     {
     	if(thumbnailNames == null || thumbnailNames.size() == 0)
@@ -2495,11 +2492,6 @@ public class CMISConnector implements ApplicationContextAware, ApplicationListen
         return result;
     }
 
-    /**
-     *
-     * @deprecated The RenditionService is being replace by the simpler async RenditionService2.
-     */
-    @Deprecated
     public List<RenditionData> getRenditions(NodeRef nodeRef, String renditionFilter, BigInteger maxItems,
             BigInteger skipCount)
     {

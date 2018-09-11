@@ -2706,10 +2706,7 @@ public class ScriptNode implements Scopeable, NamespacePrefixResolverProvider
      * @param mimetype   Mimetype destination for the transformation
      * 
      * @return Node representing the newly transformed document.
-     *
-     * @deprecated The transformations code is being moved out of the codebase and replaced by the new async RenditionService2 or other external libraries.
      */
-    @Deprecated
     public ScriptNode transformDocument(String mimetype)
     {
         return transformDocument(mimetype, getPrimaryParentAssoc().getParentRef());
@@ -2723,20 +2720,12 @@ public class ScriptNode implements Scopeable, NamespacePrefixResolverProvider
      * @param destination   Destination folder location
      * 
      * @return Node representing the newly transformed document.
-     *
-     * @deprecated The transformations code is being moved out of the codebase and replaced by the new async RenditionService2 or other external libraries.
      */
-    @Deprecated
     public ScriptNode transformDocument(String mimetype, ScriptNode destination)
     {
         return transformDocument(mimetype, destination.getNodeRef());
     }
 
-    /**
-     *
-     * @deprecated The transformations code is being moved out of the codebase and replaced by the new async RenditionService2 or other external libraries.
-     */
-    @Deprecated
     private ScriptNode transformDocument(String mimetype, NodeRef destination)
     {
         ParameterCheck.mandatoryString("Mimetype", mimetype);
@@ -2766,10 +2755,7 @@ public class ScriptNode implements Scopeable, NamespacePrefixResolverProvider
      * @param destination   Destination folder location for the resulting document
      * 
      * @return Node representing the transformed content - or null if the transform failed
-     *
-     * @deprecated The transformations code is being moved out of the codebase and replaced by the new async RenditionService2 or other external libraries.
      */
-    @Deprecated
     private ScriptNode transformNode(Transformer transformer, String mimetype, NodeRef destination)
     {
         ScriptNode transformedNode = null;
@@ -2811,10 +2797,7 @@ public class ScriptNode implements Scopeable, NamespacePrefixResolverProvider
      * @param mimetype   Mimetype destination for the transformation
      * 
      * @return Node representing the newly transformed image.
-     *
-     * @deprecated The transformations code is being moved out of the codebase and replaced by the new async RenditionService2 or other external libraries.
      */
-    @Deprecated
     public ScriptNode transformImage(String mimetype)
     {
         return transformImage(mimetype, null, getPrimaryParentAssoc().getParentRef());
@@ -2828,10 +2811,7 @@ public class ScriptNode implements Scopeable, NamespacePrefixResolverProvider
      * @param options    Image convert command options
      * 
      * @return Node representing the newly transformed image.
-     *
-     * @deprecated The transformations code is being moved out of the codebase and replaced by the new async RenditionService2 or other external libraries.
      */
-    @Deprecated
     public ScriptNode transformImage(String mimetype, String options)
     {
         return transformImage(mimetype, options, getPrimaryParentAssoc().getParentRef());
@@ -2845,10 +2825,7 @@ public class ScriptNode implements Scopeable, NamespacePrefixResolverProvider
      * @param destination   Destination folder location
      * 
      * @return Node representing the newly transformed image.
-     *
-     * @deprecated The transformations code is being moved out of the codebase and replaced by the new async RenditionService2 or other external libraries.
      */
-    @Deprecated
     public ScriptNode transformImage(String mimetype, ScriptNode destination)
     {
         ParameterCheck.mandatory("Destination Node", destination);
@@ -2865,20 +2842,13 @@ public class ScriptNode implements Scopeable, NamespacePrefixResolverProvider
      * @param destination   Destination folder location
      * 
      * @return Node representing the newly transformed image.
-     *
-     * @deprecated The transformations code is being moved out of the codebase and replaced by the new async RenditionService2 or other external libraries.
      */
-    @Deprecated
     public ScriptNode transformImage(String mimetype, String options, ScriptNode destination)
     {
         ParameterCheck.mandatory("Destination Node", destination);
         return transformImage(mimetype, options, destination.getNodeRef());
     }
 
-    /**
-     * @deprecated The transformations code is being moved out of the codebase and replaced by the new async RenditionService2 or other external libraries.
-     */
-    @Deprecated
     private ScriptNode transformImage(String mimetype, final String options, NodeRef destination)
     {
         ParameterCheck.mandatoryString("Mimetype", mimetype);
@@ -3029,10 +2999,7 @@ public class ScriptNode implements Scopeable, NamespacePrefixResolverProvider
      * 
      * @param  thumbnailName    the name of the thumbnail
      * @return ScriptThumbnail  the newly create thumbnail node
-     *
-     * @deprecated The thumbnails code is being moved out of the codebase and replaced by the new async RenditionService2 or other external libraries.
      */
-    @Deprecated
     public ScriptThumbnail createThumbnail(String thumbnailName)
     {
         return createThumbnail(thumbnailName, false);
@@ -3051,7 +3018,8 @@ public class ScriptNode implements Scopeable, NamespacePrefixResolverProvider
      * @param  async            indicates whether the thumbnail is create asynchronously or not
      * @return ScriptThumbnail  the newly create thumbnail node or null if async creation occures
      *
-     * @deprecated The thumbnails code is being moved out of the codebase and replaced by the new async RenditionService2 or other external libraries.
+     * @deprecated The async flag in the method signature will not be applicable as all of
+     * the future transformations will be asynchronous
      */
     @Deprecated
     public ScriptThumbnail createThumbnail(String thumbnailName, boolean async)
@@ -3075,7 +3043,8 @@ public class ScriptNode implements Scopeable, NamespacePrefixResolverProvider
      * @param  force            ignore system.thumbnail.generate=false
      * @return ScriptThumbnail  the newly create thumbnail node or null if async creation occures
      *
-     * @deprecated The thumbnails code is being moved out of the codebase and replaced by the new async RenditionService2 or other external libraries.
+     * @deprecated The async flag in the method signature will not be applicable as all of
+     * the future transformations will be asynchronous
      */
     @Deprecated
     public ScriptThumbnail createThumbnail(String thumbnailName, boolean async, boolean force)
@@ -3158,10 +3127,7 @@ public class ScriptNode implements Scopeable, NamespacePrefixResolverProvider
      * 
      * @param thumbnailName     the thumbnail name
      * @return ScriptThumbnail  the thumbnail
-     *
-     * @deprecated The thumbnails code is being moved out of the codebase and replaced by the new async RenditionService2 or other external libraries.
      */
-    @Deprecated
     public ScriptThumbnail getThumbnail(String thumbnailName)
     {
         ScriptThumbnail result = null;
@@ -3180,10 +3146,7 @@ public class ScriptNode implements Scopeable, NamespacePrefixResolverProvider
      * Get the all the thumbnails for a given node's content property.
      * 
      * @return  Scriptable     list of thumbnails, empty if none available
-     *
-     * @deprecated The thumbnails code is being moved out of the codebase and replaced by the new async RenditionService2 or other external libraries.
      */
-    @Deprecated
     public ScriptThumbnail[] getThumbnails()
     {
         List<NodeRef> thumbnails = this.services.getThumbnailService().getThumbnails(
@@ -3210,10 +3173,7 @@ public class ScriptNode implements Scopeable, NamespacePrefixResolverProvider
      * and the destinatino mimetype of the thumbnail.
      * 
      * @return  String[]    array of thumbnail names that are valid for the current content type
-     *
-     * @deprecated The thumbnails code is being moved out of the codebase and replaced by the new async RenditionService2 or other external libraries.
      */
-    @Deprecated
     public String[] getThumbnailDefinitions()
     {
         ThumbnailService thumbnailService = this.services.getThumbnailService();
@@ -3238,8 +3198,6 @@ public class ScriptNode implements Scopeable, NamespacePrefixResolverProvider
     /**
      * This version of the method name spelling is retained (for now) for backwards compatibility
      * @see #getThumbnailDefinitions()
-     *
-     * @deprecated The thumbnails code is being moved out of the codebase and replaced by the new async RenditionService2 or other external libraries.
      */
     @Deprecated
     public String[] getThumbnailDefintions()
@@ -4173,13 +4131,10 @@ public class ScriptNode implements Scopeable, NamespacePrefixResolverProvider
         private QName property;
         private boolean isDirty;
     }
-    
+
     /**
      * Interface contract for simple anonymous classes that implement document transformations
-     *
-     * @deprecated The transformations code is being moved out of the codebase and replaced by the new async RenditionService2 or other external libraries.
      */
-    @Deprecated
     private interface Transformer
     {
         /**
@@ -4196,12 +4151,6 @@ public class ScriptNode implements Scopeable, NamespacePrefixResolverProvider
             ContentReader reader, ContentWriter writer);
     }
 
-    /**
-     *
-     *
-     * @deprecated The transformations code is being moved out of the codebase and replaced by the new async RenditionService2 or other external libraries.
-     */
-    @Deprecated
     private abstract class AbstractTransformer implements Transformer
     {
         public ScriptNode transform(ContentService contentService, NodeRef nodeRef,

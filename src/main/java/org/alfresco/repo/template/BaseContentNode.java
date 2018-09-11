@@ -588,11 +588,7 @@ public abstract class BaseContentNode implements TemplateContent
          * 
          * @return the binary content stream converted to text using any available transformer
          *         if fails to convert then null will be returned
-         *
-         * @deprecated The transformations code is being moved out of the codebase and replaced by the new async
-         * RenditionService2 or other external libraries.
          */
-        @Deprecated
         public String getContentAsText(int length)
         {
             String result = null;
