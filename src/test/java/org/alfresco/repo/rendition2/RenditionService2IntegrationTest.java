@@ -75,37 +75,37 @@ public class RenditionService2IntegrationTest extends BaseSpringTest
     // PDF transformation
 
     @Test
-    public void testLocalRenderPdfToJpegMedium()
+    public void testLocalRenderPdfToJpegMedium() throws Exception
     {
         checkRendition("quick.pdf", "medium", true);
     }
 
     @Test
-    public void testLocalRenderPdfToDoclib()
+    public void testLocalRenderPdfToDoclib() throws Exception
     {
         checkRendition("quick.pdf", "doclib", true);
     }
 
     @Test
-    public void testLocalRenderPdfJpegImgpreview()
+    public void testLocalRenderPdfJpegImgpreview() throws Exception
     {
         checkRendition("quick.pdf", "imgpreview", true);
     }
 
     @Test
-    public void testLocalRenderPdfPngAvatar()
+    public void testLocalRenderPdfPngAvatar() throws Exception
     {
         checkRendition("quick.pdf", "avatar", true);
     }
 
     @Test
-    public void testLocalRenderPdfPngAvatar32()
+    public void testLocalRenderPdfPngAvatar32() throws Exception
     {
         checkRendition("quick.pdf", "avatar32", true);
     }
 
     @Test
-    public void testLocalRenderPdfFlashWebpreview()
+    public void testLocalRenderPdfFlashWebpreview() throws Exception
     {
         checkRendition("quick.pdf", "webpreview", false);
     }
@@ -113,48 +113,48 @@ public class RenditionService2IntegrationTest extends BaseSpringTest
     // DOCX transformation
 
     @Test
-    public void testLocalRenderDocxJpegMedium()
+    public void testLocalRenderDocxJpegMedium() throws Exception
     {
         checkRendition("quick.docx", "medium", true);
     }
 
     @Test
-    public void testLocalRenderDocxDoclib()
+    public void testLocalRenderDocxDoclib() throws Exception
     {
         checkRendition("quick.docx", "doclib", true);
     }
 
     @Test
-    public void testLocalRenderDocxJpegImgpreview()
+    public void testLocalRenderDocxJpegImgpreview() throws Exception
     {
         checkRendition("quick.docx", "imgpreview", true);
     }
 
     @Test
-    public void testLocalRenderDocxPngAvatar()
+    public void testLocalRenderDocxPngAvatar() throws Exception
     {
         checkRendition("quick.docx", "avatar", true);
     }
 
     @Test
-    public void testLocalRenderDocxPngAvatar32()
+    public void testLocalRenderDocxPngAvatar32() throws Exception
     {
         checkRendition("quick.docx", "avatar32", true);
     }
 
     @Test
-    public void testLocalRenderDocxFlashWebpreview()
+    public void testLocalRenderDocxFlashWebpreview() throws Exception
     {
         checkRendition("quick.docx", "webpreview", false);
     }
 
     @Test
-    public void testLocalRenderDocxPdf()
+    public void testLocalRenderDocxPdf() throws Exception
     {
         checkRendition("quick.docx", "pdf", false);
     }
 
-    private void checkRendition(String testFileName, String renditionDefinitionName, boolean expectedToPass)
+    private void checkRendition(String testFileName, String renditionDefinitionName, boolean expectedToPass) throws InterruptedException
     {
         try
         {
@@ -164,7 +164,19 @@ public class RenditionService2IntegrationTest extends BaseSpringTest
                 renditionService2.render(contentNode, renditionDefinitionName);
                 return contentNode;
             });
-            ChildAssociationRef childAssociationRef = renditionService2.getRenditionByName(sourceNode, renditionDefinitionName);
+            ChildAssociationRef childAssociationRef = null;
+            for (int i = 0; i < 5; i++)
+            {
+                childAssociationRef = renditionService2.getRenditionByName(sourceNode, renditionDefinitionName);
+                if (childAssociationRef != null)
+                {
+                    break;
+                }
+                else
+                {
+                    Thread.sleep(500);
+                }
+            }
             assertNotNull("The " + renditionDefinitionName + " rendition failed for " + testFileName, childAssociationRef);
         }
         catch(UnsupportedOperationException uoe)
