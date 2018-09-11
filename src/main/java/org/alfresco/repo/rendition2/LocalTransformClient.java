@@ -31,8 +31,6 @@ import org.alfresco.repo.content.transform.magick.ImageResizeOptions;
 import org.alfresco.repo.content.transform.magick.ImageTransformationOptions;
 import org.alfresco.repo.content.transform.swf.SWFTransformationOptions;
 import org.alfresco.repo.security.authentication.AuthenticationUtil;
-import org.alfresco.repo.solr.Transaction;
-import org.alfresco.repo.transaction.RetryingTransactionHelper;
 import org.alfresco.service.cmr.repository.ContentData;
 import org.alfresco.service.cmr.repository.ContentReader;
 import org.alfresco.service.cmr.repository.ContentService;
@@ -190,7 +188,7 @@ public class LocalTransformClient extends AbstractTransformClient implements Tra
     }
 
     @Override
-    public void transform(NodeRef sourceNodeRef, RenditionDefinition2 renditionDefinition, long sourceModifiedDate)
+    public void transform(NodeRef sourceNodeRef, RenditionDefinition2 renditionDefinition, int sourceContentUrlHashCode)
     {
         ContentData contentData = getContentData(sourceNodeRef);
         String contentUrl = contentData.getContentUrl();
@@ -225,7 +223,7 @@ public class LocalTransformClient extends AbstractTransformClient implements Tra
                     {
                         ContentWriter writer = transform(transformer, sourceNodeRef, targetMimetype, transformationOptions);
                         InputStream inputStream = writer.getReader().getContentInputStream();
-                        renditionService2.consume(sourceNodeRef, inputStream, renditionDefinition, sourceModifiedDate);
+                        renditionService2.consume(sourceNodeRef, inputStream, renditionDefinition, sourceContentUrlHashCode);
                     }
                     catch (Exception e)
                     {

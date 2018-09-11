@@ -29,11 +29,13 @@ import org.alfresco.model.ContentModel;
 import org.alfresco.model.RenditionModel;
 import org.alfresco.repo.content.ContentServicePolicies;
 import org.alfresco.repo.content.MimetypeMap;
+import org.alfresco.repo.policy.Behaviour;
 import org.alfresco.repo.policy.BehaviourFilter;
 import org.alfresco.repo.policy.JavaBehaviour;
 import org.alfresco.repo.policy.PolicyComponent;
 import org.alfresco.repo.rendition.RenditionPreventionRegistry;
 import org.alfresco.service.cmr.repository.ChildAssociationRef;
+import org.alfresco.service.cmr.repository.ContentData;
 import org.alfresco.service.cmr.repository.ContentService;
 import org.alfresco.service.cmr.repository.ContentWriter;
 import org.alfresco.service.cmr.repository.NodeRef;
@@ -56,8 +58,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import static org.alfresco.model.ContentModel.PROP_MODIFIED;
-import static org.alfresco.model.RenditionModel.PROP_RENDITION_SOURCE_MODIFIED_DATE;
+import static org.alfresco.model.ContentModel.PROP_CONTENT;
+import static org.alfresco.model.RenditionModel.PROP_RENDITION_CONTENT_URL_HAS_CODE;
 import static org.alfresco.service.namespace.QName.createQName;
 
 /**
@@ -143,6 +145,10 @@ public class RenditionService2Impl implements RenditionService2, InitializingBea
 
         // TODO policy ...
 //        policyComponent.bindClassBehaviour(ContentServicePolicies.OnContentUpdatePolicy.QNAME, this, new JavaBehaviour(this, "onContentUpdate"));
+
+//        policyComponent.bindClassBehaviour(ContentServicePolicies.OnContentUpdatePolicy.QNAME,
+//                RenditionModel.ASPECT_RENDITIONED,
+//                new JavaBehaviour(this, "onContentUpdate"));
     }
 
     public void render(NodeRef sourceNodeRef, String renditionName)
@@ -162,15 +168,20 @@ public class RenditionService2Impl implements RenditionService2, InitializingBea
             }
 
             // Avoid extra transforms that have already been done.
-            long sourceModifiedDate = getSourceModifiedDate(sourceNodeRef);
+            int sourceContentUrlHashCode = getSourceContentUrlHashCode(sourceNodeRef);
             NodeRef renditionNode = getRenditionNode(sourceNodeRef, renditionName);
-            long renditionSourceModifiedDate = getRenditionSourceModifiedDate(renditionNode);
-            if (renditionSourceModifiedDate >= sourceModifiedDate)
+            int renditionContentUrlHashCode = getRenditionContentUrlHashCode(renditionNode);
+            if (renditionContentUrlHashCode == sourceContentUrlHashCode)
             {
                 throw new IllegalStateException("The rendition "+renditionName+" has already been created.");
             }
 
-            transformClient.transform(sourceNodeRef, renditionDefinition, sourceModifiedDate);
+            if (logger.isDebugEnabled())
+            {
+                logger.debug("Request transform for rendition " + renditionName + " on contentUrlHashCode " + sourceContentUrlHashCode);
+            }
+
+            transformClient.transform(sourceNodeRef, renditionDefinition, sourceContentUrlHashCode);
         }
         catch (Exception e)
         {
@@ -180,23 +191,34 @@ public class RenditionService2Impl implements RenditionService2, InitializingBea
     }
 
     /**
-     * Returns the long of the 'modified' date of the sourceNodeRef. As transformations may be returned in a different
-     * sequences to which they were requested, this number is used work out if a rendition should be replaced.
+     * Returns the hash code of the source node's content url. As transformations may be returned in a different
+     * sequences to which they were requested, this is used work out if a rendition should be replaced.
      */
-    private long getSourceModifiedDate(NodeRef sourceNodeRef)
+    private int getSourceContentUrlHashCode(NodeRef sourceNodeRef)
     {
-        return DefaultTypeConverter.INSTANCE.convert(Date.class, nodeService.getProperty(sourceNodeRef, PROP_MODIFIED)).getTime();
+        int hashCode = -1;
+        ContentData contentData = DefaultTypeConverter.INSTANCE.convert(ContentData.class, nodeService.getProperty(sourceNodeRef, PROP_CONTENT));
+        if (contentData != null)
+        {
+            String contentUrl = contentData.getContentUrl();
+            if (contentUrl != null)
+            {
+                hashCode = contentUrl.hashCode();
+            }
+        }
+        return hashCode;
     }
 
     /**
-     * Returns the long of the 'sourceModifiedDate' on the rendition node (may be null) if it does not exist.
-     * Used work out if a rendition should be replaced. {@code -1} is returned if the rendition does not exist.
+     * Returns the hash code of source node's content url on the rendition node (node may be null) if it does not exist.
+     * Used work out if a rendition should be replaced. {@code -2} is returned if the rendition does not exist or was
+     * not created by RenditionService2.
      */
-    private long getRenditionSourceModifiedDate(NodeRef renditionNode)
+    private int getRenditionContentUrlHashCode(NodeRef renditionNode)
     {
         return renditionNode == null || !nodeService.hasAspect(renditionNode, RenditionModel.ASPECT_RENDITION2)
-                ? -1
-                : DefaultTypeConverter.INSTANCE.convert(Date.class, nodeService.getProperty(renditionNode, PROP_RENDITION_SOURCE_MODIFIED_DATE)).getTime();
+                ? -2
+                : DefaultTypeConverter.INSTANCE.convert(Integer.class, nodeService.getProperty(renditionNode, PROP_RENDITION_CONTENT_URL_HAS_CODE));
     }
 
     private NodeRef getRenditionNode(NodeRef sourceNodeRef, String renditionName)
@@ -296,28 +318,30 @@ public class RenditionService2Impl implements RenditionService2, InitializingBea
      *  Does nothing if there is already a newer rendition.
      */
     void consume(NodeRef sourceNodeRef, InputStream transformInputStream, RenditionDefinition2 renditionDefinition,
-                 long sourceModifiedDate)
+                 int transformContentUrlHashCode)
     {
         String renditionName = renditionDefinition.getRenditionName();
-        NodeRef renditionNode = getRenditionNode(sourceNodeRef, renditionName);
-        long renditionSourceModifiedDate = getRenditionSourceModifiedDate(renditionNode);
-        if (renditionSourceModifiedDate >= sourceModifiedDate)
+        int sourceContentUrlHashCode = getSourceContentUrlHashCode(sourceNodeRef);
+
+        if (transformContentUrlHashCode != sourceContentUrlHashCode)
         {
             if (logger.isDebugEnabled())
             {
-                logger.debug("Ignore transform for rendition " + renditionName + " as it is no longer needed, as sourceModifiedDate " +
-                        renditionSourceModifiedDate + " >= " + sourceModifiedDate);
+                logger.debug("Ignore transform for rendition " + renditionName +
+                        " as it is no longer needed, as the contentUrlHashCode " +
+                        transformContentUrlHashCode + " != " + sourceContentUrlHashCode);
             }
         }
         else
         {
             if (logger.isDebugEnabled())
             {
-                logger.debug("Consume transform in rendition " + renditionName + ", as sourceModifiedDate  " +
-                        renditionSourceModifiedDate + " < " + sourceModifiedDate);
+                logger.debug("Consume transform as a rendition " + renditionName + ", as the contentUrlHashCode " +
+                        transformContentUrlHashCode + " is still the same");
             }
 
             // Ensure that the creation of a rendition does not cause updates to the modified, modifier properties on the source node
+            NodeRef renditionNode = getRenditionNode(sourceNodeRef, renditionName);
             boolean createRenditionNode = renditionNode == null;
             boolean sourceHasAspectRenditioned = nodeService.hasAspect(sourceNodeRef, RenditionModel.ASPECT_RENDITIONED);
             boolean sourceBehaviourDisabled = !sourceHasAspectRenditioned || createRenditionNode;
@@ -340,7 +364,7 @@ public class RenditionService2Impl implements RenditionService2, InitializingBea
                     nodeService.addAspect(renditionNode, RenditionModel.ASPECT_RENDITION2, null);
                     nodeService.addAspect(renditionNode, RenditionModel.ASPECT_HIDDEN_RENDITION, null);
                 }
-                nodeService.setProperty(renditionNode, RenditionModel.PROP_RENDITION_SOURCE_MODIFIED_DATE, new Date(sourceModifiedDate));
+                nodeService.setProperty(renditionNode, RenditionModel.PROP_RENDITION_CONTENT_URL_HAS_CODE, transformContentUrlHashCode);
 
                 // Set or replace rendition content
                 ContentWriter contentWriter = contentService.getWriter(renditionNode, DEFAULT_RENDITION_CONTENT_PROP, true);

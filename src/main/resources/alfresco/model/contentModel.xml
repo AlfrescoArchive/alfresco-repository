@@ -1402,7 +1402,7 @@
       <aspect name="rn:rendition2">
          <title>Rendition2</title>
          <properties>
-            <property name="rn:sourceModifiedDate">
+            <property name="rn:contentUrlHashCode">
                <title>Source Modified Date</title>
                <type>d:datetime</type>
             </property>

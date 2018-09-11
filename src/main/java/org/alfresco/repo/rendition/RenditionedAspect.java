@@ -36,6 +36,7 @@ import org.alfresco.repo.copy.CopyBehaviourCallback;
 import org.alfresco.repo.copy.CopyDetails;
 import org.alfresco.repo.copy.CopyServicePolicies;
 import org.alfresco.repo.copy.DefaultCopyBehaviourCallback;
+import org.alfresco.repo.domain.node.ContentDataWithId;
 import org.alfresco.repo.node.NodeServicePolicies;
 import org.alfresco.repo.policy.Behaviour;
 import org.alfresco.repo.policy.JavaBehaviour;
@@ -265,6 +266,10 @@ public class RenditionedAspect implements NodeServicePolicies.OnUpdateProperties
             if (before.containsKey(propQName) == false)
             {
                 // property was added
+                Log logger = LogFactory.getLog(RenditionService2Impl.class);
+                logger.debug("Before hashCode: "+((ContentDataWithId)before.get(QName.createQName(NamespaceService.CONTENT_MODEL_1_0_URI, "content"))).getContentUrl().hashCode());
+                logger.debug("After  hashCode: "+((ContentDataWithId) after.get(QName.createQName(NamespaceService.CONTENT_MODEL_1_0_URI, "content"))).getContentUrl().hashCode());
+
                 results.add(propQName);
             }
         }
