@@ -231,6 +231,7 @@ public class LocalTransformClient extends AbstractTransformClient implements Tra
                         {
                             logger.debug("Rendition of "+renditionName+" from "+sourceMimetype+" failed", e);
                         }
+                        throw e;
                     }
                     return null;
                 }), user);

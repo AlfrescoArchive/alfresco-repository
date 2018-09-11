@@ -25,28 +25,17 @@
  */
 package org.alfresco.repo.rendition;
 
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-
 import org.alfresco.model.RenditionModel;
 import org.alfresco.repo.copy.CopyBehaviourCallback;
 import org.alfresco.repo.copy.CopyDetails;
 import org.alfresco.repo.copy.CopyServicePolicies;
 import org.alfresco.repo.copy.DefaultCopyBehaviourCallback;
-import org.alfresco.repo.domain.node.ContentDataWithId;
 import org.alfresco.repo.node.NodeServicePolicies;
 import org.alfresco.repo.policy.Behaviour;
 import org.alfresco.repo.policy.JavaBehaviour;
 import org.alfresco.repo.policy.PolicyComponent;
 import org.alfresco.repo.rendition.executer.AbstractRenderingEngine;
 import org.alfresco.repo.rendition.executer.DeleteRenditionActionExecuter;
-import org.alfresco.repo.rendition2.RenditionDefinition2;
-import org.alfresco.repo.rendition2.RenditionDefinitionRegistry2;
-import org.alfresco.repo.rendition2.RenditionService2;
-import org.alfresco.repo.rendition2.RenditionService2Impl;
 import org.alfresco.repo.security.authentication.AuthenticationUtil;
 import org.alfresco.service.cmr.action.Action;
 import org.alfresco.service.cmr.action.ActionService;
@@ -65,6 +54,11 @@ import org.alfresco.util.EqualsHelper;
 import org.alfresco.util.Pair;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Renditioned aspect behaviour bean.
@@ -266,10 +260,6 @@ public class RenditionedAspect implements NodeServicePolicies.OnUpdateProperties
             if (before.containsKey(propQName) == false)
             {
                 // property was added
-                Log logger = LogFactory.getLog(RenditionService2Impl.class);
-                logger.debug("Before hashCode: "+((ContentDataWithId)before.get(QName.createQName(NamespaceService.CONTENT_MODEL_1_0_URI, "content"))).getContentUrl().hashCode());
-                logger.debug("After  hashCode: "+((ContentDataWithId) after.get(QName.createQName(NamespaceService.CONTENT_MODEL_1_0_URI, "content"))).getContentUrl().hashCode());
-
                 results.add(propQName);
             }
         }

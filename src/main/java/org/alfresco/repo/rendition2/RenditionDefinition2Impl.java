@@ -26,6 +26,7 @@
 package org.alfresco.repo.rendition2;
 
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * Standard implementation.
@@ -66,5 +67,26 @@ public class RenditionDefinition2Impl implements RenditionDefinition2
     public Map<String, String> getTransformOptions()
     {
         return transformOptions;
+    }
+
+    @Override
+    public boolean equals(Object o)
+    {
+        if (this == o)
+        {
+            return true;
+        }
+        if (!(o instanceof RenditionDefinition2Impl))
+        {
+            return false;
+        }
+        RenditionDefinition2Impl that = (RenditionDefinition2Impl) o;
+        return Objects.equals(renditionName, that.renditionName);
+    }
+
+    @Override
+    public int hashCode()
+    {
+        return Objects.hash(renditionName);
     }
 }

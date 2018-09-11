@@ -29,11 +29,11 @@ import org.alfresco.model.ContentModel;
 import org.alfresco.model.RenditionModel;
 import org.alfresco.repo.content.ContentServicePolicies;
 import org.alfresco.repo.content.MimetypeMap;
-import org.alfresco.repo.policy.Behaviour;
 import org.alfresco.repo.policy.BehaviourFilter;
 import org.alfresco.repo.policy.JavaBehaviour;
 import org.alfresco.repo.policy.PolicyComponent;
 import org.alfresco.repo.rendition.RenditionPreventionRegistry;
+import org.alfresco.repo.transaction.AlfrescoTransactionSupport;
 import org.alfresco.service.cmr.repository.ChildAssociationRef;
 import org.alfresco.service.cmr.repository.ContentData;
 import org.alfresco.service.cmr.repository.ContentService;
@@ -44,7 +44,9 @@ import org.alfresco.service.cmr.repository.datatype.DefaultTypeConverter;
 import org.alfresco.service.namespace.NamespaceService;
 import org.alfresco.service.namespace.QName;
 import org.alfresco.service.namespace.RegexQNamePattern;
+import org.alfresco.util.GUID;
 import org.alfresco.util.PropertyCheck;
+import org.alfresco.util.transaction.TransactionListenerAdapter;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.InitializingBean;
@@ -52,10 +54,11 @@ import org.springframework.beans.factory.InitializingBean;
 import java.io.InputStream;
 import java.io.Serializable;
 import java.util.Collections;
-import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 import static org.alfresco.model.ContentModel.PROP_CONTENT;
@@ -69,6 +72,8 @@ import static org.alfresco.service.namespace.QName.createQName;
  */
 public class RenditionService2Impl implements RenditionService2, InitializingBean, ContentServicePolicies.OnContentUpdatePolicy
 {
+    private static final String POST_TRANSACTION_PENDING_REQUESTS = "postTransactionPendingRenditionRequests";
+
     public static final String TRANSFORMING_ERROR_MESSAGE = "Some error occurred during document transforming. Error message: ";
 
     public static final QName DEFAULT_RENDITION_CONTENT_PROP = ContentModel.PROP_CONTENT;
@@ -77,6 +82,7 @@ public class RenditionService2Impl implements RenditionService2, InitializingBea
 
     private static Log logger = LogFactory.getLog(RenditionService2Impl.class);
 
+    private TransactionListener transactionListener = new TransactionListener();
     private NodeService nodeService;
     private ContentService contentService;
     private RenditionPreventionRegistry renditionPreventionRegistry;
@@ -146,9 +152,9 @@ public class RenditionService2Impl implements RenditionService2, InitializingBea
         // TODO policy ...
 //        policyComponent.bindClassBehaviour(ContentServicePolicies.OnContentUpdatePolicy.QNAME, this, new JavaBehaviour(this, "onContentUpdate"));
 
-//        policyComponent.bindClassBehaviour(ContentServicePolicies.OnContentUpdatePolicy.QNAME,
-//                RenditionModel.ASPECT_RENDITIONED,
-//                new JavaBehaviour(this, "onContentUpdate"));
+        policyComponent.bindClassBehaviour(ContentServicePolicies.OnContentUpdatePolicy.QNAME,
+                RenditionModel.ASPECT_RENDITIONED,
+                new JavaBehaviour(this, "onContentUpdate"));
     }
 
     public void render(NodeRef sourceNodeRef, String renditionName)
@@ -167,21 +173,23 @@ public class RenditionService2Impl implements RenditionService2, InitializingBea
                 throw new IllegalArgumentException("The rendition "+renditionName+" has not been registered.");
             }
 
-            // Avoid extra transforms that have already been done.
-            int sourceContentUrlHashCode = getSourceContentUrlHashCode(sourceNodeRef);
-            NodeRef renditionNode = getRenditionNode(sourceNodeRef, renditionName);
-            int renditionContentUrlHashCode = getRenditionContentUrlHashCode(renditionNode);
-            if (renditionContentUrlHashCode == sourceContentUrlHashCode)
-            {
-                throw new IllegalStateException("The rendition "+renditionName+" has already been created.");
-            }
-
             if (logger.isDebugEnabled())
             {
-                logger.debug("Request transform for rendition " + renditionName + " on contentUrlHashCode " + sourceContentUrlHashCode);
+                logger.debug("Request transform for rendition " + renditionName + " on " +sourceNodeRef);
             }
 
-            transformClient.transform(sourceNodeRef, renditionDefinition, sourceContentUrlHashCode);
+            // The request to do the transform only takes place after the current transaction is committed.
+            // The current transaction may rollback and the results of that transaction must be visible, as the
+            // request takes place in a new transaction.
+            AlfrescoTransactionSupport.bindListener(transactionListener);
+            Set<PendingRequest> pendingRequests = AlfrescoTransactionSupport.getResource(POST_TRANSACTION_PENDING_REQUESTS);
+            if (pendingRequests == null)
+            {
+                pendingRequests = new HashSet<>();
+                AlfrescoTransactionSupport.bindResource(POST_TRANSACTION_PENDING_REQUESTS, pendingRequests);
+            }
+            PendingRequest pendingRequest = new PendingRequest(sourceNodeRef, renditionDefinition);
+            pendingRequests.add(pendingRequest);
         }
         catch (Exception e)
         {
@@ -327,17 +335,14 @@ public class RenditionService2Impl implements RenditionService2, InitializingBea
         {
             if (logger.isDebugEnabled())
             {
-                logger.debug("Ignore transform for rendition " + renditionName +
-                        " as it is no longer needed, as the contentUrlHashCode " +
-                        transformContentUrlHashCode + " != " + sourceContentUrlHashCode);
+                logger.debug("Ignore transform for rendition " + renditionName + " as it is no longer needed");
             }
         }
         else
         {
             if (logger.isDebugEnabled())
             {
-                logger.debug("Consume transform as a rendition " + renditionName + ", as the contentUrlHashCode " +
-                        transformContentUrlHashCode + " is still the same");
+                logger.debug("Use transform for rendition " + renditionName);
             }
 
             // Ensure that the creation of a rendition does not cause updates to the modified, modifier properties on the source node
@@ -423,9 +428,107 @@ public class RenditionService2Impl implements RenditionService2, InitializingBea
         return renditionNode;
     }
 
+    private class PendingRequest
+    {
+        private final NodeRef sourceNodeRef;
+        private final RenditionDefinition2 renditionDefinition;
+
+        private PendingRequest(NodeRef sourceNodeRef, RenditionDefinition2 renditionDefinition)
+        {
+            this.sourceNodeRef = sourceNodeRef;
+            this.renditionDefinition = renditionDefinition;
+        }
+
+        void transform()
+        {
+            try
+            {
+                // Avoid extra transforms that have already been done.
+                String renditionName = renditionDefinition.getRenditionName();
+                int sourceContentUrlHashCode = getSourceContentUrlHashCode(sourceNodeRef);
+                NodeRef renditionNode = getRenditionNode(sourceNodeRef, renditionName);
+                int renditionContentUrlHashCode = getRenditionContentUrlHashCode(renditionNode);
+                if (renditionContentUrlHashCode == sourceContentUrlHashCode)
+                {
+                    throw new IllegalStateException("The rendition "+renditionName+" has already been created.");
+                }
+
+                transformClient.transform(sourceNodeRef, renditionDefinition, sourceContentUrlHashCode);
+            }
+            catch (Exception e)
+            {
+                logger.debug(e.getMessage());
+                // consume exception
+            }
+        }
+
+        @Override
+        public boolean equals(Object o)
+        {
+            if (this == o)
+            {
+                return true;
+            }
+            if (!(o instanceof PendingRequest))
+            {
+                return false;
+            }
+            PendingRequest that = (PendingRequest) o;
+            return Objects.equals(sourceNodeRef, that.sourceNodeRef) &&
+                    Objects.equals(renditionDefinition, that.renditionDefinition);
+        }
+
+        @Override
+        public int hashCode()
+        {
+            return Objects.hash(sourceNodeRef, renditionDefinition);
+        }
+    }
+
+    private class TransactionListener extends TransactionListenerAdapter implements org.alfresco.repo.transaction.TransactionListener
+    {
+        private final String id = GUID.generate();
+
+        @Override
+        public void afterCommit()
+        {
+            for (PendingRequest pendingRequest : (Set<PendingRequest>)AlfrescoTransactionSupport.getResource(POST_TRANSACTION_PENDING_REQUESTS))
+            {
+                pendingRequest.transform();
+            }
+        }
+
+        @Override
+        public void flush()
+        {
+        }
+
+        @Override
+        public boolean equals(Object o)
+        {
+            if (this == o)
+            {
+                return true;
+            }
+            if (!(o instanceof TransactionListener))
+            {
+                return false;
+            }
+            TransactionListener that = (TransactionListener) o;
+            return Objects.equals(id, that.id);
+        }
+
+        @Override
+        public int hashCode()
+        {
+            return Objects.hash(id);
+        }
+    }
+
     @Override
     public void onContentUpdate(NodeRef nodeRef, boolean newContent)
     {
+        logger.debug("RenditionService2.onContentUpdate("+nodeRef+", "+newContent+")");
         // TODO
     }
 }
