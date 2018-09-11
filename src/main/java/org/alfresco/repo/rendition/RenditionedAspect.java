@@ -88,7 +88,6 @@ public class RenditionedAspect implements NodeServicePolicies.OnUpdateProperties
     private NodeService nodeService;
     private PolicyComponent policyComponent;
     private RenditionService renditionService;
-    private RenditionService2 renditionService2;
 
     /**
      * Set the policy component
@@ -126,11 +125,6 @@ public class RenditionedAspect implements NodeServicePolicies.OnUpdateProperties
     public void setRenditionService(RenditionService renditionService)
     {
         this.renditionService = renditionService;
-    }
-
-    public void setRenditionService2(RenditionService2 renditionService2)
-    {
-        this.renditionService2 = renditionService2;
     }
 
     /**
@@ -293,7 +287,7 @@ public class RenditionedAspect implements NodeServicePolicies.OnUpdateProperties
             logger.debug(msg.toString());
         }
 
-        if (rendDefn != null && !useRenditionService2(sourceNodeRef, rendDefn))
+        if (rendDefn != null && !renditionService.useRenditionService2(sourceNodeRef, rendDefn))
         {
             Action deleteRendition = actionService.createAction(DeleteRenditionActionExecuter.NAME);
             deleteRendition.setParameterValue(DeleteRenditionActionExecuter.PARAM_RENDITION_DEFINITION_NAME, rendDefn.getRenditionName());
@@ -324,51 +318,6 @@ public class RenditionedAspect implements NodeServicePolicies.OnUpdateProperties
                 }
             });
         }
-    }
-
-    /**
-     * If a rendition has been created by the newer RenditionService2, this method will return true. In this case the
-     * original RenditionService should not be used to update an existing rendition if the content changes. These
-     * renditions can be identified by the existence of the rendition2 aspect. RenditionService2 also listens for
-     * content changes and will perform the rendition.</p>
-     *
-     * If RenditionService2 has a definition with the same name (matched on the local part of the supplied rendDef's
-     * name) and the target mimetype matches, RenditionService2 will also be used. This is being done to help with the
-     * converion of custom transformers and renditions. The basic definitions (called "medium", "doclib",
-     * "imgpreview", "avatar", "avatar32", "webpreview", "pdf") already exist. Rather than writing  converter form one
-     * definition to the newer one, it is suggested that a newer RenditionDefinition2 is simply defined to avoid having
-     * to worry about any complexities in converting TransformationOptions into a simple flat Map structure.
-     */
-    private boolean useRenditionService2(NodeRef sourceNodeRef, RenditionDefinition rendDefn)
-    {
-        boolean useRenditionService2 = false;
-
-        QName renditionQName = rendDefn.getRenditionName();
-        String renditionName = renditionQName.getLocalName();
-        RenditionDefinitionRegistry2 renditionDefinitionRegistry2 = renditionService2.getRenditionDefinitionRegistry2();
-        RenditionDefinition2 renditionDefinition2 = renditionDefinitionRegistry2.getRenditionDefinition(renditionName);
-        if (renditionDefinition2 != null)
-        {
-            String targetMimetype = (String) rendDefn.getParameterValue(AbstractRenderingEngine.PARAM_MIME_TYPE);
-            String targetMimetype2 = renditionDefinition2.getTargetMimetype();
-            if (targetMimetype.equals(targetMimetype2))
-            {
-                useRenditionService2 = true;
-            }
-        }
-
-        if (!useRenditionService2 && ((RenditionService2Impl)renditionService2).useRenditionService2(sourceNodeRef, renditionName))
-        {
-            useRenditionService2 = true;
-        }
-
-        // TODO remove this call once RenditionService2 is listening to its own events.
-        if (useRenditionService2)
-        {
-            renditionService2.render(sourceNodeRef, renditionName);
-        }
-
-        return useRenditionService2;
     }
 
     /**

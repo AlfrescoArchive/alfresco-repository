@@ -39,6 +39,11 @@ import org.alfresco.repo.coci.CheckOutCheckInServicePolicies.BeforeCheckOut;
 import org.alfresco.repo.lock.LockServicePolicies.BeforeLock;
 import org.alfresco.repo.policy.JavaBehaviour;
 import org.alfresco.repo.policy.PolicyComponent;
+import org.alfresco.repo.rendition.executer.AbstractRenderingEngine;
+import org.alfresco.repo.rendition2.RenditionDefinition2;
+import org.alfresco.repo.rendition2.RenditionDefinitionRegistry2;
+import org.alfresco.repo.rendition2.RenditionService2;
+import org.alfresco.repo.rendition2.RenditionService2Impl;
 import org.alfresco.repo.security.authentication.AuthenticationUtil;
 import org.alfresco.service.ServiceRegistry;
 import org.alfresco.service.cmr.action.ActionDefinition;
@@ -88,7 +93,8 @@ public class RenditionServiceImpl implements
     private DictionaryService dictionaryService;
     private NodeService nodeService;
     private PolicyComponent policyComponent;
-    
+    private RenditionService2 renditionService2;
+
     private RenditionDefinitionPersister renditionDefinitionPersister;
     
     /**
@@ -171,6 +177,11 @@ public class RenditionServiceImpl implements
     public void setKnownCancellableActionTypes(List<String> knownCancellableActionTypes)
     {
         this.knownCancellableActionTypes = knownCancellableActionTypes;
+    }
+
+    public void setRenditionService2(RenditionService2 renditionService2)
+    {
+        this.renditionService2 = renditionService2;
     }
 
     public void init()
@@ -633,5 +644,38 @@ public class RenditionServiceImpl implements
     public void beforeLock(NodeRef nodeRef, LockType lockType)
     {
         cancelRenditions(nodeRef);
+    }
+
+    @Override
+    public boolean useRenditionService2(NodeRef sourceNodeRef, RenditionDefinition rendDefn)
+    {
+        boolean useRenditionService2 = false;
+
+        QName renditionQName = rendDefn.getRenditionName();
+        String renditionName = renditionQName.getLocalName();
+        RenditionDefinitionRegistry2 renditionDefinitionRegistry2 = renditionService2.getRenditionDefinitionRegistry2();
+        RenditionDefinition2 renditionDefinition2 = renditionDefinitionRegistry2.getRenditionDefinition(renditionName);
+        if (renditionDefinition2 != null)
+        {
+            String targetMimetype = (String) rendDefn.getParameterValue(AbstractRenderingEngine.PARAM_MIME_TYPE);
+            String targetMimetype2 = renditionDefinition2.getTargetMimetype();
+            if (targetMimetype.equals(targetMimetype2))
+            {
+                useRenditionService2 = true;
+            }
+        }
+
+        if (!useRenditionService2 && ((RenditionService2Impl)renditionService2).useRenditionService2(sourceNodeRef, renditionName))
+        {
+            useRenditionService2 = true;
+        }
+
+        // TODO remove this call once RenditionService2 is listening to its own events.
+        if (useRenditionService2)
+        {
+            renditionService2.render(sourceNodeRef, renditionName);
+        }
+
+        return useRenditionService2;
     }
 }
