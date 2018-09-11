@@ -77,37 +77,37 @@ public class RenditionService2IntegrationTest extends BaseSpringTest
     @Test
     public void testLocalRenderPdfToJpegMedium()
     {
-        checkRendition("quick.pdf", "medium");
+        checkRendition("quick.pdf", "medium", true);
     }
 
     @Test
     public void testLocalRenderPdfToDoclib()
     {
-        checkRendition("quick.pdf", "doclib");
+        checkRendition("quick.pdf", "doclib", true);
     }
 
     @Test
     public void testLocalRenderPdfJpegImgpreview()
     {
-        checkRendition("quick.pdf", "imgpreview");
+        checkRendition("quick.pdf", "imgpreview", true);
     }
 
     @Test
     public void testLocalRenderPdfPngAvatar()
     {
-        checkRendition("quick.pdf", "avatar");
+        checkRendition("quick.pdf", "avatar", true);
     }
 
     @Test
     public void testLocalRenderPdfPngAvatar32()
     {
-        checkRendition("quick.pdf", "avatar32");
+        checkRendition("quick.pdf", "avatar32", true);
     }
 
     @Test
     public void testLocalRenderPdfFlashWebpreview()
     {
-        checkRendition("quick.pdf", "webpreview");
+        checkRendition("quick.pdf", "webpreview", false);
     }
 
     // DOCX transformation
@@ -115,55 +115,65 @@ public class RenditionService2IntegrationTest extends BaseSpringTest
     @Test
     public void testLocalRenderDocxJpegMedium()
     {
-        checkRendition("quick.docx", "medium");
+        checkRendition("quick.docx", "medium", true);
     }
 
     @Test
     public void testLocalRenderDocxDoclib()
     {
-        checkRendition("quick.docx", "doclib");
+        checkRendition("quick.docx", "doclib", true);
     }
 
     @Test
     public void testLocalRenderDocxJpegImgpreview()
     {
-        checkRendition("quick.docx", "imgpreview");
+        checkRendition("quick.docx", "imgpreview", true);
     }
 
     @Test
     public void testLocalRenderDocxPngAvatar()
     {
-        checkRendition("quick.docx", "avatar");
+        checkRendition("quick.docx", "avatar", true);
     }
 
     @Test
     public void testLocalRenderDocxPngAvatar32()
     {
-        checkRendition("quick.docx", "avatar32");
+        checkRendition("quick.docx", "avatar32", true);
     }
 
     @Test
     public void testLocalRenderDocxFlashWebpreview()
     {
-        checkRendition("quick.docx", "webpreview");
+        checkRendition("quick.docx", "webpreview", false);
     }
 
     @Test
     public void testLocalRenderDocxPdf()
     {
-        checkRendition("quick.docx", "pdf");
+        checkRendition("quick.docx", "pdf", false);
     }
 
-    private void checkRendition(String testFileName, String renditionDefinitionName)
+    private void checkRendition(String testFileName, String renditionDefinitionName, boolean expectedToPass)
     {
-        NodeRef sourceNode = transactionService.getRetryingTransactionHelper().doInTransaction(() ->
+        try
         {
-            NodeRef contentNode = createContentNode(testFileName);
-            renditionService2.render(contentNode, renditionDefinitionName);
-            return contentNode;
-        });
-        ChildAssociationRef childAssociationRef = renditionService2.getRenditionByName(sourceNode, renditionDefinitionName);
-        assertNotNull("The " + renditionDefinitionName + " rendition failed for " + testFileName, childAssociationRef);
+            NodeRef sourceNode = transactionService.getRetryingTransactionHelper().doInTransaction(() ->
+            {
+                NodeRef contentNode = createContentNode(testFileName);
+                renditionService2.render(contentNode, renditionDefinitionName);
+                return contentNode;
+            });
+            ChildAssociationRef childAssociationRef = renditionService2.getRenditionByName(sourceNode, renditionDefinitionName);
+            assertNotNull("The " + renditionDefinitionName + " rendition failed for " + testFileName, childAssociationRef);
+        }
+        catch(UnsupportedOperationException uoe)
+        {
+            if (expectedToPass)
+            {
+                fail("The " + renditionDefinitionName + " rendition should be supported for " + testFileName);
+            }
+        }
     }
 
     private NodeRef createContentNode(String fileName) throws FileNotFoundException
