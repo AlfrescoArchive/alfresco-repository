@@ -29,6 +29,8 @@ import org.alfresco.model.ContentModel;
 import org.alfresco.model.RenditionModel;
 import org.alfresco.repo.content.ContentServicePolicies;
 import org.alfresco.repo.content.MimetypeMap;
+import org.alfresco.repo.node.NodeServicePolicies;
+import org.alfresco.repo.policy.Behaviour;
 import org.alfresco.repo.policy.BehaviourFilter;
 import org.alfresco.repo.policy.JavaBehaviour;
 import org.alfresco.repo.policy.PolicyComponent;
@@ -70,7 +72,8 @@ import static org.alfresco.service.namespace.QName.createQName;
  *
  * @author adavis
  */
-public class RenditionService2Impl implements RenditionService2, InitializingBean, ContentServicePolicies.OnContentUpdatePolicy
+public class RenditionService2Impl implements RenditionService2, InitializingBean, ContentServicePolicies.OnContentUpdatePolicy,
+        NodeServicePolicies.OnUpdatePropertiesPolicy
 {
     private static final String POST_TRANSACTION_PENDING_REQUESTS = "postTransactionPendingRenditionRequests";
 
@@ -149,12 +152,19 @@ public class RenditionService2Impl implements RenditionService2, InitializingBea
         PropertyCheck.mandatory(this, "policyComponent", policyComponent);
         PropertyCheck.mandatory(this, "behaviourFilter", behaviourFilter);
 
-        // TODO policy ...
-//        policyComponent.bindClassBehaviour(ContentServicePolicies.OnContentUpdatePolicy.QNAME, this, new JavaBehaviour(this, "onContentUpdate"));
+        // TODO use raw events - This does not appear to work as the wrong node ref is supplied.
+        policyComponent.bindClassBehaviour(ContentServicePolicies.OnContentUpdatePolicy.QNAME, this, new JavaBehaviour(this, "onContentUpdate"));
 
-        policyComponent.bindClassBehaviour(ContentServicePolicies.OnContentUpdatePolicy.QNAME,
+// TODO use a better bind method. The following does not work
+//        policyComponent.bindClassBehaviour(ContentServicePolicies.OnContentUpdatePolicy.QNAME,
+//                RenditionModel.ASPECT_RENDITIONED,
+//                new JavaBehaviour(this, "onContentUpdate"));
+
+        // TODO remove - see method being called first
+        this.policyComponent.bindClassBehaviour(
+                QName.createQName(NamespaceService.ALFRESCO_URI, "onUpdateProperties"),
                 RenditionModel.ASPECT_RENDITIONED,
-                new JavaBehaviour(this, "onContentUpdate"));
+                new JavaBehaviour(this, "onUpdateProperties", Behaviour.NotificationFrequency.EVERY_EVENT));
     }
 
     public void render(NodeRef sourceNodeRef, String renditionName)
@@ -271,7 +281,7 @@ public class RenditionService2Impl implements RenditionService2, InitializingBea
     }
 
     @Override
-    public List<ChildAssociationRef> getRenditions(NodeRef sourceNodeRef)
+    public List<ChildAssociationRef> getRenditionChildAssociations(NodeRef sourceNodeRef)
     {
         // Copy on code from the original RenditionService.
         List<ChildAssociationRef> result = Collections.emptyList();
@@ -335,14 +345,14 @@ public class RenditionService2Impl implements RenditionService2, InitializingBea
         {
             if (logger.isDebugEnabled())
             {
-                logger.debug("Ignore transform for rendition " + renditionName + " as it is no longer needed");
+                logger.debug("Ignore transform for rendition " + renditionName + " on " + sourceNodeRef + " as it is no longer needed");
             }
         }
         else
         {
             if (logger.isDebugEnabled())
             {
-                logger.debug("Use transform for rendition " + renditionName);
+                logger.debug("Use transform for rendition " + renditionName + " on " + sourceNodeRef);
             }
 
             // Ensure that the creation of a rendition does not cause updates to the modified, modifier properties on the source node
@@ -526,9 +536,38 @@ public class RenditionService2Impl implements RenditionService2, InitializingBea
     }
 
     @Override
-    public void onContentUpdate(NodeRef nodeRef, boolean newContent)
+    public void onContentUpdate(NodeRef sourceNodeRef, boolean newContent)
     {
-        logger.debug("RenditionService2.onContentUpdate("+nodeRef+", "+newContent+")");
-        // TODO
+        if (newContent)
+        {
+            logger.debug("RenditionService2.onContentUpdate(" + sourceNodeRef + ")");
+            List<ChildAssociationRef> childAssocs = getRenditionChildAssociations(sourceNodeRef);
+            for (ChildAssociationRef childAssoc : childAssocs)
+            {
+                NodeRef renditionNodeRef = childAssoc.getChildRef();
+                // TODO: This check will not be needed once the original RenditionService is removed.
+                if (nodeService.hasAspect(renditionNodeRef, RenditionModel.ASPECT_RENDITION2))
+                {
+                    QName childAssocQName = childAssoc.getQName();
+                    String renditionName = childAssocQName.getLocalName();
+                    render(sourceNodeRef, renditionName);
+                }
+            }
+        }
+    }
+
+    // TODO Remove. Not sure why onContentUpdate with the correct node ref is not being called, but this method is. It is called but with a nodeRef that does not exist after the transaction.
+    @Override
+    public void onUpdateProperties(NodeRef sourceNodeRef, Map<QName, Serializable> before, Map<QName, Serializable> after)
+    {
+        // TODO This code uses 1 hard coded content property, but there are others
+        Serializable b = before.get(ContentModel.PROP_CONTENT);
+        Serializable a =  after.get(ContentModel.PROP_CONTENT);
+        boolean equal = b == a || (b != null && b.equals(a)) || (a != null && a.equals(b));
+        if (!equal)
+        {
+            logger.debug("RenditionService2.onUpdateProperties(" + sourceNodeRef + ")");
+            onContentUpdate(sourceNodeRef, true);
+        }
     }
 }

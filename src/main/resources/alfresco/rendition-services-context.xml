@@ -49,7 +49,7 @@
       <property name="renditionDefinitionPersister" ref="renditionDefinitionPersister" />
       <property name="renditionPreventionRegistry" ref="renditionPreventionRegistry" />
       <property name="policyComponent" ref="policyComponent" />
-       <property name="renditionService2" ref="RenditionService2"/>
+       <property name="renditionService2" ref="renditionService2"/>
       <property name="knownCancellableActionTypes">
         <list>
             <bean id="org.alfresco.repo.rendition.executer.ImageRenderingEngine.NAME"

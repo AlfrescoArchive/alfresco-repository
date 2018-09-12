@@ -181,6 +181,7 @@ public class RenditionedAspect implements NodeServicePolicies.OnUpdateProperties
                 {
                     if (logger.isDebugEnabled())
                     {
+                        // We will see this debug if a new RenditionService2 definition exists.
                         StringBuilder msg = new StringBuilder();
                         msg.append("Cannot update rendition ")
                             .append(renditionAssocName)

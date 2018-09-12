@@ -653,27 +653,29 @@ public class RenditionServiceImpl implements
 
         QName renditionQName = rendDefn.getRenditionName();
         String renditionName = renditionQName.getLocalName();
-        RenditionDefinitionRegistry2 renditionDefinitionRegistry2 = renditionService2.getRenditionDefinitionRegistry2();
-        RenditionDefinition2 renditionDefinition2 = renditionDefinitionRegistry2.getRenditionDefinition(renditionName);
-        if (renditionDefinition2 != null)
-        {
-            String targetMimetype = (String) rendDefn.getParameterValue(AbstractRenderingEngine.PARAM_MIME_TYPE);
-            String targetMimetype2 = renditionDefinition2.getTargetMimetype();
-            if (targetMimetype.equals(targetMimetype2))
-            {
-                useRenditionService2 = true;
-            }
-        }
-
         if (!useRenditionService2 && ((RenditionService2Impl)renditionService2).useRenditionService2(sourceNodeRef, renditionName))
         {
+            // The rendition has been created by RenditionService2 and the older RenditionService
+            // should leave it to the newer service to do the work.
             useRenditionService2 = true;
         }
-
-        // TODO remove this call once RenditionService2 is listening to its own events.
-        if (useRenditionService2)
+        else
         {
-            renditionService2.render(sourceNodeRef, renditionName);
+            RenditionDefinitionRegistry2 renditionDefinitionRegistry2 = renditionService2.getRenditionDefinitionRegistry2();
+            RenditionDefinition2 renditionDefinition2 = renditionDefinitionRegistry2.getRenditionDefinition(renditionName);
+            if (renditionDefinition2 != null)
+            {
+                String targetMimetype = (String) rendDefn.getParameterValue(AbstractRenderingEngine.PARAM_MIME_TYPE);
+                String targetMimetype2 = renditionDefinition2.getTargetMimetype();
+                if (targetMimetype.equals(targetMimetype2))
+                {
+                    // The rendition has been created by the older RenditionService but know that RenditionService2
+                    // can do the work, so we ask the newer service to do here. This will result in the rendition2
+                    // aspect being added, so future renditions will also be done by the newer service.
+                    useRenditionService2 = true;
+                    renditionService2.render(sourceNodeRef, renditionName);
+                }
+            }
         }
 
         return useRenditionService2;

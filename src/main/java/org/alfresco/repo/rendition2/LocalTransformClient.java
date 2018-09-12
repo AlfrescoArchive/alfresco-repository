@@ -200,6 +200,7 @@ public class LocalTransformClient extends AbstractTransformClient implements Tra
 
         TransformationOptions transformationOptions = getTransformationOptions(renditionName, options);
         transformationOptions.setUse(renditionName);
+        transformationOptions.setSourceNodeRef(sourceNodeRef);
 
         ContentTransformer transformer = contentService.getTransformer(contentUrl, sourceMimetype, size, targetMimetype, transformationOptions);
         if (transformer == null)
