@@ -159,12 +159,6 @@ public class RenditionService2Impl implements RenditionService2, InitializingBea
 //        policyComponent.bindClassBehaviour(ContentServicePolicies.OnContentUpdatePolicy.QNAME,
 //                RenditionModel.ASPECT_RENDITIONED,
 //                new JavaBehaviour(this, "onContentUpdate"));
-
-        // TODO remove - see method being called first
-        this.policyComponent.bindClassBehaviour(
-                QName.createQName(NamespaceService.ALFRESCO_URI, "onUpdateProperties"),
-                RenditionModel.ASPECT_RENDITIONED,
-                new JavaBehaviour(this, "onUpdateProperties", Behaviour.NotificationFrequency.EVERY_EVENT));
     }
 
     public void render(NodeRef sourceNodeRef, String renditionName)
@@ -536,9 +530,9 @@ public class RenditionService2Impl implements RenditionService2, InitializingBea
     }
 
     @Override
-    public void onContentUpdate(NodeRef sourceNodeRef, boolean newContent)
+    public void onContentUpdate(NodeRef sourceNodeRef, boolean newNode)
     {
-        if (newContent)
+        if (!newNode)
         {
             logger.debug("RenditionService2.onContentUpdate(" + sourceNodeRef + ")");
             List<ChildAssociationRef> childAssocs = getRenditionChildAssociations(sourceNodeRef);
@@ -553,21 +547,6 @@ public class RenditionService2Impl implements RenditionService2, InitializingBea
                     render(sourceNodeRef, renditionName);
                 }
             }
-        }
-    }
-
-    // TODO Remove. Not sure why onContentUpdate with the correct node ref is not being called, but this method is. It is called but with a nodeRef that does not exist after the transaction.
-    @Override
-    public void onUpdateProperties(NodeRef sourceNodeRef, Map<QName, Serializable> before, Map<QName, Serializable> after)
-    {
-        // TODO This code uses 1 hard coded content property, but there are others
-        Serializable b = before.get(ContentModel.PROP_CONTENT);
-        Serializable a =  after.get(ContentModel.PROP_CONTENT);
-        boolean equal = b == a || (b != null && b.equals(a)) || (a != null && a.equals(b));
-        if (!equal)
-        {
-            logger.debug("RenditionService2.onUpdateProperties(" + sourceNodeRef + ")");
-            onContentUpdate(sourceNodeRef, true);
         }
     }
 }
