@@ -43,6 +43,8 @@ import org.alfresco.service.cmr.repository.ContentWriter;
 import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.cmr.repository.NodeService;
 import org.alfresco.service.cmr.repository.datatype.DefaultTypeConverter;
+import org.alfresco.service.cmr.rule.RuleService;
+import org.alfresco.service.cmr.rule.RuleType;
 import org.alfresco.service.namespace.NamespaceService;
 import org.alfresco.service.namespace.QName;
 import org.alfresco.service.namespace.RegexQNamePattern;
@@ -55,7 +57,9 @@ import org.springframework.beans.factory.InitializingBean;
 
 import java.io.InputStream;
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -92,6 +96,7 @@ public class RenditionService2Impl implements RenditionService2, InitializingBea
     private TransformClient transformClient;
     private PolicyComponent policyComponent;
     private BehaviourFilter behaviourFilter;
+    private RuleService ruleService;
     private boolean enabled;
 
     public void setNodeService(NodeService nodeService)
@@ -135,6 +140,11 @@ public class RenditionService2Impl implements RenditionService2, InitializingBea
         this.behaviourFilter = behaviourFilter;
     }
 
+    public void setRuleService(RuleService ruleService)
+    {
+        this.ruleService = ruleService;
+    }
+
     public void setEnabled(boolean enabled)
     {
         this.enabled = enabled;
@@ -150,6 +160,7 @@ public class RenditionService2Impl implements RenditionService2, InitializingBea
         PropertyCheck.mandatory(this, "transformClient", transformClient);
         PropertyCheck.mandatory(this, "policyComponent", policyComponent);
         PropertyCheck.mandatory(this, "behaviourFilter", behaviourFilter);
+        PropertyCheck.mandatory(this, "ruleService", ruleService);
 
         // TODO use raw events - This does not appear to work as the wrong node ref is supplied.
         policyComponent.bindClassBehaviour(ContentServicePolicies.OnContentUpdatePolicy.QNAME, this, new JavaBehaviour(this, "onContentUpdate"));
@@ -346,13 +357,16 @@ public class RenditionService2Impl implements RenditionService2, InitializingBea
             // Ensure that the creation of a rendition does not cause updates to the modified, modifier properties on the source node
             NodeRef renditionNode = getRenditionNode(sourceNodeRef, renditionName);
             boolean createRenditionNode = renditionNode == null;
+            Date sourceModified = (Date)nodeService.getProperty(sourceNodeRef, ContentModel.PROP_MODIFIED);
             boolean sourceHasAspectRenditioned = nodeService.hasAspect(sourceNodeRef, RenditionModel.ASPECT_RENDITIONED);
-            boolean sourceBehaviourDisabled = !sourceHasAspectRenditioned || createRenditionNode;
+            boolean sourceChanges = !sourceHasAspectRenditioned || createRenditionNode || sourceModified != null;
             try
             {
-                if (sourceBehaviourDisabled)
+                if (sourceChanges)
                 {
+                    ruleService.disableRuleType(RuleType.UPDATE);
                     behaviourFilter.disableBehaviour(sourceNodeRef, ContentModel.ASPECT_AUDITABLE);
+                    behaviourFilter.disableBehaviour(sourceNodeRef, ContentModel.ASPECT_VERSIONABLE);
                 }
 
                 // If they do not exist create the rendition association and the rendition node.
@@ -368,6 +382,10 @@ public class RenditionService2Impl implements RenditionService2, InitializingBea
                     nodeService.addAspect(renditionNode, RenditionModel.ASPECT_HIDDEN_RENDITION, null);
                 }
                 nodeService.setProperty(renditionNode, RenditionModel.PROP_RENDITION_CONTENT_URL_HAS_CODE, transformContentUrlHashCode);
+                if (sourceModified != null)
+                {
+                    setThumbnailLastModified(sourceNodeRef, renditionName, sourceModified);
+                }
 
                 // Set or replace rendition content
                 ContentWriter contentWriter = contentService.getWriter(renditionNode, DEFAULT_RENDITION_CONTENT_PROP, true);
@@ -388,15 +406,55 @@ public class RenditionService2Impl implements RenditionService2, InitializingBea
             }
             finally
             {
-                if (sourceBehaviourDisabled)
+                if (sourceChanges)
                 {
                     behaviourFilter.enableBehaviour(sourceNodeRef, ContentModel.ASPECT_AUDITABLE);
+                    behaviourFilter.enableBehaviour(sourceNodeRef, ContentModel.ASPECT_VERSIONABLE);
+                    ruleService.enableRuleType(RuleType.UPDATE);
                 }
                 if (renditionNode != null)
                 {
                     behaviourFilter.enableBehaviour(renditionNode, ContentModel.ASPECT_AUDITABLE);
                 }
             }
+        }
+    }
+
+    // Based on code from org.alfresco.repo.thumbnail.ThumbnailServiceImpl.addThumbnailModificationData
+    private void setThumbnailLastModified(NodeRef sourceNodeRef, String renditionName, Date sourceModified)
+    {
+        String prefix = renditionName + ':';
+        final String lastModifiedValue = prefix + sourceModified.getTime();
+
+        if (logger.isDebugEnabled())
+        {
+            logger.debug("Setting thumbnail last modified date to " + lastModifiedValue +" on source node: " + sourceNodeRef);
+        }
+
+        if (nodeService.hasAspect(sourceNodeRef, ContentModel.ASPECT_THUMBNAIL_MODIFICATION))
+        {
+            List<String> thumbnailMods = (List<String>) nodeService.getProperty(sourceNodeRef, ContentModel.PROP_LAST_THUMBNAIL_MODIFICATION_DATA);
+            String target = null;
+            for (String currThumbnailMod: thumbnailMods)
+            {
+                if (currThumbnailMod.startsWith(prefix))
+                {
+                    target = currThumbnailMod;
+                }
+            }
+            if (target != null)
+            {
+                thumbnailMods.remove(target);
+            }
+            thumbnailMods.add(lastModifiedValue);
+            nodeService.setProperty(sourceNodeRef, ContentModel.PROP_LAST_THUMBNAIL_MODIFICATION_DATA, (Serializable) thumbnailMods);
+        }
+        else
+        {
+            List<String> thumbnailMods = Collections.singletonList(lastModifiedValue);
+            Map<QName, Serializable> properties = new HashMap<>();
+            properties.put(ContentModel.PROP_LAST_THUMBNAIL_MODIFICATION_DATA, (Serializable) thumbnailMods);
+            nodeService.addAspect(sourceNodeRef, ContentModel.ASPECT_THUMBNAIL_MODIFICATION, properties);
         }
     }
 

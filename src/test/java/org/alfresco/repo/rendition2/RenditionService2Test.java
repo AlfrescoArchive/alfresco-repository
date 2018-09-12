@@ -35,6 +35,7 @@ import org.alfresco.service.cmr.repository.ContentData;
 import org.alfresco.service.cmr.repository.ContentService;
 import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.cmr.repository.NodeService;
+import org.alfresco.service.cmr.rule.RuleService;
 import org.alfresco.service.namespace.NamespaceService;
 import org.junit.Before;
 import org.junit.Test;
@@ -76,6 +77,7 @@ public class RenditionService2Test
     @Mock private ContentTransformer contentTransformer;
     @Mock private PolicyComponent policyComponent;
     @Mock private BehaviourFilter behaviourFilter;
+    @Mock private RuleService ruleService;
 
     private NodeRef nodeRef = new NodeRef("workspace://spacesStore/test-id");
     private static final String IMGPREVIEW = "imgpreview";
@@ -111,6 +113,7 @@ public class RenditionService2Test
         renditionService2.setTransformClient(localTransformClient);
         renditionService2.setPolicyComponent(policyComponent);
         renditionService2.setBehaviourFilter(behaviourFilter);
+        renditionService2.setRuleService(ruleService);
         renditionService2.setEnabled(true);
         renditionService2.afterPropertiesSet();
     }
