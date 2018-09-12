@@ -72,8 +72,7 @@ import static org.alfresco.service.namespace.QName.createQName;
  *
  * @author adavis
  */
-public class RenditionService2Impl implements RenditionService2, InitializingBean, ContentServicePolicies.OnContentUpdatePolicy,
-        NodeServicePolicies.OnUpdatePropertiesPolicy
+public class RenditionService2Impl implements RenditionService2, InitializingBean, ContentServicePolicies.OnContentUpdatePolicy
 {
     private static final String POST_TRANSACTION_PENDING_REQUESTS = "postTransactionPendingRenditionRequests";
 
@@ -154,11 +153,6 @@ public class RenditionService2Impl implements RenditionService2, InitializingBea
 
         // TODO use raw events - This does not appear to work as the wrong node ref is supplied.
         policyComponent.bindClassBehaviour(ContentServicePolicies.OnContentUpdatePolicy.QNAME, this, new JavaBehaviour(this, "onContentUpdate"));
-
-// TODO use a better bind method. The following does not work
-//        policyComponent.bindClassBehaviour(ContentServicePolicies.OnContentUpdatePolicy.QNAME,
-//                RenditionModel.ASPECT_RENDITIONED,
-//                new JavaBehaviour(this, "onContentUpdate"));
     }
 
     public void render(NodeRef sourceNodeRef, String renditionName)
