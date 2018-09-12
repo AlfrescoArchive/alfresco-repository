@@ -38,7 +38,9 @@ public interface TransformClient
      * Requests an asynchronous transform and the subsequent linkage of that transform as a rendition.
      * @param sourceNodeRef the source node
      * @param renditionDefinition which rendition to perform
+     * @param sourceContentUrlHashCode the hash code of the source node's content URL. Used to check the transform result
+     *                                still matches the source node, before it is used as a rendition.
      * @throws UnsupportedOperationException if the transform is not supported.
      */
-    public void transform(NodeRef sourceNodeRef, RenditionDefinition2 renditionDefinition);
+    public void transform(NodeRef sourceNodeRef, RenditionDefinition2 renditionDefinition, int sourceContentUrlHashCode);
 }

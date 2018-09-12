@@ -67,7 +67,7 @@ import org.junit.runners.Suite;
     org.alfresco.filesys.repo.LockKeeperImplTest.class,
     org.alfresco.repo.activities.ActivityServiceImplTest.class,
     org.alfresco.repo.admin.registry.RegistryServiceImplTest.class,
-    org.alfresco.repo.rendition2.RenditionService2Test.class
+    org.alfresco.repo.rendition2.RenditionService2IntegrationTest.class
 })
 public class AppContext01TestSuite
 {

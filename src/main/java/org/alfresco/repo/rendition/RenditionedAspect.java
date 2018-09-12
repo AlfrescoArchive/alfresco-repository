@@ -25,11 +25,6 @@
  */
 package org.alfresco.repo.rendition;
 
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-
 import org.alfresco.model.RenditionModel;
 import org.alfresco.repo.copy.CopyBehaviourCallback;
 import org.alfresco.repo.copy.CopyDetails;
@@ -59,6 +54,11 @@ import org.alfresco.util.EqualsHelper;
 import org.alfresco.util.Pair;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Renditioned aspect behaviour bean.
@@ -124,7 +124,7 @@ public class RenditionedAspect implements NodeServicePolicies.OnUpdateProperties
     {
         this.renditionService = renditionService;
     }
-    
+
     /**
      * Set the dictionary service
      * 
@@ -278,14 +278,14 @@ public class RenditionedAspect implements NodeServicePolicies.OnUpdateProperties
     private void queueUpdate(final NodeRef sourceNodeRef, final RenditionDefinition rendDefn,
             final ChildAssociationRef renditionAssoc)
     {
-        if (logger.isDebugEnabled())
+        if (logger.isDebugEnabled() && rendDefn != null)
         {
             StringBuilder msg = new StringBuilder();
             msg.append("Queueing rendition update for node ").append(sourceNodeRef).append(": ").append(rendDefn.getRenditionName());
             logger.debug(msg.toString());
         }
 
-        if (rendDefn != null)
+        if (rendDefn != null && !renditionService.useRenditionService2(sourceNodeRef, rendDefn))
         {
             Action deleteRendition = actionService.createAction(DeleteRenditionActionExecuter.NAME);
             deleteRendition.setParameterValue(DeleteRenditionActionExecuter.PARAM_RENDITION_DEFINITION_NAME, rendDefn.getRenditionName());

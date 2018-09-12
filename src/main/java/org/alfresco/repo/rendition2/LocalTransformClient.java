@@ -42,10 +42,12 @@ import org.alfresco.service.cmr.repository.TemporalSourceOptions;
 import org.alfresco.service.cmr.repository.TransformationOptionLimits;
 import org.alfresco.service.cmr.repository.TransformationOptions;
 import org.alfresco.service.cmr.repository.TransformationSourceOptions;
+import org.alfresco.service.transaction.TransactionService;
 import org.alfresco.util.PropertyCheck;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -147,16 +149,18 @@ public class LocalTransformClient extends AbstractTransformClient implements Tra
 
     private ContentService contentService;
 
-    private RenditionService2 renditionService2;
+    private RenditionService2Impl renditionService2;
 
     private ExecutorService executorService;
+
+    private TransactionService transactionService;
 
     public void setContentService(ContentService contentService)
     {
         this.contentService = contentService;
     }
 
-    public void setRenditionService2(RenditionService2 renditionService2)
+    public void setRenditionService2(RenditionService2Impl renditionService2)
     {
         this.renditionService2 = renditionService2;
     }
@@ -164,6 +168,11 @@ public class LocalTransformClient extends AbstractTransformClient implements Tra
     public void setExecutorService(ExecutorService executorService)
     {
         this.executorService = executorService;
+    }
+
+    public void setTransactionService(TransactionService transactionService)
+    {
+        this.transactionService = transactionService;
     }
 
     @Override
@@ -179,7 +188,7 @@ public class LocalTransformClient extends AbstractTransformClient implements Tra
     }
 
     @Override
-    public void transform(NodeRef sourceNodeRef, RenditionDefinition2 renditionDefinition)
+    public void transform(NodeRef sourceNodeRef, RenditionDefinition2 renditionDefinition, int sourceContentUrlHashCode)
     {
         ContentData contentData = getContentData(sourceNodeRef);
         String contentUrl = contentData.getContentUrl();
@@ -204,37 +213,34 @@ public class LocalTransformClient extends AbstractTransformClient implements Tra
             logger.debug("Rendition of "+renditionName+" from "+sourceMimetype+" will use "+transformer.getName());
         }
 
-        executorService.submit(new Runnable() {
-            @Override
-            public void run()
-            {
-                AuthenticationUtil.runAsSystem(new AuthenticationUtil.RunAsWork<Void>()
+        String user = AuthenticationUtil.getRunAsUser();
+        executorService.submit(() ->
+        {
+            AuthenticationUtil.runAs((AuthenticationUtil.RunAsWork<Void>) () ->
+                transactionService.getRetryingTransactionHelper().doInTransaction(() ->
                 {
-                    @Override
-                    public Void doWork() throws Exception
+                    try
                     {
-                        try
-                        {
-                            ContentWriter writer = transform(transformer, sourceNodeRef, targetMimetype, transformationOptions);
-                            consume(sourceNodeRef, writer, renditionDefinition);
-                        }
-                        catch (Exception e)
-                        {
-                            if (logger.isDebugEnabled())
-                            {
-                                logger.debug("Rendition of "+renditionName+" from "+sourceMimetype+" failed", e);
-                            }
-                        }
-                        return null;
+                        ContentWriter writer = transform(transformer, sourceNodeRef, targetMimetype, transformationOptions);
+                        InputStream inputStream = writer.getReader().getContentInputStream();
+                        renditionService2.consume(sourceNodeRef, inputStream, renditionDefinition, sourceContentUrlHashCode);
                     }
-                });
-            }
+                    catch (Exception e)
+                    {
+                        if (logger.isDebugEnabled())
+                        {
+                            logger.debug("Rendition of "+renditionName+" from "+sourceMimetype+" failed", e);
+                        }
+                        throw e;
+                    }
+                    return null;
+                }), user);
         });
     }
 
     /**
      * @deprecated as we do not plan to use TransformationOptions moving forwards as local transformations will also
-     * use the same Transform Service options.
+     * use the same options as the Transform Service.
      */
     @Deprecated
     static TransformationOptions getTransformationOptions(String renditionName, Map<String, String> options)
@@ -378,13 +384,5 @@ public class LocalTransformClient extends AbstractTransformClient implements Tra
         writer.setMimetype(targetMimetype);
         transformer.transform(reader, writer, transformationOptions);
         return writer;
-    }
-
-    void consume(NodeRef sourceNodeRef, ContentWriter writer, RenditionDefinition2 renditionDefinition)
-    {
-        logger.debug("Link the transformation into a rendition node.");
-
-        // TODO pass file to RenditionService2 to link up
-        // TODO remove the temp file.
     }
 }

@@ -60,7 +60,6 @@ public class RenditionDefinitionRegistry2Impl implements RenditionDefinitionRegi
         return renditionDefinitions.get(renditionName);
     }
 
-    @Override
     public void register(RenditionDefinition2 renditionDefinition)
     {
         String renditionName = renditionDefinition.getRenditionName();
@@ -72,7 +71,6 @@ public class RenditionDefinitionRegistry2Impl implements RenditionDefinitionRegi
         renditionDefinitions.put(renditionName, renditionDefinition);
     }
 
-    @Override
     public void unregister(String renditionName)
     {
         if (renditionDefinitions.remove(renditionName) == null)

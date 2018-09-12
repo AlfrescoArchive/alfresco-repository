@@ -28,6 +28,7 @@ package org.alfresco.repo.rendition2;
 import org.alfresco.model.ContentModel;
 import org.alfresco.repo.content.transform.ContentTransformer;
 import org.alfresco.repo.content.transform.magick.ImageTransformationOptions;
+import org.alfresco.repo.policy.BehaviourFilter;
 import org.alfresco.repo.policy.PolicyComponent;
 import org.alfresco.repo.rendition.RenditionPreventionRegistry;
 import org.alfresco.service.cmr.repository.ContentData;
@@ -43,6 +44,7 @@ import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -65,20 +67,18 @@ public class RenditionService2Test
 {
     private RenditionService2Impl renditionService2;
     private LocalTransformClient localTransformClient;
-    private RenditionDefinitionRegistry2 renditionDefinitionRegistry2;
+    private RenditionDefinitionRegistry2Impl renditionDefinitionRegistry2;
 
-    @Mock
-    private NodeService nodeService;
+    @Mock private NodeService nodeService;
     @Mock private ContentService contentService;
     @Mock private RenditionPreventionRegistry renditionPreventionRegistry;
-    @Mock private PolicyComponent policyComponent;
     @Mock private ContentData contentData;
     @Mock private ContentTransformer contentTransformer;
-    @Mock private NamespaceService namespaceService;
+    @Mock private PolicyComponent policyComponent;
+    @Mock private BehaviourFilter behaviourFilter;
 
     private NodeRef nodeRef = new NodeRef("workspace://spacesStore/test-id");
     private static final String IMGPREVIEW = "imgpreview";
-    private static final String PDF = "application/pdf";
     private static final String JPEG = "image/jpeg";
     private String contentUrl = "test-content-url";
 
@@ -101,14 +101,16 @@ public class RenditionService2Test
 
         when(nodeService.exists(nodeRef)).thenReturn(true);
         when(nodeService.getProperty(nodeRef, ContentModel.PROP_CONTENT)).thenReturn(contentData);
+        when(nodeService.getProperty(nodeRef, ContentModel.PROP_MODIFIED)).thenReturn(new Date());
         when(contentData.getContentUrl()).thenReturn(contentUrl);
 
         renditionService2.setNodeService(nodeService);
+        renditionService2.setContentService(contentService);
         renditionService2.setRenditionPreventionRegistry(renditionPreventionRegistry);
         renditionService2.setRenditionDefinitionRegistry2(renditionDefinitionRegistry2);
         renditionService2.setTransformClient(localTransformClient);
         renditionService2.setPolicyComponent(policyComponent);
-        renditionService2.setNamespaceService(namespaceService);
+        renditionService2.setBehaviourFilter(behaviourFilter);
         renditionService2.setEnabled(true);
         renditionService2.afterPropertiesSet();
     }

@@ -28,9 +28,7 @@ package org.alfresco.repo.rendition2;
 import org.alfresco.service.NotAuditable;
 import org.alfresco.service.cmr.repository.ChildAssociationRef;
 import org.alfresco.service.cmr.repository.NodeRef;
-import org.alfresco.service.namespace.QName;
 
-import java.io.InputStream;
 import java.util.List;
 
 /**
