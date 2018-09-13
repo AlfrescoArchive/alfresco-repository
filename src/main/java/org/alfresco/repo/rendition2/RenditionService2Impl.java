@@ -67,8 +67,10 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
+import static org.alfresco.model.ContentModel.ASPECT_FAILED_THUMBNAIL_SOURCE;
 import static org.alfresco.model.ContentModel.PROP_CONTENT;
 import static org.alfresco.model.RenditionModel.PROP_RENDITION_CONTENT_URL_HAS_CODE;
+import static org.alfresco.repo.transaction.AlfrescoTransactionSupport.TxnReadState.TXN_NONE;
 import static org.alfresco.service.namespace.QName.createQName;
 
 /**
@@ -162,8 +164,11 @@ public class RenditionService2Impl implements RenditionService2, InitializingBea
         PropertyCheck.mandatory(this, "behaviourFilter", behaviourFilter);
         PropertyCheck.mandatory(this, "ruleService", ruleService);
 
-        // TODO use raw events - This does not appear to work as the wrong node ref is supplied.
-        policyComponent.bindClassBehaviour(ContentServicePolicies.OnContentUpdatePolicy.QNAME, this, new JavaBehaviour(this, "onContentUpdate"));
+        // TODO use raw events
+        policyComponent.bindClassBehaviour(
+                ContentServicePolicies.OnContentUpdatePolicy.QNAME,
+                RenditionModel.ASPECT_RENDITIONED,
+                new JavaBehaviour(this, "onContentUpdate"));
     }
 
     public void render(NodeRef sourceNodeRef, String renditionName)
@@ -187,9 +192,24 @@ public class RenditionService2Impl implements RenditionService2, InitializingBea
                 logger.debug("Request transform for rendition " + renditionName + " on " +sourceNodeRef);
             }
 
-            // The request to do the transform only takes place after the current transaction is committed.
-            // The current transaction may rollback and the results of that transaction must be visible, as the
-            // request takes place in a new transaction.
+            requestTheTransform(sourceNodeRef, renditionDefinition);
+        }
+        catch (Exception e)
+        {
+            logger.debug(e.getMessage());
+            throw e;
+        }
+    }
+
+    // Normally the request to do the transform only takes place after the current transaction is committed.
+    // - The current transaction may rollback and the results of that transaction must be visible, as the
+    //   request takes place in a new transaction.
+    // However if there currently is no transaction request it immediately.
+    private void requestTheTransform(NodeRef sourceNodeRef, RenditionDefinition2 renditionDefinition)
+    {
+        PendingRequest pendingRequest = new PendingRequest(sourceNodeRef, renditionDefinition);
+        if (AlfrescoTransactionSupport.getTransactionReadState() != TXN_NONE)
+        {
             AlfrescoTransactionSupport.bindListener(transactionListener);
             Set<PendingRequest> pendingRequests = AlfrescoTransactionSupport.getResource(POST_TRANSACTION_PENDING_REQUESTS);
             if (pendingRequests == null)
@@ -197,13 +217,11 @@ public class RenditionService2Impl implements RenditionService2, InitializingBea
                 pendingRequests = new HashSet<>();
                 AlfrescoTransactionSupport.bindResource(POST_TRANSACTION_PENDING_REQUESTS, pendingRequests);
             }
-            PendingRequest pendingRequest = new PendingRequest(sourceNodeRef, renditionDefinition);
             pendingRequests.add(pendingRequest);
         }
-        catch (Exception e)
+        else
         {
-            logger.debug(e.getMessage());
-            throw e;
+            pendingRequest.transform();
         }
     }
 
@@ -320,7 +338,7 @@ public class RenditionService2Impl implements RenditionService2, InitializingBea
             {
                 logger.debug("Unexpectedly found " + renditions.size() + " renditions of name " + renditionQName + " on node " + sourceNodeRef);
             }
-            return renditions.get(0);
+            return renditions.get(0); // TODO or content is null
         }
     }
 
@@ -333,6 +351,7 @@ public class RenditionService2Impl implements RenditionService2, InitializingBea
     /**
      *  Takes a transformation (InputStream) and attaches it as a rendition to the source node.
      *  Does nothing if there is already a newer rendition.
+     *  If the transformInputStream is null, this is taken to be a transform failure.
      */
     void consume(NodeRef sourceNodeRef, InputStream transformInputStream, RenditionDefinition2 renditionDefinition,
                  int transformContentUrlHashCode)
@@ -359,7 +378,7 @@ public class RenditionService2Impl implements RenditionService2, InitializingBea
             boolean createRenditionNode = renditionNode == null;
             Date sourceModified = (Date)nodeService.getProperty(sourceNodeRef, ContentModel.PROP_MODIFIED);
             boolean sourceHasAspectRenditioned = nodeService.hasAspect(sourceNodeRef, RenditionModel.ASPECT_RENDITIONED);
-            boolean sourceChanges = !sourceHasAspectRenditioned || createRenditionNode || sourceModified != null;
+            boolean sourceChanges = !sourceHasAspectRenditioned || createRenditionNode || sourceModified != null || transformInputStream == null;
             try
             {
                 if (sourceChanges)
@@ -387,13 +406,22 @@ public class RenditionService2Impl implements RenditionService2, InitializingBea
                     setThumbnailLastModified(sourceNodeRef, renditionName, sourceModified);
                 }
 
-                // Set or replace rendition content
-                ContentWriter contentWriter = contentService.getWriter(renditionNode, DEFAULT_RENDITION_CONTENT_PROP, true);
-                String targetMimetype = renditionDefinition.getTargetMimetype();
-                contentWriter.setMimetype(targetMimetype);
-                contentWriter.setEncoding(DEFAULT_ENCODING);
-                ContentWriter renditionWriter = contentWriter;
-                renditionWriter.putContent(transformInputStream);
+                if (transformInputStream != null)
+                {
+                    // Set or replace rendition content
+                    ContentWriter contentWriter = contentService.getWriter(renditionNode, DEFAULT_RENDITION_CONTENT_PROP, true);
+                    String targetMimetype = renditionDefinition.getTargetMimetype();
+                    contentWriter.setMimetype(targetMimetype);
+                    contentWriter.setEncoding(DEFAULT_ENCODING);
+                    ContentWriter renditionWriter = contentWriter;
+                    renditionWriter.putContent(transformInputStream);
+
+                    // TODO clear ASPECT_FAILED_THUMBNAIL_SOURCE...
+                }
+                else
+                {
+//                    nodeService.addAspect(sourceNodeRef, ASPECT_FAILED_THUMBNAIL_SOURCE, null);
+                }
 
                 if (!sourceHasAspectRenditioned)
                 {
@@ -426,9 +454,9 @@ public class RenditionService2Impl implements RenditionService2, InitializingBea
         String prefix = renditionName + ':';
         final String lastModifiedValue = prefix + sourceModified.getTime();
 
-        if (logger.isDebugEnabled())
+        if (logger.isTraceEnabled())
         {
-            logger.debug("Setting thumbnail last modified date to " + lastModifiedValue +" on source node: " + sourceNodeRef);
+            logger.trace("Setting thumbnail last modified date to " + lastModifiedValue +" on source node: " + sourceNodeRef);
         }
 
         if (nodeService.hasAspect(sourceNodeRef, ContentModel.ASPECT_THUMBNAIL_MODIFICATION))

@@ -232,6 +232,7 @@ public class LocalTransformClient extends AbstractTransformClient implements Tra
                         {
                             logger.debug("Rendition of "+renditionName+" from "+sourceMimetype+" failed", e);
                         }
+                        renditionService2.consume(sourceNodeRef, null, renditionDefinition, sourceContentUrlHashCode);
                         throw e;
                     }
                     return null;
