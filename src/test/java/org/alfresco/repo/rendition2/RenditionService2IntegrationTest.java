@@ -112,35 +112,36 @@ public class RenditionService2IntegrationTest extends BaseSpringTest
 
     // DOCX transformation
 
-    @Test
-    public void testLocalRenderDocxJpegMedium() throws Exception
-    {
-        checkRendition("quick.docx", "medium", true);
-    }
-
-    @Test
-    public void testLocalRenderDocxDoclib() throws Exception
-    {
-        checkRendition("quick.docx", "doclib", true);
-    }
-
-    @Test
-    public void testLocalRenderDocxJpegImgpreview() throws Exception
-    {
-        checkRendition("quick.docx", "imgpreview", true);
-    }
-
-    @Test
-    public void testLocalRenderDocxPngAvatar() throws Exception
-    {
-        checkRendition("quick.docx", "avatar", true);
-    }
-
-    @Test
-    public void testLocalRenderDocxPngAvatar32() throws Exception
-    {
-        checkRendition("quick.docx", "avatar32", true);
-    }
+// JodConverter is not available on Bamboo (without docker), so disable these tests.
+//    @Test
+//    public void testLocalRenderDocxJpegMedium() throws Exception
+//    {
+//        checkRendition("quick.docx", "medium", true);
+//    }
+//
+//    @Test
+//    public void testLocalRenderDocxDoclib() throws Exception
+//    {
+//        checkRendition("quick.docx", "doclib", true);
+//    }
+//
+//    @Test
+//    public void testLocalRenderDocxJpegImgpreview() throws Exception
+//    {
+//        checkRendition("quick.docx", "imgpreview", true);
+//    }
+//
+//    @Test
+//    public void testLocalRenderDocxPngAvatar() throws Exception
+//    {
+//        checkRendition("quick.docx", "avatar", true);
+//    }
+//
+//    @Test
+//    public void testLocalRenderDocxPngAvatar32() throws Exception
+//    {
+//        checkRendition("quick.docx", "avatar32", true);
+//    }
 
     @Test
     public void testLocalRenderDocxFlashWebpreview() throws Exception
