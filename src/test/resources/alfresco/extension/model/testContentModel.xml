@@ -1328,7 +1328,7 @@
            <properties>
                <property name="rn:contentUrlHashCode">
                    <title>Source Modified Date</title>
-                   <type>d:datetime</type>
+                   <type>d:int</type>
                </property>
            </properties>
        </aspect>

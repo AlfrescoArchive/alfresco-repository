@@ -29,12 +29,11 @@ import org.alfresco.model.ContentModel;
 import org.alfresco.model.RenditionModel;
 import org.alfresco.repo.content.ContentServicePolicies;
 import org.alfresco.repo.content.MimetypeMap;
-import org.alfresco.repo.node.NodeServicePolicies;
-import org.alfresco.repo.policy.Behaviour;
 import org.alfresco.repo.policy.BehaviourFilter;
 import org.alfresco.repo.policy.JavaBehaviour;
 import org.alfresco.repo.policy.PolicyComponent;
 import org.alfresco.repo.rendition.RenditionPreventionRegistry;
+import org.alfresco.repo.security.authentication.AuthenticationUtil;
 import org.alfresco.repo.transaction.AlfrescoTransactionSupport;
 import org.alfresco.service.cmr.repository.ChildAssociationRef;
 import org.alfresco.service.cmr.repository.ContentData;
@@ -57,7 +56,6 @@ import org.springframework.beans.factory.InitializingBean;
 
 import java.io.InputStream;
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
@@ -67,10 +65,8 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
-import static org.alfresco.model.ContentModel.ASPECT_FAILED_THUMBNAIL_SOURCE;
 import static org.alfresco.model.ContentModel.PROP_CONTENT;
-import static org.alfresco.model.RenditionModel.PROP_RENDITION_CONTENT_URL_HAS_CODE;
-import static org.alfresco.repo.transaction.AlfrescoTransactionSupport.TxnReadState.TXN_NONE;
+import static org.alfresco.model.RenditionModel.PROP_RENDITION_CONTENT_URL_HASH_CODE;
 import static org.alfresco.service.namespace.QName.createQName;
 
 /**
@@ -100,6 +96,7 @@ public class RenditionService2Impl implements RenditionService2, InitializingBea
     private BehaviourFilter behaviourFilter;
     private RuleService ruleService;
     private boolean enabled;
+    private boolean thumbnailsEnabled;
 
     public void setNodeService(NodeService nodeService)
     {
@@ -152,6 +149,11 @@ public class RenditionService2Impl implements RenditionService2, InitializingBea
         this.enabled = enabled;
     }
 
+    public void setThumbnailsEnabled(boolean thumbnailsEnabled)
+    {
+        this.thumbnailsEnabled = thumbnailsEnabled;
+    }
+
     @Override
     public void afterPropertiesSet() throws Exception
     {
@@ -192,7 +194,8 @@ public class RenditionService2Impl implements RenditionService2, InitializingBea
                 logger.debug("Request transform for rendition " + renditionName + " on " +sourceNodeRef);
             }
 
-            requestTheTransform(sourceNodeRef, renditionDefinition);
+            Object transformInfo = transformClient.checkSupported(sourceNodeRef, renditionDefinition);
+            requestTheTransformAfterCommit(sourceNodeRef, renditionDefinition, transformInfo);
         }
         catch (Exception e)
         {
@@ -201,28 +204,20 @@ public class RenditionService2Impl implements RenditionService2, InitializingBea
         }
     }
 
-    // Normally the request to do the transform only takes place after the current transaction is committed.
-    // - The current transaction may rollback and the results of that transaction must be visible, as the
-    //   request takes place in a new transaction.
-    // However if there currently is no transaction request it immediately.
-    private void requestTheTransform(NodeRef sourceNodeRef, RenditionDefinition2 renditionDefinition)
+    // The request to do the transform only takes place after the current transaction is committed.
+    // - The current transaction may rollback.
+    // - The results of that transaction must be visible, as the request takes place in a new transaction.
+    void requestTheTransformAfterCommit(NodeRef sourceNodeRef, RenditionDefinition2 renditionDefinition, Object transformInfo)
     {
-        PendingRequest pendingRequest = new PendingRequest(sourceNodeRef, renditionDefinition);
-        if (AlfrescoTransactionSupport.getTransactionReadState() != TXN_NONE)
+        AlfrescoTransactionSupport.bindListener(transactionListener);
+        Set<PendingRequest> pendingRequests = AlfrescoTransactionSupport.getResource(POST_TRANSACTION_PENDING_REQUESTS);
+        if (pendingRequests == null)
         {
-            AlfrescoTransactionSupport.bindListener(transactionListener);
-            Set<PendingRequest> pendingRequests = AlfrescoTransactionSupport.getResource(POST_TRANSACTION_PENDING_REQUESTS);
-            if (pendingRequests == null)
-            {
-                pendingRequests = new HashSet<>();
-                AlfrescoTransactionSupport.bindResource(POST_TRANSACTION_PENDING_REQUESTS, pendingRequests);
-            }
-            pendingRequests.add(pendingRequest);
+            pendingRequests = new HashSet<>();
+            AlfrescoTransactionSupport.bindResource(POST_TRANSACTION_PENDING_REQUESTS, pendingRequests);
         }
-        else
-        {
-            pendingRequest.transform();
-        }
+        PendingRequest pendingRequest = new PendingRequest(sourceNodeRef, renditionDefinition, transformInfo);
+        pendingRequests.add(pendingRequest);
     }
 
     /**
@@ -253,7 +248,7 @@ public class RenditionService2Impl implements RenditionService2, InitializingBea
     {
         return renditionNode == null || !nodeService.hasAspect(renditionNode, RenditionModel.ASPECT_RENDITION2)
                 ? -2
-                : DefaultTypeConverter.INSTANCE.convert(Integer.class, nodeService.getProperty(renditionNode, PROP_RENDITION_CONTENT_URL_HAS_CODE));
+                : (int)nodeService.getProperty(renditionNode, PROP_RENDITION_CONTENT_URL_HASH_CODE);
     }
 
     private NodeRef getRenditionNode(NodeRef sourceNodeRef, String renditionName)
@@ -265,8 +260,13 @@ public class RenditionService2Impl implements RenditionService2, InitializingBea
 
     public boolean useRenditionService2(NodeRef sourceNodeRef, String renditionName)
     {
-        NodeRef renditionNode = getRenditionNode(sourceNodeRef, renditionName);
-        return nodeService.hasAspect(renditionNode, RenditionModel.ASPECT_RENDITION2);
+        boolean result = false;
+        if (isEnabled())
+        {
+            NodeRef renditionNode = getRenditionNode(sourceNodeRef, renditionName);
+            result = nodeService.hasAspect(renditionNode, RenditionModel.ASPECT_RENDITION2);
+        }
+        return result;
     }
 
     /**
@@ -345,7 +345,7 @@ public class RenditionService2Impl implements RenditionService2, InitializingBea
     @Override
     public boolean isEnabled()
     {
-        return enabled;
+        return enabled && thumbnailsEnabled;
     }
 
     /**
@@ -400,7 +400,7 @@ public class RenditionService2Impl implements RenditionService2, InitializingBea
                     nodeService.addAspect(renditionNode, RenditionModel.ASPECT_RENDITION2, null);
                     nodeService.addAspect(renditionNode, RenditionModel.ASPECT_HIDDEN_RENDITION, null);
                 }
-                nodeService.setProperty(renditionNode, RenditionModel.PROP_RENDITION_CONTENT_URL_HAS_CODE, transformContentUrlHashCode);
+                nodeService.setProperty(renditionNode, RenditionModel.PROP_RENDITION_CONTENT_URL_HASH_CODE, transformContentUrlHashCode);
                 if (sourceModified != null)
                 {
                     setThumbnailLastModified(sourceNodeRef, renditionName, sourceModified);
@@ -512,22 +512,26 @@ public class RenditionService2Impl implements RenditionService2, InitializingBea
         return renditionNode;
     }
 
-    private class PendingRequest
+    class PendingRequest
     {
         private final NodeRef sourceNodeRef;
         private final RenditionDefinition2 renditionDefinition;
+        private final Object transformInfo;
+        private final String user;
 
-        private PendingRequest(NodeRef sourceNodeRef, RenditionDefinition2 renditionDefinition)
+        PendingRequest(NodeRef sourceNodeRef, RenditionDefinition2 renditionDefinition, Object transformInfo)
         {
             this.sourceNodeRef = sourceNodeRef;
             this.renditionDefinition = renditionDefinition;
+            this.transformInfo = transformInfo;
+            user = AuthenticationUtil.getRunAsUser();
         }
 
         void transform()
         {
             try
             {
-                // Avoid extra transforms that have already been done.
+                // Avoid doing extra transforms that have already been done.
                 String renditionName = renditionDefinition.getRenditionName();
                 int sourceContentUrlHashCode = getSourceContentUrlHashCode(sourceNodeRef);
                 NodeRef renditionNode = getRenditionNode(sourceNodeRef, renditionName);
@@ -537,7 +541,7 @@ public class RenditionService2Impl implements RenditionService2, InitializingBea
                     throw new IllegalStateException("The rendition "+renditionName+" has already been created.");
                 }
 
-                transformClient.transform(sourceNodeRef, renditionDefinition, sourceContentUrlHashCode);
+                transformClient.transform(sourceNodeRef, renditionDefinition, transformInfo, user, sourceContentUrlHashCode);
             }
             catch (Exception e)
             {
@@ -626,6 +630,9 @@ public class RenditionService2Impl implements RenditionService2, InitializingBea
                     String renditionName = childAssocQName.getLocalName();
                     render(sourceNodeRef, renditionName);
                 }
+
+                // TODO what if we have ASPECT_RENDITION2 but there is no rendition description for a new mimetype
+                // with RenditionService2 and there is for RenditionService. Should we do that check in the render method?
             }
         }
     }

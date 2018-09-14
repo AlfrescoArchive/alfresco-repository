@@ -35,9 +35,9 @@ import java.util.Map;
 public abstract class AbstractTransformServiceRegistry implements TransformServiceRegistry
 {
     @Override
-    public boolean isSupported(String sourceMimetype, long size, String targetMimetype, Map<String, String> options)
+    public boolean isSupported(String sourceMimetype, long size, String targetMimetype, String renditionName, Map<String, String> options)
     {
-        Long maxSize = getMaxSize(sourceMimetype, targetMimetype, options);
+        Long maxSize = getMaxSize(sourceMimetype, targetMimetype, renditionName, options);
         return maxSize != null && (maxSize == -1L || maxSize > size);
     }
 }

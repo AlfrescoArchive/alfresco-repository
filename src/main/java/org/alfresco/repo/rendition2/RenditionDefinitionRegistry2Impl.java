@@ -126,12 +126,13 @@ public class RenditionDefinitionRegistry2Impl implements RenditionDefinitionRegi
         {
             RenditionDefinition2 renditionDefinition2 = entry.getValue();
             String targetMimetype = renditionDefinition2.getTargetMimetype();
+            String renditionName = renditionDefinition2.getRenditionName();
             Map<String, String> options = renditionDefinition2.getTransformOptions();
-            Long maxSize = transformServiceRegistry.getMaxSize(sourceMimetype, targetMimetype, options);
+            Long maxSize = transformServiceRegistry.getMaxSize(sourceMimetype, targetMimetype, renditionName, options);
             if (maxSize != null)
             {
-                String renditionName = entry.getKey();
-                Pair<String, Long> pair = new Pair<>(renditionName, maxSize);
+                String renditionNameMaxSizePair = entry.getKey();
+                Pair<String, Long> pair = new Pair<>(renditionNameMaxSizePair, maxSize);
                 renditions.add(pair);
             }
         }

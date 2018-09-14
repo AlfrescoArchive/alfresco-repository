@@ -36,7 +36,6 @@ import org.alfresco.service.cmr.repository.ContentService;
 import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.cmr.repository.NodeService;
 import org.alfresco.service.cmr.rule.RuleService;
-import org.alfresco.service.namespace.NamespaceService;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -87,7 +86,16 @@ public class RenditionService2Test
     @Before
     public void setup() throws Exception
     {
-        renditionService2 = new RenditionService2Impl();
+        renditionService2 = new RenditionService2Impl()
+        {
+            @Override
+            // Avoid using static class TransactionSupportUtil and just do the work in the current thread rather than after commit.
+             void requestTheTransformAfterCommit(NodeRef sourceNodeRef, RenditionDefinition2 renditionDefinition, Object transformInfo)
+            {
+                RenditionService2Impl.PendingRequest pendingRequest = new RenditionService2Impl.PendingRequest(sourceNodeRef, renditionDefinition, transformInfo);
+                pendingRequest.transform();
+            }
+        };
         renditionDefinitionRegistry2 = new RenditionDefinitionRegistry2Impl();
 
         Map<String, String> options = new HashMap<>();
@@ -115,6 +123,7 @@ public class RenditionService2Test
         renditionService2.setBehaviourFilter(behaviourFilter);
         renditionService2.setRuleService(ruleService);
         renditionService2.setEnabled(true);
+        renditionService2.setThumbnailsEnabled(true);
         renditionService2.afterPropertiesSet();
     }
 

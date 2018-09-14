@@ -1403,8 +1403,8 @@
          <title>Rendition2</title>
          <properties>
             <property name="rn:contentUrlHashCode">
-               <title>Source Modified Date</title>
-               <type>d:datetime</type>
+               <title>Hash code of the source content url</title>
+               <type>d:int</type>
             </property>
          </properties>
       </aspect>

@@ -188,7 +188,7 @@ public class LocalTransformClient extends AbstractTransformClient implements Tra
     }
 
     @Override
-    public void transform(NodeRef sourceNodeRef, RenditionDefinition2 renditionDefinition, int sourceContentUrlHashCode)
+    public Object checkSupported(NodeRef sourceNodeRef, RenditionDefinition2 renditionDefinition)
     {
         ContentData contentData = getContentData(sourceNodeRef);
         String contentUrl = contentData.getContentUrl();
@@ -199,7 +199,6 @@ public class LocalTransformClient extends AbstractTransformClient implements Tra
         Map<String, String> options = renditionDefinition.getTransformOptions();
 
         TransformationOptions transformationOptions = getTransformationOptions(renditionName, options);
-        transformationOptions.setUse(renditionName);
         transformationOptions.setSourceNodeRef(sourceNodeRef);
 
         ContentTransformer transformer = contentService.getTransformer(contentUrl, sourceMimetype, size, targetMimetype, transformationOptions);
@@ -211,10 +210,37 @@ public class LocalTransformClient extends AbstractTransformClient implements Tra
         }
         if (logger.isDebugEnabled())
         {
-            logger.debug("Rendition of "+renditionName+" from "+sourceMimetype+" will use "+transformer.getName());
+            logger.debug("Rendition of " + renditionName + " from " + sourceMimetype + " will use " + transformer.getName());
         }
 
-        String user = AuthenticationUtil.getRunAsUser();
+        return new TransformInfo(transformer, transformationOptions);
+    }
+
+    private class TransformInfo
+    {
+        private final ContentTransformer transformer;
+        private final TransformationOptions transformationOptions;
+
+        private TransformInfo(ContentTransformer transformer, TransformationOptions transformationOptions)
+        {
+            this.transformer = transformer;
+            this.transformationOptions = transformationOptions;
+        }
+
+        public ContentTransformer getTransformer()
+        {
+            return transformer;
+        }
+
+        public TransformationOptions getTransformationOptions()
+        {
+            return transformationOptions;
+        }
+    }
+
+    @Override
+    public void transform(NodeRef sourceNodeRef, RenditionDefinition2 renditionDefinition, Object transformInfo, String user, int sourceContentUrlHashCode)
+    {
         executorService.submit(() ->
         {
             AuthenticationUtil.runAs((AuthenticationUtil.RunAsWork<Void>) () ->
@@ -222,6 +248,9 @@ public class LocalTransformClient extends AbstractTransformClient implements Tra
                 {
                     try
                     {
+                        ContentTransformer transformer = ((TransformInfo)transformInfo).getTransformer();
+                        TransformationOptions transformationOptions = ((TransformInfo) transformInfo).getTransformationOptions();
+                        String targetMimetype = renditionDefinition.getTargetMimetype();
                         ContentWriter writer = transform(transformer, sourceNodeRef, targetMimetype, transformationOptions);
                         InputStream inputStream = writer.getReader().getContentInputStream();
                         renditionService2.consume(sourceNodeRef, inputStream, renditionDefinition, sourceContentUrlHashCode);
@@ -230,7 +259,8 @@ public class LocalTransformClient extends AbstractTransformClient implements Tra
                     {
                         if (logger.isDebugEnabled())
                         {
-                            logger.debug("Rendition of "+renditionName+" from "+sourceMimetype+" failed", e);
+                            String renditionName = renditionDefinition.getRenditionName();
+                            logger.debug("Rendition of "+renditionName+" failed", e);
                         }
                         renditionService2.consume(sourceNodeRef, null, renditionDefinition, sourceContentUrlHashCode);
                         throw e;
@@ -329,7 +359,7 @@ public class LocalTransformClient extends AbstractTransformClient implements Tra
         if (transformationOptions == null)
         {
             StringJoiner sj = new StringJoiner("\n    ");
-            sj.add("The RenditionDefinition2 "+(renditionName == null ? "" : renditionName) +
+            sj.add("The RenditionDefinition2 "+renditionName +
                 " contains options that cannot be mapped to TransformationOptions used by local transformers");
             HashSet<String> otherNames = new HashSet<>(optionNames);
             otherNames.removeAll(FLASH_OPTIONS);
@@ -357,6 +387,7 @@ public class LocalTransformClient extends AbstractTransformClient implements Tra
             ifSet(options, OPT_READ_LIMIT_K_BYTES, (v) -> limits.setReadLimitKBytes(Long.parseLong(v)));
         }
 
+        transformationOptions.setUse(renditionName);
         return transformationOptions;
     }
 

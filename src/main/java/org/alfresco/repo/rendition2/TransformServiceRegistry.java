@@ -40,18 +40,20 @@ public interface TransformServiceRegistry
      * @param sourceMimetype Source mimetype of the content.
      * @param size in bytes of the source content. May be {@code -1} if the size should be ignored.
      * @param targetMimetype Target mimetype of the content.
+     * @param renditionName the name of the rendition.
      * @param options Transformation request parameters.
      * @return <code>true</code> if the transformation can be processed by Transformation Service.
      *         <code>false</code> otherwise.
      */
-    public boolean isSupported(String sourceMimetype, long size, String targetMimetype, Map<String, String> options);
+    public boolean isSupported(String sourceMimetype, long size, String targetMimetype, String renditionName, Map<String, String> options);
 
     /**
      * Returns the maximum size the source may be in bytes to still be supported.
      * @param sourceMimetype Source mimetype of the content.
      * @param targetMimetype Target mimetype of the content.
+     * @param renditionName the name of the rendition.
      * @param options Transformation request parameters.
      * @return the number of bytes, {@code -1} if not limited or {@code null} if not supported.
      */
-    public Long getMaxSize(String sourceMimetype, String targetMimetype, Map<String, String> options);
+    public Long getMaxSize(String sourceMimetype, String targetMimetype, String renditionName, Map<String, String> options);
 }

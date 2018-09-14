@@ -26,14 +26,10 @@
 package org.alfresco.repo.rendition2;
 
 import org.alfresco.service.cmr.repository.ContentService;
-import org.alfresco.service.cmr.repository.MimetypeService;
 import org.alfresco.service.cmr.repository.TransformationOptions;
 import org.alfresco.util.PropertyCheck;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.InitializingBean;
 
-import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -58,9 +54,9 @@ public class LocalTransformServiceRegistry extends AbstractTransformServiceRegis
     }
 
     @Override
-    public Long getMaxSize(String sourceMimetype, String targetMimetype, Map<String, String> options)
+    public Long getMaxSize(String sourceMimetype, String targetMimetype, String renditionName, Map<String, String> options)
     {
-        TransformationOptions transformationOptions = LocalTransformClient.getTransformationOptions(null, options);
+        TransformationOptions transformationOptions = LocalTransformClient.getTransformationOptions(renditionName, options);
         long maxSize = contentService.getMaxSourceSizeBytes(sourceMimetype, targetMimetype, transformationOptions);
         return maxSize == 0 ? null : maxSize;
     }
