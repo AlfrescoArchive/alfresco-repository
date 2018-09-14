@@ -115,6 +115,7 @@ public class RenditionDefinitionTest extends TestCase
             RenditionDefinition2 definition2 = renditionDefinitionRegistry2.getRenditionDefinition(renditionName);
             Map<String, String> options = definition2.getTransformOptions();
             TransformationOptions transformationOptions2 = LocalTransformClient.getTransformationOptions(renditionName, options);
+            transformationOptions2.setUse(null); // The use is not set in the original until much later
 
             // These 2 original thumbnails are wrong, as they don't include the 'limits' and in the
             // case of 'pdf' used the wrong TransformationOptions subclass, so don't use them.
