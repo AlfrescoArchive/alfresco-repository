@@ -265,7 +265,10 @@ public class RenditionService2Impl implements RenditionService2, InitializingBea
         if (isEnabled())
         {
             NodeRef renditionNode = getRenditionNode(sourceNodeRef, renditionName);
-            result = nodeService.hasAspect(renditionNode, RenditionModel.ASPECT_RENDITION2);
+            if (renditionNode != null)
+            {
+                result = nodeService.hasAspect(renditionNode, RenditionModel.ASPECT_RENDITION2);
+            }
         }
         return result;
     }

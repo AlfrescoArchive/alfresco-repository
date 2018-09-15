@@ -646,7 +646,7 @@ public class RenditionServiceImpl implements
 
         QName renditionQName = rendDefn.getRenditionName();
         String renditionName = renditionQName.getLocalName();
-        if (!useRenditionService2 && ((RenditionService2Impl)renditionService2).useRenditionService2(sourceNodeRef, renditionName))
+        if (renditionService2.useRenditionService2(sourceNodeRef, renditionName))
         {
             // The rendition has been created by RenditionService2 and the older RenditionService
             // should leave it to the newer service to do the work.
