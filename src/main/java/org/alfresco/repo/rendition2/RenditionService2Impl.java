@@ -338,7 +338,7 @@ public class RenditionService2Impl implements RenditionService2, InitializingBea
         if (nodeService.hasAspect(renditionNode, RenditionModel.ASPECT_RENDITION2))
         {
             Serializable contentUrl = nodeService.getProperty(renditionNode, ContentModel.PROP_CONTENT);
-            if (contentUrl != null)
+            if (contentUrl == null)
             {
                 failedRendition = true;
             }
