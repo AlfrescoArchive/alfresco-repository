@@ -56,6 +56,7 @@ import org.springframework.beans.factory.InitializingBean;
 
 import java.io.InputStream;
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
@@ -297,8 +298,7 @@ public class RenditionService2Impl implements RenditionService2, InitializingBea
         }
     }
 
-    @Override
-    public List<ChildAssociationRef> getRenditionChildAssociations(NodeRef sourceNodeRef)
+    private List<ChildAssociationRef> getRenditionChildAssociations(NodeRef sourceNodeRef)
     {
         // Copy on code from the original RenditionService.
         List<ChildAssociationRef> result = Collections.emptyList();
@@ -313,6 +313,41 @@ public class RenditionService2Impl implements RenditionService2, InitializingBea
     }
 
     @Override
+    // Only returns valid renditions. These may be from RenditionService2 or original RenditionService.
+    public List<ChildAssociationRef> getRenditions(NodeRef sourceNodeRef)
+    {
+        List<ChildAssociationRef> result = new ArrayList<>();
+        List<ChildAssociationRef> childAsocs = getRenditionChildAssociations(sourceNodeRef);
+
+        for (ChildAssociationRef childAssoc : childAsocs)
+        {
+            NodeRef renditionNode =  childAssoc.getChildRef();
+            if (!failedRendition(renditionNode))
+            {
+                result.add(childAssoc);
+            }
+        }
+        return result;
+    }
+
+    // RenditionService2 has renditions under the source node even for failed renditions, but the
+    // content will be missing. The original RenditionService removes the rendition.
+    public boolean failedRendition(NodeRef renditionNode)
+    {
+        boolean failedRendition = false;
+        if (nodeService.hasAspect(renditionNode, RenditionModel.ASPECT_RENDITION2))
+        {
+            Serializable contentUrl = nodeService.getProperty(renditionNode, ContentModel.PROP_CONTENT);
+            if (contentUrl != null)
+            {
+                failedRendition = true;
+            }
+        }
+        return failedRendition;
+    }
+
+    @Override
+    // Only returns a valid renditions. This may be from RenditionService2 or original RenditionService.
     public ChildAssociationRef getRenditionByName(NodeRef sourceNodeRef, String renditionName)
     {
         // Based on code from the original RenditionService. renditionName is a String rather than a QName.
@@ -338,7 +373,9 @@ public class RenditionService2Impl implements RenditionService2, InitializingBea
             {
                 logger.debug("Unexpectedly found " + renditions.size() + " renditions of name " + renditionQName + " on node " + sourceNodeRef);
             }
-            return renditions.get(0); // TODO or content is null
+            ChildAssociationRef childAssoc = renditions.get(0);
+            NodeRef renditionNode = childAssoc.getChildRef();
+            return failedRendition(renditionNode) ? null: childAssoc;
         }
     }
 
@@ -415,12 +452,14 @@ public class RenditionService2Impl implements RenditionService2, InitializingBea
                     contentWriter.setEncoding(DEFAULT_ENCODING);
                     ContentWriter renditionWriter = contentWriter;
                     renditionWriter.putContent(transformInputStream);
-
-                    // TODO clear ASPECT_FAILED_THUMBNAIL_SOURCE...
                 }
                 else
                 {
-//                    nodeService.addAspect(sourceNodeRef, ASPECT_FAILED_THUMBNAIL_SOURCE, null);
+                    Serializable content = nodeService.getProperty(sourceNodeRef, PROP_CONTENT);
+                    if (content != null)
+                    {
+                        nodeService.removeProperty(sourceNodeRef, PROP_CONTENT);
+                    }
                 }
 
                 if (!sourceHasAspectRenditioned)

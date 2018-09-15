@@ -93,7 +93,7 @@ public class RenditionServiceImpl implements
     private DictionaryService dictionaryService;
     private NodeService nodeService;
     private PolicyComponent policyComponent;
-    private RenditionService2 renditionService2;
+    private RenditionService2Impl renditionService2;
 
     private RenditionDefinitionPersister renditionDefinitionPersister;
     
@@ -179,7 +179,7 @@ public class RenditionServiceImpl implements
         this.knownCancellableActionTypes = knownCancellableActionTypes;
     }
 
-    public void setRenditionService2(RenditionService2 renditionService2)
+    public void setRenditionService2(RenditionService2Impl renditionService2)
     {
         this.renditionService2 = renditionService2;
     }
@@ -467,16 +467,7 @@ public class RenditionServiceImpl implements
      */
     public List<ChildAssociationRef> getRenditions(NodeRef node)
     {
-        List<ChildAssociationRef> result = Collections.emptyList();
-
-        // Check that the node has the renditioned aspect applied
-        if (nodeService.hasAspect(node, RenditionModel.ASPECT_RENDITIONED) == true)
-        {
-            // Get all the renditions that match the given rendition name
-            result = nodeService.getChildAssocs(node, RenditionModel.ASSOC_RENDITION, RegexQNamePattern.MATCH_ALL);
-
-        }
-        return result;
+        return renditionService2.getRenditions(node);
     }
 
     /*
@@ -542,7 +533,9 @@ public class RenditionServiceImpl implements
             {
                 log.debug("Unexpectedly found " + renditions.size() + " renditions of name " + renditionName + " on node " + node);
             }
-            return renditions.get(0);
+            ChildAssociationRef childAssoc = renditions.get(0);
+            NodeRef renditionNode = childAssoc.getChildRef();
+            return renditionService2.failedRendition(renditionNode) ? null: childAssoc;
         }
     }
 

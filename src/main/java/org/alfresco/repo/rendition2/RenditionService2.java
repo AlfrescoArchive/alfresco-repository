@@ -63,7 +63,7 @@ public interface RenditionService2
      * @return a list of {@link ChildAssociationRef}s which link the {@code sourceNodeRef} to the renditions.
      */
     @NotAuditable
-    List<ChildAssociationRef> getRenditionChildAssociations(NodeRef sourceNodeRef);
+    List<ChildAssociationRef> getRenditions(NodeRef sourceNodeRef);
 
     /**
      * This method gets the rendition of the {@code sourceNodeRef} identified by its name.
