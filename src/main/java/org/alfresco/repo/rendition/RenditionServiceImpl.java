@@ -42,7 +42,6 @@ import org.alfresco.repo.policy.PolicyComponent;
 import org.alfresco.repo.rendition.executer.AbstractRenderingEngine;
 import org.alfresco.repo.rendition2.RenditionDefinition2;
 import org.alfresco.repo.rendition2.RenditionDefinitionRegistry2;
-import org.alfresco.repo.rendition2.RenditionService2;
 import org.alfresco.repo.rendition2.RenditionService2Impl;
 import org.alfresco.repo.security.authentication.AuthenticationUtil;
 import org.alfresco.service.ServiceRegistry;
@@ -64,7 +63,6 @@ import org.alfresco.service.cmr.repository.ContentReader;
 import org.alfresco.service.cmr.repository.ContentService;
 import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.cmr.repository.NodeService;
-import org.alfresco.service.cmr.repository.StoreRef;
 import org.alfresco.service.namespace.QName;
 import org.alfresco.service.namespace.RegexQNamePattern;
 import org.alfresco.util.GUID;
@@ -535,7 +533,7 @@ public class RenditionServiceImpl implements
             }
             ChildAssociationRef childAssoc = renditions.get(0);
             NodeRef renditionNode = childAssoc.getChildRef();
-            return renditionService2.failedRendition(renditionNode) ? null: childAssoc;
+            return renditionService2.isFailedRendition(renditionNode) ? null: childAssoc;
         }
     }
 
@@ -646,7 +644,7 @@ public class RenditionServiceImpl implements
 
         QName renditionQName = rendDefn.getRenditionName();
         String renditionName = renditionQName.getLocalName();
-        if (renditionService2.useRenditionService2(sourceNodeRef, renditionName))
+        if (renditionService2.isCreatedByRenditionService2(sourceNodeRef, renditionName))
         {
             // The rendition has been created by RenditionService2 and the older RenditionService
             // should leave it to the newer service to do the work.

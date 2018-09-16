@@ -263,7 +263,7 @@ public class LocalTransformClient extends AbstractTransformClient implements Tra
                             logger.debug("Rendition of "+renditionName+" failed", e);
                         }
                         renditionService2.consume(sourceNodeRef, null, renditionDefinition, sourceContentUrlHashCode);
-                        throw e;
+                        // don't throw the original exception as we want to clear the rendition's contentUrl
                     }
                     return null;
                 }), user);

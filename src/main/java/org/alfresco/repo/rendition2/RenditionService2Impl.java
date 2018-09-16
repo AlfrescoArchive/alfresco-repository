@@ -180,7 +180,7 @@ public class RenditionService2Impl implements RenditionService2, InitializingBea
         {
             if (!isEnabled())
             {
-                throw new RenditionService2Exception("Renditions are disabled (system.thumbnail.generate=false).");
+                throw new RenditionService2Exception("Renditions are disabled (system.thumbnail.generate=false or renditionService2.enabled=false).");
             }
             checkSourceNodeForPreventionClass(sourceNodeRef);
 
@@ -259,7 +259,7 @@ public class RenditionService2Impl implements RenditionService2, InitializingBea
         return renditionAssocs.isEmpty() ? null : renditionAssocs.get(0).getChildRef();
     }
 
-    public boolean useRenditionService2(NodeRef sourceNodeRef, String renditionName)
+    public boolean isCreatedByRenditionService2(NodeRef sourceNodeRef, String renditionName)
     {
         boolean result = false;
         if (isEnabled())
@@ -325,7 +325,7 @@ public class RenditionService2Impl implements RenditionService2, InitializingBea
         for (ChildAssociationRef childAssoc : childAsocs)
         {
             NodeRef renditionNode =  childAssoc.getChildRef();
-            if (!failedRendition(renditionNode))
+            if (!isFailedRendition(renditionNode))
             {
                 result.add(childAssoc);
             }
@@ -335,7 +335,7 @@ public class RenditionService2Impl implements RenditionService2, InitializingBea
 
     // RenditionService2 has renditions under the source node even for failed renditions, but the
     // content will be missing. The original RenditionService removes the rendition.
-    public boolean failedRendition(NodeRef renditionNode)
+    public boolean isFailedRendition(NodeRef renditionNode)
     {
         boolean failedRendition = false;
         if (nodeService.hasAspect(renditionNode, RenditionModel.ASPECT_RENDITION2))
@@ -343,6 +343,10 @@ public class RenditionService2Impl implements RenditionService2, InitializingBea
             Serializable contentUrl = nodeService.getProperty(renditionNode, ContentModel.PROP_CONTENT);
             if (contentUrl == null)
             {
+                if (logger.isDebugEnabled())
+                {
+                    logger.debug("Failed rendition excluded");
+                }
                 failedRendition = true;
             }
         }
@@ -378,7 +382,7 @@ public class RenditionService2Impl implements RenditionService2, InitializingBea
             }
             ChildAssociationRef childAssoc = renditions.get(0);
             NodeRef renditionNode = childAssoc.getChildRef();
-            return failedRendition(renditionNode) ? null: childAssoc;
+            return isFailedRendition(renditionNode) ? null: childAssoc;
         }
     }
 
@@ -410,7 +414,8 @@ public class RenditionService2Impl implements RenditionService2, InitializingBea
         {
             if (logger.isDebugEnabled())
             {
-                logger.debug("Use transform for rendition " + renditionName + " on " + sourceNodeRef);
+                logger.debug("Set the content of rendition " + renditionName + " on " + sourceNodeRef +
+                        (transformInputStream == null ? " to null as the transform failed" : " to the transform result"));
             }
 
             // Ensure that the creation of a rendition does not cause updates to the modified, modifier properties on the source node
@@ -458,10 +463,10 @@ public class RenditionService2Impl implements RenditionService2, InitializingBea
                 }
                 else
                 {
-                    Serializable content = nodeService.getProperty(sourceNodeRef, PROP_CONTENT);
+                    Serializable content = nodeService.getProperty(renditionNode, PROP_CONTENT);
                     if (content != null)
                     {
-                        nodeService.removeProperty(sourceNodeRef, PROP_CONTENT);
+                        nodeService.removeProperty(renditionNode, PROP_CONTENT);
                     }
                 }
 
