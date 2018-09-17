@@ -42,6 +42,7 @@ import org.alfresco.service.transaction.TransactionService;
 import org.alfresco.util.BaseSpringTest;
 import org.alfresco.util.GUID;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.ResourceUtils;
@@ -112,36 +113,37 @@ public class RenditionService2IntegrationTest extends BaseSpringTest
 
     // DOCX transformation
 
-// JodConverter is not available on Bamboo (without docker), so disable these tests.
-//    @Test
-//    public void testLocalRenderDocxJpegMedium() throws Exception
-//    {
-//        checkRendition("quick.docx", "medium", true);
-//    }
-//
-//    @Test
-//    public void testLocalRenderDocxDoclib() throws Exception
-//    {
-//        checkRendition("quick.docx", "doclib", true);
-//    }
-//
-//    @Test
-//    public void testLocalRenderDocxJpegImgpreview() throws Exception
-//    {
-//        checkRendition("quick.docx", "imgpreview", true);
-//    }
-//
-//    @Test
-//    public void testLocalRenderDocxPngAvatar() throws Exception
-//    {
-//        checkRendition("quick.docx", "avatar", true);
-//    }
-//
-//    @Test
-//    public void testLocalRenderDocxPngAvatar32() throws Exception
-//    {
-//        checkRendition("quick.docx", "avatar32", true);
-//    }
+    @Test
+    @Ignore("this is bug")
+    public void testLocalRenderDocxJpegMedium() throws Exception
+    {
+        checkRendition("quick.docx", "medium", true);
+    }
+
+    @Test
+    public void testLocalRenderDocxDoclib() throws Exception
+    {
+        checkRendition("quick.docx", "doclib", true);
+    }
+
+    @Test
+    @Ignore("this is bug")
+    public void testLocalRenderDocxJpegImgpreview() throws Exception
+    {
+        checkRendition("quick.docx", "imgpreview", true);
+    }
+
+    @Test
+    public void testLocalRenderDocxPngAvatar() throws Exception
+    {
+        checkRendition("quick.docx", "avatar", true);
+    }
+
+    @Test
+    public void testLocalRenderDocxPngAvatar32() throws Exception
+    {
+        checkRendition("quick.docx", "avatar32", true);
+    }
 
     @Test
     public void testLocalRenderDocxFlashWebpreview() throws Exception
@@ -166,7 +168,7 @@ public class RenditionService2IntegrationTest extends BaseSpringTest
                 return contentNode;
             });
             ChildAssociationRef childAssociationRef = null;
-            for (int i = 0; i < 5; i++)
+            for (int i = 0; i < 20; i++)
             {
                 childAssociationRef = renditionService2.getRenditionByName(sourceNode, renditionDefinitionName);
                 if (childAssociationRef != null)
