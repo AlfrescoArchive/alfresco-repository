@@ -365,6 +365,10 @@ public class RenditionService2Impl implements RenditionService2, InitializingBea
                 }
             }
         }
+        if (available && logger.isTraceEnabled())
+        {
+            logger.trace("Rendition included");
+        }
         return available;
     }
 
@@ -454,7 +458,6 @@ public class RenditionService2Impl implements RenditionService2, InitializingBea
                     renditionNode = createRenditionNode(sourceNodeRef, renditionDefinition);
                 }
 
-                behaviourFilter.disableBehaviour(renditionNode, ContentModel.ASPECT_AUDITABLE);
                 if (createRenditionNode)
                 {
                     nodeService.addAspect(renditionNode, RenditionModel.ASPECT_RENDITION2, null);
@@ -509,10 +512,6 @@ public class RenditionService2Impl implements RenditionService2, InitializingBea
                     behaviourFilter.enableBehaviour(sourceNodeRef, ContentModel.ASPECT_AUDITABLE);
                     behaviourFilter.enableBehaviour(sourceNodeRef, ContentModel.ASPECT_VERSIONABLE);
                     ruleService.enableRuleType(RuleType.UPDATE);
-                }
-                if (renditionNode != null)
-                {
-                    behaviourFilter.enableBehaviour(renditionNode, ContentModel.ASPECT_AUDITABLE);
                 }
             }
         }
