@@ -567,14 +567,14 @@ public class RenditionService2Impl implements RenditionService2, InitializingBea
         return renditionNode;
     }
 
-    class PendingRequest
+    public class PendingRequest
     {
         private final NodeRef sourceNodeRef;
         private final RenditionDefinition2 renditionDefinition;
         private final Object transformInfo;
         private final String user;
 
-        PendingRequest(NodeRef sourceNodeRef, RenditionDefinition2 renditionDefinition, Object transformInfo)
+        public PendingRequest(NodeRef sourceNodeRef, RenditionDefinition2 renditionDefinition, Object transformInfo)
         {
             this.sourceNodeRef = sourceNodeRef;
             this.renditionDefinition = renditionDefinition;

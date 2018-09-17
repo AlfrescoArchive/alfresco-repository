@@ -26,18 +26,11 @@
 package org.alfresco.repo.rendition2;
 
 import org.alfresco.model.ContentModel;
-import org.alfresco.repo.rendition.RenditionPreventionRegistry;
-import org.alfresco.service.cmr.rendition.RenditionPreventedException;
 import org.alfresco.service.cmr.repository.ContentData;
 import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.cmr.repository.NodeService;
-import org.alfresco.service.namespace.QName;
 import org.alfresco.util.PropertyCheck;
-import org.apache.commons.logging.Log;
-import org.apache.xpath.operations.Bool;
 import org.springframework.beans.factory.InitializingBean;
-
-import java.util.Set;
 
 /**
  * Contains common code used in TransformClients.

@@ -86,16 +86,7 @@ public class RenditionService2Test
     @Before
     public void setup() throws Exception
     {
-        renditionService2 = new RenditionService2Impl()
-        {
-            @Override
-            // Avoid using static class TransactionSupportUtil and just do the work in the current thread rather than after commit.
-             void requestTheTransformAfterCommit(NodeRef sourceNodeRef, RenditionDefinition2 renditionDefinition, Object transformInfo)
-            {
-                RenditionService2Impl.PendingRequest pendingRequest = new RenditionService2Impl.PendingRequest(sourceNodeRef, renditionDefinition, transformInfo);
-                pendingRequest.transform();
-            }
-        };
+        renditionService2 = new RenditionService2ImplForTesting();
         renditionDefinitionRegistry2 = new RenditionDefinitionRegistry2Impl();
 
         Map<String, String> options = new HashMap<>();
