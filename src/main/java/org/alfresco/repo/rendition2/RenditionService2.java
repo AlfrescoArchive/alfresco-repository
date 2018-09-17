@@ -33,10 +33,28 @@ import java.util.List;
 
 /**
  * The Async Rendition service. Replaces the original rendition services which included synchronous renditions and
- * asynchronous methods with call backs.<p/>
+ * asynchronous methods with Java call backs.<p/>
  *
  * Renditions are defined as {@link RenditionDefinition2}s and may be registered and looked by the associated
- * {@link RenditionDefinitionRegistry2}.
+ * {@link RenditionDefinitionRegistry2}.<p/>
+ *
+ * Unlike the original RenditionService this service, it:
+ * <ul>
+ *     <li>Performs async renditions without a Java callback, as another node in the cluster may complete the rendition.
+ *     The current node requests a transform, but another node might take the resulting transform and turn it into a
+ *     rendition if the external Transform Service is used.</li>
+ *     <li>Reduces the configurable options to do with with the associations of rendition nodes, their type. They
+ *     are identical to 'hidden' (not normally seen as nodes in their own right in a
+ *     UI) renditions produced by the original service. So, they are always directly under the source node connected by a
+ *     {@code}rn:rendition{@code} association with the name of the rendition.</li>
+ *     <li>The rendition nodes additionally have a {@code}rn:rendition2{@code} aspect and a {@code}contentUrlHashCode{@code}
+ *     property. This property contains a value that allows the service to work out if it holds a rendition of the
+ *     source node's current content.</li>
+ *     <li>Failures are handled by setting the rendition node's content to null.</li>
+ *     <li>When a rendition is requested via the REST API, only the newer service is used.</li>
+ *     <li>Where possible old service renditions migrate automatically over to the new service when content on a
+ *     source node is updated.</li>
+ * </ul>
  *
  * @author adavis
  */

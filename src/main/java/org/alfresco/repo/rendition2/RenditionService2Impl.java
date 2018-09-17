@@ -453,15 +453,23 @@ public class RenditionService2Impl implements RenditionService2, InitializingBea
 
                 if (transformInputStream != null)
                 {
-                    // Set or replace rendition content
-                    ContentWriter contentWriter = contentService.getWriter(renditionNode, DEFAULT_RENDITION_CONTENT_PROP, true);
-                    String targetMimetype = renditionDefinition.getTargetMimetype();
-                    contentWriter.setMimetype(targetMimetype);
-                    contentWriter.setEncoding(DEFAULT_ENCODING);
-                    ContentWriter renditionWriter = contentWriter;
-                    renditionWriter.putContent(transformInputStream);
+                    try
+                    {
+                        // Set or replace rendition content
+                        ContentWriter contentWriter = contentService.getWriter(renditionNode, DEFAULT_RENDITION_CONTENT_PROP, true);
+                        String targetMimetype = renditionDefinition.getTargetMimetype();
+                        contentWriter.setMimetype(targetMimetype);
+                        contentWriter.setEncoding(DEFAULT_ENCODING);
+                        ContentWriter renditionWriter = contentWriter;
+                        renditionWriter.putContent(transformInputStream);
+                    }
+                    catch (Exception e)
+                    {
+                        transformInputStream = null;
+                        logger.error("Failed to read transform InputStream into rendition " + renditionName + " on " + sourceNodeRef);
+                    }
                 }
-                else
+                if (transformInputStream == null)
                 {
                     Serializable content = nodeService.getProperty(renditionNode, PROP_CONTENT);
                     if (content != null)
