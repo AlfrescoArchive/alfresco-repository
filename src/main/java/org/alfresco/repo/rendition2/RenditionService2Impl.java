@@ -325,7 +325,7 @@ public class RenditionService2Impl implements RenditionService2, InitializingBea
         for (ChildAssociationRef childAssoc : childAsocs)
         {
             NodeRef renditionNode =  childAssoc.getChildRef();
-            if (!isFailedRendition(renditionNode))
+            if (isRenditionAvailable(sourceNodeRef, renditionNode))
             {
                 result.add(childAssoc);
             }
@@ -333,11 +333,13 @@ public class RenditionService2Impl implements RenditionService2, InitializingBea
         return result;
     }
 
-    // RenditionService2 has renditions under the source node even for failed renditions, but the
-    // content will be missing. The original RenditionService removes the rendition.
-    public boolean isFailedRendition(NodeRef renditionNode)
+    /**
+     * Indicates if the rendition is available. Failed renditions (there was an error) don't have a contentUrl
+     * and out of date renditions don't have a matching contentUrlHashCode.
+     */
+    public boolean isRenditionAvailable(NodeRef sourceNodeRef, NodeRef renditionNode)
     {
-        boolean failedRendition = false;
+        boolean available = true;
         if (nodeService.hasAspect(renditionNode, RenditionModel.ASPECT_RENDITION2))
         {
             Serializable contentUrl = nodeService.getProperty(renditionNode, ContentModel.PROP_CONTENT);
@@ -347,10 +349,23 @@ public class RenditionService2Impl implements RenditionService2, InitializingBea
                 {
                     logger.debug("Failed rendition excluded");
                 }
-                failedRendition = true;
+                available = false;
+            }
+            else
+            {
+                int sourceContentUrlHashCode = getSourceContentUrlHashCode(sourceNodeRef);
+                int renditionContentUrlHashCode = getRenditionContentUrlHashCode(renditionNode);
+                if (sourceContentUrlHashCode != renditionContentUrlHashCode)
+                {
+                    if (logger.isDebugEnabled())
+                    {
+                        logger.debug("Out of date rendition excluded");
+                    }
+                    available = false;
+                }
             }
         }
-        return failedRendition;
+        return available;
     }
 
     @Override
@@ -382,7 +397,7 @@ public class RenditionService2Impl implements RenditionService2, InitializingBea
             }
             ChildAssociationRef childAssoc = renditions.get(0);
             NodeRef renditionNode = childAssoc.getChildRef();
-            return isFailedRendition(renditionNode) ? null: childAssoc;
+            return !isRenditionAvailable(sourceNodeRef, renditionNode) ? null: childAssoc;
         }
     }
 
@@ -397,7 +412,7 @@ public class RenditionService2Impl implements RenditionService2, InitializingBea
      *  Does nothing if there is already a newer rendition.
      *  If the transformInputStream is null, this is taken to be a transform failure.
      */
-    void consume(NodeRef sourceNodeRef, InputStream transformInputStream, RenditionDefinition2 renditionDefinition,
+    public void consume(NodeRef sourceNodeRef, InputStream transformInputStream, RenditionDefinition2 renditionDefinition,
                  int transformContentUrlHashCode)
     {
         String renditionName = renditionDefinition.getRenditionName();

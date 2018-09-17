@@ -533,7 +533,7 @@ public class RenditionServiceImpl implements
             }
             ChildAssociationRef childAssoc = renditions.get(0);
             NodeRef renditionNode = childAssoc.getChildRef();
-            return renditionService2.isFailedRendition(renditionNode) ? null: childAssoc;
+            return !renditionService2.isRenditionAvailable(node, renditionNode) ? null: childAssoc;
         }
     }
 
