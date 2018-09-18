@@ -34,7 +34,7 @@ import org.alfresco.service.cmr.repository.NodeRef;
 public class RenditionService2ImplForTesting extends RenditionService2Impl
 {
     @Override
-    void requestTheTransformAfterCommit(NodeRef sourceNodeRef, RenditionDefinition2 renditionDefinition, Object transformInfo)
+    void requestTheTransformAfterCommit(NodeRef sourceNodeRef, RenditionDefinition2 renditionDefinition)
     {
         PendingRequest pendingRequest =
                 new PendingRequest(sourceNodeRef, renditionDefinition);
