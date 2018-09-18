@@ -37,7 +37,7 @@ public class RenditionService2ImplForTesting extends RenditionService2Impl
     void requestTheTransformAfterCommit(NodeRef sourceNodeRef, RenditionDefinition2 renditionDefinition, Object transformInfo)
     {
         PendingRequest pendingRequest =
-                new PendingRequest(sourceNodeRef, renditionDefinition, transformInfo);
+                new PendingRequest(sourceNodeRef, renditionDefinition);
         pendingRequest.transform();
     }
 }

@@ -195,8 +195,8 @@ public class RenditionService2Impl implements RenditionService2, InitializingBea
                 logger.debug("Request transform for rendition " + renditionName + " on " +sourceNodeRef);
             }
 
-            Object transformInfo = transformClient.checkSupported(sourceNodeRef, renditionDefinition);
-            requestTheTransformAfterCommit(sourceNodeRef, renditionDefinition, transformInfo);
+            transformClient.checkSupported(sourceNodeRef, renditionDefinition);
+            requestTheTransformAfterCommit(sourceNodeRef, renditionDefinition);
         }
         catch (Exception e)
         {
@@ -208,7 +208,7 @@ public class RenditionService2Impl implements RenditionService2, InitializingBea
     // The request to do the transform only takes place after the current transaction is committed.
     // - The current transaction may rollback.
     // - The results of that transaction must be visible, as the request takes place in a new transaction.
-    void requestTheTransformAfterCommit(NodeRef sourceNodeRef, RenditionDefinition2 renditionDefinition, Object transformInfo)
+    void requestTheTransformAfterCommit(NodeRef sourceNodeRef, RenditionDefinition2 renditionDefinition)
     {
         AlfrescoTransactionSupport.bindListener(transactionListener);
         Set<PendingRequest> pendingRequests = AlfrescoTransactionSupport.getResource(POST_TRANSACTION_PENDING_REQUESTS);
@@ -217,7 +217,7 @@ public class RenditionService2Impl implements RenditionService2, InitializingBea
             pendingRequests = new HashSet<>();
             AlfrescoTransactionSupport.bindResource(POST_TRANSACTION_PENDING_REQUESTS, pendingRequests);
         }
-        PendingRequest pendingRequest = new PendingRequest(sourceNodeRef, renditionDefinition, transformInfo);
+        PendingRequest pendingRequest = new PendingRequest(sourceNodeRef, renditionDefinition);
         pendingRequests.add(pendingRequest);
     }
 
@@ -585,14 +585,12 @@ public class RenditionService2Impl implements RenditionService2, InitializingBea
     {
         private final NodeRef sourceNodeRef;
         private final RenditionDefinition2 renditionDefinition;
-        private final Object transformInfo;
         private final String user;
 
-        public PendingRequest(NodeRef sourceNodeRef, RenditionDefinition2 renditionDefinition, Object transformInfo)
+        public PendingRequest(NodeRef sourceNodeRef, RenditionDefinition2 renditionDefinition)
         {
             this.sourceNodeRef = sourceNodeRef;
             this.renditionDefinition = renditionDefinition;
-            this.transformInfo = transformInfo;
             user = AuthenticationUtil.getRunAsUser();
         }
 
@@ -610,7 +608,7 @@ public class RenditionService2Impl implements RenditionService2, InitializingBea
                     throw new IllegalStateException("The rendition "+renditionName+" has already been created.");
                 }
 
-                transformClient.transform(sourceNodeRef, renditionDefinition, transformInfo, user, sourceContentUrlHashCode);
+                transformClient.transform(sourceNodeRef, renditionDefinition, user, sourceContentUrlHashCode);
             }
             catch (Exception e)
             {

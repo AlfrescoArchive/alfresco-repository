@@ -188,7 +188,7 @@ public class LocalTransformClient extends AbstractTransformClient implements Tra
     }
 
     @Override
-    public Object checkSupported(NodeRef sourceNodeRef, RenditionDefinition2 renditionDefinition)
+    public void checkSupported(NodeRef sourceNodeRef, RenditionDefinition2 renditionDefinition)
     {
         ContentData contentData = getContentData(sourceNodeRef);
         String contentUrl = contentData.getContentUrl();
@@ -212,34 +212,10 @@ public class LocalTransformClient extends AbstractTransformClient implements Tra
         {
             logger.debug("Rendition of " + renditionName + " from " + sourceMimetype + " will use " + transformer.getName());
         }
-
-        return new TransformInfo(transformer, transformationOptions);
-    }
-
-    private class TransformInfo
-    {
-        private final ContentTransformer transformer;
-        private final TransformationOptions transformationOptions;
-
-        private TransformInfo(ContentTransformer transformer, TransformationOptions transformationOptions)
-        {
-            this.transformer = transformer;
-            this.transformationOptions = transformationOptions;
-        }
-
-        public ContentTransformer getTransformer()
-        {
-            return transformer;
-        }
-
-        public TransformationOptions getTransformationOptions()
-        {
-            return transformationOptions;
-        }
     }
 
     @Override
-    public void transform(NodeRef sourceNodeRef, RenditionDefinition2 renditionDefinition, Object transformInfo, String user, int sourceContentUrlHashCode)
+    public void transform(NodeRef sourceNodeRef, RenditionDefinition2 renditionDefinition, String user, int sourceContentUrlHashCode)
     {
         executorService.submit(() ->
         {
@@ -248,10 +224,23 @@ public class LocalTransformClient extends AbstractTransformClient implements Tra
                 {
                     try
                     {
-                        ContentTransformer transformer = ((TransformInfo)transformInfo).getTransformer();
-                        TransformationOptions transformationOptions = ((TransformInfo) transformInfo).getTransformationOptions();
                         String targetMimetype = renditionDefinition.getTargetMimetype();
-                        ContentWriter writer = transform(transformer, sourceNodeRef, targetMimetype, transformationOptions);
+                        String renditionName = renditionDefinition.getRenditionName();
+                        Map<String, String> options = renditionDefinition.getTransformOptions();
+
+                        TransformationOptions transformationOptions = getTransformationOptions(renditionName, options);
+                        transformationOptions.setSourceNodeRef(sourceNodeRef);
+
+                        ContentReader reader = LocalTransformClient.this.contentService.getReader(sourceNodeRef, ContentModel.PROP_CONTENT);
+                        if (null == reader || !reader.exists())
+                        {
+                            throw new IllegalArgumentException("The supplied sourceNodeRef "+sourceNodeRef+" has no content.");
+                        }
+
+                        ContentWriter writer = contentService.getTempWriter();
+                        writer.setMimetype(targetMimetype);
+                        contentService.transform(reader, writer, transformationOptions);
+
                         InputStream inputStream = writer.getReader().getContentInputStream();
                         renditionService2.consume(sourceNodeRef, inputStream, renditionDefinition, sourceContentUrlHashCode);
                     }
@@ -402,20 +391,5 @@ public class LocalTransformClient extends AbstractTransformClient implements Tra
         {
             setter.set(value);
         }
-    }
-
-    private ContentWriter transform(ContentTransformer transformer, NodeRef sourceNodeRef, String targetMimetype,
-                                    TransformationOptions transformationOptions)
-    {
-        ContentReader reader = LocalTransformClient.this.contentService.getReader(sourceNodeRef, ContentModel.PROP_CONTENT);
-        if (null == reader || !reader.exists())
-        {
-            throw new IllegalArgumentException("The supplied sourceNodeRef "+sourceNodeRef+" has no content.");
-        }
-
-        ContentWriter writer = contentService.getTempWriter();
-        writer.setMimetype(targetMimetype);
-        transformer.transform(reader, writer, transformationOptions);
-        return writer;
     }
 }

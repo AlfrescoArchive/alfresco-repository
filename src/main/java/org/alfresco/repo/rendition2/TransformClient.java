@@ -39,20 +39,18 @@ public interface TransformClient
      * @param sourceNodeRef the source node
      * @param renditionDefinition which rendition to perform
      * @return and object that contains information that will be passed to
-     * {@link #transform(NodeRef, RenditionDefinition2, Object, String, int)} as the {@code transformInfo} parameter to
+     * {@link #transform(NodeRef, RenditionDefinition2, String, int)} as the {@code transformInfo} parameter to
      * avoid having to work it out again.
      * @throws UnsupportedOperationException if the transform is not supported.
      */
-    Object checkSupported(NodeRef sourceNodeRef, RenditionDefinition2 renditionDefinition);
+    void checkSupported(NodeRef sourceNodeRef, RenditionDefinition2 renditionDefinition);
 
     /**
      * Requests an asynchronous transform and the subsequent linkage of that transform as a rendition.
      * @param sourceNodeRef the source node
      * @param renditionDefinition which rendition to perform
-     * @param transformInfo the object returned by {@link #checkSupported(NodeRef, RenditionDefinition2)}.
      * @param user that requested the transform.
      * @param sourceContentUrlHashCode the hash code of the source node's content URL. Used to check the transform result
-*                                still matches the source node, before it is used as a rendition.
      */
-    void transform(NodeRef sourceNodeRef, RenditionDefinition2 renditionDefinition, Object transformInfo, String user, int sourceContentUrlHashCode);
+    void transform(NodeRef sourceNodeRef, RenditionDefinition2 renditionDefinition, String user, int sourceContentUrlHashCode);
 }
