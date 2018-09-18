@@ -483,11 +483,11 @@ public class RenditionService2Impl implements RenditionService2, InitializingBea
                     }
                     catch (Exception e)
                     {
-                        transformInputStream = null;
                         logger.error("Failed to read transform InputStream into rendition " + renditionName + " on " + sourceNodeRef);
+                        throw e;
                     }
                 }
-                if (transformInputStream == null)
+                else
                 {
                     Serializable content = nodeService.getProperty(renditionNode, PROP_CONTENT);
                     if (content != null)

@@ -31,6 +31,7 @@ import org.alfresco.repo.content.transform.magick.ImageResizeOptions;
 import org.alfresco.repo.content.transform.magick.ImageTransformationOptions;
 import org.alfresco.repo.content.transform.swf.SWFTransformationOptions;
 import org.alfresco.repo.security.authentication.AuthenticationUtil;
+import org.alfresco.repo.transaction.RetryingTransactionHelper;
 import org.alfresco.service.cmr.repository.ContentData;
 import org.alfresco.service.cmr.repository.ContentReader;
 import org.alfresco.service.cmr.repository.ContentService;
@@ -251,8 +252,14 @@ public class LocalTransformClient extends AbstractTransformClient implements Tra
                             String renditionName = renditionDefinition.getRenditionName();
                             logger.debug("Rendition of "+renditionName+" failed", e);
                         }
-                        renditionService2.consume(sourceNodeRef, null, renditionDefinition, sourceContentUrlHashCode);
-                        // don't throw the original exception as we want to clear the rendition's contentUrl
+                        // The original transaction may have already have failed
+                        AuthenticationUtil.runAsSystem((AuthenticationUtil.RunAsWork<Void>) () ->
+                            transactionService.getRetryingTransactionHelper().doInTransaction(() ->
+                            {
+                                renditionService2.consume(sourceNodeRef, null, renditionDefinition, sourceContentUrlHashCode);
+                                return null;
+                            }, false, true));
+                        throw e;
                     }
                     return null;
                 }), user);
