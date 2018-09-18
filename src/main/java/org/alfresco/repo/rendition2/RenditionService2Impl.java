@@ -345,10 +345,6 @@ public class RenditionService2Impl implements RenditionService2, InitializingBea
             Serializable contentUrl = nodeService.getProperty(renditionNode, ContentModel.PROP_CONTENT);
             if (contentUrl == null)
             {
-                if (logger.isDebugEnabled())
-                {
-                    logger.debug("Failed rendition excluded");
-                }
                 available = false;
             }
             else
@@ -357,17 +353,9 @@ public class RenditionService2Impl implements RenditionService2, InitializingBea
                 int renditionContentUrlHashCode = getRenditionContentUrlHashCode(renditionNode);
                 if (sourceContentUrlHashCode != renditionContentUrlHashCode)
                 {
-                    if (logger.isDebugEnabled())
-                    {
-                        logger.debug("Out of date rendition excluded");
-                    }
                     available = false;
                 }
             }
-        }
-        if (available && logger.isTraceEnabled())
-        {
-            logger.trace("Rendition included");
         }
         return available;
     }
@@ -462,6 +450,10 @@ public class RenditionService2Impl implements RenditionService2, InitializingBea
                 {
                     nodeService.addAspect(renditionNode, RenditionModel.ASPECT_RENDITION2, null);
                     nodeService.addAspect(renditionNode, RenditionModel.ASPECT_HIDDEN_RENDITION, null);
+                }
+                else if (!nodeService.hasAspect(renditionNode, RenditionModel.ASPECT_RENDITION2))
+                {
+                    nodeService.addAspect(renditionNode, RenditionModel.ASPECT_RENDITION2, null);
                 }
                 nodeService.setProperty(renditionNode, RenditionModel.PROP_RENDITION_CONTENT_URL_HASH_CODE, transformContentUrlHashCode);
                 if (sourceModified != null)
@@ -685,7 +677,7 @@ public class RenditionService2Impl implements RenditionService2, InitializingBea
     {
         if (!newNode)
         {
-            logger.debug("RenditionService2.onContentUpdate(" + sourceNodeRef + ")");
+            logger.debug("onContentUpdate on " + sourceNodeRef);
             List<ChildAssociationRef> childAssocs = getRenditionChildAssociations(sourceNodeRef);
             for (ChildAssociationRef childAssoc : childAssocs)
             {
