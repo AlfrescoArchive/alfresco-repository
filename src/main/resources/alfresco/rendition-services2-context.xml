@@ -71,10 +71,10 @@
          constructors or setters that do any more than save the reference.
     -->
     <bean id="localTransformClient" class="org.alfresco.repo.rendition2.LocalTransformClient">
+        <property name="transactionService" ref="transactionService" />
         <property name="nodeService" ref="NodeService" />
         <property name="contentService" ref="ContentService" />
         <property name="renditionService2" ref="renditionService2" />
-        <property name="transactionService" ref="transactionService" />
     </bean>
 
     <!-- Replaced in the enterprise edition -->

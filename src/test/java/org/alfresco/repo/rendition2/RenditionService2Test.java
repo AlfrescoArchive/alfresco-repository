@@ -36,6 +36,7 @@ import org.alfresco.service.cmr.repository.ContentService;
 import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.cmr.repository.NodeService;
 import org.alfresco.service.cmr.rule.RuleService;
+import org.alfresco.service.transaction.TransactionService;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -69,6 +70,7 @@ public class RenditionService2Test
     private LocalTransformClient localTransformClient;
     private RenditionDefinitionRegistry2Impl renditionDefinitionRegistry2;
 
+    @Mock private TransactionService transactionService;
     @Mock private NodeService nodeService;
     @Mock private ContentService contentService;
     @Mock private RenditionPreventionRegistry renditionPreventionRegistry;
@@ -105,6 +107,7 @@ public class RenditionService2Test
         when(nodeService.getProperty(nodeRef, ContentModel.PROP_MODIFIED)).thenReturn(new Date());
         when(contentData.getContentUrl()).thenReturn(contentUrl);
 
+        renditionService2.setTransactionService(transactionService);
         renditionService2.setNodeService(nodeService);
         renditionService2.setContentService(contentService);
         renditionService2.setRenditionPreventionRegistry(renditionPreventionRegistry);

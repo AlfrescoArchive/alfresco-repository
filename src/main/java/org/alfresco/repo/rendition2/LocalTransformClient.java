@@ -148,13 +148,18 @@ public class LocalTransformClient extends AbstractTransformClient implements Tra
         OPT_MAX_PAGES, OPT_PAGE_LIMIT
     }));
 
+    private TransactionService transactionService;
+
     private ContentService contentService;
 
     private RenditionService2Impl renditionService2;
 
     private ExecutorService executorService;
 
-    private TransactionService transactionService;
+    public void setTransactionService(TransactionService transactionService)
+    {
+        this.transactionService = transactionService;
+    }
 
     public void setContentService(ContentService contentService)
     {
@@ -169,11 +174,6 @@ public class LocalTransformClient extends AbstractTransformClient implements Tra
     public void setExecutorService(ExecutorService executorService)
     {
         this.executorService = executorService;
-    }
-
-    public void setTransactionService(TransactionService transactionService)
-    {
-        this.transactionService = transactionService;
     }
 
     @Override
