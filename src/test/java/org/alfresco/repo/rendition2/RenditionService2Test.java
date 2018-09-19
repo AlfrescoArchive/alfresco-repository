@@ -79,7 +79,6 @@ public class RenditionService2Test
     @Mock private PolicyComponent policyComponent;
     @Mock private BehaviourFilter behaviourFilter;
     @Mock private RuleService ruleService;
-    @Mock private TransactionService transactionService;
 
     private NodeRef nodeRef = new NodeRef("workspace://spacesStore/test-id");
     private static final String IMGPREVIEW = "imgpreview";
