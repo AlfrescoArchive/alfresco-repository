@@ -50,6 +50,7 @@
 
     <!-- Rendition Service 2 base bean -->
     <bean id="renditionService2" class="org.alfresco.repo.rendition2.RenditionService2Impl">
+        <property name="transactionService" ref="TransactionService" />
         <property name="nodeService" ref="NodeService" />
         <property name="contentService" ref="ContentService" />
         <property name="renditionPreventionRegistry" ref="renditionPreventionRegistry" />

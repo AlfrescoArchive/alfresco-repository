@@ -47,6 +47,7 @@ import org.alfresco.service.cmr.rule.RuleType;
 import org.alfresco.service.namespace.NamespaceService;
 import org.alfresco.service.namespace.QName;
 import org.alfresco.service.namespace.RegexQNamePattern;
+import org.alfresco.service.transaction.TransactionService;
 import org.alfresco.util.GUID;
 import org.alfresco.util.PropertyCheck;
 import org.alfresco.util.transaction.TransactionListenerAdapter;
@@ -88,6 +89,7 @@ public class RenditionService2Impl implements RenditionService2, InitializingBea
     private static Log logger = LogFactory.getLog(RenditionService2Impl.class);
 
     private TransactionListener transactionListener = new TransactionListener();
+    private TransactionService transactionService;
     private NodeService nodeService;
     private ContentService contentService;
     private RenditionPreventionRegistry renditionPreventionRegistry;
@@ -98,6 +100,11 @@ public class RenditionService2Impl implements RenditionService2, InitializingBea
     private RuleService ruleService;
     private boolean enabled;
     private boolean thumbnailsEnabled;
+
+    public void setTransactionService(TransactionService transactionService)
+    {
+        this.transactionService = transactionService;
+    }
 
     public void setNodeService(NodeService nodeService)
     {
@@ -158,6 +165,7 @@ public class RenditionService2Impl implements RenditionService2, InitializingBea
     @Override
     public void afterPropertiesSet() throws Exception
     {
+        PropertyCheck.mandatory(this, "transactionService", transactionService);
         PropertyCheck.mandatory(this, "nodeService", nodeService);
         PropertyCheck.mandatory(this, "contentService", contentService);
         PropertyCheck.mandatory(this, "renditionPreventionRegistry", renditionPreventionRegistry);
@@ -425,87 +433,92 @@ public class RenditionService2Impl implements RenditionService2, InitializingBea
                         (transformInputStream == null ? " to null as the transform failed" : " to the transform result"));
             }
 
-            // Ensure that the creation of a rendition does not cause updates to the modified, modifier properties on the source node
-            NodeRef renditionNode = getRenditionNode(sourceNodeRef, renditionName);
-            boolean createRenditionNode = renditionNode == null;
-            Date sourceModified = (Date)nodeService.getProperty(sourceNodeRef, ContentModel.PROP_MODIFIED);
-            boolean sourceHasAspectRenditioned = nodeService.hasAspect(sourceNodeRef, RenditionModel.ASPECT_RENDITIONED);
-            boolean sourceChanges = !sourceHasAspectRenditioned || createRenditionNode || sourceModified != null || transformInputStream == null;
-            try
-            {
-                if (sourceChanges)
+            AuthenticationUtil.runAsSystem((AuthenticationUtil.RunAsWork<Void>) () ->
+                transactionService.getRetryingTransactionHelper().doInTransaction(() ->
                 {
-                    ruleService.disableRuleType(RuleType.UPDATE);
-                    behaviourFilter.disableBehaviour(sourceNodeRef, ContentModel.ASPECT_AUDITABLE);
-                    behaviourFilter.disableBehaviour(sourceNodeRef, ContentModel.ASPECT_VERSIONABLE);
-                }
-
-                // If they do not exist create the rendition association and the rendition node.
-                if (createRenditionNode)
-                {
-                    renditionNode = createRenditionNode(sourceNodeRef, renditionDefinition);
-                }
-
-                if (createRenditionNode)
-                {
-                    nodeService.addAspect(renditionNode, RenditionModel.ASPECT_RENDITION2, null);
-                    nodeService.addAspect(renditionNode, RenditionModel.ASPECT_HIDDEN_RENDITION, null);
-                }
-                else if (!nodeService.hasAspect(renditionNode, RenditionModel.ASPECT_RENDITION2))
-                {
-                    nodeService.addAspect(renditionNode, RenditionModel.ASPECT_RENDITION2, null);
-                }
-                nodeService.setProperty(renditionNode, RenditionModel.PROP_RENDITION_CONTENT_URL_HASH_CODE, transformContentUrlHashCode);
-                if (sourceModified != null)
-                {
-                    setThumbnailLastModified(sourceNodeRef, renditionName, sourceModified);
-                }
-
-                if (transformInputStream != null)
-                {
+                    // Ensure that the creation of a rendition does not cause updates to the modified, modifier properties on the source node
+                    NodeRef renditionNode = getRenditionNode(sourceNodeRef, renditionName);
+                    boolean createRenditionNode = renditionNode == null;
+                    Date sourceModified = (Date) nodeService.getProperty(sourceNodeRef, ContentModel.PROP_MODIFIED);
+                    boolean sourceHasAspectRenditioned = nodeService.hasAspect(sourceNodeRef, RenditionModel.ASPECT_RENDITIONED);
+                    boolean sourceChanges = !sourceHasAspectRenditioned || createRenditionNode || sourceModified != null || transformInputStream == null;
                     try
                     {
-                        // Set or replace rendition content
-                        ContentWriter contentWriter = contentService.getWriter(renditionNode, DEFAULT_RENDITION_CONTENT_PROP, true);
-                        String targetMimetype = renditionDefinition.getTargetMimetype();
-                        contentWriter.setMimetype(targetMimetype);
-                        contentWriter.setEncoding(DEFAULT_ENCODING);
-                        ContentWriter renditionWriter = contentWriter;
-                        renditionWriter.putContent(transformInputStream);
+                        if (sourceChanges)
+                        {
+                            ruleService.disableRuleType(RuleType.UPDATE);
+                            behaviourFilter.disableBehaviour(sourceNodeRef, ContentModel.ASPECT_AUDITABLE);
+                            behaviourFilter.disableBehaviour(sourceNodeRef, ContentModel.ASPECT_VERSIONABLE);
+                        }
+
+                        // If they do not exist create the rendition association and the rendition node.
+                        if (createRenditionNode)
+                        {
+                            renditionNode = createRenditionNode(sourceNodeRef, renditionDefinition);
+                        }
+
+                        if (createRenditionNode)
+                        {
+                            nodeService.addAspect(renditionNode, RenditionModel.ASPECT_RENDITION2, null);
+                            nodeService.addAspect(renditionNode, RenditionModel.ASPECT_HIDDEN_RENDITION, null);
+                        }
+                        else if (!nodeService.hasAspect(renditionNode, RenditionModel.ASPECT_RENDITION2))
+                        {
+                            nodeService.addAspect(renditionNode, RenditionModel.ASPECT_RENDITION2, null);
+                        }
+                        nodeService.setProperty(renditionNode, RenditionModel.PROP_RENDITION_CONTENT_URL_HASH_CODE, transformContentUrlHashCode);
+                        if (sourceModified != null)
+                        {
+                            setThumbnailLastModified(sourceNodeRef, renditionName, sourceModified);
+                        }
+
+                        if (transformInputStream != null)
+                        {
+                            try
+                            {
+                                // Set or replace rendition content
+                                ContentWriter contentWriter = contentService.getWriter(renditionNode, DEFAULT_RENDITION_CONTENT_PROP, true);
+                                String targetMimetype = renditionDefinition.getTargetMimetype();
+                                contentWriter.setMimetype(targetMimetype);
+                                contentWriter.setEncoding(DEFAULT_ENCODING);
+                                ContentWriter renditionWriter = contentWriter;
+                                renditionWriter.putContent(transformInputStream);
+                            }
+                            catch (Exception e)
+                            {
+                                logger.error("Failed to read transform InputStream into rendition " + renditionName + " on " + sourceNodeRef);
+                                throw e;
+                            }
+                        }
+                        else
+                        {
+                            Serializable content = nodeService.getProperty(renditionNode, PROP_CONTENT);
+                            if (content != null)
+                            {
+                                nodeService.removeProperty(renditionNode, PROP_CONTENT);
+                            }
+                        }
+
+                        if (!sourceHasAspectRenditioned)
+                        {
+                            nodeService.addAspect(sourceNodeRef, RenditionModel.ASPECT_RENDITIONED, null);
+                        }
                     }
                     catch (Exception e)
                     {
-                        logger.error("Failed to read transform InputStream into rendition " + renditionName + " on " + sourceNodeRef);
-                        throw e;
+                        throw new RenditionService2Exception(TRANSFORMING_ERROR_MESSAGE + e.getMessage(), e);
                     }
-                }
-                else
-                {
-                    Serializable content = nodeService.getProperty(renditionNode, PROP_CONTENT);
-                    if (content != null)
+                    finally
                     {
-                        nodeService.removeProperty(renditionNode, PROP_CONTENT);
+                        if (sourceChanges)
+                        {
+                            behaviourFilter.enableBehaviour(sourceNodeRef, ContentModel.ASPECT_AUDITABLE);
+                            behaviourFilter.enableBehaviour(sourceNodeRef, ContentModel.ASPECT_VERSIONABLE);
+                            ruleService.enableRuleType(RuleType.UPDATE);
+                        }
                     }
-                }
-
-                if (!sourceHasAspectRenditioned)
-                {
-                    nodeService.addAspect(sourceNodeRef, RenditionModel.ASPECT_RENDITIONED, null);
-                }
-            }
-            catch (Exception e)
-            {
-                throw new RenditionService2Exception(TRANSFORMING_ERROR_MESSAGE + e.getMessage(), e);
-            }
-            finally
-            {
-                if (sourceChanges)
-                {
-                    behaviourFilter.enableBehaviour(sourceNodeRef, ContentModel.ASPECT_AUDITABLE);
-                    behaviourFilter.enableBehaviour(sourceNodeRef, ContentModel.ASPECT_VERSIONABLE);
-                    ruleService.enableRuleType(RuleType.UPDATE);
-                }
-            }
+                    return null;
+                }, false, true));
         }
     }
 
@@ -590,22 +603,26 @@ public class RenditionService2Impl implements RenditionService2, InitializingBea
         {
             try
             {
-                // Avoid doing extra transforms that have already been done.
-                String renditionName = renditionDefinition.getRenditionName();
-                int sourceContentUrlHashCode = getSourceContentUrlHashCode(sourceNodeRef);
-                NodeRef renditionNode = getRenditionNode(sourceNodeRef, renditionName);
-                int renditionContentUrlHashCode = getRenditionContentUrlHashCode(renditionNode);
-                if (renditionContentUrlHashCode == sourceContentUrlHashCode)
+                transactionService.getRetryingTransactionHelper().doInTransaction(() ->
                 {
-                    throw new IllegalStateException("The rendition "+renditionName+" has already been created.");
-                }
+                    // Avoid doing extra transforms that have already been done.
+                    String renditionName = renditionDefinition.getRenditionName();
+                    int sourceContentUrlHashCode = getSourceContentUrlHashCode(sourceNodeRef);
+                    NodeRef renditionNode = getRenditionNode(sourceNodeRef, renditionName);
+                    int renditionContentUrlHashCode = getRenditionContentUrlHashCode(renditionNode);
+                    if (renditionContentUrlHashCode == sourceContentUrlHashCode)
+                    {
+                        throw new IllegalStateException("The rendition " + renditionName + " has already been created.");
+                    }
 
-                transformClient.transform(sourceNodeRef, renditionDefinition, user, sourceContentUrlHashCode);
+                    transformClient.transform(sourceNodeRef, renditionDefinition, user, sourceContentUrlHashCode);
+                    return null;
+                });
             }
             catch (Exception e)
             {
                 logger.debug(e.getMessage());
-                // consume exception
+                // consume exception as we need to move on to the next transform
             }
         }
 
