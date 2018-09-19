@@ -27,31 +27,40 @@ package org.alfresco.repo.rendition2;
 
 import org.alfresco.repo.security.authentication.AuthenticationUtil;
 import org.alfresco.service.cmr.repository.ChildAssociationRef;
+import org.alfresco.service.cmr.repository.ContentData;
 import org.alfresco.service.cmr.repository.NodeRef;
+import org.alfresco.service.cmr.repository.datatype.DefaultTypeConverter;
 import org.alfresco.service.transaction.TransactionService;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import static org.alfresco.model.ContentModel.PROP_CONTENT;
+
 /**
- * Integration tests for {@link RenditionService2}
+ * Integration tests for {@link LocalTransformClient}
  */
-public class RenditionService2IntegrationTest extends AbstractRenditionIntegrationTest
+public class LocalTransformClientIntegrationTest extends AbstractRenditionIntegrationTest
 {
     @Autowired
-    private RenditionService2 renditionService2;
-    @Autowired
     private TransformClient transformClient;
+
     @Autowired
     private TransactionService transactionService;
+
+    @Autowired
+    private RenditionDefinitionRegistry2 renditionDefinitionRegistry2;
+
+    @Autowired
+    private RenditionService2 renditionService2;
 
     @Before
     public void setUp()
     {
         AuthenticationUtil.setRunAsUser(AuthenticationUtil.getAdminUserName());
-        assertTrue("The RenditionService2 needs to be enabled", renditionService2.isEnabled());
         assertTrue("A wrong type of transform client detected", transformClient instanceof LocalTransformClient);
     }
+
 
     // PDF transformation
 
@@ -132,18 +141,30 @@ public class RenditionService2IntegrationTest extends AbstractRenditionIntegrati
     @Test
     public void testLocalRenderDocxPdf() throws Exception
     {
-        checkRendition("quick.docx", "pdf", true);
+        checkRendition("quick.docx", "pdf", false);
     }
 
     private void checkRendition(String testFileName, String renditionDefinitionName, boolean expectedToPass) throws InterruptedException
     {
-        try
+        if (expectedToPass)
         {
+            // split into separate transactions as the client is async
             NodeRef sourceNode = transactionService.getRetryingTransactionHelper().doInTransaction(() ->
+                    createContentNodeFromQuickFile(testFileName));
+            int sourceContentUrlHash = DefaultTypeConverter.INSTANCE.convert(
+                    ContentData.class,
+                    nodeService.getProperty(sourceNode, PROP_CONTENT))
+                    .getContentUrl().hashCode();
+            transactionService.getRetryingTransactionHelper().doInTransaction(() ->
             {
-                NodeRef contentNode = createContentNodeFromQuickFile(testFileName);
-                renditionService2.render(contentNode, renditionDefinitionName);
-                return contentNode;
+                RenditionDefinition2 renditionDefinition =
+                        renditionDefinitionRegistry2.getRenditionDefinition(renditionDefinitionName);
+                transformClient.transform(
+                        sourceNode,
+                        renditionDefinition,
+                        AuthenticationUtil.getAdminUserName(),
+                        sourceContentUrlHash);
+                return null;
             });
             ChildAssociationRef childAssociationRef = null;
             for (int i = 0; i < 20; i++)
@@ -159,13 +180,6 @@ public class RenditionService2IntegrationTest extends AbstractRenditionIntegrati
                 }
             }
             assertNotNull("The " + renditionDefinitionName + " rendition failed for " + testFileName, childAssociationRef);
-        }
-        catch(UnsupportedOperationException uoe)
-        {
-            if (expectedToPass)
-            {
-                fail("The " + renditionDefinitionName + " rendition should be supported for " + testFileName);
-            }
         }
     }
 }

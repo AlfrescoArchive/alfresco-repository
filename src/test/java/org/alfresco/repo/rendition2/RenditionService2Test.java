@@ -79,6 +79,7 @@ public class RenditionService2Test
     @Mock private PolicyComponent policyComponent;
     @Mock private BehaviourFilter behaviourFilter;
     @Mock private RuleService ruleService;
+    @Mock private TransactionService transactionService;
 
     private NodeRef nodeRef = new NodeRef("workspace://spacesStore/test-id");
     private static final String IMGPREVIEW = "imgpreview";
@@ -116,6 +117,7 @@ public class RenditionService2Test
         renditionService2.setPolicyComponent(policyComponent);
         renditionService2.setBehaviourFilter(behaviourFilter);
         renditionService2.setRuleService(ruleService);
+        renditionService2.setTransactionService(transactionService);
         renditionService2.setEnabled(true);
         renditionService2.setThumbnailsEnabled(true);
         renditionService2.afterPropertiesSet();
