@@ -31,6 +31,7 @@ import org.alfresco.repo.content.transform.magick.ImageTransformationOptions;
 import org.alfresco.repo.policy.BehaviourFilter;
 import org.alfresco.repo.policy.PolicyComponent;
 import org.alfresco.repo.rendition.RenditionPreventionRegistry;
+import org.alfresco.repo.transaction.RetryingTransactionHelper;
 import org.alfresco.service.cmr.repository.ContentData;
 import org.alfresco.service.cmr.repository.ContentService;
 import org.alfresco.service.cmr.repository.NodeRef;
@@ -50,6 +51,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyLong;
 import static org.mockito.Matchers.anyString;
@@ -80,6 +82,9 @@ public class RenditionService2Test
     @Mock private BehaviourFilter behaviourFilter;
     @Mock private RuleService ruleService;
 
+    @Captor
+    ArgumentCaptor<RetryingTransactionHelper.RetryingTransactionCallback> callbackArgumentCaptor;
+
     private NodeRef nodeRef = new NodeRef("workspace://spacesStore/test-id");
     private static final String IMGPREVIEW = "imgpreview";
     private static final String JPEG = "image/jpeg";
@@ -88,7 +93,7 @@ public class RenditionService2Test
     @Before
     public void setup() throws Exception
     {
-        renditionService2 = new RenditionService2ImplForTesting();
+        renditionService2 = new RenditionService2Impl();
         renditionDefinitionRegistry2 = new RenditionDefinitionRegistry2Impl();
 
         Map<String, String> options = new HashMap<>();
@@ -119,6 +124,7 @@ public class RenditionService2Test
         renditionService2.setTransactionService(transactionService);
         renditionService2.setEnabled(true);
         renditionService2.setThumbnailsEnabled(true);
+        renditionService2.setRenditionRequestSheduler(new RenditionRequestSchedulerMock());
         renditionService2.afterPropertiesSet();
     }
 
@@ -143,5 +149,22 @@ public class RenditionService2Test
         when(contentService.getTransformer(anyString(), anyString(), anyLong(), anyString(), any())).thenReturn(null);
 
         renditionService2.render(nodeRef, IMGPREVIEW);
+    }
+
+    private class RenditionRequestSchedulerMock extends RenditionRequestScheduler
+    {
+        @Override
+        void scheduleRendition(RetryingTransactionHelper.RetryingTransactionCallback callback)
+        {
+            try
+            {
+                callback.execute();
+            }
+            catch (Throwable throwable)
+            {
+                fail("The rendition callback failed: " + throwable);
+            }
+
+        }
     }
 }
