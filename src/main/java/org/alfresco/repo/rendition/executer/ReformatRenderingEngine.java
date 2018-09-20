@@ -53,7 +53,10 @@ import static org.alfresco.repo.rendition2.RenditionDefinition2.FLASH_VERSION;
  * 
  * @author Neil McErlean
  * @since 3.3
+ *
+ * @deprecated The RenditionService is being replace by the simpler async RenditionService2.
  */
+@Deprecated
 public class ReformatRenderingEngine extends AbstractTransformationRenderingEngine
 {
     private static Log logger = LogFactory.getLog(ReformatRenderingEngine.class);

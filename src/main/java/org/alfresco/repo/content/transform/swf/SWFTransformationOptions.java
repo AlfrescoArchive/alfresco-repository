@@ -38,7 +38,10 @@ import static org.alfresco.repo.rendition2.RenditionDefinition2.FLASH_VERSION;
  * SFW transformation options
  * 
  * @author Roy Wetherall
+ *
+ * @deprecated The transformations code is being moved out of the codebase and replaced by the new async RenditionService2 or other external libraries.
  */
+@Deprecated
 public class SWFTransformationOptions extends TransformationOptions
 {
     private static final String OPT_FLASH_VERSION = FLASH_VERSION;

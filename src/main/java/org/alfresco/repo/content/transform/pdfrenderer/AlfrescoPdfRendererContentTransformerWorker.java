@@ -52,6 +52,11 @@ import static org.alfresco.repo.rendition2.RenditionDefinition2.MAINTAIN_ASPECT_
 import static org.alfresco.repo.rendition2.RenditionDefinition2.PAGE;
 import static org.alfresco.repo.rendition2.RenditionDefinition2.WIDTH;
 
+/**
+ *
+ * @deprecated The transformations code is being moved out of the codebase and replaced by the new async RenditionService2 or other external libraries.
+ */
+@Deprecated
 public class AlfrescoPdfRendererContentTransformerWorker extends ContentTransformerHelper implements ContentTransformerWorker, InitializingBean
 {
 

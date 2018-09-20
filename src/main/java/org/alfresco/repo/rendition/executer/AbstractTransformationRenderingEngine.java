@@ -40,6 +40,7 @@ import org.alfresco.repo.content.transform.ContentTransformer;
 import org.alfresco.repo.content.transform.TransformerConfig;
 import org.alfresco.repo.content.transform.TransformerDebug;
 import org.alfresco.repo.content.transform.UnsupportedTransformationException;
+
 import org.alfresco.repo.rendition2.RenditionService2Impl;
 import org.alfresco.repo.security.authentication.AuthenticationUtil;
 import org.alfresco.service.cmr.action.ActionServiceException;
@@ -62,7 +63,10 @@ import org.apache.commons.logging.LogFactory;
 
 /**
  * @author Nick Smith
+ *
+ * @deprecated The RenditionService is being replace by the simpler async RenditionService2.
  */
+@Deprecated
 public abstract class AbstractTransformationRenderingEngine extends AbstractRenderingEngine
 {
     private static Log logger = LogFactory.getLog(AbstractTransformationRenderingEngine.class);
