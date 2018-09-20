@@ -34,7 +34,8 @@ import org.alfresco.repo.policy.JavaBehaviour;
 import org.alfresco.repo.policy.PolicyComponent;
 import org.alfresco.repo.rendition.RenditionPreventionRegistry;
 import org.alfresco.repo.security.authentication.AuthenticationUtil;
-import org.alfresco.repo.transaction.AlfrescoTransactionSupport;
+import org.alfresco.repo.transaction.RetryingTransactionHelper;
+import org.alfresco.repo.util.PostTxnCallbackScheduler;
 import org.alfresco.service.cmr.repository.ChildAssociationRef;
 import org.alfresco.service.cmr.repository.ContentData;
 import org.alfresco.service.cmr.repository.ContentService;
@@ -48,9 +49,7 @@ import org.alfresco.service.namespace.NamespaceService;
 import org.alfresco.service.namespace.QName;
 import org.alfresco.service.namespace.RegexQNamePattern;
 import org.alfresco.service.transaction.TransactionService;
-import org.alfresco.util.GUID;
 import org.alfresco.util.PropertyCheck;
-import org.alfresco.util.transaction.TransactionListenerAdapter;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.InitializingBean;
@@ -61,10 +60,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 
 import static org.alfresco.model.ContentModel.PROP_CONTENT;
@@ -78,8 +75,6 @@ import static org.alfresco.service.namespace.QName.createQName;
  */
 public class RenditionService2Impl implements RenditionService2, InitializingBean, ContentServicePolicies.OnContentUpdatePolicy
 {
-    private static final String POST_TRANSACTION_PENDING_REQUESTS = "postTransactionPendingRenditionRequests";
-
     public static final String TRANSFORMING_ERROR_MESSAGE = "Some error occurred during document transforming. Error message: ";
 
     public static final QName DEFAULT_RENDITION_CONTENT_PROP = ContentModel.PROP_CONTENT;
@@ -88,7 +83,6 @@ public class RenditionService2Impl implements RenditionService2, InitializingBea
 
     private static Log logger = LogFactory.getLog(RenditionService2Impl.class);
 
-    private TransactionListener transactionListener = new TransactionListener();
     private TransactionService transactionService;
     private NodeService nodeService;
     private ContentService contentService;
@@ -98,8 +92,14 @@ public class RenditionService2Impl implements RenditionService2, InitializingBea
     private PolicyComponent policyComponent;
     private BehaviourFilter behaviourFilter;
     private RuleService ruleService;
+    private PostTxnCallbackScheduler renditionRequestSheduler;
     private boolean enabled;
     private boolean thumbnailsEnabled;
+
+    public void setRenditionRequestSheduler(PostTxnCallbackScheduler renditionRequestSheduler)
+    {
+        this.renditionRequestSheduler = renditionRequestSheduler;
+    }
 
     public void setTransactionService(TransactionService transactionService)
     {
@@ -204,29 +204,28 @@ public class RenditionService2Impl implements RenditionService2, InitializingBea
             }
 
             transformClient.checkSupported(sourceNodeRef, renditionDefinition);
-            requestTheTransformAfterCommit(sourceNodeRef, renditionDefinition);
+
+            String user = AuthenticationUtil.getRunAsUser();
+            RetryingTransactionHelper.RetryingTransactionCallback callback = () ->
+            {
+                // Avoid doing extra transforms that have already been done.
+                int sourceContentUrlHashCode = getSourceContentUrlHashCode(sourceNodeRef);
+                NodeRef renditionNode = getRenditionNode(sourceNodeRef, renditionName);
+                int renditionContentUrlHashCode = getRenditionContentUrlHashCode(renditionNode);
+                if (renditionContentUrlHashCode == sourceContentUrlHashCode)
+                {
+                    throw new IllegalStateException("The rendition " + renditionName + " has already been created.");
+                }
+                transformClient.transform(sourceNodeRef, renditionDefinition, user, sourceContentUrlHashCode);
+                return null;
+            };
+            renditionRequestSheduler.scheduleRendition(callback, sourceNodeRef + renditionName);
         }
         catch (Exception e)
         {
             logger.debug(e.getMessage());
             throw e;
         }
-    }
-
-    // The request to do the transform only takes place after the current transaction is committed.
-    // - The current transaction may rollback.
-    // - The results of that transaction must be visible, as the request takes place in a new transaction.
-    void requestTheTransformAfterCommit(NodeRef sourceNodeRef, RenditionDefinition2 renditionDefinition)
-    {
-        AlfrescoTransactionSupport.bindListener(transactionListener);
-        Set<PendingRequest> pendingRequests = AlfrescoTransactionSupport.getResource(POST_TRANSACTION_PENDING_REQUESTS);
-        if (pendingRequests == null)
-        {
-            pendingRequests = new HashSet<>();
-            AlfrescoTransactionSupport.bindResource(POST_TRANSACTION_PENDING_REQUESTS, pendingRequests);
-        }
-        PendingRequest pendingRequest = new PendingRequest(sourceNodeRef, renditionDefinition);
-        pendingRequests.add(pendingRequest);
     }
 
     /**
@@ -584,109 +583,6 @@ public class RenditionService2Impl implements RenditionService2, InitializingBea
         }
 
         return renditionNode;
-    }
-
-    public class PendingRequest
-    {
-        private final NodeRef sourceNodeRef;
-        private final RenditionDefinition2 renditionDefinition;
-        private final String user;
-
-        public PendingRequest(NodeRef sourceNodeRef, RenditionDefinition2 renditionDefinition)
-        {
-            this.sourceNodeRef = sourceNodeRef;
-            this.renditionDefinition = renditionDefinition;
-            user = AuthenticationUtil.getRunAsUser();
-        }
-
-        void transform()
-        {
-            try
-            {
-                transactionService.getRetryingTransactionHelper().doInTransaction(() ->
-                {
-                    // Avoid doing extra transforms that have already been done.
-                    String renditionName = renditionDefinition.getRenditionName();
-                    int sourceContentUrlHashCode = getSourceContentUrlHashCode(sourceNodeRef);
-                    NodeRef renditionNode = getRenditionNode(sourceNodeRef, renditionName);
-                    int renditionContentUrlHashCode = getRenditionContentUrlHashCode(renditionNode);
-                    if (renditionContentUrlHashCode == sourceContentUrlHashCode)
-                    {
-                        throw new IllegalStateException("The rendition " + renditionName + " has already been created.");
-                    }
-
-                    transformClient.transform(sourceNodeRef, renditionDefinition, user, sourceContentUrlHashCode);
-                    return null;
-                });
-            }
-            catch (Exception e)
-            {
-                logger.debug(e.getMessage());
-                // consume exception as we need to move on to the next transform
-            }
-        }
-
-        @Override
-        public boolean equals(Object o)
-        {
-            if (this == o)
-            {
-                return true;
-            }
-            if (!(o instanceof PendingRequest))
-            {
-                return false;
-            }
-            PendingRequest that = (PendingRequest) o;
-            return Objects.equals(sourceNodeRef, that.sourceNodeRef) &&
-                    Objects.equals(renditionDefinition, that.renditionDefinition);
-        }
-
-        @Override
-        public int hashCode()
-        {
-            return Objects.hash(sourceNodeRef, renditionDefinition);
-        }
-    }
-
-    private class TransactionListener extends TransactionListenerAdapter implements org.alfresco.repo.transaction.TransactionListener
-    {
-        private final String id = GUID.generate();
-
-        @Override
-        public void afterCommit()
-        {
-            for (PendingRequest pendingRequest : (Set<PendingRequest>)AlfrescoTransactionSupport.getResource(POST_TRANSACTION_PENDING_REQUESTS))
-            {
-                pendingRequest.transform();
-            }
-        }
-
-        @Override
-        public void flush()
-        {
-        }
-
-        @Override
-        public boolean equals(Object o)
-        {
-            if (this == o)
-            {
-                return true;
-            }
-            if (!(o instanceof TransactionListener))
-            {
-                return false;
-            }
-            TransactionListener that = (TransactionListener) o;
-            return Objects.equals(id, that.id);
-        }
-
-        @Override
-        public int hashCode()
-        {
-            return Objects.hash(id);
-        }
     }
 
     @Override
