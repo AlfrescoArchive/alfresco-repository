@@ -145,7 +145,8 @@ import org.springframework.context.ApplicationContext;
     // Requires a running ActiveMQ
     org.alfresco.repo.rawevents.EventBehaviorTest.class,
     // Requires running transformers
-    org.alfresco.repo.rendition2.RenditionService2IntegrationTest.class
+    org.alfresco.repo.rendition2.RenditionService2IntegrationTest.class,
+    org.alfresco.repo.rendition2.LocalTransformClientIntegrationTest.class
 })
 public class MiscContextTestSuite
 {

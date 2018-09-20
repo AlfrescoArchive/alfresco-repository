@@ -216,7 +216,7 @@ public class RenditionService2Impl implements RenditionService2, InitializingBea
     // The request to do the transform only takes place after the current transaction is committed.
     // - The current transaction may rollback.
     // - The results of that transaction must be visible, as the request takes place in a new transaction.
-    void requestTheTransformAfterCommit(NodeRef sourceNodeRef, RenditionDefinition2 renditionDefinition)
+    private void requestTheTransformAfterCommit(NodeRef sourceNodeRef, RenditionDefinition2 renditionDefinition)
     {
         AlfrescoTransactionSupport.bindListener(transactionListener);
         Set<PendingRequest> pendingRequests = AlfrescoTransactionSupport.getResource(POST_TRANSACTION_PENDING_REQUESTS);
