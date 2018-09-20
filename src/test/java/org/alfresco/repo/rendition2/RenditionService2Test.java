@@ -32,6 +32,7 @@ import org.alfresco.repo.policy.BehaviourFilter;
 import org.alfresco.repo.policy.PolicyComponent;
 import org.alfresco.repo.rendition.RenditionPreventionRegistry;
 import org.alfresco.repo.transaction.RetryingTransactionHelper;
+import org.alfresco.repo.util.PostTxnCallbackScheduler;
 import org.alfresco.service.cmr.repository.ContentData;
 import org.alfresco.service.cmr.repository.ContentService;
 import org.alfresco.service.cmr.repository.NodeRef;
@@ -151,10 +152,10 @@ public class RenditionService2Test
         renditionService2.render(nodeRef, IMGPREVIEW);
     }
 
-    private class RenditionRequestSchedulerMock extends RenditionRequestScheduler
+    private class RenditionRequestSchedulerMock extends PostTxnCallbackScheduler
     {
         @Override
-        void scheduleRendition(RetryingTransactionHelper.RetryingTransactionCallback callback)
+        public void scheduleRendition(RetryingTransactionHelper.RetryingTransactionCallback callback, String uniqueId)
         {
             try
             {
@@ -164,7 +165,6 @@ public class RenditionService2Test
             {
                 fail("The rendition callback failed: " + throwable);
             }
-
         }
     }
 }

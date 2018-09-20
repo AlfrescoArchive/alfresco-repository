@@ -23,25 +23,24 @@
  * along with Alfresco. If not, see <http://www.gnu.org/licenses/>.
  * #L%
  */
-package org.alfresco.repo.rendition2;
+package org.alfresco.repo.util;
 
 import java.util.Objects;
 import org.alfresco.repo.transaction.AlfrescoTransactionSupport;
 import org.alfresco.repo.transaction.RetryingTransactionHelper;
 import org.alfresco.service.transaction.TransactionService;
-import org.alfresco.util.GUID;
 import org.alfresco.util.transaction.TransactionListenerAdapter;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 /**
- * Schedules a rendition (callback) to a post-commit phase.
+ * Schedules a callback to a post-commit phase.
  *
  * @author alex.mukha
  */
-public class RenditionRequestScheduler
+public class PostTxnCallbackScheduler
 {
-    private static Log logger = LogFactory.getLog(RenditionRequestScheduler.class);
+    private static Log logger = LogFactory.getLog(PostTxnCallbackScheduler.class);
 
     private TransactionService transactionService;
 
@@ -50,20 +49,25 @@ public class RenditionRequestScheduler
         this.transactionService = transactionService;
     }
 
-    void scheduleRendition(RetryingTransactionHelper.RetryingTransactionCallback callback)
+    /**
+     * @param callback The callback to be scheduled in a post-commit phase
+     * @param uniqueId The unique id of the callback. Consecutive requests to schedule the callback with the same id
+     *                will overwrite the previously scheduled one.
+     */
+    public void scheduleRendition(RetryingTransactionHelper.RetryingTransactionCallback callback, String uniqueId)
     {
-        AlfrescoTransactionSupport.bindListener(new Rendition2TransactionListener(callback));
+        AlfrescoTransactionSupport.bindListener(new PostTxTransactionListener(callback, uniqueId));
     }
 
-    private class Rendition2TransactionListener extends TransactionListenerAdapter
+    private class PostTxTransactionListener extends TransactionListenerAdapter
     {
         private final RetryingTransactionHelper.RetryingTransactionCallback callback;
         private final String id;
 
-        Rendition2TransactionListener(RetryingTransactionHelper.RetryingTransactionCallback callback)
+        PostTxTransactionListener(RetryingTransactionHelper.RetryingTransactionCallback callback, String uniqueId)
         {
             this.callback = callback;
-            this.id = Rendition2TransactionListener.class.getSimpleName() + "-" + GUID.generate();
+            this.id = uniqueId;
             logger.debug("Created lister with id = " + id);
         }
 
@@ -76,8 +80,8 @@ public class RenditionRequestScheduler
             }
             catch (Exception e)
             {
-                logger.debug(e.getMessage());
-                // consume exception as we need to move on to the next transform
+                logger.debug("The after commit callback " + id + " failed to execute: " + e.getMessage());
+                // consume exception in afterCommit
             }
         }
 
@@ -92,15 +96,14 @@ public class RenditionRequestScheduler
             {
                 return false;
             }
-            Rendition2TransactionListener that = (Rendition2TransactionListener) o;
-            return Objects.equals(callback, that.callback) &&
-                    Objects.equals(id, that.id);
+            PostTxTransactionListener that = (PostTxTransactionListener) o;
+            return Objects.equals(id, that.id);
         }
 
         @Override
         public int hashCode()
         {
-            return Objects.hash(callback, id);
+            return Objects.hash(id);
         }
     }
 }

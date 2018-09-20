@@ -64,7 +64,7 @@
         <property name="renditionRequestSheduler" ref="renditionRequestSheduler" />
     </bean>
 
-    <bean id="renditionRequestSheduler" class="org.alfresco.repo.rendition2.RenditionRequestScheduler">
+    <bean id="renditionRequestSheduler" class="org.alfresco.repo.util.PostTxnCallbackScheduler">
         <property name="transactionService" ref="TransactionService" />
     </bean>
 

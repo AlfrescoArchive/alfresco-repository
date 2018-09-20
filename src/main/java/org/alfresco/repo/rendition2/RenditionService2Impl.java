@@ -34,8 +34,8 @@ import org.alfresco.repo.policy.JavaBehaviour;
 import org.alfresco.repo.policy.PolicyComponent;
 import org.alfresco.repo.rendition.RenditionPreventionRegistry;
 import org.alfresco.repo.security.authentication.AuthenticationUtil;
-import org.alfresco.repo.transaction.AlfrescoTransactionSupport;
 import org.alfresco.repo.transaction.RetryingTransactionHelper;
+import org.alfresco.repo.util.PostTxnCallbackScheduler;
 import org.alfresco.service.cmr.repository.ChildAssociationRef;
 import org.alfresco.service.cmr.repository.ContentData;
 import org.alfresco.service.cmr.repository.ContentService;
@@ -49,9 +49,7 @@ import org.alfresco.service.namespace.NamespaceService;
 import org.alfresco.service.namespace.QName;
 import org.alfresco.service.namespace.RegexQNamePattern;
 import org.alfresco.service.transaction.TransactionService;
-import org.alfresco.util.GUID;
 import org.alfresco.util.PropertyCheck;
-import org.alfresco.util.transaction.TransactionListenerAdapter;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.InitializingBean;
@@ -62,10 +60,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 
 import static org.alfresco.model.ContentModel.PROP_CONTENT;
@@ -96,11 +92,11 @@ public class RenditionService2Impl implements RenditionService2, InitializingBea
     private PolicyComponent policyComponent;
     private BehaviourFilter behaviourFilter;
     private RuleService ruleService;
-    private RenditionRequestScheduler renditionRequestSheduler;
+    private PostTxnCallbackScheduler renditionRequestSheduler;
     private boolean enabled;
     private boolean thumbnailsEnabled;
 
-    public void setRenditionRequestSheduler(RenditionRequestScheduler renditionRequestSheduler)
+    public void setRenditionRequestSheduler(PostTxnCallbackScheduler renditionRequestSheduler)
     {
         this.renditionRequestSheduler = renditionRequestSheduler;
     }
@@ -223,7 +219,7 @@ public class RenditionService2Impl implements RenditionService2, InitializingBea
                 transformClient.transform(sourceNodeRef, renditionDefinition, user, sourceContentUrlHashCode);
                 return null;
             };
-            renditionRequestSheduler.scheduleRendition(callback);
+            renditionRequestSheduler.scheduleRendition(callback, sourceNodeRef + renditionName);
         }
         catch (Exception e)
         {
