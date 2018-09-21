@@ -46,16 +46,16 @@ import org.springframework.context.ApplicationContext;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
- * Provides a base set of tests for {@link EventProducer}
+ * Provides a base set of tests for {@link TransactionAwareEventProducer}
  *
  * @author Cristian Turlica
  */
 @Category(OwnJVMTestsCategory.class)
-public class EventProducerTest
+public class TransactionAwareEventProducerTest
 {
     private RetryingTransactionHelper retryingTransactionHelper;
     private CamelContext camelContext;
-    private EventProducer eventProducer;
+    private TransactionAwareEventProducer eventProducer;
     private ObjectMapper messagingObjectMapper;
 
     @Rule
@@ -67,7 +67,7 @@ public class EventProducerTest
         ApplicationContext ctx = ApplicationContextHelper.getApplicationContext();
         retryingTransactionHelper = (RetryingTransactionHelper) ctx.getBean("retryingTransactionHelper");
         camelContext = (CamelContext) ctx.getBean("alfrescoCamelContext");
-        eventProducer = (EventProducer) ctx.getBean("alfrescoEventProducer");
+        eventProducer = (TransactionAwareEventProducer) ctx.getBean("transactionAwareEventProducer");
         messagingObjectMapper = (ObjectMapper) ctx.getBean("alfrescoEventObjectMapper");
     }
 
@@ -117,6 +117,39 @@ public class EventProducerTest
         assertEquals(objectMessage.getId(), objectMessageSent.getId());
         assertEquals(objectMessage.getType(), objectMessageSent.getType());
         assertEquals(objectMessage.getTimestamp(), objectMessageSent.getTimestamp());
+    }
+
+    @Test
+    public void sendTransactionAware() throws InterruptedException
+    {
+        String endpointUri = "mock:" + name.getMethodName();
+
+        MockEndpoint mockEndpoint = camelContext.getEndpoint(endpointUri, MockEndpoint.class);
+        mockEndpoint.setAssertPeriod(500);
+
+        String stringMessage = "stringMessage";
+
+        retryingTransactionHelper.doInTransaction(() -> {
+            eventProducer.send(endpointUri, stringMessage);
+
+            // Assert that the endpoint didn't receive any message
+            // Event is sent only on transaction commit.
+            mockEndpoint.setExpectedCount(0);
+            mockEndpoint.assertIsSatisfied();
+
+            eventProducer.send(endpointUri, stringMessage);
+
+            // Assert that the endpoint didn't receive any message
+            // Event is sent only on transaction commit.
+            mockEndpoint.setExpectedCount(0);
+            mockEndpoint.assertIsSatisfied();
+
+            return null;
+        });
+
+        // Assert that the endpoint received 2 message
+        mockEndpoint.setExpectedCount(2);
+        mockEndpoint.assertIsSatisfied();
     }
 
 }

@@ -26,20 +26,12 @@
 package org.alfresco.repo.rawevents;
 
 import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 
 import org.alfresco.error.AlfrescoRuntimeException;
-import org.alfresco.repo.transaction.AlfrescoTransactionSupport;
-import org.alfresco.util.GUID;
-import org.alfresco.util.transaction.TransactionListenerAdapter;
 import org.apache.activemq.transport.amqp.message.AmqpMessageSupport;
 import org.apache.camel.ProducerTemplate;
 import org.apache.commons.lang.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -59,12 +51,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  */
 public class EventProducer
 {
-    private static final String POST_TRANSACTION_PENDING_REQUESTS = "postTransactionPendingEventRequests";
     protected static final String ERROR_SENDING = "Could not send event";
 
-    private static Log logger = LogFactory.getLog(EventProducer.class);
-
-    private TransactionListener transactionListener = new TransactionListener();
     protected ProducerTemplate producer;
     protected String endpoint;
     protected ObjectMapper objectMapper;
@@ -122,111 +110,4 @@ public class EventProducer
         }
     }
 
-    public void sendAfterCommit(String endpointUri, Object event)
-    {
-        sendAfterCommit(endpointUri, event, null);
-    }
-
-    public void sendAfterCommit(String endpointUri, Object event, Map<String, Object> headers)
-    {
-        AlfrescoTransactionSupport.bindListener(transactionListener);
-        List<PendingRequest> pendingRequests = AlfrescoTransactionSupport.getResource(POST_TRANSACTION_PENDING_REQUESTS);
-
-        if (pendingRequests == null)
-        {
-            pendingRequests = new LinkedList<>();
-            AlfrescoTransactionSupport.bindResource(POST_TRANSACTION_PENDING_REQUESTS, pendingRequests);
-        }
-
-        PendingRequest pendingRequest = new PendingRequest(endpointUri, event, headers);
-        pendingRequests.add(pendingRequest);
-    }
-
-    private class PendingRequest
-    {
-        private String endpointUri;
-        private Object event;
-        private Map<String, Object> headers;
-
-        private PendingRequest(String endpointUri, Object event, Map<String, Object> headers)
-        {
-            this.endpointUri = endpointUri;
-            this.event = event;
-            this.headers = headers;
-        }
-
-        void send()
-        {
-            try
-            {
-                EventProducer.this.send(endpointUri, event, headers);
-            }
-            catch (Exception e)
-            {
-                logger.debug(e.getMessage());
-                // consume exception
-            }
-        }
-
-        @Override
-        public boolean equals(Object o)
-        {
-            if (this == o)
-            {
-                return true;
-            }
-            if (!(o instanceof EventProducer.PendingRequest))
-            {
-                return false;
-            }
-            EventProducer.PendingRequest that = (EventProducer.PendingRequest) o;
-            return Objects.equals(endpointUri, that.endpointUri) && Objects.equals(event, that.event) && Objects.equals(headers, that.headers);
-        }
-
-        @Override
-        public int hashCode()
-        {
-            return Objects.hash(endpointUri, event, headers);
-        }
-    }
-
-    private class TransactionListener extends TransactionListenerAdapter implements org.alfresco.repo.transaction.TransactionListener
-    {
-        private final String id = GUID.generate();
-
-        @Override
-        public void afterCommit()
-        {
-            for (EventProducer.PendingRequest pendingRequest : (List<PendingRequest>) AlfrescoTransactionSupport.getResource(POST_TRANSACTION_PENDING_REQUESTS))
-            {
-                pendingRequest.send();
-            }
-        }
-
-        @Override
-        public void flush()
-        {
-        }
-
-        @Override
-        public boolean equals(Object o)
-        {
-            if (this == o)
-            {
-                return true;
-            }
-            if (!(o instanceof EventProducer.TransactionListener))
-            {
-                return false;
-            }
-            EventProducer.TransactionListener that = (EventProducer.TransactionListener) o;
-            return Objects.equals(id, that.id);
-        }
-
-        @Override
-        public int hashCode()
-        {
-            return Objects.hash(id);
-        }
-    }
 }
