@@ -51,6 +51,9 @@ public class RenditionService2IntegrationTest extends AbstractRenditionIntegrati
     @Autowired
     private TransactionService transactionService;
 
+    private static final String ADMIN = "admin";
+    private static final String DOC_LIB = "doclib";
+
     @Before
     public void setUp()
     {
@@ -59,52 +62,13 @@ public class RenditionService2IntegrationTest extends AbstractRenditionIntegrati
         assertTrue("A wrong type of transform client detected", transformClient instanceof LocalTransformClient);
     }
 
-    private void checkRendition(String testFileName, String renditionDefinitionName, boolean expectedToPass) throws InterruptedException
+    private void checkRendition(String testFileName, String renditionName, boolean expectedToPass) throws InterruptedException
     {
         try
         {
-            NodeRef sourceNode = transactionService.getRetryingTransactionHelper().doInTransaction(() ->
-            {
-                NodeRef contentNode = createContentNodeFromQuickFile(testFileName);
-                renditionService2.render(contentNode, renditionDefinitionName);
-                return contentNode;
-            });
-            ChildAssociationRef childAssociationRef = null;
-            for (int i = 0; i < 20; i++)
-            {
-                childAssociationRef = renditionService2.getRenditionByName(sourceNode, renditionDefinitionName);
-                if (childAssociationRef != null)
-                {
-                    break;
-                }
-                else
-                {
-                    sleep(500);
-                }
-            }
-            assertNotNull("The " + renditionDefinitionName + " rendition failed for " + testFileName, childAssociationRef);
-        }
-        catch(UnsupportedOperationException uoe)
-        {
-            if (expectedToPass)
-            {
-                fail("The " + renditionDefinitionName + " rendition should be supported for " + testFileName);
-            }
-        }
-    }
-
-    private void checkRenditionNew(String testFileName, String renditionName, boolean expectedToPass) throws InterruptedException
-    {
-        try
-        {
-            NodeRef sourceNode = transactionService.getRetryingTransactionHelper().doInTransaction(() ->
-            {
-                NodeRef contentNode = createSource(testFileName);
-                render(contentNode, renditionName);
-                return contentNode;
-            });
-            String user = AuthenticationUtil.getRunAsUser();
-            wait(user, sourceNode, renditionName);
+            NodeRef sourceNodeRef = createSource(ADMIN, testFileName);
+            render(ADMIN, sourceNodeRef, renditionName);
+            wait(ADMIN, sourceNodeRef, renditionName);
         }
         catch(UnsupportedOperationException uoe)
         {
@@ -291,12 +255,16 @@ public class RenditionService2IntegrationTest extends AbstractRenditionIntegrati
     @Test
     public void basicRendition() throws Exception
     {
-        String user = "admin";
-        String renditionName = "doclib";
-        String testFileName = "quick.jpg";
+        NodeRef sourceNodeRef = createSource(ADMIN, "quick.jpg");
+        render(ADMIN, sourceNodeRef, DOC_LIB);
+        wait(ADMIN, sourceNodeRef, DOC_LIB);
+    }
 
-        NodeRef sourceNodeRef = createSource(user, testFileName);
-        render(user, sourceNodeRef, renditionName);
-        NodeRef renditionNodeRef = wait(user, sourceNodeRef, renditionName);
+    @Test
+    public void basicRenditionX() throws Exception
+    {
+        NodeRef sourceNodeRef = createSource(ADMIN, "quick.jpg");
+        render(ADMIN, sourceNodeRef, DOC_LIB);
+        NodeRef renditionNodeRef = wait(ADMIN, sourceNodeRef, DOC_LIB);
     }
 }
