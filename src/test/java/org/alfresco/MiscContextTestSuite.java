@@ -144,6 +144,7 @@ import org.springframework.context.ApplicationContext;
     //org.alfresco.messaging.camel.CamelRoutesTest.class,
     // Requires a running ActiveMQ
     org.alfresco.repo.rawevents.EventBehaviorTest.class,
+    org.alfresco.repo.rawevents.EventProducerTest.class,
     // Requires running transformers
     org.alfresco.repo.rendition2.RenditionService2IntegrationTest.class,
     org.alfresco.repo.rendition2.LocalTransformClientIntegrationTest.class
