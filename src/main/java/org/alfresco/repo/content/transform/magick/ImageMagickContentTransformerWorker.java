@@ -61,9 +61,12 @@ import static org.alfresco.repo.rendition2.RenditionDefinition2.THUMBNAIL;
 
 /**
  * Executes a statement to implement 
- * 
+ *
  * @author Derek Hulley
+ *
+ * @deprecated The transformations code is being moved out of the codebase and replaced by the new async RenditionService2 or other external libraries.
  */
+@Deprecated
 public class ImageMagickContentTransformerWorker extends AbstractImageMagickContentTransformerWorker
 {
     /** options variable name */

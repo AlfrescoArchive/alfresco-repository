@@ -49,7 +49,10 @@ import static org.alfresco.repo.rendition2.RenditionDefinition2.MAINTAIN_ASPECT_
  * 
  * @author Neil McErlean
  * @since 3.3
+ *
+ * @deprecated The RenditionService is being replace by the simpler async RenditionService2.
  */
+@Deprecated
 public class ImageRenderingEngine extends AbstractTransformationRenderingEngine
 {
     public static final String NAME = "imageRenderingEngine";

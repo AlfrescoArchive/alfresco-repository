@@ -72,7 +72,10 @@ import static org.alfresco.service.cmr.repository.TransformationOptionLimits.OPT
  * @see RenditionDefinition
  * 
  * @author Neil McErlean
+ *
+ * @deprecated The thumbnails code is being moved out of the codebase and replaced by the new async RenditionService2 or other external libraries.
  */
+@Deprecated
 public class ThumbnailRenditionConvertor
 {
     private RenditionService renditionService;
