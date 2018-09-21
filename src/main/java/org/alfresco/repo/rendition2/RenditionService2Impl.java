@@ -342,7 +342,7 @@ public class RenditionService2Impl implements RenditionService2, InitializingBea
 
     /**
      * Indicates if the rendition is available. Failed renditions (there was an error) don't have a contentUrl
-     * and out of date renditions don't have a matching contentUrlHashCode.
+     * and out of date renditions or those still being created don't have a matching contentUrlHashCode.
      */
     public boolean isRenditionAvailable(NodeRef sourceNodeRef, NodeRef renditionNode)
     {
@@ -378,7 +378,7 @@ public class RenditionService2Impl implements RenditionService2, InitializingBea
         QName renditionQName = createQName(NamespaceService.CONTENT_MODEL_1_0_URI, renditionName);
 
         // Check that the sourceNodeRef has the renditioned aspect applied
-        if (nodeService.hasAspect(sourceNodeRef, RenditionModel.ASPECT_RENDITIONED) == true)
+        if (nodeService.hasAspect(sourceNodeRef, RenditionModel.ASPECT_RENDITIONED))
         {
             // Get all the renditions that match the given rendition name -
             // there should only be 1 (or 0)
@@ -454,12 +454,6 @@ public class RenditionService2Impl implements RenditionService2, InitializingBea
                         if (createRenditionNode)
                         {
                             renditionNode = createRenditionNode(sourceNodeRef, renditionDefinition);
-                        }
-
-                        if (createRenditionNode)
-                        {
-                            nodeService.addAspect(renditionNode, RenditionModel.ASPECT_RENDITION2, null);
-                            nodeService.addAspect(renditionNode, RenditionModel.ASPECT_HIDDEN_RENDITION, null);
                         }
                         else if (!nodeService.hasAspect(renditionNode, RenditionModel.ASPECT_RENDITION2))
                         {
@@ -576,6 +570,9 @@ public class RenditionService2Impl implements RenditionService2, InitializingBea
 
         ChildAssociationRef childAssoc = nodeService.createNode(sourceNode, assocType, assocName, nodeType, nodeProps);
         NodeRef renditionNode = childAssoc.getChildRef();
+
+        nodeService.addAspect(renditionNode, RenditionModel.ASPECT_RENDITION2, null);
+        nodeService.addAspect(renditionNode, RenditionModel.ASPECT_HIDDEN_RENDITION, null);
 
         if (logger.isDebugEnabled())
         {
