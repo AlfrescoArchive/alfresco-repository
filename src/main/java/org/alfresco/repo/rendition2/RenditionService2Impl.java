@@ -33,6 +33,7 @@ import org.alfresco.repo.policy.BehaviourFilter;
 import org.alfresco.repo.policy.JavaBehaviour;
 import org.alfresco.repo.policy.PolicyComponent;
 import org.alfresco.repo.rendition.RenditionPreventionRegistry;
+import org.alfresco.repo.search.impl.solr.facet.Exceptions;
 import org.alfresco.repo.security.authentication.AuthenticationUtil;
 import org.alfresco.repo.transaction.RetryingTransactionHelper;
 import org.alfresco.repo.util.PostTxnCallbackScheduler;
@@ -64,6 +65,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import static java.lang.Thread.sleep;
 import static org.alfresco.model.ContentModel.PROP_CONTENT;
 import static org.alfresco.model.RenditionModel.PROP_RENDITION_CONTENT_URL_HASH_CODE;
 import static org.alfresco.service.namespace.QName.createQName;
@@ -365,6 +367,32 @@ public class RenditionService2Impl implements RenditionService2, InitializingBea
             }
         }
         return available;
+    }
+
+    @Override
+    public ChildAssociationRef getRenditionByName(NodeRef sourceNodeRef, String renditionName, long maxMillis) throws InterruptedException
+    {
+        if (maxMillis < 0 || maxMillis > 30000)
+        {
+            throw new Exceptions.IllegalArgument("THe maxMillis value should be between 0 and 30000 ms");
+        }
+
+        ChildAssociationRef assoc = null;
+        for (int i = (int)(maxMillis / 500)+1; i >= 1; i--)
+        {
+            // Must create a new transaction in order to see changes that take place after this method started.
+            assoc = transactionService.getRetryingTransactionHelper().doInTransaction(() ->
+            {
+                return getRenditionByName(sourceNodeRef, renditionName);
+            }, true, true);
+            if (assoc != null)
+            {
+                break;
+            }
+            logger.debug("RenditionService2.getRenditionByName(...) sleep "+i);
+            sleep(500);
+        }
+        return assoc;
     }
 
     @Override

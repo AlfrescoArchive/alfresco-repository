@@ -123,23 +123,7 @@ public class RenditionService2IntegrationTest extends AbstractRenditionIntegrati
     // As the current user wait for a rendition to appear. Creates new transactions to do this.
     private NodeRef wait(NodeRef sourceNodeRef, String renditionName) throws InterruptedException
     {
-        ChildAssociationRef assoc = null;
-        for (int i = 0; i < 20; i++)
-        {
-            // Must create a new transaction in order to see changes that take place after this method started.
-            assoc = transactionService.getRetryingTransactionHelper().doInTransaction(() ->
-            {
-                return renditionService2.getRenditionByName(sourceNodeRef, renditionName);
-            }, true, true);
-            if (assoc != null)
-            {
-                break;
-            }
-            else
-            {
-                sleep(500);
-            }
-        }
+        ChildAssociationRef assoc = renditionService2.getRenditionByName(sourceNodeRef, renditionName, 20000L);
         assertNotNull("Rendition " + renditionName + " failed", assoc);
         return assoc.getChildRef();
     }
