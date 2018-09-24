@@ -31,8 +31,6 @@ import org.alfresco.repo.content.transform.magick.ImageResizeOptions;
 import org.alfresco.repo.content.transform.magick.ImageTransformationOptions;
 import org.alfresco.repo.content.transform.swf.SWFTransformationOptions;
 import org.alfresco.repo.security.authentication.AuthenticationUtil;
-import org.alfresco.repo.transaction.RetryingTransactionHelper;
-import org.alfresco.service.cmr.repository.ContentData;
 import org.alfresco.service.cmr.repository.ContentReader;
 import org.alfresco.service.cmr.repository.ContentService;
 import org.alfresco.service.cmr.repository.ContentWriter;
@@ -189,12 +187,8 @@ public class LocalTransformClient extends AbstractTransformClient implements Tra
     }
 
     @Override
-    public void checkSupported(NodeRef sourceNodeRef, RenditionDefinition2 renditionDefinition)
+    public void checkSupported(NodeRef sourceNodeRef, RenditionDefinition2 renditionDefinition, String sourceMimetype, long size, String contentUrl)
     {
-        ContentData contentData = getContentData(sourceNodeRef);
-        String contentUrl = contentData.getContentUrl();
-        String sourceMimetype = contentData.getMimetype();
-        long size = contentData.getSize();
         String targetMimetype = renditionDefinition.getTargetMimetype();
         String renditionName = renditionDefinition.getRenditionName();
         Map<String, String> options = renditionDefinition.getTransformOptions();
@@ -252,13 +246,7 @@ public class LocalTransformClient extends AbstractTransformClient implements Tra
                             String renditionName = renditionDefinition.getRenditionName();
                             logger.debug("Rendition of "+renditionName+" failed", e);
                         }
-                        // The original transaction may have already have failed
-                        AuthenticationUtil.runAsSystem((AuthenticationUtil.RunAsWork<Void>) () ->
-                            transactionService.getRetryingTransactionHelper().doInTransaction(() ->
-                            {
-                                renditionService2.consume(sourceNodeRef, null, renditionDefinition, sourceContentUrlHashCode);
-                                return null;
-                            }, false, true));
+                        renditionService2.failure(sourceNodeRef, renditionDefinition, sourceContentUrlHashCode);
                         throw e;
                     }
                     return null;

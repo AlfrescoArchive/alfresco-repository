@@ -25,19 +25,24 @@
  */
 package org.alfresco.repo.rendition2;
 
+import org.alfresco.model.ContentModel;
 import org.alfresco.model.RenditionModel;
 import org.alfresco.repo.security.authentication.AuthenticationUtil;
 import org.alfresco.service.cmr.repository.ChildAssociationRef;
+import org.alfresco.service.cmr.repository.ContentWriter;
 import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.transaction.TransactionService;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.ResourceUtils;
 
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.List;
 
 import static java.lang.Thread.sleep;
+import static org.alfresco.model.ContentModel.PROP_CONTENT;
 
 /**
  * Integration tests for {@link RenditionService2}
@@ -96,6 +101,47 @@ public class RenditionService2IntegrationTest extends AbstractRenditionIntegrati
         return sourceNodeRef;
     }
 
+    // Changes the content of a source node as the given user in its own transaction.
+    private void updateContent(String user, NodeRef sourceNodeRef, String testFileName) throws FileNotFoundException
+    {
+        AuthenticationUtil.runAs((AuthenticationUtil.RunAsWork<Void>) () ->
+                transactionService.getRetryingTransactionHelper().doInTransaction(() ->
+                {
+                    updateContent(sourceNodeRef, testFileName);
+                    return null;
+                }), user);
+    }
+
+    // Changes the content of a source node as the current user in the current transaction.
+    private NodeRef updateContent(NodeRef sourceNodeRef, String testFileName) throws FileNotFoundException
+    {
+        File file = ResourceUtils.getFile("classpath:quick/" + testFileName);
+        nodeService.setProperty(sourceNodeRef, ContentModel.PROP_NAME, testFileName);
+
+        ContentWriter contentWriter = contentService.getWriter(sourceNodeRef, ContentModel.PROP_CONTENT, true);
+        contentWriter.setMimetype(mimetypeService.guessMimetype(testFileName));
+        contentWriter.putContent(file);
+
+        return sourceNodeRef;
+    }
+
+    // Clears the content of a source node as the given user in its own transaction.
+    private void clearContent(String user, NodeRef sourceNodeRef)
+    {
+        AuthenticationUtil.runAs((AuthenticationUtil.RunAsWork<Void>) () ->
+                transactionService.getRetryingTransactionHelper().doInTransaction(() ->
+                {
+                    clearContent(sourceNodeRef);
+                    return null;
+                }), user);
+    }
+
+    // Clears the content of a source node as the current user in the current transaction.
+    private void clearContent(NodeRef sourceNodeRef)
+    {
+        nodeService.removeProperty(sourceNodeRef, PROP_CONTENT);
+    }
+
     // Requests a new rendition as the given user in its own transaction.
     private void render(String user, NodeRef sourceNode, String renditionName) throws InterruptedException
     {
@@ -123,7 +169,22 @@ public class RenditionService2IntegrationTest extends AbstractRenditionIntegrati
     // As the current user wait for a rendition to appear. Creates new transactions to do this.
     private NodeRef wait(NodeRef sourceNodeRef, String renditionName) throws InterruptedException
     {
-        ChildAssociationRef assoc = renditionService2.getRenditionByName(sourceNodeRef, renditionName, 20000L);
+        long maxMillis = 20000;
+        ChildAssociationRef assoc = null;
+        for (int i = (int)(maxMillis / 500); i >= 0; i--)
+        {
+            // Must create a new transaction in order to see changes that take place after this method started.
+            assoc = transactionService.getRetryingTransactionHelper().doInTransaction(() ->
+            {
+                return renditionService2.getRenditionByName(sourceNodeRef, renditionName);
+            }, true, true);
+            if (assoc != null)
+            {
+                break;
+            }
+            logger.debug("RenditionService2.getRenditionByName(...) sleep "+i);
+            sleep(500);
+        }
         assertNotNull("Rendition " + renditionName + " failed", assoc);
         return assoc.getChildRef();
     }
@@ -245,10 +306,32 @@ public class RenditionService2IntegrationTest extends AbstractRenditionIntegrati
     }
 
     @Test
-    public void basicRenditionX() throws Exception
+    public void changedSourceToNullContent() throws Exception
     {
         NodeRef sourceNodeRef = createSource(ADMIN, "quick.jpg");
         render(ADMIN, sourceNodeRef, DOC_LIB);
-        NodeRef renditionNodeRef = wait(ADMIN, sourceNodeRef, DOC_LIB);
+        wait(ADMIN, sourceNodeRef, DOC_LIB);
+
+        clearContent(ADMIN, sourceNodeRef);
+        render(ADMIN, sourceNodeRef, DOC_LIB);
+        ChildAssociationRef assoc = renditionService2.getRenditionByName(sourceNodeRef, DOC_LIB);
+        assertNull("There should be no rendition as there was no content", assoc);
     }
+
+    @Test
+    public void changedSourceToNonNull() throws Exception
+    {
+        NodeRef sourceNodeRef = createSource(ADMIN, "quick.jpg");
+        render(ADMIN, sourceNodeRef, DOC_LIB);
+        wait(ADMIN, sourceNodeRef, DOC_LIB);
+
+        clearContent(ADMIN, sourceNodeRef);
+        render(ADMIN, sourceNodeRef, DOC_LIB);
+        ChildAssociationRef assoc = renditionService2.getRenditionByName(sourceNodeRef, DOC_LIB);
+        assertNull("There should be no rendition as there was no content", assoc);
+
+        updateContent(ADMIN, sourceNodeRef, "quick.png");
+        wait(ADMIN, sourceNodeRef, DOC_LIB);
+    }
+
 }

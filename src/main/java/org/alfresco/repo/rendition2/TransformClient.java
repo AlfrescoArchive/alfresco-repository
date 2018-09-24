@@ -38,12 +38,15 @@ public interface TransformClient
      * Checks the transformation required for the rendition is supported.
      * @param sourceNodeRef the source node
      * @param renditionDefinition which rendition to perform
+     * @param sourceMimetype the mometype of the source
+     * @param size the size in bytes of the source
+     * @param contentUrl the url of the source (used in debug).
      * @return and object that contains information that will be passed to
      * {@link #transform(NodeRef, RenditionDefinition2, String, int)} as the {@code transformInfo} parameter to
      * avoid having to work it out again.
      * @throws UnsupportedOperationException if the transform is not supported.
      */
-    void checkSupported(NodeRef sourceNodeRef, RenditionDefinition2 renditionDefinition);
+    void checkSupported(NodeRef sourceNodeRef, RenditionDefinition2 renditionDefinition, String sourceMimetype, long size, String contentUrl);
 
     /**
      * Requests an asynchronous transform and the subsequent linkage of that transform as a rendition.

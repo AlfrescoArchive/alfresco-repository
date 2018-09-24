@@ -51,19 +51,4 @@ public abstract class AbstractTransformClient implements InitializingBean
     {
         PropertyCheck.mandatory(this, "nodeService", nodeService);
     }
-
-    protected ContentData getContentData(NodeRef sourceNodeRef)
-    {
-        if (!nodeService.exists(sourceNodeRef))
-        {
-            throw new IllegalArgumentException("The supplied sourceNodeRef "+sourceNodeRef+" does not exist any more.");
-        }
-
-        ContentData contentData = (ContentData) nodeService.getProperty(sourceNodeRef, ContentModel.PROP_CONTENT);
-        if (contentData == null || contentData.getContentUrl() == null)
-        {
-            throw new IllegalArgumentException("The supplied sourceNodeRef "+sourceNodeRef+" has no content.");
-        }
-        return contentData;
-    }
 }
