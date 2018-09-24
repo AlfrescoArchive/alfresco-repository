@@ -158,7 +158,7 @@ public class RenditionService2Test
     @Test(expected = UnsupportedOperationException.class)
     public void noTransform()
     {
-        doThrow(UnsupportedOperationException.class).when(transformClient).checkSupported(any(), any(), any(), anyLong(), contentUrl);
+        doThrow(UnsupportedOperationException.class).when(transformClient).checkSupported(any(), any(), any(), anyLong(), any());
         renditionService2.render(nodeRef, IMGPREVIEW);
     }
 
