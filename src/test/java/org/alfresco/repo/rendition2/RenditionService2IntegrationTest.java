@@ -25,6 +25,7 @@
  */
 package org.alfresco.repo.rendition2;
 
+import org.alfresco.model.RenditionModel;
 import org.alfresco.repo.security.authentication.AuthenticationUtil;
 import org.alfresco.service.cmr.repository.ChildAssociationRef;
 import org.alfresco.service.cmr.repository.NodeRef;
@@ -32,6 +33,11 @@ import org.alfresco.service.transaction.TransactionService;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+
+import java.io.FileNotFoundException;
+import java.util.List;
+
+import static java.lang.Thread.sleep;
 
 /**
  * Integration tests for {@link RenditionService2}
@@ -45,12 +51,107 @@ public class RenditionService2IntegrationTest extends AbstractRenditionIntegrati
     @Autowired
     private TransactionService transactionService;
 
+    private static final String ADMIN = "admin";
+    private static final String DOC_LIB = "doclib";
+
     @Before
     public void setUp()
     {
         AuthenticationUtil.setRunAsUser(AuthenticationUtil.getAdminUserName());
         assertTrue("The RenditionService2 needs to be enabled", renditionService2.isEnabled());
         assertTrue("A wrong type of transform client detected", transformClient instanceof LocalTransformClient);
+    }
+
+    private void checkRendition(String testFileName, String renditionName, boolean expectedToPass) throws InterruptedException
+    {
+        try
+        {
+            NodeRef sourceNodeRef = createSource(ADMIN, testFileName);
+            render(ADMIN, sourceNodeRef, renditionName);
+            wait(ADMIN, sourceNodeRef, renditionName);
+        }
+        catch(UnsupportedOperationException uoe)
+        {
+            if (expectedToPass)
+            {
+                fail("The " + renditionName + " rendition should be supported for " + testFileName);
+            }
+        }
+    }
+
+    // Creates a new source node as the given user in its own transaction.
+    private NodeRef createSource(String user, String testFileName) throws InterruptedException
+    {
+        return AuthenticationUtil.runAs((AuthenticationUtil.RunAsWork<NodeRef>) () ->
+                transactionService.getRetryingTransactionHelper().doInTransaction(() ->
+                {
+                    return createSource(testFileName);
+                }), user);
+    }
+
+    // Creates a new source node as the current user in the current transaction.
+    private NodeRef createSource(String testFileName) throws FileNotFoundException
+    {
+        NodeRef sourceNodeRef = createContentNodeFromQuickFile(testFileName);
+        return sourceNodeRef;
+    }
+
+    // Requests a new rendition as the given user in its own transaction.
+    private void render(String user, NodeRef sourceNode, String renditionName) throws InterruptedException
+    {
+        AuthenticationUtil.runAs((AuthenticationUtil.RunAsWork<Void>) () ->
+                transactionService.getRetryingTransactionHelper().doInTransaction(() ->
+                {
+                    render(sourceNode, renditionName);
+                    return null;
+                }), user);
+    }
+
+    // Requests a new rendition as the current user in the current transaction.
+    private void render(NodeRef sourceNodeRef, String renditionName)
+    {
+        renditionService2.render(sourceNodeRef, renditionName);
+    }
+
+    // As a given user wait for a rendition to appear. Creates new transactions to do this.
+    private NodeRef wait(String user, NodeRef sourceNodeRef, String renditionName) throws InterruptedException
+    {
+        return AuthenticationUtil.runAs((AuthenticationUtil.RunAsWork<NodeRef>) () ->
+                wait(sourceNodeRef, renditionName), user);
+    }
+
+    // As the current user wait for a rendition to appear. Creates new transactions to do this.
+    private NodeRef wait(NodeRef sourceNodeRef, String renditionName) throws InterruptedException
+    {
+        ChildAssociationRef assoc = renditionService2.getRenditionByName(sourceNodeRef, renditionName, 20000L);
+        assertNotNull("Rendition " + renditionName + " failed", assoc);
+        return assoc.getChildRef();
+    }
+
+    // Debugs a source node looking for child associations and indicates if the have the rendition aspects.
+    private void debug(String prefix, NodeRef sourceNodeRef)
+    {
+        if (sourceNodeRef == null)
+        {
+            System.err.println(prefix+" debug sourceNodeRef=null");
+        }
+        else if (!nodeService.exists(sourceNodeRef))
+        {
+            System.err.println(prefix+" debug sourceNodeRef does not exist");
+        }
+        else
+        {
+            List<ChildAssociationRef> childAssocs = nodeService.getChildAssocs(sourceNodeRef);
+            boolean hasRenditionedAspect = nodeService.hasAspect(sourceNodeRef, RenditionModel.ASPECT_RENDITIONED);
+            System.err.println(prefix+" debug assocs=" + childAssocs.size() + " hasRenditionedAspect=" + hasRenditionedAspect);
+            for (ChildAssociationRef assoc : childAssocs)
+            {
+                NodeRef childRef = assoc.getChildRef();
+                boolean hasRenditionAspect = nodeService.hasAspect(childRef, RenditionModel.ASPECT_RENDITION);
+                boolean hasRendition2Aspect = nodeService.hasAspect(childRef, RenditionModel.ASPECT_RENDITION2);
+                System.err.println(prefix+" debug child=" + childRef + " hasRenditionAspect=" + hasRenditionAspect + " hasRendition2Aspect=" + hasRendition2Aspect);
+            }
+        }
     }
 
     // PDF transformation
@@ -135,37 +236,19 @@ public class RenditionService2IntegrationTest extends AbstractRenditionIntegrati
         checkRendition("quick.docx", "pdf", true);
     }
 
-    private void checkRendition(String testFileName, String renditionDefinitionName, boolean expectedToPass) throws InterruptedException
+    @Test
+    public void basicRendition() throws Exception
     {
-        try
-        {
-            NodeRef sourceNode = transactionService.getRetryingTransactionHelper().doInTransaction(() ->
-            {
-                NodeRef contentNode = createContentNodeFromQuickFile(testFileName);
-                renditionService2.render(contentNode, renditionDefinitionName);
-                return contentNode;
-            });
-            ChildAssociationRef childAssociationRef = null;
-            for (int i = 0; i < 20; i++)
-            {
-                childAssociationRef = renditionService2.getRenditionByName(sourceNode, renditionDefinitionName);
-                if (childAssociationRef != null)
-                {
-                    break;
-                }
-                else
-                {
-                    Thread.sleep(500);
-                }
-            }
-            assertNotNull("The " + renditionDefinitionName + " rendition failed for " + testFileName, childAssociationRef);
-        }
-        catch(UnsupportedOperationException uoe)
-        {
-            if (expectedToPass)
-            {
-                fail("The " + renditionDefinitionName + " rendition should be supported for " + testFileName);
-            }
-        }
+        NodeRef sourceNodeRef = createSource(ADMIN, "quick.jpg");
+        render(ADMIN, sourceNodeRef, DOC_LIB);
+        wait(ADMIN, sourceNodeRef, DOC_LIB);
+    }
+
+    @Test
+    public void basicRenditionX() throws Exception
+    {
+        NodeRef sourceNodeRef = createSource(ADMIN, "quick.jpg");
+        render(ADMIN, sourceNodeRef, DOC_LIB);
+        NodeRef renditionNodeRef = wait(ADMIN, sourceNodeRef, DOC_LIB);
     }
 }

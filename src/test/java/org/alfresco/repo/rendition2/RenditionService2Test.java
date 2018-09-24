@@ -26,8 +26,6 @@
 package org.alfresco.repo.rendition2;
 
 import org.alfresco.model.ContentModel;
-import org.alfresco.repo.content.transform.ContentTransformer;
-import org.alfresco.repo.content.transform.magick.ImageTransformationOptions;
 import org.alfresco.repo.policy.BehaviourFilter;
 import org.alfresco.repo.policy.PolicyComponent;
 import org.alfresco.repo.rendition.RenditionPreventionRegistry;
@@ -38,12 +36,11 @@ import org.alfresco.service.cmr.repository.ContentService;
 import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.cmr.repository.NodeService;
 import org.alfresco.service.cmr.rule.RuleService;
+import org.alfresco.service.namespace.QName;
 import org.alfresco.service.transaction.TransactionService;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
@@ -51,11 +48,12 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyLong;
+import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -70,21 +68,17 @@ import static org.mockito.Mockito.when;
 public class RenditionService2Test
 {
     private RenditionService2Impl renditionService2;
-    private LocalTransformClient localTransformClient;
     private RenditionDefinitionRegistry2Impl renditionDefinitionRegistry2;
 
+    @Mock private TransformClient transformClient;
     @Mock private TransactionService transactionService;
     @Mock private NodeService nodeService;
     @Mock private ContentService contentService;
     @Mock private RenditionPreventionRegistry renditionPreventionRegistry;
     @Mock private ContentData contentData;
-    @Mock private ContentTransformer contentTransformer;
     @Mock private PolicyComponent policyComponent;
     @Mock private BehaviourFilter behaviourFilter;
     @Mock private RuleService ruleService;
-
-    @Captor
-    ArgumentCaptor<RetryingTransactionHelper.RetryingTransactionCallback> callbackArgumentCaptor;
 
     private NodeRef nodeRef = new NodeRef("workspace://spacesStore/test-id");
     private static final String IMGPREVIEW = "imgpreview";
@@ -102,12 +96,6 @@ public class RenditionService2Test
         options.put("height", "1024");
         new RenditionDefinition2Impl(IMGPREVIEW, JPEG, options, renditionDefinitionRegistry2);
 
-        localTransformClient = new LocalTransformClient();
-        localTransformClient.setNodeService(nodeService);
-        localTransformClient.setContentService(contentService);
-        localTransformClient.setRenditionService2(renditionService2);
-        localTransformClient.afterPropertiesSet();
-
         when(nodeService.exists(nodeRef)).thenReturn(true);
         when(nodeService.getProperty(nodeRef, ContentModel.PROP_CONTENT)).thenReturn(contentData);
         when(nodeService.getProperty(nodeRef, ContentModel.PROP_MODIFIED)).thenReturn(new Date());
@@ -118,7 +106,7 @@ public class RenditionService2Test
         renditionService2.setContentService(contentService);
         renditionService2.setRenditionPreventionRegistry(renditionPreventionRegistry);
         renditionService2.setRenditionDefinitionRegistry2(renditionDefinitionRegistry2);
-        renditionService2.setTransformClient(localTransformClient);
+        renditionService2.setTransformClient(transformClient);
         renditionService2.setPolicyComponent(policyComponent);
         renditionService2.setBehaviourFilter(behaviourFilter);
         renditionService2.setRuleService(ruleService);
@@ -127,29 +115,6 @@ public class RenditionService2Test
         renditionService2.setThumbnailsEnabled(true);
         renditionService2.setRenditionRequestSheduler(new RenditionRequestSchedulerMock());
         renditionService2.afterPropertiesSet();
-    }
-
-    @Captor
-    ArgumentCaptor<ImageTransformationOptions> captor;
-
-    @Test
-    public void useLocalTransform() throws Throwable
-    {
-        when(contentService.getTransformer(anyString(), anyString(), anyLong(), anyString(), any())).thenReturn(contentTransformer);
-
-        renditionService2.render(nodeRef, IMGPREVIEW);
-
-        verify(contentService).getTransformer(anyString(), anyString(), anyLong(), anyString(), captor.capture());
-        assertEquals(1024, captor.getValue().getResizeOptions().getHeight());
-        assertEquals(960, captor.getValue().getResizeOptions().getWidth());
-    }
-
-    @Test(expected = UnsupportedOperationException.class)
-    public void noTransform() throws Throwable
-    {
-        when(contentService.getTransformer(anyString(), anyString(), anyLong(), anyString(), any())).thenReturn(null);
-
-        renditionService2.render(nodeRef, IMGPREVIEW);
     }
 
     private class RenditionRequestSchedulerMock extends PostTxnCallbackScheduler
@@ -166,5 +131,46 @@ public class RenditionService2Test
                 fail("The rendition callback failed: " + throwable);
             }
         }
+    }
+
+    @Test(expected = RenditionService2Exception.class)
+    public void disabled()
+    {
+        renditionService2.setEnabled(false);
+        renditionService2.render(nodeRef, IMGPREVIEW);
+    }
+
+    @Test(expected = RenditionService2Exception.class)
+    public void thumbnailsDisabled()
+    {
+        renditionService2.setThumbnailsEnabled(false);
+        renditionService2.render(nodeRef, IMGPREVIEW);
+    }
+
+    @Test
+    public void useLocalTransform()
+    {
+        renditionService2.render(nodeRef, IMGPREVIEW);
+        verify(transformClient, times(1)).transform(any(), any(), anyString(), anyInt());
+    }
+
+    @Test(expected = UnsupportedOperationException.class)
+    public void noTransform()
+    {
+        doThrow(UnsupportedOperationException.class).when(transformClient).checkSupported(any(), any());
+        renditionService2.render(nodeRef, IMGPREVIEW);
+    }
+
+    @Test(expected = RenditionService2PreventedException.class)
+    public void checkSourceNodeForPreventionClass()
+    {
+        when(renditionPreventionRegistry.isContentClassRegistered((QName)any())).thenReturn(true);
+        renditionService2.render(nodeRef, IMGPREVIEW);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void noDefinition()
+    {
+        renditionService2.render(nodeRef, "doesNotExist");
     }
 }

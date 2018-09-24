@@ -26,12 +26,6 @@
 
 package org.alfresco.repo.rendition;
 
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
-
 import org.alfresco.model.ContentModel;
 import org.alfresco.model.RenditionModel;
 import org.alfresco.repo.action.executer.ActionExecuter;
@@ -68,6 +62,12 @@ import org.alfresco.service.namespace.RegexQNamePattern;
 import org.alfresco.util.GUID;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
 
 /*
  * @author Nick Smith
@@ -638,37 +638,63 @@ public class RenditionServiceImpl implements
     }
 
     @Override
-    public boolean useRenditionService2(NodeRef sourceNodeRef, RenditionDefinition rendDefn)
+    public boolean usingRenditionService2(NodeRef sourceNodeRef, RenditionDefinition rendDefn)
     {
         boolean useRenditionService2 = false;
 
         QName renditionQName = rendDefn.getRenditionName();
         String renditionName = renditionQName.getLocalName();
-        if (renditionService2.isCreatedByRenditionService2(sourceNodeRef, renditionName))
+        RenditionDefinition2 renditionDefinition2 = getEquivalentRenditionDefinition2(rendDefn);
+        boolean createdByRenditionService2 = renditionService2.isCreatedByRenditionService2(sourceNodeRef, renditionName);
+
+        if (renditionService2.isEnabled())
         {
-            // The rendition has been created by RenditionService2 and the older RenditionService
-            // should leave it to the newer service to do the work.
-            useRenditionService2 = true;
-        }
-        else
-        {
-            RenditionDefinitionRegistry2 renditionDefinitionRegistry2 = renditionService2.getRenditionDefinitionRegistry2();
-            RenditionDefinition2 renditionDefinition2 = renditionDefinitionRegistry2.getRenditionDefinition(renditionName);
-            if (renditionDefinition2 != null)
+            if (createdByRenditionService2)
             {
-                String targetMimetype = (String) rendDefn.getParameterValue(AbstractRenderingEngine.PARAM_MIME_TYPE);
-                String targetMimetype2 = renditionDefinition2.getTargetMimetype();
-                if (targetMimetype.equals(targetMimetype2))
+                // The rendition has been created by RenditionService2 and the older RenditionService should leave it to
+                // the newer service to do the work unless there is no matching rendition in which case we remove the
+                // rendition and the old service takes over again.
+                if (renditionDefinition2 != null)
                 {
-                    // The rendition has been created by the older RenditionService but know that RenditionService2
-                    // can do the work, so we ask the newer service to do here. This will result in the rendition2
-                    // aspect being added, so future renditions will also be done by the newer service.
                     useRenditionService2 = true;
-                    renditionService2.render(sourceNodeRef, renditionName);
+                }
+                else
+                {
+                    renditionService2.deleteRendition(sourceNodeRef, renditionName);
                 }
             }
+            else if (renditionDefinition2 != null)
+            {
+                // The rendition has been created by the older RenditionService but we know that RenditionService2
+                // can do the work, so we ask the newer service to do it here. This will result in the rendition2
+                // aspect being added, so future renditions will also be done by the newer service.
+                useRenditionService2 = true;
+                renditionService2.render(sourceNodeRef, renditionName);
+            }
+        }
+        else if (createdByRenditionService2)
+        {
+            // As the new service has been disabled the old service needs to take over, so the rendition is removed.
+            renditionService2.deleteRendition(sourceNodeRef, renditionName);
         }
 
         return useRenditionService2;
+    }
+
+    // Finds a RenditionDefinition2 with the same name (local part) and target mimetype.
+    private RenditionDefinition2 getEquivalentRenditionDefinition2(RenditionDefinition rendDefn)
+    {
+        QName renditionQName = rendDefn.getRenditionName();
+        String renditionName = renditionQName.getLocalName();
+        RenditionDefinitionRegistry2 renditionDefinitionRegistry2 = renditionService2.getRenditionDefinitionRegistry2();
+        RenditionDefinition2 renditionDefinition2 = renditionDefinitionRegistry2.getRenditionDefinition(renditionName);
+        RenditionDefinition2 equivalentRenditionDefinition2 = null;
+        if (renditionDefinition2 != null)
+        {
+            String targetMimetype = (String) rendDefn.getParameterValue(AbstractRenderingEngine.PARAM_MIME_TYPE);
+            String targetMimetype2 = renditionDefinition2.getTargetMimetype();
+            equivalentRenditionDefinition2 = targetMimetype.equals(targetMimetype2) ? renditionDefinition2 : null;
+        }
+        return equivalentRenditionDefinition2;
     }
 }

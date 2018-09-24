@@ -295,5 +295,5 @@ public interface RenditionService extends RenditionDefinitionPersister
      * to worry about any complexities in converting TransformationOptions into a simple flat Map structure.
      */
     @NotAuditable
-    boolean useRenditionService2(NodeRef sourceNodeRef, RenditionDefinition rendDefn);
+    boolean usingRenditionService2(NodeRef sourceNodeRef, RenditionDefinition rendDefn);
 }

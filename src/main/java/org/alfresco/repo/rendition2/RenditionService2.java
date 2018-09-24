@@ -89,10 +89,26 @@ public interface RenditionService2
      * @param sourceNodeRef the source node for the renditions
      * @param renditionName the renditionName used to identify a rendition.
      * @return the {@link ChildAssociationRef} which links the source node to the
-     *         rendition or <code>null</code> if there is no such rendition.
+     *         rendition or <code>null</code> if there is no rendition or it is not up to date.
      */
     @NotAuditable
     ChildAssociationRef getRenditionByName(NodeRef sourceNodeRef, String renditionName);
+
+    /**
+     * This method gets the rendition of the {@code sourceNodeRef} identified by its name, but blocks up to
+     * maxMillis if it does not exist. <b>If possible the non blocking {@link #getRenditionByName(NodeRef, String)}
+     * version of this method should be used.</b>
+     *
+     * @param sourceNodeRef the source node for the renditions
+     * @param renditionName the renditionName used to identify a rendition.
+     * @param maxMillis the maximum abount of time to wait for the rendition to appear. Must be in the range of
+     *                  0 to 30000.
+     * @return the {@link ChildAssociationRef} which links the source node to the
+     *         rendition or <code>null</code> if there is no rendition or it is not up to date.
+     * @throws InterruptedException if interrupted.
+     */
+    @NotAuditable
+    ChildAssociationRef getRenditionByName(NodeRef sourceNodeRef, String renditionName, long maxMillis) throws InterruptedException;
 
     /**
      * Indicates if renditions are enabled. Set using the {@code system.thumbnail.generate} value.

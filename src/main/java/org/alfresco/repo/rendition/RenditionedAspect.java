@@ -286,7 +286,7 @@ public class RenditionedAspect implements NodeServicePolicies.OnUpdateProperties
             logger.debug(msg.toString());
         }
 
-        if (rendDefn != null && !renditionService.useRenditionService2(sourceNodeRef, rendDefn))
+        if (rendDefn != null && !renditionService.usingRenditionService2(sourceNodeRef, rendDefn))
         {
             Action deleteRendition = actionService.createAction(DeleteRenditionActionExecuter.NAME);
             deleteRendition.setParameterValue(DeleteRenditionActionExecuter.PARAM_RENDITION_DEFINITION_NAME, rendDefn.getRenditionName());
