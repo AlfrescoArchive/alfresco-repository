@@ -50,6 +50,7 @@ import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.cmr.repository.NodeService;
 import org.alfresco.service.namespace.NamespaceService;
 import org.alfresco.service.namespace.QName;
+import org.alfresco.service.namespace.RegexQNamePattern;
 import org.alfresco.util.EqualsHelper;
 import org.alfresco.util.Pair;
 import org.apache.commons.logging.Log;
@@ -57,6 +58,7 @@ import org.apache.commons.logging.LogFactory;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -164,7 +166,7 @@ public class RenditionedAspect implements NodeServicePolicies.OnUpdateProperties
             List<QName> changedProperties = getChangedProperties(before, after);
             
             // There may be a different policy for different rendition kinds.
-            List<ChildAssociationRef> renditions = this.renditionService.getRenditions(nodeRef);
+            List<ChildAssociationRef> renditions = getRenditionChildAssociations(nodeRef);
             for (ChildAssociationRef chAssRef : renditions)
             {
                 final QName renditionAssocName = chAssRef.getQName();
@@ -237,7 +239,25 @@ public class RenditionedAspect implements NodeServicePolicies.OnUpdateProperties
             }
         }
     }
-    
+
+    // Identical to the original RenditionService.getRenditions(NodeRef) method.
+    // It returns all renditions (including those that need to be replaced).
+    // The code in RenditionService.getRenditions(NodeRef) no longer does this as
+    // it hides any rendition service 2 renditions that are out of date or have failed.
+    private List<ChildAssociationRef> getRenditionChildAssociations(NodeRef sourceNodeRef)
+    {
+        // Copy of code from the original RenditionService.
+        List<ChildAssociationRef> result = Collections.emptyList();
+
+        // Check that the node has the renditioned aspect applied
+        if (nodeService.hasAspect(sourceNodeRef, RenditionModel.ASPECT_RENDITIONED))
+        {
+            // Get all the renditions that match the given rendition name
+            result = nodeService.getChildAssocs(sourceNodeRef, RenditionModel.ASSOC_RENDITION, RegexQNamePattern.MATCH_ALL);
+        }
+        return result;
+    }
+
     private List<QName> getChangedProperties(Map<QName, Serializable> before, Map<QName, Serializable> after)
     {
         List<QName> results = new ArrayList<QName>();

@@ -543,11 +543,11 @@ public class RenditionService2Impl implements RenditionService2, InitializingBea
 
     private List<ChildAssociationRef> getRenditionChildAssociations(NodeRef sourceNodeRef)
     {
-        // Copy on code from the original RenditionService.
+        // Copy of code from the original RenditionService.
         List<ChildAssociationRef> result = Collections.emptyList();
 
         // Check that the node has the renditioned aspect applied
-        if (nodeService.hasAspect(sourceNodeRef, RenditionModel.ASPECT_RENDITIONED) == true)
+        if (nodeService.hasAspect(sourceNodeRef, RenditionModel.ASPECT_RENDITIONED))
         {
             // Get all the renditions that match the given rendition name
             result = nodeService.getChildAssocs(sourceNodeRef, RenditionModel.ASSOC_RENDITION, RegexQNamePattern.MATCH_ALL);
@@ -642,17 +642,28 @@ public class RenditionService2Impl implements RenditionService2, InitializingBea
     @Override
     public void onContentUpdate(NodeRef sourceNodeRef, boolean newContent)
     {
-        logger.debug("onContentUpdate on " + sourceNodeRef);
-        List<ChildAssociationRef> childAssocs = getRenditionChildAssociations(sourceNodeRef);
-        for (ChildAssociationRef childAssoc : childAssocs)
+        if (isEnabled())
         {
-            NodeRef renditionNodeRef = childAssoc.getChildRef();
-            // TODO: This check will not be needed once the original RenditionService is removed.
-            if (nodeService.hasAspect(renditionNodeRef, RenditionModel.ASPECT_RENDITION2))
+            logger.debug("onContentUpdate on " + sourceNodeRef);
+            List<ChildAssociationRef> childAssocs = getRenditionChildAssociations(sourceNodeRef);
+            for (ChildAssociationRef childAssoc : childAssocs)
             {
-                QName childAssocQName = childAssoc.getQName();
-                String renditionName = childAssocQName.getLocalName();
-                render(sourceNodeRef, renditionName);
+                NodeRef renditionNodeRef = childAssoc.getChildRef();
+                // TODO: This check will not be needed once the original RenditionService is removed.
+                if (nodeService.hasAspect(renditionNodeRef, RenditionModel.ASPECT_RENDITION2))
+                {
+                    QName childAssocQName = childAssoc.getQName();
+                    String renditionName = childAssocQName.getLocalName();
+                    RenditionDefinition2 renditionDefinition = renditionDefinitionRegistry2.getRenditionDefinition(renditionName);
+                    if (renditionDefinition != null)
+                    {
+                        render(sourceNodeRef, renditionName);
+                    }
+                    else
+                    {
+                        logger.debug("onContentUpdate rendition " + renditionName + " only exists in the original rendition service.");
+                    }
+                }
             }
         }
     }
