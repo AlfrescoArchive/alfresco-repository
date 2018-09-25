@@ -325,6 +325,10 @@ public class RenditionService2Impl implements RenditionService2, InitializingBea
                             else if (!nodeService.hasAspect(renditionNode, RenditionModel.ASPECT_RENDITION2))
                             {
                                 nodeService.addAspect(renditionNode, RenditionModel.ASPECT_RENDITION2, null);
+                                if (logger.isDebugEnabled())
+                                {
+                                    logger.debug("Added rendition2 aspect to rendition " + renditionName + " on " + sourceNodeRef);
+                                }
                             }
                             nodeService.setProperty(renditionNode, RenditionModel.PROP_RENDITION_CONTENT_URL_HASH_CODE, transformContentUrlHashCode);
                             if (sourceModified != null)
