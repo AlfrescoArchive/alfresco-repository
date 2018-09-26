@@ -74,7 +74,7 @@ public class TransactionAwareEventProducerTest
     @Test
     public void send() throws Exception
     {
-        String endpointUri = "mock:" + name.getMethodName();
+        String endpointUri = "mock:TxAwareEP-" + name.getMethodName();
 
         MockEndpoint mockEndpoint = camelContext.getEndpoint(endpointUri, MockEndpoint.class);
         mockEndpoint.setAssertPeriod(500);
@@ -122,7 +122,7 @@ public class TransactionAwareEventProducerTest
     @Test
     public void sendTransactionAware() throws InterruptedException
     {
-        String endpointUri = "mock:" + name.getMethodName();
+        String endpointUri = "mock:TxAwareEP-" + name.getMethodName();
 
         MockEndpoint mockEndpoint = camelContext.getEndpoint(endpointUri, MockEndpoint.class);
         mockEndpoint.setAssertPeriod(500);
