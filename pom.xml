@@ -2,7 +2,7 @@
     <modelVersion>4.0.0</modelVersion>
     <artifactId>alfresco-repository</artifactId>
     <name>Alfresco Repository</name>
-    <version>7.10-SNAPSHOT</version>
+    <version>7.13-SNAPSHOT</version>
     <packaging>jar</packaging>
 
     <parent>
@@ -38,13 +38,13 @@
         <dependency.alfresco-legacy-lucene.version>6.2</dependency.alfresco-legacy-lucene.version>
         <dependency.alfresco-core.version>7.4</dependency.alfresco-core.version>
         <dependency.alfresco-greenmail.version>6.1</dependency.alfresco-greenmail.version>
-        <dependency.alfresco-data-model.version>8.10</dependency.alfresco-data-model.version>
+        <dependency.alfresco-data-model.version>8.15</dependency.alfresco-data-model.version>
         <dependency.alfresco-jlan.version>7.1</dependency.alfresco-jlan.version>
         <dependency.alfresco-pdf-renderer.version>1.1</dependency.alfresco-pdf-renderer.version>
         <dependency.alfresco-hb-data-sender.version>1.0.9</dependency.alfresco-hb-data-sender.version>
 
 
-        <dependency.spring.version>5.0.4.RELEASE</dependency.spring.version>
+        <dependency.spring.version>5.1.0.RELEASE</dependency.spring.version>
         <dependency.httpcomponents.version>4.5.2</dependency.httpcomponents.version>
         <dependency.truezip.version>7.7.9</dependency.truezip.version>
         <dependency.poi.version>3.17</dependency.poi.version>
@@ -383,12 +383,12 @@
         <dependency>
             <groupId>org.bouncycastle</groupId>
             <artifactId>bcprov-jdk15on</artifactId>
-            <version>1.59</version>
+            <version>1.60</version>
         </dependency>
         <dependency>
             <groupId>org.bouncycastle</groupId>
             <artifactId>bcmail-jdk15on</artifactId>
-            <version>1.59</version>
+            <version>1.60</version>
         </dependency>
         <dependency>
             <groupId>com.googlecode.mp4parser</groupId>
