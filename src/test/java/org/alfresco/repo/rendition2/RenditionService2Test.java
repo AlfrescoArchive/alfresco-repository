@@ -51,6 +51,7 @@ import java.util.Map;
 import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyInt;
+import static org.mockito.Matchers.anyLong;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.times;
@@ -157,7 +158,7 @@ public class RenditionService2Test
     @Test(expected = UnsupportedOperationException.class)
     public void noTransform()
     {
-        doThrow(UnsupportedOperationException.class).when(transformClient).checkSupported(any(), any());
+        doThrow(UnsupportedOperationException.class).when(transformClient).checkSupported(any(), any(), any(), anyLong(), any());
         renditionService2.render(nodeRef, IMGPREVIEW);
     }
 

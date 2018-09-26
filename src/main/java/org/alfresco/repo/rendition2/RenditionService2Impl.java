@@ -33,7 +33,6 @@ import org.alfresco.repo.policy.BehaviourFilter;
 import org.alfresco.repo.policy.JavaBehaviour;
 import org.alfresco.repo.policy.PolicyComponent;
 import org.alfresco.repo.rendition.RenditionPreventionRegistry;
-import org.alfresco.repo.search.impl.solr.facet.Exceptions;
 import org.alfresco.repo.security.authentication.AuthenticationUtil;
 import org.alfresco.repo.transaction.RetryingTransactionHelper;
 import org.alfresco.repo.util.PostTxnCallbackScheduler;
@@ -65,7 +64,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import static java.lang.Thread.sleep;
 import static org.alfresco.model.ContentModel.PROP_CONTENT;
 import static org.alfresco.model.RenditionModel.PROP_RENDITION_CONTENT_URL_HASH_CODE;
 import static org.alfresco.service.namespace.QName.createQName;
@@ -82,6 +80,9 @@ public class RenditionService2Impl implements RenditionService2, InitializingBea
     public static final QName DEFAULT_RENDITION_CONTENT_PROP = ContentModel.PROP_CONTENT;
     public static final String DEFAULT_MIMETYPE = MimetypeMap.MIMETYPE_TEXT_PLAIN;
     public static final String DEFAULT_ENCODING = "UTF-8";
+
+    public static final int SOURCE_HAS_NO_CONTENT = -1;
+    public static final int RENDITION2_DOES_NOT_EXIST = -2;
 
     private static Log logger = LogFactory.getLog(RenditionService2Impl.class);
 
@@ -197,6 +198,12 @@ public class RenditionService2Impl implements RenditionService2, InitializingBea
             {
                 throw new RenditionService2Exception("Renditions are disabled (system.thumbnail.generate=false or renditionService2.enabled=false).");
             }
+
+            if (!nodeService.exists(sourceNodeRef))
+            {
+                throw new IllegalArgumentException("The supplied sourceNodeRef "+sourceNodeRef+" does not exist.");
+            }
+
             checkSourceNodeForPreventionClass(sourceNodeRef);
 
             RenditionDefinition2 renditionDefinition = renditionDefinitionRegistry2.getRenditionDefinition(renditionName);
@@ -210,7 +217,14 @@ public class RenditionService2Impl implements RenditionService2, InitializingBea
                 logger.debug("Request transform for rendition " + renditionName + " on " +sourceNodeRef);
             }
 
-            transformClient.checkSupported(sourceNodeRef, renditionDefinition);
+            ContentData contentData = (ContentData) nodeService.getProperty(sourceNodeRef, ContentModel.PROP_CONTENT);
+            if (contentData != null && contentData.getContentUrl() != null)
+            {
+                String contentUrl = contentData.getContentUrl();
+                String sourceMimetype = contentData.getMimetype();
+                long size = contentData.getSize();
+                transformClient.checkSupported(sourceNodeRef, renditionDefinition, sourceMimetype, size, contentUrl);
+            }
 
             String user = AuthenticationUtil.getRunAsUser();
             RetryingTransactionHelper.RetryingTransactionCallback callback = () ->
@@ -223,7 +237,20 @@ public class RenditionService2Impl implements RenditionService2, InitializingBea
                 {
                     throw new IllegalStateException("The rendition " + renditionName + " has already been created.");
                 }
-                transformClient.transform(sourceNodeRef, renditionDefinition, user, sourceContentUrlHashCode);
+
+                // If source node has content
+                if (sourceContentUrlHashCode != SOURCE_HAS_NO_CONTENT)
+                {
+                    transformClient.transform(sourceNodeRef, renditionDefinition, user, sourceContentUrlHashCode);
+                }
+                else
+                {
+                    if (logger.isDebugEnabled())
+                    {
+                        logger.debug("Rendition of "+renditionName+" had no content.");
+                    }
+                    failure(sourceNodeRef, renditionDefinition, sourceContentUrlHashCode);
+                }
                 return null;
             };
             renditionRequestSheduler.scheduleRendition(callback, sourceNodeRef + renditionName);
@@ -233,6 +260,17 @@ public class RenditionService2Impl implements RenditionService2, InitializingBea
             logger.debug(e.getMessage());
             throw e;
         }
+    }
+
+    public void failure(NodeRef sourceNodeRef, RenditionDefinition2 renditionDefinition, int transformContentUrlHashCode)
+    {
+        // The original transaction may have already have failed
+        AuthenticationUtil.runAsSystem((AuthenticationUtil.RunAsWork<Void>) () ->
+                transactionService.getRetryingTransactionHelper().doInTransaction(() ->
+                {
+                    consume(sourceNodeRef, null, renditionDefinition, transformContentUrlHashCode);
+                    return null;
+                }, false, true));
     }
 
     /**
@@ -287,6 +325,10 @@ public class RenditionService2Impl implements RenditionService2, InitializingBea
                             else if (!nodeService.hasAspect(renditionNode, RenditionModel.ASPECT_RENDITION2))
                             {
                                 nodeService.addAspect(renditionNode, RenditionModel.ASPECT_RENDITION2, null);
+                                if (logger.isDebugEnabled())
+                                {
+                                    logger.debug("Added rendition2 aspect to rendition " + renditionName + " on " + sourceNodeRef);
+                                }
                             }
                             nodeService.setProperty(renditionNode, RenditionModel.PROP_RENDITION_CONTENT_URL_HASH_CODE, transformContentUrlHashCode);
                             if (sourceModified != null)
@@ -417,7 +459,7 @@ public class RenditionService2Impl implements RenditionService2, InitializingBea
      */
     private int getSourceContentUrlHashCode(NodeRef sourceNodeRef)
     {
-        int hashCode = -1;
+        int hashCode = SOURCE_HAS_NO_CONTENT;
         ContentData contentData = DefaultTypeConverter.INSTANCE.convert(ContentData.class, nodeService.getProperty(sourceNodeRef, PROP_CONTENT));
         if (contentData != null)
         {
@@ -438,7 +480,7 @@ public class RenditionService2Impl implements RenditionService2, InitializingBea
     private int getRenditionContentUrlHashCode(NodeRef renditionNode)
     {
         return renditionNode == null || !nodeService.hasAspect(renditionNode, RenditionModel.ASPECT_RENDITION2)
-                ? -2
+                ? RENDITION2_DOES_NOT_EXIST
                 : (int)nodeService.getProperty(renditionNode, PROP_RENDITION_CONTENT_URL_HASH_CODE);
     }
 
@@ -505,11 +547,11 @@ public class RenditionService2Impl implements RenditionService2, InitializingBea
 
     private List<ChildAssociationRef> getRenditionChildAssociations(NodeRef sourceNodeRef)
     {
-        // Copy on code from the original RenditionService.
+        // Copy of code from the original RenditionService.
         List<ChildAssociationRef> result = Collections.emptyList();
 
         // Check that the node has the renditioned aspect applied
-        if (nodeService.hasAspect(sourceNodeRef, RenditionModel.ASPECT_RENDITIONED) == true)
+        if (nodeService.hasAspect(sourceNodeRef, RenditionModel.ASPECT_RENDITIONED))
         {
             // Get all the renditions that match the given rendition name
             result = nodeService.getChildAssocs(sourceNodeRef, RenditionModel.ASSOC_RENDITION, RegexQNamePattern.MATCH_ALL);
@@ -563,32 +605,6 @@ public class RenditionService2Impl implements RenditionService2, InitializingBea
     }
 
     @Override
-    public ChildAssociationRef getRenditionByName(NodeRef sourceNodeRef, String renditionName, long maxMillis) throws InterruptedException
-    {
-        if (maxMillis < 0 || maxMillis > 30000)
-        {
-            throw new Exceptions.IllegalArgument("THe maxMillis value should be between 0 and 30000 ms");
-        }
-
-        ChildAssociationRef assoc = null;
-        for (int i = (int)(maxMillis / 500)+1; i >= 1; i--)
-        {
-            // Must create a new transaction in order to see changes that take place after this method started.
-            assoc = transactionService.getRetryingTransactionHelper().doInTransaction(() ->
-            {
-                return getRenditionByName(sourceNodeRef, renditionName);
-            }, true, true);
-            if (assoc != null)
-            {
-                break;
-            }
-            logger.debug("RenditionService2.getRenditionByName(...) sleep "+i);
-            sleep(500);
-        }
-        return assoc;
-    }
-
-    @Override
     // Only returns a valid renditions. This may be from RenditionService2 or original RenditionService.
     public ChildAssociationRef getRenditionByName(NodeRef sourceNodeRef, String renditionName)
     {
@@ -628,9 +644,9 @@ public class RenditionService2Impl implements RenditionService2, InitializingBea
     }
 
     @Override
-    public void onContentUpdate(NodeRef sourceNodeRef, boolean newNode)
+    public void onContentUpdate(NodeRef sourceNodeRef, boolean newContent)
     {
-        if (!newNode)
+        if (isEnabled())
         {
             logger.debug("onContentUpdate on " + sourceNodeRef);
             List<ChildAssociationRef> childAssocs = getRenditionChildAssociations(sourceNodeRef);
@@ -642,7 +658,15 @@ public class RenditionService2Impl implements RenditionService2, InitializingBea
                 {
                     QName childAssocQName = childAssoc.getQName();
                     String renditionName = childAssocQName.getLocalName();
-                    render(sourceNodeRef, renditionName);
+                    RenditionDefinition2 renditionDefinition = renditionDefinitionRegistry2.getRenditionDefinition(renditionName);
+                    if (renditionDefinition != null)
+                    {
+                        render(sourceNodeRef, renditionName);
+                    }
+                    else
+                    {
+                        logger.debug("onContentUpdate rendition " + renditionName + " only exists in the original rendition service.");
+                    }
                 }
             }
         }

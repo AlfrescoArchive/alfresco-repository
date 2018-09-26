@@ -656,10 +656,18 @@ public class RenditionServiceImpl implements
                 // rendition and the old service takes over again.
                 if (renditionDefinition2 != null)
                 {
+                    if (log.isDebugEnabled())
+                    {
+                        log.debug("OnContentUpdate ignored by original service as the rendition for \""+sourceNodeRef+"\", \""+renditionName+"\" new service has taken over.");
+                    }
                     useRenditionService2 = true;
                 }
                 else
                 {
+                    if (log.isDebugEnabled())
+                    {
+                        log.debug("OnContentUpdate remove rendition for \""+sourceNodeRef+"\", \""+renditionName+"\" so we switch back to the original service, as the new service does not have the definition.");
+                    }
                     renditionService2.deleteRendition(sourceNodeRef, renditionName);
                 }
             }
@@ -668,6 +676,10 @@ public class RenditionServiceImpl implements
                 // The rendition has been created by the older RenditionService but we know that RenditionService2
                 // can do the work, so we ask the newer service to do it here. This will result in the rendition2
                 // aspect being added, so future renditions will also be done by the newer service.
+                if (log.isDebugEnabled())
+                {
+                    log.debug("OnContentUpdate calling RenditionService2.render(\""+sourceNodeRef+"\", \""+renditionName+"\" so we switch to the new service.");
+                }
                 useRenditionService2 = true;
                 renditionService2.render(sourceNodeRef, renditionName);
             }
@@ -675,6 +687,10 @@ public class RenditionServiceImpl implements
         else if (createdByRenditionService2)
         {
             // As the new service has been disabled the old service needs to take over, so the rendition is removed.
+            if (log.isDebugEnabled())
+            {
+                log.debug("OnContentUpdate remove rendition for \""+sourceNodeRef+"\", \""+renditionName+"\" so we switch back to the original service, as the new service is disabled.");
+            }
             renditionService2.deleteRendition(sourceNodeRef, renditionName);
         }
 

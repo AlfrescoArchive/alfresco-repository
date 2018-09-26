@@ -25,19 +25,29 @@
  */
 package org.alfresco.repo.rendition2;
 
+import java.util.List;
+import org.alfresco.model.ContentModel;
 import org.alfresco.model.RenditionModel;
 import org.alfresco.repo.security.authentication.AuthenticationUtil;
+import org.alfresco.repo.security.permissions.AccessDeniedException;
+import org.alfresco.service.cmr.rendition.RenditionService;
 import org.alfresco.service.cmr.repository.ChildAssociationRef;
+import org.alfresco.service.cmr.repository.ContentWriter;
 import org.alfresco.service.cmr.repository.NodeRef;
-import org.alfresco.service.transaction.TransactionService;
+import org.alfresco.service.cmr.security.PermissionService;
+import org.alfresco.service.namespace.NamespaceService;
+import org.alfresco.service.namespace.QName;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.ResourceUtils;
 
+import java.io.File;
 import java.io.FileNotFoundException;
-import java.util.List;
 
 import static java.lang.Thread.sleep;
+import static org.alfresco.model.ContentModel.PROP_CONTENT;
 
 /**
  * Integration tests for {@link RenditionService2}
@@ -45,11 +55,13 @@ import static java.lang.Thread.sleep;
 public class RenditionService2IntegrationTest extends AbstractRenditionIntegrationTest
 {
     @Autowired
-    private RenditionService2 renditionService2;
+    private RenditionService2Impl renditionService2;
     @Autowired
     private TransformClient transformClient;
     @Autowired
-    private TransactionService transactionService;
+    private PermissionService permissionService;
+    @Autowired
+    private RenditionService renditionService;
 
     private static final String ADMIN = "admin";
     private static final String DOC_LIB = "doclib";
@@ -57,18 +69,23 @@ public class RenditionService2IntegrationTest extends AbstractRenditionIntegrati
     @Before
     public void setUp()
     {
-        AuthenticationUtil.setRunAsUser(AuthenticationUtil.getAdminUserName());
         assertTrue("The RenditionService2 needs to be enabled", renditionService2.isEnabled());
         assertTrue("A wrong type of transform client detected", transformClient instanceof LocalTransformClient);
     }
 
-    private void checkRendition(String testFileName, String renditionName, boolean expectedToPass) throws InterruptedException
+    @After
+    public void cleanUp()
+    {
+        AuthenticationUtil.clearCurrentSecurityContext();
+    }
+
+    private void checkRendition(String testFileName, String renditionName, boolean expectedToPass)
     {
         try
         {
             NodeRef sourceNodeRef = createSource(ADMIN, testFileName);
             render(ADMIN, sourceNodeRef, renditionName);
-            wait(ADMIN, sourceNodeRef, renditionName);
+            waitForRendition(ADMIN, sourceNodeRef, renditionName);
         }
         catch(UnsupportedOperationException uoe)
         {
@@ -80,24 +97,62 @@ public class RenditionService2IntegrationTest extends AbstractRenditionIntegrati
     }
 
     // Creates a new source node as the given user in its own transaction.
-    private NodeRef createSource(String user, String testFileName) throws InterruptedException
+    private NodeRef createSource(String user, String testFileName)
     {
-        return AuthenticationUtil.runAs((AuthenticationUtil.RunAsWork<NodeRef>) () ->
+        return AuthenticationUtil.runAs(() ->
                 transactionService.getRetryingTransactionHelper().doInTransaction(() ->
-                {
-                    return createSource(testFileName);
-                }), user);
+                        createSource(testFileName)), user);
     }
 
     // Creates a new source node as the current user in the current transaction.
     private NodeRef createSource(String testFileName) throws FileNotFoundException
     {
-        NodeRef sourceNodeRef = createContentNodeFromQuickFile(testFileName);
+        return createContentNodeFromQuickFile(testFileName);
+    }
+
+    // Changes the content of a source node as the given user in its own transaction.
+    private void updateContent(String user, NodeRef sourceNodeRef, String testFileName)
+    {
+        AuthenticationUtil.runAs((AuthenticationUtil.RunAsWork<Void>) () ->
+                transactionService.getRetryingTransactionHelper().doInTransaction(() ->
+                {
+                    updateContent(sourceNodeRef, testFileName);
+                    return null;
+                }), user);
+    }
+
+    // Changes the content of a source node as the current user in the current transaction.
+    private NodeRef updateContent(NodeRef sourceNodeRef, String testFileName) throws FileNotFoundException
+    {
+        File file = ResourceUtils.getFile("classpath:quick/" + testFileName);
+        nodeService.setProperty(sourceNodeRef, ContentModel.PROP_NAME, testFileName);
+
+        ContentWriter contentWriter = contentService.getWriter(sourceNodeRef, ContentModel.PROP_CONTENT, true);
+        contentWriter.setMimetype(mimetypeService.guessMimetype(testFileName));
+        contentWriter.putContent(file);
+
         return sourceNodeRef;
     }
 
+    // Clears the content of a source node as the given user in its own transaction.
+    private void clearContent(String user, NodeRef sourceNodeRef)
+    {
+        AuthenticationUtil.runAs((AuthenticationUtil.RunAsWork<Void>) () ->
+                transactionService.getRetryingTransactionHelper().doInTransaction(() ->
+                {
+                    clearContent(sourceNodeRef);
+                    return null;
+                }), user);
+    }
+
+    // Clears the content of a source node as the current user in the current transaction.
+    private void clearContent(NodeRef sourceNodeRef)
+    {
+        nodeService.removeProperty(sourceNodeRef, PROP_CONTENT);
+    }
+
     // Requests a new rendition as the given user in its own transaction.
-    private void render(String user, NodeRef sourceNode, String renditionName) throws InterruptedException
+    private void render(String user, NodeRef sourceNode, String renditionName)
     {
         AuthenticationUtil.runAs((AuthenticationUtil.RunAsWork<Void>) () ->
                 transactionService.getRetryingTransactionHelper().doInTransaction(() ->
@@ -113,81 +168,67 @@ public class RenditionService2IntegrationTest extends AbstractRenditionIntegrati
         renditionService2.render(sourceNodeRef, renditionName);
     }
 
-    // As a given user wait for a rendition to appear. Creates new transactions to do this.
-    private NodeRef wait(String user, NodeRef sourceNodeRef, String renditionName) throws InterruptedException
+    // As a given user waitForRendition for a rendition to appear. Creates new transactions to do this.
+    private NodeRef waitForRendition(String user, NodeRef sourceNodeRef, String renditionName)
     {
-        return AuthenticationUtil.runAs((AuthenticationUtil.RunAsWork<NodeRef>) () ->
-                wait(sourceNodeRef, renditionName), user);
+        return AuthenticationUtil.runAs(() -> waitForRendition(sourceNodeRef, renditionName), user);
     }
 
-    // As the current user wait for a rendition to appear. Creates new transactions to do this.
-    private NodeRef wait(NodeRef sourceNodeRef, String renditionName) throws InterruptedException
+    // As the current user waitForRendition for a rendition to appear. Creates new transactions to do this.
+    private NodeRef waitForRendition(NodeRef sourceNodeRef, String renditionName) throws InterruptedException
     {
-        ChildAssociationRef assoc = renditionService2.getRenditionByName(sourceNodeRef, renditionName, 20000L);
+        long maxMillis = 20000;
+        ChildAssociationRef assoc = null;
+        for (int i = (int)(maxMillis / 500); i >= 0; i--)
+        {
+            // Must create a new transaction in order to see changes that take place after this method started.
+            assoc = transactionService.getRetryingTransactionHelper().doInTransaction(() ->
+                    renditionService2.getRenditionByName(sourceNodeRef, renditionName), true, true);
+            if (assoc != null)
+            {
+                break;
+            }
+            logger.debug("RenditionService2.getRenditionByName(...) sleep "+i);
+            sleep(500);
+        }
         assertNotNull("Rendition " + renditionName + " failed", assoc);
         return assoc.getChildRef();
-    }
-
-    // Debugs a source node looking for child associations and indicates if the have the rendition aspects.
-    private void debug(String prefix, NodeRef sourceNodeRef)
-    {
-        if (sourceNodeRef == null)
-        {
-            System.err.println(prefix+" debug sourceNodeRef=null");
-        }
-        else if (!nodeService.exists(sourceNodeRef))
-        {
-            System.err.println(prefix+" debug sourceNodeRef does not exist");
-        }
-        else
-        {
-            List<ChildAssociationRef> childAssocs = nodeService.getChildAssocs(sourceNodeRef);
-            boolean hasRenditionedAspect = nodeService.hasAspect(sourceNodeRef, RenditionModel.ASPECT_RENDITIONED);
-            System.err.println(prefix+" debug assocs=" + childAssocs.size() + " hasRenditionedAspect=" + hasRenditionedAspect);
-            for (ChildAssociationRef assoc : childAssocs)
-            {
-                NodeRef childRef = assoc.getChildRef();
-                boolean hasRenditionAspect = nodeService.hasAspect(childRef, RenditionModel.ASPECT_RENDITION);
-                boolean hasRendition2Aspect = nodeService.hasAspect(childRef, RenditionModel.ASPECT_RENDITION2);
-                System.err.println(prefix+" debug child=" + childRef + " hasRenditionAspect=" + hasRenditionAspect + " hasRendition2Aspect=" + hasRendition2Aspect);
-            }
-        }
     }
 
     // PDF transformation
 
     @Test
-    public void testLocalRenderPdfToJpegMedium() throws Exception
+    public void testLocalRenderPdfToJpegMedium() 
     {
         checkRendition("quick.pdf", "medium", true);
     }
 
     @Test
-    public void testLocalRenderPdfToDoclib() throws Exception
+    public void testLocalRenderPdfToDoclib() 
     {
         checkRendition("quick.pdf", "doclib", true);
     }
 
     @Test
-    public void testLocalRenderPdfJpegImgpreview() throws Exception
+    public void testLocalRenderPdfJpegImgpreview() 
     {
         checkRendition("quick.pdf", "imgpreview", true);
     }
 
     @Test
-    public void testLocalRenderPdfPngAvatar() throws Exception
+    public void testLocalRenderPdfPngAvatar() 
     {
         checkRendition("quick.pdf", "avatar", true);
     }
 
     @Test
-    public void testLocalRenderPdfPngAvatar32() throws Exception
+    public void testLocalRenderPdfPngAvatar32() 
     {
         checkRendition("quick.pdf", "avatar32", true);
     }
 
     @Test
-    public void testLocalRenderPdfFlashWebpreview() throws Exception
+    public void testLocalRenderPdfFlashWebpreview() 
     {
         checkRendition("quick.pdf", "webpreview", false);
     }
@@ -195,60 +236,384 @@ public class RenditionService2IntegrationTest extends AbstractRenditionIntegrati
     // DOCX transformation
 
     @Test
-    public void testLocalRenderDocxJpegMedium() throws Exception
+    public void testLocalRenderDocxJpegMedium() 
     {
         checkRendition("quick.docx", "medium", true);
     }
 
     @Test
-    public void testLocalRenderDocxDoclib() throws Exception
+    public void testLocalRenderDocxDoclib() 
     {
         checkRendition("quick.docx", "doclib", true);
     }
 
     @Test
-    public void testLocalRenderDocxJpegImgpreview() throws Exception
+    public void testLocalRenderDocxJpegImgpreview() 
     {
         checkRendition("quick.docx", "imgpreview", true);
     }
 
     @Test
-    public void testLocalRenderDocxPngAvatar() throws Exception
+    public void testLocalRenderDocxPngAvatar() 
     {
         checkRendition("quick.docx", "avatar", true);
     }
 
     @Test
-    public void testLocalRenderDocxPngAvatar32() throws Exception
+    public void testLocalRenderDocxPngAvatar32() 
     {
         checkRendition("quick.docx", "avatar32", true);
     }
 
     @Test
-    public void testLocalRenderDocxFlashWebpreview() throws Exception
+    public void testLocalRenderDocxFlashWebpreview() 
     {
         checkRendition("quick.docx", "webpreview", false);
     }
 
     @Test
-    public void testLocalRenderDocxPdf() throws Exception
+    public void testLocalRenderDocxPdf() 
     {
         checkRendition("quick.docx", "pdf", true);
     }
 
     @Test
-    public void basicRendition() throws Exception
+    public void basicRendition()
     {
         NodeRef sourceNodeRef = createSource(ADMIN, "quick.jpg");
         render(ADMIN, sourceNodeRef, DOC_LIB);
-        wait(ADMIN, sourceNodeRef, DOC_LIB);
+        waitForRendition(ADMIN, sourceNodeRef, DOC_LIB);
     }
 
     @Test
-    public void basicRenditionX() throws Exception
+    public void changedSourceToNullContent() 
     {
         NodeRef sourceNodeRef = createSource(ADMIN, "quick.jpg");
         render(ADMIN, sourceNodeRef, DOC_LIB);
-        NodeRef renditionNodeRef = wait(ADMIN, sourceNodeRef, DOC_LIB);
+        waitForRendition(ADMIN, sourceNodeRef, DOC_LIB);
+
+        clearContent(ADMIN, sourceNodeRef);
+        render(ADMIN, sourceNodeRef, DOC_LIB);
+        ChildAssociationRef assoc = AuthenticationUtil.runAs(() ->
+                renditionService2.getRenditionByName(sourceNodeRef, DOC_LIB), ADMIN);
+        assertNull("There should be no rendition as there was no content", assoc);
+    }
+
+    @Test
+    public void changedSourceToNonNull() 
+    {
+        NodeRef sourceNodeRef = createSource(ADMIN, "quick.jpg");
+        render(ADMIN, sourceNodeRef, DOC_LIB);
+        waitForRendition(ADMIN, sourceNodeRef, DOC_LIB);
+
+        clearContent(ADMIN, sourceNodeRef);
+        render(ADMIN, sourceNodeRef, DOC_LIB);
+        ChildAssociationRef assoc = AuthenticationUtil.runAs(() ->
+                renditionService2.getRenditionByName(sourceNodeRef, DOC_LIB), ADMIN);
+        assertNull("There should be no rendition as there was no content", assoc);
+
+        updateContent(ADMIN, sourceNodeRef, "quick.png");
+        waitForRendition(ADMIN, sourceNodeRef, DOC_LIB);
+    }
+
+    @Test
+    public void testCreateRenditionByUser() 
+    {
+        String userName = createRandomUser();
+        NodeRef sourceNodeRef = createSource(userName, "quick.jpg");
+        render(userName, sourceNodeRef, DOC_LIB);
+        NodeRef renditionNodeRef = waitForRendition(userName, sourceNodeRef, DOC_LIB);
+        assertNotNull("The rendition was not generated for non-admin user", renditionNodeRef);
+    }
+
+    @Test
+    public void testReadRenditionByOtherUser() 
+    {
+        String ownerUserName = createRandomUser();
+        NodeRef sourceNodeRef = createSource(ownerUserName, "quick.jpg");
+        String otherUserName = createRandomUser();
+        permissionService.setPermission(sourceNodeRef, otherUserName, PermissionService.READ, true);
+        render(ownerUserName, sourceNodeRef, DOC_LIB);
+        NodeRef renditionNodeRef = waitForRendition(ownerUserName, sourceNodeRef, DOC_LIB);
+        assertNotNull("The rendition is not visible for owner of source node", renditionNodeRef);
+        renditionNodeRef = waitForRendition(otherUserName, sourceNodeRef, DOC_LIB);
+        assertNotNull("The rendition is not visible for non-owner user with read permissions", renditionNodeRef);
+        assertEquals("The creator of the rendition is not correct",
+                ownerUserName, nodeService.getProperty(sourceNodeRef, ContentModel.PROP_CREATOR));
+    }
+
+    @Test
+    public void testRenderByReader() 
+    {
+        String ownerUserName = createRandomUser();
+        NodeRef sourceNodeRef = createSource(ownerUserName, "quick.jpg");
+        String otherUserName = createRandomUser();
+        permissionService.setPermission(sourceNodeRef, otherUserName, PermissionService.READ, true);
+        render(otherUserName, sourceNodeRef, DOC_LIB);
+        NodeRef renditionNodeRef = waitForRendition(ownerUserName, sourceNodeRef, DOC_LIB);
+        assertNotNull("The rendition is not visible for owner of source node", renditionNodeRef);
+        renditionNodeRef = waitForRendition(otherUserName, sourceNodeRef, DOC_LIB);
+        assertNotNull("The rendition is not visible for owner of rendition node", renditionNodeRef);
+        assertEquals("The creator of the rendition is not correct",
+                ownerUserName, nodeService.getProperty(sourceNodeRef, ContentModel.PROP_CREATOR));
+    }
+
+    @Test
+    public void testAccessWithNoPermissions() 
+    {
+        String ownerUserName = createRandomUser();
+        NodeRef sourceNodeRef = createSource(ownerUserName, "quick.jpg");
+        render(ownerUserName, sourceNodeRef, DOC_LIB);
+        String noPermissionsUser = createRandomUser();
+        permissionService.setPermission(sourceNodeRef, noPermissionsUser, PermissionService.ALL_PERMISSIONS, false);
+        try
+        {
+            waitForRendition(noPermissionsUser, sourceNodeRef, DOC_LIB);
+            fail("The rendition should not be visible for user with no permissions");
+        }
+        catch (AccessDeniedException ade)
+        {
+            // expected
+        }
+    }
+
+    @Test
+    public void testUpgradeRenditionService() throws InterruptedException
+    {
+        String ownerUserName = createRandomUser();
+        NodeRef sourceNodeRef = createSource(ownerUserName, "quick.jpg");
+        final QName doclibRendDefQName = QName.createQName(NamespaceService.CONTENT_MODEL_1_0_URI, "doclib");
+        transactionService.getRetryingTransactionHelper()
+                .doInTransaction(() ->
+                AuthenticationUtil.runAs(() ->
+                        renditionService.render(sourceNodeRef, doclibRendDefQName), ownerUserName));
+
+        NodeRef oldRendition = AuthenticationUtil.runAs(() ->
+                renditionService.getRenditionByName(sourceNodeRef, doclibRendDefQName).getChildRef(), ownerUserName);
+        assertFalse("The rendition should be generated by old Rendition Service",
+                AuthenticationUtil.runAs(() -> nodeService.hasAspect(oldRendition, RenditionModel.ASPECT_RENDITION2), ownerUserName));
+
+        updateContent(ownerUserName, sourceNodeRef, "quick.png");
+        NodeRef newRendition = waitForRendition(ownerUserName, sourceNodeRef, DOC_LIB);
+        assertNotNull("The rendition should be reported via RenditionService2", newRendition);
+        Thread.sleep(200);
+        boolean hasRenditionedAspect = false;
+        for (int i = 0; i < 5; i++)
+        {
+            hasRenditionedAspect = AuthenticationUtil.runAs(() -> nodeService.hasAspect(newRendition, RenditionModel.ASPECT_RENDITION2), ownerUserName);
+            if (hasRenditionedAspect)
+            {
+                break;
+            }
+            else
+            {
+                Thread.sleep(500);
+            }
+        }
+        assertTrue("The rendition should be generated by new Rendition Service", hasRenditionedAspect);
+    }
+
+    /**
+     * @deprecated can be removed when we remove the original RenditionService
+     */
+    @Deprecated
+    @Test
+    public void testUseOldService() throws InterruptedException
+    {
+        renditionService2.setEnabled(false);
+        try
+        {
+            NodeRef sourceNodeRef = createSource(ADMIN, "quick.jpg");
+            final QName doclibRendDefQName = QName.createQName(NamespaceService.CONTENT_MODEL_1_0_URI, "doclib");
+            transactionService.getRetryingTransactionHelper()
+                    .doInTransaction(() ->
+                            AuthenticationUtil.runAs(() ->
+                                    renditionService.render(sourceNodeRef, doclibRendDefQName), ADMIN));
+            assertNotNull("The old renditions service did not render", waitForRendition(ADMIN, sourceNodeRef, DOC_LIB));
+            List<String> lastThumbnailModification = transactionService.getRetryingTransactionHelper()
+                    .doInTransaction(() ->
+                            AuthenticationUtil.runAs(() ->
+                                    (List<String>) nodeService.getProperty(sourceNodeRef, ContentModel.PROP_LAST_THUMBNAIL_MODIFICATION_DATA), ADMIN));
+            updateContent(ADMIN, sourceNodeRef, "quick.png");
+            List<String> newThumbnailModification = null;
+            for (int i = 0; i < 5; i++)
+            {
+                newThumbnailModification = transactionService.getRetryingTransactionHelper()
+                        .doInTransaction(() ->
+                                AuthenticationUtil.runAs(() ->
+                                        (List<String>) nodeService.getProperty(sourceNodeRef, ContentModel.PROP_LAST_THUMBNAIL_MODIFICATION_DATA), ADMIN));
+                if (!newThumbnailModification.equals(lastThumbnailModification))
+                {
+                    break;
+                }
+                else
+                {
+                    Thread.sleep(500);
+                }
+            }
+            assertFalse("The old rendition service did not update the rendition.", newThumbnailModification.equals(lastThumbnailModification));
+            NodeRef renditionNodeRef = AuthenticationUtil.runAs(() -> renditionService.getRenditionByName(sourceNodeRef, doclibRendDefQName).getChildRef(), ADMIN);
+            assertFalse("The rendition should be rendered by the old rendition service",
+                    AuthenticationUtil.runAs(() -> nodeService.hasAspect(renditionNodeRef, RenditionModel.ASPECT_RENDITION2), ADMIN));
+        }
+        finally
+        {
+            renditionService2.setEnabled(true);
+        }
+    }
+
+    /**
+     * @deprecated can be removed when we remove the original RenditionService
+     */
+    @Deprecated
+    @Test
+    public void testSwitchBackToOldService() throws InterruptedException
+    {
+        NodeRef sourceNodeRef = createSource(ADMIN, "quick.jpg");
+        render(ADMIN, sourceNodeRef, DOC_LIB);
+        waitForRendition(ADMIN, sourceNodeRef, DOC_LIB);
+
+        renditionService2.setEnabled(false);
+        try
+        {
+            updateContent(ADMIN, sourceNodeRef, "quick.png");
+            Thread.sleep(200);
+            NodeRef renditionNodeRef = waitForRendition(ADMIN, sourceNodeRef, DOC_LIB);
+            boolean hasRendition2Aspect = true;
+            for (int i = 0; i < 5; i++)
+            {
+                hasRendition2Aspect = AuthenticationUtil.runAs(() -> nodeService.hasAspect(renditionNodeRef, RenditionModel.ASPECT_RENDITION2), ADMIN);
+                if (!hasRendition2Aspect)
+                {
+                    break;
+                }
+                else
+                {
+                    Thread.sleep(500);
+                }
+            }
+            assertFalse("Should have switched to the old rendition service", hasRendition2Aspect);
+        }
+        finally
+        {
+            renditionService2.setEnabled(true);
+        }
+    }
+
+    /**
+     * @deprecated can be removed when we remove the original RenditionService
+     */
+    @Deprecated
+    @Test
+    public void testSwitchToNewServiceViaContentUpdate()
+    {
+        renditionService2.setEnabled(false);
+        try
+        {
+            NodeRef sourceNodeRef = createSource(ADMIN, "quick.jpg");
+            final QName doclibRendDefQName = QName.createQName(NamespaceService.CONTENT_MODEL_1_0_URI, "doclib");
+            transactionService.getRetryingTransactionHelper()
+                    .doInTransaction(() ->
+                            AuthenticationUtil.runAs(() ->
+                                    renditionService.render(sourceNodeRef, doclibRendDefQName), ADMIN));
+            waitForRendition(ADMIN, sourceNodeRef, DOC_LIB);
+
+            renditionService2.setEnabled(true);
+
+            updateContent(ADMIN, sourceNodeRef, "quick.png");
+            NodeRef renditionNodeRef = waitForRendition(ADMIN, sourceNodeRef, DOC_LIB);
+            boolean hasAspect = nodeService.hasAspect(renditionNodeRef, RenditionModel.ASPECT_RENDITION2);
+            assertFalse("Should have switched to the old rendition service", hasAspect);
+        }
+        finally
+        {
+            renditionService2.setEnabled(true);
+        }
+    }
+
+    /**
+     * @deprecated can be removed when we remove the original RenditionService
+     */
+    @Deprecated
+    @Test
+    public void testDowngradeRenditionService() throws InterruptedException
+    {
+        String ownerUserName = createRandomUser();
+        NodeRef sourceNodeRef = createSource(ownerUserName, "quick.jpg");
+        render(ownerUserName, sourceNodeRef, DOC_LIB);
+        NodeRef newRendition = waitForRendition(ownerUserName, sourceNodeRef, DOC_LIB);
+        boolean hasRendition2Aspect = AuthenticationUtil.runAs(() -> nodeService.hasAspect(newRendition, RenditionModel.ASPECT_RENDITION2), ownerUserName);
+        assertTrue("The source should have the old renditioned aspect",
+                AuthenticationUtil.runAs(() -> nodeService.hasAspect(sourceNodeRef, RenditionModel.ASPECT_RENDITIONED), ownerUserName));
+        assertTrue("The rendition2 aspect should be present", hasRendition2Aspect);
+        try
+        {
+            renditionService2.setEnabled(false);
+            updateContent(ownerUserName, sourceNodeRef, "quick.png");
+            NodeRef oldRendition = waitForRendition(ownerUserName, sourceNodeRef, DOC_LIB);
+            Thread.sleep(200);
+            hasRendition2Aspect = false;
+            for (int i = 0; i < 5; i++)
+            {
+                hasRendition2Aspect = AuthenticationUtil.runAs(() -> nodeService.hasAspect(oldRendition, RenditionModel.ASPECT_RENDITION2), ownerUserName);
+                if (!hasRendition2Aspect)
+                {
+                    break;
+                }
+                else
+                {
+                    Thread.sleep(500);
+                }
+            }
+            assertFalse("The rendition should be generated by old Rendition Service", hasRendition2Aspect);
+        }
+        finally
+        {
+            renditionService2.setEnabled(true);
+        }
+    }
+
+    /**
+     * @deprecated can be removed when we remove the original RenditionService
+     */
+    @Deprecated
+    @Test
+    public void testUpgradeRenditionViaRender() throws InterruptedException
+    {
+        renditionService2.setEnabled(false);
+        try
+        {
+            NodeRef sourceNodeRef = createSource(ADMIN, "quick.jpg");
+            final QName doclibRendDefQName = QName.createQName(NamespaceService.CONTENT_MODEL_1_0_URI, "doclib");
+            transactionService.getRetryingTransactionHelper()
+                    .doInTransaction(() ->
+                            AuthenticationUtil.runAs(() ->
+                                    renditionService.render(sourceNodeRef, doclibRendDefQName), ADMIN));
+            waitForRendition(ADMIN, sourceNodeRef, DOC_LIB);
+
+            renditionService2.setEnabled(true);
+            render(ADMIN, sourceNodeRef, DOC_LIB);
+            Thread.sleep(200);
+            NodeRef renditionNodeRef = waitForRendition(ADMIN, sourceNodeRef, DOC_LIB);
+            boolean hasRendition2Aspect = false;
+            for (int i = 0; i < 5; i++)
+            {
+                hasRendition2Aspect = AuthenticationUtil.runAs(() -> nodeService.hasAspect(renditionNodeRef, RenditionModel.ASPECT_RENDITION2), ADMIN);
+                if (hasRendition2Aspect)
+                {
+                    break;
+                }
+                else
+                {
+                    Thread.sleep(500);
+                }
+            }
+
+            assertTrue("Should have switched to the new rendition service", hasRendition2Aspect);
+        }
+        finally
+        {
+            renditionService2.setEnabled(true);
+        }
     }
 }

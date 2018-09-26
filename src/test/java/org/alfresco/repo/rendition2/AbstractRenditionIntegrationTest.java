@@ -29,15 +29,22 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.Collections;
 import org.alfresco.model.ContentModel;
+import org.alfresco.repo.security.authentication.AuthenticationUtil;
+import org.alfresco.repo.transaction.RetryingTransactionHelper;
 import org.alfresco.service.cmr.repository.ContentService;
 import org.alfresco.service.cmr.repository.ContentWriter;
 import org.alfresco.service.cmr.repository.MimetypeService;
 import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.cmr.repository.NodeService;
 import org.alfresco.service.cmr.repository.StoreRef;
+import org.alfresco.service.cmr.security.AuthenticationService;
+import org.alfresco.service.cmr.security.MutableAuthenticationService;
+import org.alfresco.service.cmr.security.PersonService;
 import org.alfresco.service.namespace.QName;
+import org.alfresco.service.transaction.TransactionService;
 import org.alfresco.util.BaseSpringTest;
 import org.alfresco.util.GUID;
+import org.alfresco.util.PropertyMap;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.ResourceUtils;
 
@@ -55,6 +62,16 @@ public abstract class AbstractRenditionIntegrationTest extends BaseSpringTest
     @Autowired
     MimetypeService mimetypeService;
 
+    @Autowired
+    TransactionService transactionService;
+
+    @Autowired
+    PersonService personService;
+
+    @Autowired
+    MutableAuthenticationService authenticationService;
+
+    static String PASSWORD = "password";
 
     NodeRef createContentNodeFromQuickFile(String fileName) throws FileNotFoundException
     {
@@ -78,5 +95,54 @@ public abstract class AbstractRenditionIntegrationTest extends BaseSpringTest
         contentWriter.putContent(file);
 
         return contentRef;
+    }
+
+    static String generateNewUsernameString()
+    {
+        return "user-" + GUID.generate();
+    }
+
+    String createRandomUser()
+    {
+        return AuthenticationUtil.runAs(() ->
+        {
+            String username = generateNewUsernameString();
+            createUser(username);
+            return username;
+        }, AuthenticationUtil.getAdminUserName());
+    }
+
+    void createUser(String username)
+    {
+        createUser(username, "firstName", "lastName", "jobTitle", 0);
+    }
+
+    void createUser(final String username,
+                            final String firstName,
+                            final String lastName,
+                            final String jobTitle,
+                            final long quota)
+    {
+        RetryingTransactionHelper.RetryingTransactionCallback<Void> createUserCallback = () ->
+        {
+            authenticationService.createAuthentication(username, PASSWORD.toCharArray());
+
+            PropertyMap personProperties = new PropertyMap();
+            personProperties.put(ContentModel.PROP_USERNAME, username);
+            personProperties.put(ContentModel.PROP_AUTHORITY_DISPLAY_NAME, "title" + username);
+            personProperties.put(ContentModel.PROP_FIRSTNAME, firstName);
+            personProperties.put(ContentModel.PROP_LASTNAME, lastName);
+            personProperties.put(ContentModel.PROP_EMAIL, username+"@example.com");
+            personProperties.put(ContentModel.PROP_JOBTITLE, jobTitle);
+            if (quota > 0)
+            {
+                personProperties.put(ContentModel.PROP_SIZE_QUOTA, quota);
+            }
+            personService.createPerson(personProperties);
+            return null;
+        };
+
+        RetryingTransactionHelper txnHelper = transactionService.getRetryingTransactionHelper();
+        txnHelper.doInTransaction(createUserCallback);
     }
 }
