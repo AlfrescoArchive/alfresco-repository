@@ -147,7 +147,7 @@ import org.springframework.context.ApplicationContext;
     org.alfresco.repo.rawevents.EventProducerTest.class,
     org.alfresco.repo.rawevents.TransactionAwareEventProducerTest.class,
     // Requires running transformers
-    // org.alfresco.repo.rendition2.RenditionService2IntegrationTest.class,
+    org.alfresco.repo.rendition2.RenditionService2IntegrationTest.class,
     org.alfresco.repo.rendition2.LocalTransformClientIntegrationTest.class
 })
 public class MiscContextTestSuite
