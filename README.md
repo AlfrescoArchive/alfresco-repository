@@ -1,4 +1,7 @@
 ### Alfresco Repository [![Build Status](https://travis-ci.org/killerboot/alfresco-repository.svg?branch=master)](https://travis-ci.org/killerboot/alfresco-repository)
+
+DepShield status: [![DepShield Badge](https://depshield.sonatype.org/badges/killerboot/alfresco-repository/depshield.svg)](https://depshield.github.io)
+
 Repository is a library packaged as a jar file which is part of [Alfresco Content Services Repository](https://community.alfresco.com/docs/DOC-6385-project-overview-repository).
 The library contains the following:
 * DAOs and SQL scripts
