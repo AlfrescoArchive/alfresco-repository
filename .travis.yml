@@ -56,4 +56,4 @@ matrix:
     script: travis_wait 20 mvn test -B -Dtest=AllDBTestsTestSuite -Ddb.driver=org.postgresql.Driver -Ddb.name=alfresco -Ddb.url=jdbc:postgresql://localhost:5433/alfresco -Ddb.username=alfresco -Ddb.password=alfresco --settings maven-config/settings.xml
 
 
-install: mvn install -DskipTests=true -Dmaven.javadoc.skip=true -B -V --settings maven-config/settings.xml
+install: travis_retry mvn install -DskipTests=true -Dmaven.javadoc.skip=true -B -V --settings maven-config/settings.xml
