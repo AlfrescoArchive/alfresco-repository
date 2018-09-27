@@ -151,7 +151,7 @@ import org.springframework.extensions.surf.util.URLEncoder;
 public class ScriptNode implements Scopeable, NamespacePrefixResolverProvider
 {
     private static final long serialVersionUID = -3378946227712939601L;
-    public static final QName RENDITION_SERVICE_2 = QName.createQName(NamespaceService.ALFRESCO_URI, "RenditionService2");
+    private static final QName RENDITION_SERVICE_2 = QName.createQName(NamespaceService.ALFRESCO_URI, "RenditionService2");
 
     private static Log logger = LogFactory.getLog(ScriptNode.class);
     
@@ -207,6 +207,8 @@ public class ScriptNode implements Scopeable, NamespacePrefixResolverProvider
     protected ServiceRegistry services = null;
     private NodeService nodeService = null;
     private FileFolderService fileFolderService = null;
+    private RenditionService2 renditionService2;
+    private RenditionDefinitionRegistry2 renditionDefinitionRegistry2;
     private RetryingTransactionHelper retryingTransactionHelper = null;
     private Boolean isDocument = null;
     private Boolean isContainer = null;
@@ -220,7 +222,7 @@ public class ScriptNode implements Scopeable, NamespacePrefixResolverProvider
     private ChildAssociationRef primaryParentAssoc = null;
     private ScriptableQNameMap<String, Object> parentAssocs = null;
     // NOTE: see the reset() method when adding new cached members!
-    
+
     
     // ------------------------------------------------------------------------------
     // Construction
@@ -276,6 +278,8 @@ public class ScriptNode implements Scopeable, NamespacePrefixResolverProvider
         this.fileFolderService = services.getFileFolderService();
         this.retryingTransactionHelper = services.getTransactionService().getRetryingTransactionHelper();
         this.scope = scope;
+        renditionService2 = (RenditionService2)services.getService(RENDITION_SERVICE_2);
+        renditionDefinitionRegistry2 = renditionService2.getRenditionDefinitionRegistry2();
     }
     
     @Override
@@ -3117,8 +3121,6 @@ public class ScriptNode implements Scopeable, NamespacePrefixResolverProvider
             }
             else
             {
-                RenditionService2 renditionService2 = (RenditionService2)services.getService(RENDITION_SERVICE_2);
-                RenditionDefinitionRegistry2 renditionDefinitionRegistry2 = renditionService2.getRenditionDefinitionRegistry2();
                 RenditionDefinition2 renditionDefinition = renditionDefinitionRegistry2.getRenditionDefinition(thumbnailName);
                 if (renditionDefinition != null)
                 {
