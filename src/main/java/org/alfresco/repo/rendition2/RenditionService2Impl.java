@@ -29,10 +29,11 @@ import org.alfresco.model.ContentModel;
 import org.alfresco.model.RenditionModel;
 import org.alfresco.repo.content.ContentServicePolicies;
 import org.alfresco.repo.content.MimetypeMap;
+import org.alfresco.repo.policy.Behaviour;
 import org.alfresco.repo.policy.BehaviourFilter;
 import org.alfresco.repo.policy.EventBehaviour;
 import org.alfresco.repo.policy.PolicyComponent;
-import org.alfresco.repo.rawevents.EventProducer;
+import org.alfresco.repo.rawevents.AbstractEventProducer;
 import org.alfresco.repo.rawevents.types.EventType;
 import org.alfresco.repo.rawevents.types.OnContentUpdatePolicyEvent;
 import org.alfresco.repo.rendition.RenditionPreventionRegistry;
@@ -100,7 +101,7 @@ public class RenditionService2Impl implements RenditionService2, InitializingBea
     private BehaviourFilter behaviourFilter;
     private RuleService ruleService;
     private PostTxnCallbackScheduler renditionRequestSheduler;
-    private EventProducer eventProducer;
+    private AbstractEventProducer eventProducer;
     private String rawEventsEndpoint;
     private boolean enabled;
     private boolean thumbnailsEnabled;
@@ -161,7 +162,7 @@ public class RenditionService2Impl implements RenditionService2, InitializingBea
         this.ruleService = ruleService;
     }
 
-    public void setEventProducer(EventProducer eventProducer) {
+    public void setEventProducer(AbstractEventProducer eventProducer) {
         this.eventProducer = eventProducer;
     }
 
@@ -197,8 +198,8 @@ public class RenditionService2Impl implements RenditionService2, InitializingBea
         PropertyCheck.mandatory(this, "behaviourFilter", behaviourFilter);
         PropertyCheck.mandatory(this, "ruleService", ruleService);
 
-        EventBehaviour eventBehaviour = new EventBehaviour(eventProducer, rawEventsEndpoint, this, "createOnContentUpdateEvent");
-        policyComponent.bindClassBehaviour(ContentServicePolicies.OnContentUpdatePolicy.QNAME, this, eventBehaviour);
+        EventBehaviour eventBehaviour = new EventBehaviour(eventProducer, rawEventsEndpoint, this, "createOnContentUpdateEvent", Behaviour.NotificationFrequency.EVERY_EVENT);
+        policyComponent.bindClassBehaviour(ContentServicePolicies.OnContentUpdatePolicy.QNAME, RenditionModel.ASPECT_RENDITIONED, eventBehaviour);
     }
 
     public void render(NodeRef sourceNodeRef, String renditionName)

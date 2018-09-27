@@ -28,6 +28,7 @@ package org.alfresco.repo.rendition2;
 import org.alfresco.model.ContentModel;
 import org.alfresco.repo.policy.BehaviourFilter;
 import org.alfresco.repo.policy.PolicyComponent;
+import org.alfresco.repo.rawevents.AbstractEventProducer;
 import org.alfresco.repo.rendition.RenditionPreventionRegistry;
 import org.alfresco.repo.transaction.RetryingTransactionHelper;
 import org.alfresco.repo.util.PostTxnCallbackScheduler;
@@ -80,6 +81,7 @@ public class RenditionService2Test
     @Mock private PolicyComponent policyComponent;
     @Mock private BehaviourFilter behaviourFilter;
     @Mock private RuleService ruleService;
+    @Mock private AbstractEventProducer eventProducer;
 
     private NodeRef nodeRef = new NodeRef("workspace://spacesStore/test-id");
     private static final String IMGPREVIEW = "imgpreview";
@@ -114,6 +116,8 @@ public class RenditionService2Test
         renditionService2.setTransactionService(transactionService);
         renditionService2.setEnabled(true);
         renditionService2.setThumbnailsEnabled(true);
+        renditionService2.setEventProducer(eventProducer);
+        renditionService2.setRawEventsEndpoint("mock:rendOnContentUpdateEndpoint");
         renditionService2.setRenditionRequestSheduler(new RenditionRequestSchedulerMock());
         renditionService2.afterPropertiesSet();
     }

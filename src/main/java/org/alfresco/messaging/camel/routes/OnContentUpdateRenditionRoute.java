@@ -44,7 +44,7 @@ public class OnContentUpdateRenditionRoute extends SpringRouteBuilder
 {
     private static Log logger = LogFactory.getLog(OnContentUpdateRenditionRoute.class);
 
-    @Value("${acs.repo.rawevents.endpoint}")
+    @Value("${acs.repo.rendition.events.endpoint}")
     public String sourceQueue;
 
     // Not restricted for now, should be restricted after performance tests.
