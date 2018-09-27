@@ -63,6 +63,9 @@ import org.alfresco.repo.content.transform.UnsupportedTransformationException;
 import org.alfresco.repo.content.transform.magick.ImageTransformationOptions;
 import org.alfresco.repo.model.filefolder.FileFolderServiceImpl.InvalidTypeException;
 import org.alfresco.repo.node.getchildren.GetChildrenCannedQuery;
+import org.alfresco.repo.rendition2.RenditionDefinition2;
+import org.alfresco.repo.rendition2.RenditionDefinitionRegistry2;
+import org.alfresco.repo.rendition2.RenditionService2;
 import org.alfresco.repo.search.QueryParameterDefImpl;
 import org.alfresco.repo.security.authentication.AuthenticationUtil;
 import org.alfresco.repo.security.authentication.AuthenticationUtil.RunAsWork;
@@ -148,7 +151,8 @@ import org.springframework.extensions.surf.util.URLEncoder;
 public class ScriptNode implements Scopeable, NamespacePrefixResolverProvider
 {
     private static final long serialVersionUID = -3378946227712939601L;
-    
+    public static final QName RENDITION_SERVICE_2 = QName.createQName(NamespaceService.ALFRESCO_URI, "RenditionService2");
+
     private static Log logger = LogFactory.getLog(ScriptNode.class);
     
     private final static String NAMESPACE_BEGIN = "" + QName.NAMESPACE_BEGIN;
@@ -3113,10 +3117,20 @@ public class ScriptNode implements Scopeable, NamespacePrefixResolverProvider
             }
             else
             {
-                Action action = ThumbnailHelper.createCreateThumbnailAction(details, services);
-                
-                // Queue async creation of thumbnail
-                this.services.getActionService().executeAction(action, this.nodeRef, true, true);
+                RenditionService2 renditionService2 = (RenditionService2)services.getService(RENDITION_SERVICE_2);
+                RenditionDefinitionRegistry2 renditionDefinitionRegistry2 = renditionService2.getRenditionDefinitionRegistry2();
+                RenditionDefinition2 renditionDefinition = renditionDefinitionRegistry2.getRenditionDefinition(thumbnailName);
+                if (renditionDefinition != null)
+                {
+                    renditionService2.render(nodeRef, thumbnailName);
+                }
+                else
+                {
+                    Action action = ThumbnailHelper.createCreateThumbnailAction(details, services);
+
+                    // Queue async creation of thumbnail
+                    this.services.getActionService().executeAction(action, this.nodeRef, true, true);
+                }
             }
         }
         return result;
