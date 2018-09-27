@@ -30,8 +30,11 @@ import org.alfresco.model.RenditionModel;
 import org.alfresco.repo.content.ContentServicePolicies;
 import org.alfresco.repo.content.MimetypeMap;
 import org.alfresco.repo.policy.BehaviourFilter;
-import org.alfresco.repo.policy.JavaBehaviour;
+import org.alfresco.repo.policy.EventBehaviour;
 import org.alfresco.repo.policy.PolicyComponent;
+import org.alfresco.repo.rawevents.EventProducer;
+import org.alfresco.repo.rawevents.types.EventType;
+import org.alfresco.repo.rawevents.types.OnContentUpdatePolicyEvent;
 import org.alfresco.repo.rendition.RenditionPreventionRegistry;
 import org.alfresco.repo.security.authentication.AuthenticationUtil;
 import org.alfresco.repo.transaction.RetryingTransactionHelper;
@@ -49,6 +52,7 @@ import org.alfresco.service.namespace.NamespaceService;
 import org.alfresco.service.namespace.QName;
 import org.alfresco.service.namespace.RegexQNamePattern;
 import org.alfresco.service.transaction.TransactionService;
+import org.alfresco.util.GUID;
 import org.alfresco.util.PropertyCheck;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -96,6 +100,8 @@ public class RenditionService2Impl implements RenditionService2, InitializingBea
     private BehaviourFilter behaviourFilter;
     private RuleService ruleService;
     private PostTxnCallbackScheduler renditionRequestSheduler;
+    private EventProducer eventProducer;
+    private String rawEventsEndpoint;
     private boolean enabled;
     private boolean thumbnailsEnabled;
 
@@ -155,6 +161,14 @@ public class RenditionService2Impl implements RenditionService2, InitializingBea
         this.ruleService = ruleService;
     }
 
+    public void setEventProducer(EventProducer eventProducer) {
+        this.eventProducer = eventProducer;
+    }
+
+    public void setRawEventsEndpoint(String rawEventsEndpoint) {
+        this.rawEventsEndpoint = rawEventsEndpoint;
+    }
+
     public void setEnabled(boolean enabled)
     {
         this.enabled = enabled;
@@ -183,11 +197,8 @@ public class RenditionService2Impl implements RenditionService2, InitializingBea
         PropertyCheck.mandatory(this, "behaviourFilter", behaviourFilter);
         PropertyCheck.mandatory(this, "ruleService", ruleService);
 
-        // TODO use raw events
-        policyComponent.bindClassBehaviour(
-                ContentServicePolicies.OnContentUpdatePolicy.QNAME,
-                RenditionModel.ASPECT_RENDITIONED,
-                new JavaBehaviour(this, "onContentUpdate"));
+        EventBehaviour eventBehaviour = new EventBehaviour(eventProducer, rawEventsEndpoint, this, "createOnContentUpdateEvent");
+        policyComponent.bindClassBehaviour(ContentServicePolicies.OnContentUpdatePolicy.QNAME, this, eventBehaviour);
     }
 
     public void render(NodeRef sourceNodeRef, String renditionName)
@@ -671,4 +682,23 @@ public class RenditionService2Impl implements RenditionService2, InitializingBea
             }
         }
     }
+
+    public OnContentUpdatePolicyEvent createOnContentUpdateEvent(NodeRef sourceNodeRef, boolean newContent)
+    {
+        OnContentUpdatePolicyEvent event = new OnContentUpdatePolicyEvent();
+
+        // Raw event specific
+        event.setId(GUID.generate());
+        event.setType(EventType.CONTENT_UPDATED.toString());
+        event.setAuthenticatedUser(AuthenticationUtil.getFullyAuthenticatedUser());
+        event.setExecutingUser(AuthenticationUtil.getRunAsUser());
+        event.setTimestamp(System.currentTimeMillis());
+        event.setSchema(1);
+
+        // On content update policy event specific
+        event.setNodeRef(sourceNodeRef.toString());
+        event.setNewContent(newContent);
+        return event;
+    }
+
 }

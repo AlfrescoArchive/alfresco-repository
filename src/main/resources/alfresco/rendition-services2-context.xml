@@ -59,6 +59,8 @@
         <property name="policyComponent" ref="policyComponent" />
         <property name="behaviourFilter" ref="policyBehaviourFilter" />
         <property name="ruleService" ref="ruleService" />
+        <property name="eventProducer" ref="alfrescoEventProducer" />
+        <property name="rawEventsEndpoint" value="${acs.repo.rawevents.endpoint}" />
         <property name="enabled" value="${renditionService2.enabled}" />
         <property name="thumbnailsEnabled" value="${system.thumbnail.generate}" />
         <property name="renditionRequestSheduler" ref="renditionRequestSheduler" />
@@ -213,5 +215,10 @@
             </map>
         </constructor-arg>
     </bean>
-    
+
+    <bean id="renditionEventProcessor" class="org.alfresco.repo.rendition2.RenditionEventProcessor">
+        <property name="renditionService2" ref="renditionService2" />
+        <property name="messagingObjectMapper" ref="alfrescoEventObjectMapper" />
+        <property name="transactionService" ref="transactionService" />
+    </bean>
 </beans>
