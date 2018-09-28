@@ -137,7 +137,7 @@ public class TransactionAwareEventProducer extends AbstractEventProducer
                 }
                 catch (Exception e)
                 {
-                    logger.error("The after commit callback " + id + " failed to execute: " + e.getMessage());
+                    logger.error("The after commit callback " + id + " failed to execute: " + e.getMessage(), e);
                     // consume exception
                 }
             }
