@@ -151,7 +151,6 @@ import org.springframework.extensions.surf.util.URLEncoder;
 public class ScriptNode implements Scopeable, NamespacePrefixResolverProvider
 {
     private static final long serialVersionUID = -3378946227712939601L;
-    private static final QName RENDITION_SERVICE_2 = QName.createQName(NamespaceService.ALFRESCO_URI, "RenditionService2");
 
     private static Log logger = LogFactory.getLog(ScriptNode.class);
     
@@ -278,7 +277,7 @@ public class ScriptNode implements Scopeable, NamespacePrefixResolverProvider
         this.fileFolderService = services.getFileFolderService();
         this.retryingTransactionHelper = services.getTransactionService().getRetryingTransactionHelper();
         this.scope = scope;
-        renditionService2 = (RenditionService2)services.getService(RENDITION_SERVICE_2);
+        renditionService2 = services.getRenditionService2();
         renditionDefinitionRegistry2 = renditionService2.getRenditionDefinitionRegistry2();
     }
     
