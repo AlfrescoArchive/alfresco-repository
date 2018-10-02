@@ -34,6 +34,7 @@ import org.alfresco.repo.transaction.AlfrescoTransactionSupport;
 import org.alfresco.util.transaction.TransactionListenerAdapter;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.stereotype.Component;
 
 /**
  * A transaction aware {@link AbstractEventProducer}. Events are scheduled to be sent in
@@ -41,6 +42,7 @@ import org.apache.commons.logging.LogFactory;
  * 
  * @author Cristian Turlica
  */
+@Component
 public class TransactionAwareEventProducer extends AbstractEventProducer
 {
     private static Log logger = LogFactory.getLog(TransactionAwareEventProducer.class);

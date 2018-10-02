@@ -107,7 +107,7 @@ public class EventBehaviourTest
         policyComponent = (PolicyComponent) ctx.getBean("policyComponent");
         authenticationComponent = (AuthenticationComponent) ctx.getBean("authenticationComponent");
 
-        camelContext = (CamelContext) ctx.getBean("alfrescoCamelContext");
+        camelContext = (CamelContext) ctx.getBean("camelContext");
         eventProducer = (AbstractEventProducer) ctx.getBean("transactionAwareEventProducer");
         messagingObjectMapper = (ObjectMapper) ctx.getBean("alfrescoEventObjectMapper");
 

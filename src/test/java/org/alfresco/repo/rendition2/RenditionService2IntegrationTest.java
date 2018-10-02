@@ -67,14 +67,6 @@ public class RenditionService2IntegrationTest extends AbstractRenditionIntegrati
 
     private static final String ADMIN = "admin";
     private static final String DOC_LIB = "doclib";
-    
-    @BeforeClass
-    public static void before()
-    {
-        // Ensure other applications contexts are closed...
-        // Multiple consumers not supported for same direct vm in different Camel contexts.
-        ApplicationContextHelper.closeApplicationContext();
-    }
 
     @Before
     public void setUp()

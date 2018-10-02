@@ -36,19 +36,16 @@ import org.springframework.stereotype.Component;
  * 
  * @author sglover
  */
-@Component
+//@Component
 public class RepoNodeEventsRouteBuilder extends SpringRouteBuilder
 {
     private static Log logger = LogFactory.getLog(RepoNodeEventsRouteBuilder.class);
 
-    private static final String DEFAULT_SOURCE = "direct-vm:alfresco.events";
-    private static final String DEFAULT_TARGET = "amqp:topic:alfresco.repo.events?jmsMessageType=Text";
+    @Value("${messaging.events.repo.node.sourceQueue.endpoint}")
+    public String sourceQueue = "direct-vm:alfresco.ds.events";
 
-    @Value("${messaging.events.repo.node.sourceQueue.endpoint:" + DEFAULT_SOURCE + "}")
-    public String sourceQueue;
-
-    @Value("${messaging.events.repo.node.targetTopic.endpoint:" + DEFAULT_TARGET + "}")
-    public String targetTopic;
+    @Value("${messaging.events.repo.node.targetTopic.endpoint}")
+    public String targetTopic = "amqp:topic:alfresco.repo.events?jmsMessageType=Text";
 
     @Override
     public void configure() throws Exception
@@ -60,7 +57,7 @@ public class RepoNodeEventsRouteBuilder extends SpringRouteBuilder
             logger.debug("targetTopic is "+targetTopic);
         }
 
-        from(sourceQueue).routeId("alfresco.events -> topic:alfresco.repo.events")
+        from(sourceQueue).routeId("alfresco.ds.events -> topic:alfresco.repo.events")
         .marshal("defaultDataFormat").to(targetTopic)
         .end();
     }

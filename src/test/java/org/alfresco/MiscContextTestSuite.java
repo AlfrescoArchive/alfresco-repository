@@ -139,7 +139,7 @@ import org.springframework.context.ApplicationContext;
 
     // [ibatis/hierarchy-test/hierarchy-test-context.xml]
     org.alfresco.ibatis.HierarchicalSqlSessionFactoryBeanTest.class,
-    // [classpath:/test-messaging-context.xml]
+    // [classpath:/test-desktop-sync-messaging-context.xml]
     // TODO enable in REPO-3811
     //org.alfresco.messaging.camel.CamelRoutesTest.class,
     // Requires a running ActiveMQ

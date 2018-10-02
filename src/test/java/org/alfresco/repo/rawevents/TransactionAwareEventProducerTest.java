@@ -50,7 +50,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  *
  * @author Cristian Turlica
  */
-@Category(OwnJVMTestsCategory.class)
+//@Category(OwnJVMTestsCategory.class)
 public class TransactionAwareEventProducerTest
 {
     private RetryingTransactionHelper retryingTransactionHelper;
@@ -58,15 +58,15 @@ public class TransactionAwareEventProducerTest
     private TransactionAwareEventProducer eventProducer;
     private ObjectMapper messagingObjectMapper;
 
-    @Rule
-    public TestName name = new TestName();
+//    @Rule
+//    public TestName name = new TestName();
 
     @Before
     public void setUp() throws Exception
     {
         ApplicationContext ctx = ApplicationContextHelper.getApplicationContext();
         retryingTransactionHelper = (RetryingTransactionHelper) ctx.getBean("retryingTransactionHelper");
-        camelContext = (CamelContext) ctx.getBean("alfrescoCamelContext");
+        camelContext = (CamelContext) ctx.getBean("camelContext");
         eventProducer = (TransactionAwareEventProducer) ctx.getBean("transactionAwareEventProducer");
         messagingObjectMapper = (ObjectMapper) ctx.getBean("alfrescoEventObjectMapper");
     }
@@ -127,6 +127,6 @@ public class TransactionAwareEventProducerTest
 
     private String getMockEndpointUri()
     {
-        return "mock:" + this.getClass().getSimpleName() + "_" + name.getMethodName();
+        return "mock:" + this.getClass().getSimpleName() + "_" + GUID.generate();
     }
 }

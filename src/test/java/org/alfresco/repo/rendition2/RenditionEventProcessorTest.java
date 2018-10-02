@@ -74,7 +74,7 @@ public class RenditionEventProcessorTest
     {
         ApplicationContext ctx = ApplicationContextHelper.getApplicationContext();
 
-        camelContext = (CamelContext) ctx.getBean("alfrescoCamelContext");
+        camelContext = (CamelContext) ctx.getBean("camelContext");
         messagingObjectMapper = (ObjectMapper) ctx.getBean("alfrescoEventObjectMapper");
         TransactionService transactionService = (TransactionService) ctx.getBean("transactionService");
 

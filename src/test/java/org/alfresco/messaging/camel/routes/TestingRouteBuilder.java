@@ -33,7 +33,7 @@ import org.springframework.stereotype.Component;
  * 
  * @author Ray Gauss II
  */
-@Component
+//@Component
 public class TestingRouteBuilder extends SpringRouteBuilder
 {
 

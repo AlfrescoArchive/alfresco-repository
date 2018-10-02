@@ -34,6 +34,8 @@ import org.apache.camel.ProducerTemplate;
 import org.apache.commons.lang.StringUtils;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 
 /**
  * Abstract helper to send events to an endpoint. The
@@ -53,8 +55,12 @@ public abstract class AbstractEventProducer
 {
     protected static final String ERROR_SENDING = "Could not send event";
 
+    @Autowired
+    @Qualifier("producerTemplate")
     protected ProducerTemplate producer;
     protected String endpoint;
+    @Autowired
+    @Qualifier("alfrescoEventObjectMapper")
     protected ObjectMapper objectMapper;
 
     public void setProducer(ProducerTemplate producer)
