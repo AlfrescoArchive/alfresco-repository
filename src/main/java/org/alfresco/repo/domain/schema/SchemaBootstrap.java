@@ -867,6 +867,20 @@ public class SchemaBootstrap extends AbstractLifecycleBean
         final Dialect dialect = this.dialect;
         String dialectStr = dialect.getClass().getSimpleName();
 
+        StringBuilder executedStatements = executedStatementsThreadLocal.get();
+        if (executedStatements == null)
+        {
+            // Validate the schema, pre-upgrade
+            validateSchema("Alfresco-{0}-Validation-Pre-Upgrade-{1}-", null);
+
+            dumpSchema("pre-upgrade");
+
+            // There is no lock at this stage.  This process can fall out if the lock can't be applied.
+            setBootstrapStarted(connection);
+            executedStatements = new StringBuilder(8094);
+            executedStatementsThreadLocal.set(executedStatements);
+        }
+
         if (create)
         {
             long start = System.currentTimeMillis();
@@ -1161,20 +1175,6 @@ public class SchemaBootstrap extends AbstractLifecycleBean
             String scriptUrl) throws Exception
     {
         final Dialect dialect = this.dialect;
-        
-        StringBuilder executedStatements = executedStatementsThreadLocal.get();
-        if (executedStatements == null)
-        {
-            // Validate the schema, pre-upgrade
-            validateSchema("Alfresco-{0}-Validation-Pre-Upgrade-{1}-", null);
-            
-            dumpSchema("pre-upgrade");
-
-            // There is no lock at this stage.  This process can fall out if the lock can't be applied.
-            setBootstrapStarted(connection);
-            executedStatements = new StringBuilder(8094);
-            executedStatementsThreadLocal.set(executedStatements);
-        }
         
         if (scriptUrl == null)
         {
