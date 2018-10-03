@@ -23,26 +23,14 @@
  * along with Alfresco. If not, see <http://www.gnu.org/licenses/>.
  * #L%
  */
-package org.alfresco.messaging.camel;
+package org.alfresco.repo.events.raw;
 
-/**
- * Exception processor which just saves the last error received
- */
-public class MockExceptionProcessor
+import java.io.Serializable;
+
+public enum EventType implements Serializable
 {
-    private Throwable lastError;
-    
-    public Throwable getLastError()
-    {
-        return lastError;
-    }
-    
-    public void onReceive(Object body)
-    {
-        // Handler can only deal with Throwables
-        if (body instanceof Throwable)
-        {
-            lastError = (Throwable) body;
-        }
-    }
+    /**
+     * Event type that should be used when creating a content update event.
+     */
+    CONTENT_UPDATED
 }

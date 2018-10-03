@@ -23,7 +23,7 @@
  * along with Alfresco. If not, see <http://www.gnu.org/licenses/>.
  * #L%
  */
-package org.alfresco.repo.rawevents.types;
+package org.alfresco.repo.events.raw;
 
 import java.util.UUID;
 

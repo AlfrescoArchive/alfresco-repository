@@ -28,7 +28,7 @@ package org.alfresco.repo.rendition2;
 import java.io.IOException;
 
 import org.alfresco.error.AlfrescoRuntimeException;
-import org.alfresco.repo.rawevents.types.OnContentUpdatePolicyEvent;
+import org.alfresco.repo.events.raw.OnContentUpdatePolicyEvent;
 import org.alfresco.repo.security.authentication.AuthenticationUtil;
 import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.transaction.TransactionService;

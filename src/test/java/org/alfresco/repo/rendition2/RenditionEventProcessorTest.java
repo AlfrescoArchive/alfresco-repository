@@ -28,8 +28,7 @@ package org.alfresco.repo.rendition2;
 import static org.mockito.Mockito.doThrow;
 
 import org.alfresco.error.AlfrescoRuntimeException;
-import org.alfresco.repo.rawevents.types.OnContentUpdatePolicyEvent;
-import org.alfresco.repo.transaction.RetryingTransactionHelper;
+import org.alfresco.repo.events.raw.OnContentUpdatePolicyEvent;
 import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.transaction.TransactionService;
 import org.alfresco.util.ApplicationContextHelper;

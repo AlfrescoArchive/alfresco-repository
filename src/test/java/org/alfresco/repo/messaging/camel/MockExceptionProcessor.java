@@ -23,22 +23,26 @@
  * along with Alfresco. If not, see <http://www.gnu.org/licenses/>.
  * #L%
  */
-package org.alfresco.repo.rawevents.types;
+package org.alfresco.repo.messaging.camel;
 
 /**
- * This interface defines the basic data which is captured for each event.
+ * Exception processor which just saves the last error received
  */
-public interface Event
+public class MockExceptionProcessor
 {
-    String getId();
-
-    String getType();
-
-    String getAuthenticatedUser();
-
-    String getExecutingUser();
-
-    Long getTimestamp();
-
-    int getSchema();
+    private Throwable lastError;
+    
+    public Throwable getLastError()
+    {
+        return lastError;
+    }
+    
+    public void onReceive(Object body)
+    {
+        // Handler can only deal with Throwables
+        if (body instanceof Throwable)
+        {
+            lastError = (Throwable) body;
+        }
+    }
 }

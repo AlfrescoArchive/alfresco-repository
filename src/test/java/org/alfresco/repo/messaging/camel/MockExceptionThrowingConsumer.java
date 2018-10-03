@@ -23,7 +23,7 @@
  * along with Alfresco. If not, see <http://www.gnu.org/licenses/>.
  * #L%
  */
-package org.alfresco.messaging.camel;
+package org.alfresco.repo.messaging.camel;
 
 /**
  * Consumer which throws an error on the first method, then just saves the last message thereafter.

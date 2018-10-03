@@ -23,24 +23,42 @@
  * along with Alfresco. If not, see <http://www.gnu.org/licenses/>.
  * #L%
  */
-package org.alfresco.messaging.camel.routes;
+package org.alfresco.repo.messaging.camel.routes;
 
 import org.apache.camel.spring.SpringRouteBuilder;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 /**
- * Route builder for test messages
+ * Route builder for Repo node events
  * 
- * @author Ray Gauss II
+ * @author sglover
  */
 //@Component
-public class TestingRouteBuilder extends SpringRouteBuilder
+public class RepoNodeEventsRouteBuilder extends SpringRouteBuilder
 {
+    private static Log logger = LogFactory.getLog(RepoNodeEventsRouteBuilder.class);
+
+    @Value("${messaging.events.repo.node.sourceQueue.endpoint}")
+    public String sourceQueue = "direct-vm:alfresco.ds.events";
+
+    @Value("${messaging.events.repo.node.targetTopic.endpoint}")
+    public String targetTopic = "amqp:topic:alfresco.repo.events?jmsMessageType=Text";
 
     @Override
     public void configure() throws Exception
     {
-        from("direct-vm:alfresco.test.2").to("mock:result2");
-    }
+        if (logger.isDebugEnabled())
+        {
+            logger.debug("Repo node events routes config: ");
+            logger.debug("SourceQueue is "+sourceQueue);
+            logger.debug("targetTopic is "+targetTopic);
+        }
 
+        from(sourceQueue).routeId("alfresco.ds.events -> topic:alfresco.repo.events")
+        .marshal("defaultDataFormat").to(targetTopic)
+        .end();
+    }
 }

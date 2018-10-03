@@ -23,7 +23,7 @@
  * along with Alfresco. If not, see <http://www.gnu.org/licenses/>.
  * #L%
  */
-package org.alfresco.repo.rawevents;
+package org.alfresco.repo.messaging.camel.producer;
 
 import java.util.HashMap;
 import java.util.Map;

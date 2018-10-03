@@ -23,7 +23,7 @@
  * along with Alfresco. If not, see <http://www.gnu.org/licenses/>.
  * #L%
  */
-package org.alfresco.messaging.camel.routes;
+package org.alfresco.repo.messaging.camel.routes;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -33,9 +33,9 @@ import org.alfresco.repo.content.ContentServicePolicies;
 import org.alfresco.repo.policy.Behaviour;
 import org.alfresco.repo.policy.EventBehaviour;
 import org.alfresco.repo.policy.PolicyComponent;
-import org.alfresco.repo.rawevents.TransactionAwareEventProducer;
-import org.alfresco.repo.rawevents.types.EventType;
-import org.alfresco.repo.rawevents.types.OnContentUpdatePolicyEvent;
+import org.alfresco.repo.messaging.camel.producer.TransactionAwareEventProducer;
+import org.alfresco.repo.events.raw.EventType;
+import org.alfresco.repo.events.raw.OnContentUpdatePolicyEvent;
 import org.alfresco.repo.security.authentication.AuthenticationUtil;
 import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.util.GUID;

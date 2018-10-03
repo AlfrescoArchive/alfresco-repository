@@ -31,7 +31,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 
 import org.alfresco.api.AlfrescoPublicApi;
-import org.alfresco.repo.rawevents.AbstractEventProducer;
+import org.alfresco.repo.messaging.camel.producer.AbstractEventProducer;
 import org.springframework.extensions.surf.util.ParameterCheck;
 
 /**

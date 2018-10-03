@@ -28,19 +28,16 @@ package org.alfresco.repo.rawevents;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
-import org.alfresco.repo.rawevents.types.EventType;
-import org.alfresco.repo.rawevents.types.OnContentUpdatePolicyEvent;
+import org.alfresco.repo.messaging.camel.producer.TransactionAwareEventProducer;
+import org.alfresco.repo.events.raw.EventType;
+import org.alfresco.repo.events.raw.OnContentUpdatePolicyEvent;
 import org.alfresco.repo.transaction.RetryingTransactionHelper;
-import org.alfresco.test_category.OwnJVMTestsCategory;
 import org.alfresco.util.ApplicationContextHelper;
 import org.alfresco.util.GUID;
 import org.apache.camel.CamelContext;
 import org.apache.camel.component.mock.MockEndpoint;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.experimental.categories.Category;
-import org.junit.rules.TestName;
 import org.springframework.context.ApplicationContext;
 
 import com.fasterxml.jackson.databind.ObjectMapper;

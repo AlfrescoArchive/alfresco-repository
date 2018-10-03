@@ -23,22 +23,37 @@
  * along with Alfresco. If not, see <http://www.gnu.org/licenses/>.
  * #L%
  */
-package org.alfresco.repo.rawevents;
+package org.alfresco.repo.messaging.camel.configuration;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import org.apache.camel.CamelContext;
+import org.apache.camel.component.jackson.JacksonDataFormat;
 import org.apache.camel.core.xml.CamelJMXAgentDefinition;
+import org.apache.camel.impl.ExplicitCamelContextNameStrategy;
 import org.apache.camel.spring.javaconfig.CamelConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 
+/**
+ * Class describes Camel configuration and supporting beans
+ */
 @Configuration
 @ComponentScan
 public class AlfrescoCamelConfiguration extends CamelConfiguration
 {
+    public static String CAMEL_CONTEXT_NAME = "alfCamelContext";
+
+    @Override
+    protected void setupCamelContext(CamelContext camelContext) throws Exception
+    {
+        camelContext.setNameStrategy(new ExplicitCamelContextNameStrategy(CAMEL_CONTEXT_NAME));
+        super.setupCamelContext(camelContext);
+    }
+
     @Bean
-    CamelJMXAgentDefinition agent()
+    public CamelJMXAgentDefinition agent()
     {
         CamelJMXAgentDefinition camelJMXAgentDefinition = new CamelJMXAgentDefinition();
         camelJMXAgentDefinition.setMbeanObjectDomainName("Alfresco.Camel");
@@ -54,4 +69,9 @@ public class AlfrescoCamelConfiguration extends CamelConfiguration
         return mapper;
     }
 
+    @Bean
+    public JacksonDataFormat defaultDataFormat()
+    {
+        return new JacksonDataFormat(alfrescoEventObjectMapper(), Object.class);
+    }
 }

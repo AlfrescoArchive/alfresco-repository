@@ -24,7 +24,7 @@
  * #L%
  */
 
-package org.alfresco.messaging.camel.configuration;
+package org.alfresco.repo.messaging.camel.configuration;
 
 import java.security.SecureRandom;
 
@@ -33,11 +33,14 @@ import javax.jms.ConnectionFactory;
 import org.alfresco.encryption.AlfrescoKeyStore;
 import org.apache.activemq.ActiveMQConnectionFactory;
 import org.apache.activemq.ActiveMQSslConnectionFactory;
+import org.apache.activemq.pool.PooledConnectionFactory;
+import org.apache.camel.component.amqp.AMQPComponent;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.jms.connection.JmsTransactionManager;
 
 /**
  * Configures the ActiveMQ connection factory for use.
@@ -46,8 +49,13 @@ import org.springframework.context.annotation.Configuration;
  */
 
 @Configuration
-public class ConnectionFactoryConfiguration
+public class ActiveMQConnectionFactoryConfiguration
 {
+    @Value("${messaging.broker.connections.max}")
+    private int maxConnections;
+
+    @Value("${messaging.transacted}")
+    private boolean transacted;
 
     @Value("${messaging.broker.url}")
     private String brokerUrl = "notset"; //defaults to an invalid notset value
@@ -93,4 +101,32 @@ public class ConnectionFactoryConfiguration
         factory.setPassword(password);
         return factory;
     }
+
+    @Bean(initMethod = "start", destroyMethod = "stop")
+    public PooledConnectionFactory pooledConnectionFactory()
+    {
+        PooledConnectionFactory pooledConnectionFactory = new PooledConnectionFactory();
+        pooledConnectionFactory.setMaxConnections(maxConnections);
+        pooledConnectionFactory.setConnectionFactory(activeMqConnectionFactory());
+        return pooledConnectionFactory;
+    }
+
+    @Bean
+    public JmsTransactionManager messagingTransactionManager()
+    {
+        JmsTransactionManager jmsTransactionManager = new JmsTransactionManager();
+        jmsTransactionManager.setConnectionFactory(pooledConnectionFactory());
+        return jmsTransactionManager;
+    }
+
+    @Bean
+    public AMQPComponent amqp()
+    {
+        AMQPComponent amqpComponent = new AMQPComponent();
+        amqpComponent.setConnectionFactory(pooledConnectionFactory());
+        amqpComponent.setTransacted(transacted);
+        amqpComponent.setTransactionManager(messagingTransactionManager());
+        return amqpComponent;
+    }
+
 }

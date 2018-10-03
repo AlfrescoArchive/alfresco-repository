@@ -32,6 +32,7 @@ import static org.junit.Assert.assertTrue;
 
 import java.util.Locale;
 
+import org.alfresco.repo.messaging.camel.producer.AbstractEventProducer;
 import org.alfresco.model.ContentModel;
 import org.alfresco.repo.content.ContentServicePolicies;
 import org.alfresco.repo.policy.Behaviour;
@@ -39,9 +40,9 @@ import org.alfresco.repo.policy.BehaviourDefinition;
 import org.alfresco.repo.policy.ClassBehaviourBinding;
 import org.alfresco.repo.policy.EventBehaviour;
 import org.alfresco.repo.policy.PolicyComponent;
-import org.alfresco.repo.rawevents.types.Event;
-import org.alfresco.repo.rawevents.types.EventType;
-import org.alfresco.repo.rawevents.types.OnContentUpdatePolicyEvent;
+import org.alfresco.repo.events.raw.Event;
+import org.alfresco.repo.events.raw.EventType;
+import org.alfresco.repo.events.raw.OnContentUpdatePolicyEvent;
 import org.alfresco.repo.security.authentication.AuthenticationComponent;
 import org.alfresco.repo.transaction.RetryingTransactionHelper;
 import org.alfresco.service.ServiceRegistry;
