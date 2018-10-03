@@ -59,9 +59,9 @@ public class FailoverContentTransformerTest extends AbstractContentTransformerTe
     private FailoverContentTransformer transformer;
     
     @Override
-    public void setUp() throws Exception
+    public void before() throws Exception
     {
-        super.setUp();
+        super.before();
         ApplicationContextHelper.getApplicationContext();
         
         transformer = (FailoverContentTransformer) failoverAppContext.getBean("transformer.failover.Test-FailThenSucceed");

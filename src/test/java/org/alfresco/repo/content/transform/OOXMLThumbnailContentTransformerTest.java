@@ -42,9 +42,9 @@ public class OOXMLThumbnailContentTransformerTest extends AbstractContentTransfo
     private ContentTransformer transformer;
     
     @Override
-    public void setUp() throws Exception
+    public void before() throws Exception
     {
-        super.setUp();
+        super.before();
         
         transformer = new OOXMLThumbnailContentTransformer();
         

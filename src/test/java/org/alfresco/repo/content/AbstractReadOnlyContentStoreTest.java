@@ -110,7 +110,7 @@ public abstract class AbstractReadOnlyContentStoreTest
     
     /**
      * Fetch the store to be used during a test.  This method is invoked once per test - it is
-     * therefore safe to use <code>setUp</code> to initialise resources.
+     * therefore safe to use <code>before</code> to initialise resources.
      * <p>
      * Usually tests will construct a static instance of the store to use throughout all the
      * tests.

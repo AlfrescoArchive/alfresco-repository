@@ -35,6 +35,7 @@ import java.util.Map;
 import org.alfresco.model.ContentModel;
 import org.alfresco.service.cmr.repository.datatype.DefaultTypeConverter;
 import org.alfresco.service.namespace.QName;
+import org.junit.Test;
 
 
 /**
@@ -49,9 +50,9 @@ public class OpenDocumentMetadataExtracterTest extends AbstractMetadataExtracter
     private static final DateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
 
     @Override
-    public void setUp() throws Exception
+    public void before() throws Exception
     {
-        super.setUp();
+        super.before();
         extracter = new OpenDocumentMetadataExtracter();
         extracter.setDictionaryService(dictionaryService);
         extracter.register();
@@ -65,6 +66,7 @@ public class OpenDocumentMetadataExtracterTest extends AbstractMetadataExtracter
         return extracter;
     }
 
+    @Test
     public void testSupports() throws Exception
     {
         for (String mimetype : OpenDocumentMetadataExtracter.SUPPORTED_MIMETYPES)
@@ -77,6 +79,7 @@ public class OpenDocumentMetadataExtracterTest extends AbstractMetadataExtracter
     /**
      * Test all the supported mimetypes
      */
+    @Test
     public void testSupportedMimetypes() throws Exception
     {
         for (String mimetype : OpenDocumentMetadataExtracter.SUPPORTED_MIMETYPES)

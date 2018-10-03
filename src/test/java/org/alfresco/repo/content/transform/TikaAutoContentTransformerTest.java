@@ -45,9 +45,9 @@ public class TikaAutoContentTransformerTest extends TikaPoweredContentTransforme
     private TikaAutoContentTransformer transformer;
     
     @Override
-    public void setUp() throws Exception
+    public void before() throws Exception
     {
-        super.setUp();
+        super.before();
         
         TikaConfig config = (TikaConfig)ctx.getBean("tikaConfig");
         transformer = new TikaAutoContentTransformer( config );

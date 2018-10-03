@@ -73,7 +73,7 @@ public class TemplateServiceImplTest extends TestCase
     private AuthenticationComponent authenticationComponent;
     
     /*
-     * @see junit.framework.TestCase#setUp()
+     * @see junit.framework.TestCase#before()
      */
     protected void setUp() throws Exception
     {

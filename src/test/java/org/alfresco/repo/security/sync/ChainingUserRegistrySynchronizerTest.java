@@ -125,7 +125,7 @@ public class ChainingUserRegistrySynchronizerTest extends TestCase
 
     /*
      * (non-Javadoc)
-     * @see junit.framework.TestCase#setUp()
+     * @see junit.framework.TestCase#before()
      */
     @Override
     protected void setUp() throws Exception
@@ -157,7 +157,7 @@ public class ChainingUserRegistrySynchronizerTest extends TestCase
 
     /*
      * (non-Javadoc)
-     * @see junit.framework.TestCase#tearDown()
+     * @see junit.framework.TestCase#after()
      */
     @Override
     protected void tearDown() throws Exception

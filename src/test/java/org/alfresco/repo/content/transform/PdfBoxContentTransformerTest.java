@@ -41,6 +41,7 @@ import org.alfresco.service.cmr.repository.ContentReader;
 import org.alfresco.service.cmr.repository.ContentWriter;
 import org.alfresco.service.cmr.repository.TransformationOptions;
 import org.alfresco.util.TempFileProvider;
+import org.junit.Test;
 
 /**
  * @see org.alfresco.repo.content.transform.PdfBoxContentTransformer
@@ -55,9 +56,9 @@ public class PdfBoxContentTransformerTest extends AbstractContentTransformerTest
     private PdfBoxContentTransformer transformer;
     
     @Override
-    public void setUp() throws Exception
+    public void before() throws Exception
     {
-        super.setUp();
+        super.before();
         
         transformer = new PdfBoxContentTransformer();
         transformer.setMimetypeService(mimetypeService);
@@ -81,7 +82,8 @@ public class PdfBoxContentTransformerTest extends AbstractContentTransformerTest
     {
         return transformer;
     }
-    
+
+    @Test
     public void testIsTransformable() throws Exception
     {
         assertFalse(transformer.isTransformable(MimetypeMap.MIMETYPE_TEXT_PLAIN, -1, MimetypeMap.MIMETYPE_PDF, new TransformationOptions()));
@@ -96,6 +98,7 @@ public class PdfBoxContentTransformerTest extends AbstractContentTransformerTest
      * future issues.
      * @throws Exception
      */
+    @Test
     public void testPdfToTextConversions() throws Exception
     {
         final String sourceMimetype = MimetypeMap.MIMETYPE_PDF;

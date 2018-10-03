@@ -38,6 +38,7 @@ import org.alfresco.service.cmr.repository.ContentService;
 import org.alfresco.service.cmr.repository.ContentWriter;
 import org.alfresco.service.cmr.repository.TransformationOptionLimits;
 import org.alfresco.service.cmr.repository.TransformationOptions;
+import org.junit.Test;
 
 /**
  * @see org.alfresco.repo.content.transform.PoiOOXMLContentTransformer
@@ -65,9 +66,9 @@ public class PoiOOXMLContentTransformerTest extends AbstractContentTransformerTe
     private PoiOOXMLContentTransformer transformer;
     
     @Override
-    public void setUp() throws Exception
+    public void before() throws Exception
     {
-        super.setUp();
+        super.before();
         
         transformer = new PoiOOXMLContentTransformer();
         transformer.setMimetypeService(mimetypeService);
@@ -86,6 +87,7 @@ public class PoiOOXMLContentTransformerTest extends AbstractContentTransformerTe
         return transformer;
     }
 
+    @Test
     public void testIsTransformable() throws Exception
     {
         assertFalse(transformer.isTransformable(MimetypeMap.MIMETYPE_TEXT_PLAIN, -1, MimetypeMap.MIMETYPE_OPENXML_WORDPROCESSING, new TransformationOptions()));
@@ -109,6 +111,7 @@ public class PoiOOXMLContentTransformerTest extends AbstractContentTransformerTe
      * 
      * @throws Exception
      */
+    @Test
     public void testMnt12043() throws Exception
     {
         transformer.setMimetypeService(mimetypeService);

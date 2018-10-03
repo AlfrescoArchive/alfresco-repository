@@ -110,7 +110,7 @@ public class PeopleTest extends TestCase
     private int callCount = 0;
 
     /*
-     * @see junit.framework.TestCase#setUp()
+     * @see junit.framework.TestCase#before()
      */
     protected void setUp() throws Exception
     {

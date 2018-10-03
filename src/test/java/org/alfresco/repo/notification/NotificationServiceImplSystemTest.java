@@ -48,6 +48,7 @@ import org.alfresco.util.BaseAlfrescoTestCase;
 import org.alfresco.util.GUID;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.junit.Test;
 import org.junit.experimental.categories.Category;
 
 /**
@@ -106,18 +107,18 @@ public class NotificationServiceImplSystemTest extends BaseAlfrescoTestCase
     private NotificationContext contextSentFromTest = null;
     
     @Override
-    protected void setUp() throws Exception
+    public void before() throws Exception
     {
-        super.setUp();
+        super.before();
         
         contextSentFromTest = null;
         
         // Get the notification service
-        notificationService = (NotificationService)ctx.getBean("NotificationService");
-        authenticationService = (MutableAuthenticationService)ctx.getBean("AuthenticationService");   
-        personService = (PersonService)ctx.getBean("PersonService");
-        repository = (Repository)ctx.getBean("repositoryHelper");
-        fileFolderService = (FileFolderService)ctx.getBean("FileFolderService");
+        notificationService = (NotificationService)applicationContext.getBean("NotificationService");
+        authenticationService = (MutableAuthenticationService)applicationContext.getBean("AuthenticationService");   
+        personService = (PersonService)applicationContext.getBean("PersonService");
+        repository = (Repository)applicationContext.getBean("repositoryHelper");
+        fileFolderService = (FileFolderService)applicationContext.getBean("FileFolderService");
         
         retryingTransactionHelper.doInTransaction(new RetryingTransactionCallback<Void>()
         {
@@ -148,7 +149,7 @@ public class NotificationServiceImplSystemTest extends BaseAlfrescoTestCase
     }
     
     @Override
-    protected void tearDown() throws Exception
+    public void after() throws Exception
     {
         retryingTransactionHelper.doInTransaction(new RetryingTransactionCallback<Void>()
         {
@@ -165,7 +166,7 @@ public class NotificationServiceImplSystemTest extends BaseAlfrescoTestCase
             }
         });
         
-        super.tearDown();
+        super.after();
     }
     
     private NodeRef createPerson(String userName, String password, String firstName, String lastName, String email)
@@ -196,7 +197,8 @@ public class NotificationServiceImplSystemTest extends BaseAlfrescoTestCase
     {
         return true;
     }
-    
+
+    @org.junit.Test
     public void testSimpleEmailNotification()
     {
         doTestInTransaction(new Test<Void>()
@@ -246,6 +248,7 @@ public class NotificationServiceImplSystemTest extends BaseAlfrescoTestCase
     /**
      * This method tests the {@link TestNotificationProvider}.
      */
+    @org.junit.Test
     public void testTestNotificationProvider() throws Exception
     {
         // Create a class to receive the notification.

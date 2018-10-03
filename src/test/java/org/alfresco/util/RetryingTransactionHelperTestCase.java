@@ -44,7 +44,7 @@ import org.alfresco.service.cmr.repository.NodeRef;
  * 
  * @author Roy Wetherall
  */
-public abstract class RetryingTransactionHelperTestCase extends TestCase
+public abstract class RetryingTransactionHelperTestCase extends BaseSpringTest
 {
     /**
      * @return  retrying transaction helper

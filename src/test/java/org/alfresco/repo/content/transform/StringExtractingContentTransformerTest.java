@@ -41,6 +41,7 @@ import org.alfresco.service.cmr.repository.ContentReader;
 import org.alfresco.service.cmr.repository.ContentWriter;
 import org.alfresco.service.cmr.repository.TransformationOptions;
 import org.alfresco.util.TempFileProvider;
+import org.junit.Test;
 
 /**
  * @see org.alfresco.repo.content.transform.StringExtractingContentTransformer
@@ -71,9 +72,9 @@ public class StringExtractingContentTransformerTest extends AbstractContentTrans
     private ContentWriter targetWriter;
     
     @Override
-    public void setUp() throws Exception
+    public void before() throws Exception
     {
-        super.setUp();
+        super.before();
         
         transformer = new StringExtractingContentTransformer();
         transformer.setMimetypeService(mimetypeService);
@@ -89,6 +90,7 @@ public class StringExtractingContentTransformerTest extends AbstractContentTrans
         return transformer;
     }
 
+    @Test
     public void testSetUp() throws Exception
     {
         assertNotNull(transformer);
@@ -119,7 +121,8 @@ public class StringExtractingContentTransformerTest extends AbstractContentTrans
         // return a reader onto the new content
         return writer.getReader();
     }
-    
+
+    @Test
     public void testDirectTransform() throws Exception
     {
         ContentReader reader = writeContent("text/plain", "MacDingbat");
@@ -135,7 +138,8 @@ public class StringExtractingContentTransformerTest extends AbstractContentTrans
         String checkContent = checkReader.getContentString();
         assertEquals("Content check failed", SOME_CONTENT, checkContent);
     }
-    
+
+    @Test
     public void testInterTextTransform() throws Exception
     {
         ContentReader reader = writeContent("text/xml", "MacDingbat");
@@ -159,6 +163,7 @@ public class StringExtractingContentTransformerTest extends AbstractContentTrans
      * this test can be used during profiling to ensure that memory is not
      * being consumed.
      */
+    @Test
     public void testLargeFileStreaming() throws Exception
     {
         File sourceFile = TempFileProvider.createTempFile(getName(), ".txt");

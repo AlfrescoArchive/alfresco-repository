@@ -33,6 +33,7 @@ import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import org.junit.Test;
 
 /**
  * The test designed for testing the concurrent limitations in
@@ -49,9 +50,9 @@ public class ConcurrencyPdfBoxMetadataExtracterTest extends AbstractMetadataExtr
     private static final int NUMBER_OF_CONCURRENT_THREADS = 11;
 
     @Override
-    public void setUp() throws Exception
+    public void before() throws Exception
     {
-        super.setUp();
+        super.before();
         extracter = new SlowPdfBoxMetadataExtracter();
         extracter.setDictionaryService(dictionaryService);
 
@@ -80,7 +81,7 @@ public class ConcurrencyPdfBoxMetadataExtracterTest extends AbstractMetadataExtr
         // not required
     }
 
-
+    @Test
     public void testConcurrentExtractions() throws InterruptedException
     {
         final Map<String, Boolean> threadResults = new ConcurrentHashMap<>();
