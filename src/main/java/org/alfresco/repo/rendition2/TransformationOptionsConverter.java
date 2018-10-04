@@ -125,7 +125,8 @@ public class TransformationOptionsConverter implements InitializingBean
                     TIMEOUT, MAX_SOURCE_SIZE_K_BYTES
             }));
 
-    private interface Setter {
+    private interface Setter
+    {
         void set(String s);
     }
 
