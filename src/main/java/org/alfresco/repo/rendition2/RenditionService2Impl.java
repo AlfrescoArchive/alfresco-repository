@@ -305,7 +305,7 @@ public class RenditionService2Impl implements RenditionService2, InitializingBea
                         // Ensure that the creation of a rendition does not cause updates to the modified, modifier properties on the source node
                         NodeRef renditionNode = getRenditionNode(sourceNodeRef, renditionName);
                         boolean createRenditionNode = renditionNode == null;
-                        Date sourceModified = (Date) nodeService.getProperty(sourceNodeRef, ContentModel.PROP_MODIFIED);
+                        Date sourceModified = new Date(); // Set as the current system time
                         boolean sourceHasAspectRenditioned = nodeService.hasAspect(sourceNodeRef, RenditionModel.ASPECT_RENDITIONED);
                         boolean sourceChanges = !sourceHasAspectRenditioned || createRenditionNode || sourceModified != null || transformInputStream == null;
                         try
@@ -331,7 +331,7 @@ public class RenditionService2Impl implements RenditionService2, InitializingBea
                                 }
                             }
                             nodeService.setProperty(renditionNode, RenditionModel.PROP_RENDITION_CONTENT_URL_HASH_CODE, transformContentUrlHashCode);
-                            if (sourceModified != null)
+                            if (ContentModel.TYPE_THUMBNAIL.equals(nodeService.getType(renditionNode)))
                             {
                                 setThumbnailLastModified(sourceNodeRef, renditionName, sourceModified);
                             }
