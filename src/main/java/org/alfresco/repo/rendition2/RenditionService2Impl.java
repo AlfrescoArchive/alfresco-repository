@@ -58,7 +58,6 @@ import java.io.InputStream;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -304,10 +303,8 @@ public class RenditionService2Impl implements RenditionService2, InitializingBea
                     {
                         // Ensure that the creation of a rendition does not cause updates to the modified, modifier properties on the source node
                         NodeRef renditionNode = getRenditionNode(sourceNodeRef, renditionName);
-                        boolean createRenditionNode = renditionNode == null;
-                        Date sourceModified = new Date(); // Set as the current system time
-                        boolean sourceHasAspectRenditioned = nodeService.hasAspect(sourceNodeRef, RenditionModel.ASPECT_RENDITIONED);
-                        boolean sourceChanges = !sourceHasAspectRenditioned || createRenditionNode || sourceModified != null || transformInputStream == null;
+                        boolean createRenditionNode = renditionNode == null;boolean sourceHasAspectRenditioned = nodeService.hasAspect(sourceNodeRef, RenditionModel.ASPECT_RENDITIONED);
+                        boolean sourceChanges = !sourceHasAspectRenditioned || createRenditionNode || transformInputStream == null;
                         try
                         {
                             if (sourceChanges)
@@ -331,10 +328,7 @@ public class RenditionService2Impl implements RenditionService2, InitializingBea
                                 }
                             }
                             nodeService.setProperty(renditionNode, RenditionModel.PROP_RENDITION_CONTENT_URL_HASH_CODE, transformContentUrlHashCode);
-                            if (ContentModel.TYPE_THUMBNAIL.equals(nodeService.getType(renditionNode)))
-                            {
-                                setThumbnailLastModified(sourceNodeRef, renditionName, sourceModified);
-                            }
+                            setThumbnailLastModified(sourceNodeRef, renditionName);
 
                             if (transformInputStream != null)
                             {
@@ -416,10 +410,10 @@ public class RenditionService2Impl implements RenditionService2, InitializingBea
     }
 
     // Based on code from org.alfresco.repo.thumbnail.ThumbnailServiceImpl.addThumbnailModificationData
-    private void setThumbnailLastModified(NodeRef sourceNodeRef, String renditionName, Date sourceModified)
+    private void setThumbnailLastModified(NodeRef sourceNodeRef, String renditionName)
     {
         String prefix = renditionName + ':';
-        final String lastModifiedValue = prefix + sourceModified.getTime();
+        final String lastModifiedValue = prefix + System.currentTimeMillis();
 
         if (logger.isTraceEnabled())
         {
