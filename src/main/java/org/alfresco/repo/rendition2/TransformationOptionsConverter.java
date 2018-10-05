@@ -170,7 +170,7 @@ public class TransformationOptionsConverter implements InitializingBean
      * use the same options as the Transform Service.
      */
     @Deprecated
-    TransformationOptions getTransformationOptions(String renditionName, Map<String, String> options)
+    public TransformationOptions getTransformationOptions(String renditionName, Map<String, String> options)
     {
         TransformationOptions transformationOptions = null;
         Set<String> optionNames = options.keySet();
