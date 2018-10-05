@@ -44,7 +44,7 @@ import org.junit.runners.Suite;
     org.alfresco.repo.rawevents.TransactionAwareEventProducerTest.class,
     // Requires running transformers
     org.alfresco.repo.rendition2.RenditionService2IntegrationTest.class,
-    org.alfresco.repo.rendition2.LocalTransformClientIntegrationTest.class,
+    org.alfresco.repo.rendition2.LegacyLocalTransformClientIntegrationTest.class,
     org.alfresco.repo.solr.SOLRTrackingComponentTest.class,
     org.alfresco.repo.tagging.TaggingServiceImplTest.class,
     org.alfresco.repo.transaction.AlfrescoTransactionSupportTest.class,

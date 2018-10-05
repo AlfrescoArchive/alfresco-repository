@@ -33,30 +33,39 @@ import org.springframework.beans.factory.InitializingBean;
 import java.util.Map;
 
 /**
- * Implements {@link TransformServiceRegistry} providing a mechanism of validating if a local transformation request is
- * supported.
+ * Implements {@link TransformServiceRegistry} providing a mechanism of validating if a legacy local transformation
+ * (based on {@link org.alfresco.repo.content.transform.AbstractContentTransformer2} request is supported.
  *
  * @author adavis
  */
-public class LocalTransformServiceRegistry extends AbstractTransformServiceRegistry implements InitializingBean
+@Deprecated
+public class LegacyLocalTransformServiceRegistry extends AbstractTransformServiceRegistry implements InitializingBean
 {
     private static ContentService contentService;
 
+    private TransformationOptionsConverter converter;
+
     public static void setContentService(ContentService contentService)
     {
-        LocalTransformServiceRegistry.contentService = contentService;
+        LegacyLocalTransformServiceRegistry.contentService = contentService;
+    }
+
+    public void setConverter(TransformationOptionsConverter converter)
+    {
+        this.converter = converter;
     }
 
     @Override
     public void afterPropertiesSet()
     {
         PropertyCheck.mandatory(this, "contentService", contentService);
+        PropertyCheck.mandatory(this, "converter", converter);
     }
 
     @Override
     public Long getMaxSize(String sourceMimetype, String targetMimetype, String renditionName, Map<String, String> options)
     {
-        TransformationOptions transformationOptions = LocalTransformClient.getTransformationOptions(renditionName, options);
+        TransformationOptions transformationOptions = converter.getTransformationOptions(renditionName, options);
         long maxSize = contentService.getMaxSourceSizeBytes(sourceMimetype, targetMimetype, transformationOptions);
         return maxSize == 0 ? null : maxSize;
     }

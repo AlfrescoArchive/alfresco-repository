@@ -25,28 +25,18 @@
  */
 package org.alfresco.repo.rendition2;
 
-import org.alfresco.model.ContentModel;
-import org.alfresco.repo.content.transform.ContentTransformer;
 import org.alfresco.repo.content.transform.magick.ImageResizeOptions;
 import org.alfresco.repo.content.transform.magick.ImageTransformationOptions;
 import org.alfresco.repo.content.transform.swf.SWFTransformationOptions;
-import org.alfresco.repo.security.authentication.AuthenticationUtil;
-import org.alfresco.service.cmr.repository.ContentReader;
-import org.alfresco.service.cmr.repository.ContentService;
-import org.alfresco.service.cmr.repository.ContentWriter;
 import org.alfresco.service.cmr.repository.CropSourceOptions;
-import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.cmr.repository.PagedSourceOptions;
 import org.alfresco.service.cmr.repository.TemporalSourceOptions;
 import org.alfresco.service.cmr.repository.TransformationOptionLimits;
 import org.alfresco.service.cmr.repository.TransformationOptions;
 import org.alfresco.service.cmr.repository.TransformationSourceOptions;
-import org.alfresco.service.transaction.TransactionService;
 import org.alfresco.util.PropertyCheck;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.springframework.beans.factory.InitializingBean;
 
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -54,8 +44,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.StringJoiner;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 import static org.alfresco.repo.rendition2.RenditionDefinition2.ALLOW_ENLARGEMENT;
 import static org.alfresco.repo.rendition2.RenditionDefinition2.AUTO_ORIENT;
@@ -71,6 +59,7 @@ import static org.alfresco.repo.rendition2.RenditionDefinition2.FLASH_VERSION;
 import static org.alfresco.repo.rendition2.RenditionDefinition2.HEIGHT;
 import static org.alfresco.repo.rendition2.RenditionDefinition2.INCLUDE_CONTENTS;
 import static org.alfresco.repo.rendition2.RenditionDefinition2.MAINTAIN_ASPECT_RATIO;
+import static org.alfresco.repo.rendition2.RenditionDefinition2.MAX_SOURCE_SIZE_K_BYTES;
 import static org.alfresco.repo.rendition2.RenditionDefinition2.OFFSET;
 import static org.alfresco.repo.rendition2.RenditionDefinition2.PAGE;
 import static org.alfresco.repo.rendition2.RenditionDefinition2.RESIZE_HEIGHT;
@@ -78,47 +67,39 @@ import static org.alfresco.repo.rendition2.RenditionDefinition2.RESIZE_PERCENTAG
 import static org.alfresco.repo.rendition2.RenditionDefinition2.RESIZE_WIDTH;
 import static org.alfresco.repo.rendition2.RenditionDefinition2.START_PAGE;
 import static org.alfresco.repo.rendition2.RenditionDefinition2.THUMBNAIL;
+import static org.alfresco.repo.rendition2.RenditionDefinition2.TIMEOUT;
 import static org.alfresco.repo.rendition2.RenditionDefinition2.WIDTH;
-import static org.alfresco.service.cmr.repository.TransformationOptionLimits.OPT_MAX_PAGES;
-import static org.alfresco.service.cmr.repository.TransformationOptionLimits.OPT_MAX_SOURCE_SIZE_K_BYTES;
-import static org.alfresco.service.cmr.repository.TransformationOptionLimits.OPT_PAGE_LIMIT;
-import static org.alfresco.service.cmr.repository.TransformationOptionLimits.OPT_READ_LIMIT_K_BYTES;
-import static org.alfresco.service.cmr.repository.TransformationOptionLimits.OPT_READ_LIMIT_TIME_MS;
-import static org.alfresco.service.cmr.repository.TransformationOptionLimits.OPT_TIMEOUT_MS;
 import static org.springframework.util.CollectionUtils.containsAny;
 
 /**
- * Requests rendition transforms take place using transforms available on the local machine. The transform and
- * consumption of the resulting content is linked into a single operation that will take place at some point in
- * the future on the local machine.
+ * @deprecated converts the new flat name value pair transformer options to the depreacted TransformationOptions.
  *
  * @author adavis
  */
-public class LocalTransformClient extends AbstractTransformClient implements TransformClient
+@Deprecated
+public class TransformationOptionsConverter implements InitializingBean
 {
-    private static Log logger = LogFactory.getLog(LocalTransformClient.class);
-
     private static Set<String> PAGED_OPTIONS = new HashSet<>(Arrays.asList(new String[]
-    {
-        PAGE, START_PAGE, END_PAGE
-    }));
+            {
+                    PAGE, START_PAGE, END_PAGE
+            }));
 
     private static Set<String> CROP_OPTIONS = new HashSet<>(Arrays.asList(new String[]
-    {
-        CROP_GRAVITY, CROP_WIDTH, CROP_HEIGHT, CROP_PERCENTAGE, CROP_X_OFFSET, CROP_Y_OFFSET
-    }));
+            {
+                    CROP_GRAVITY, CROP_WIDTH, CROP_HEIGHT, CROP_PERCENTAGE, CROP_X_OFFSET, CROP_Y_OFFSET
+            }));
 
     private static Set<String> TEMPORAL_OPTIONS = new HashSet<>(Arrays.asList(new String[]
-    {
-        OFFSET, DURATION
-    }));
+            {
+                    OFFSET, DURATION
+            }));
 
     private static Set<String> RESIZE_OPTIONS = new HashSet<>(Arrays.asList(new String[]
-    {
-        WIDTH, HEIGHT,
-        THUMBNAIL, RESIZE_WIDTH, RESIZE_HEIGHT, RESIZE_PERCENTAGE,
-        ALLOW_ENLARGEMENT, MAINTAIN_ASPECT_RATIO
-    }));
+            {
+                    WIDTH, HEIGHT,
+                    THUMBNAIL, RESIZE_WIDTH, RESIZE_HEIGHT, RESIZE_PERCENTAGE,
+                    ALLOW_ENLARGEMENT, MAINTAIN_ASPECT_RATIO
+            }));
 
     private static Set<String> IMAGE_OPTIONS = new HashSet<>();
     static
@@ -130,128 +111,58 @@ public class LocalTransformClient extends AbstractTransformClient implements Tra
     }
 
     private static Set<String> PDF_OPTIONS = new HashSet<>(Arrays.asList(new String[]
-        {
-            PAGE, WIDTH, HEIGHT, ALLOW_ENLARGEMENT, MAINTAIN_ASPECT_RATIO
-        }));
+            {
+                    PAGE, WIDTH, HEIGHT, ALLOW_ENLARGEMENT, MAINTAIN_ASPECT_RATIO
+            }));
 
     private static Set<String> FLASH_OPTIONS = new HashSet<>(Arrays.asList(new String[]
-    {
-        FLASH_VERSION
-    }));
+            {
+                    FLASH_VERSION
+            }));
 
     private static Set<String> LIMIT_OPTIONS = new HashSet<>(Arrays.asList(new String[]
+            {
+                    TIMEOUT, MAX_SOURCE_SIZE_K_BYTES
+            }));
+
+    private interface Setter
     {
-        OPT_TIMEOUT_MS, OPT_READ_LIMIT_TIME_MS,
-        OPT_MAX_SOURCE_SIZE_K_BYTES, OPT_READ_LIMIT_K_BYTES,
-        OPT_MAX_PAGES, OPT_PAGE_LIMIT
-    }));
-
-    private TransactionService transactionService;
-
-    private ContentService contentService;
-
-    private RenditionService2Impl renditionService2;
-
-    private ExecutorService executorService;
-
-    public void setTransactionService(TransactionService transactionService)
-    {
-        this.transactionService = transactionService;
+        void set(String s);
     }
 
-    public void setContentService(ContentService contentService)
+    // The default valued in the old TransformationOptionsLimits
+    private long readLimitTimeMs;
+    private long readLimitKBytes;
+    private int pageLimit;
+    private int maxPages;
+
+    public void setReadLimitTimeMs(String readLimitTimeMs)
     {
-        this.contentService = contentService;
+        this.readLimitTimeMs = Long.parseLong(readLimitTimeMs);
     }
 
-    public void setRenditionService2(RenditionService2Impl renditionService2)
+    public void setReadLimitKBytes(String readLimitKBytes)
     {
-        this.renditionService2 = renditionService2;
+        this.readLimitKBytes = Long.parseLong(readLimitKBytes);
     }
 
-    public void setExecutorService(ExecutorService executorService)
+    public void setPageLimit(String pageLimit)
     {
-        this.executorService = executorService;
+        this.pageLimit = Integer.parseInt(pageLimit);
     }
 
-    @Override
-    public void afterPropertiesSet() throws Exception
+    public void setMaxPages(String maxPages)
     {
-        super.afterPropertiesSet();
-        PropertyCheck.mandatory(this, "contentService", contentService);
-        PropertyCheck.mandatory(this, "renditionService2", renditionService2);
-        if (executorService == null)
-        {
-            executorService = Executors.newCachedThreadPool();
-        }
+        this.maxPages = Integer.parseInt(maxPages);
     }
 
     @Override
-    public void checkSupported(NodeRef sourceNodeRef, RenditionDefinition2 renditionDefinition, String sourceMimetype, long size, String contentUrl)
+    public void afterPropertiesSet()
     {
-        String targetMimetype = renditionDefinition.getTargetMimetype();
-        String renditionName = renditionDefinition.getRenditionName();
-        Map<String, String> options = renditionDefinition.getTransformOptions();
-
-        TransformationOptions transformationOptions = getTransformationOptions(renditionName, options);
-        transformationOptions.setSourceNodeRef(sourceNodeRef);
-
-        ContentTransformer transformer = contentService.getTransformer(contentUrl, sourceMimetype, size, targetMimetype, transformationOptions);
-        if (transformer == null)
-        {
-            String message = "Unsupported rendition " + renditionName + " from " + sourceMimetype + " size: " + size;
-            logger.debug(message);
-            throw new UnsupportedOperationException(message);
-        }
-        if (logger.isDebugEnabled())
-        {
-            logger.debug("Rendition of " + renditionName + " from " + sourceMimetype + " will use " + transformer.getName());
-        }
-    }
-
-    @Override
-    public void transform(NodeRef sourceNodeRef, RenditionDefinition2 renditionDefinition, String user, int sourceContentUrlHashCode)
-    {
-        executorService.submit(() ->
-        {
-            AuthenticationUtil.runAs((AuthenticationUtil.RunAsWork<Void>) () ->
-                transactionService.getRetryingTransactionHelper().doInTransaction(() ->
-                {
-                    try
-                    {
-                        String targetMimetype = renditionDefinition.getTargetMimetype();
-                        String renditionName = renditionDefinition.getRenditionName();
-                        Map<String, String> options = renditionDefinition.getTransformOptions();
-
-                        TransformationOptions transformationOptions = getTransformationOptions(renditionName, options);
-                        transformationOptions.setSourceNodeRef(sourceNodeRef);
-
-                        ContentReader reader = LocalTransformClient.this.contentService.getReader(sourceNodeRef, ContentModel.PROP_CONTENT);
-                        if (null == reader || !reader.exists())
-                        {
-                            throw new IllegalArgumentException("The supplied sourceNodeRef "+sourceNodeRef+" has no content.");
-                        }
-
-                        ContentWriter writer = contentService.getTempWriter();
-                        writer.setMimetype(targetMimetype);
-                        contentService.transform(reader, writer, transformationOptions);
-
-                        InputStream inputStream = writer.getReader().getContentInputStream();
-                        renditionService2.consume(sourceNodeRef, inputStream, renditionDefinition, sourceContentUrlHashCode);
-                    }
-                    catch (Exception e)
-                    {
-                        if (logger.isDebugEnabled())
-                        {
-                            String renditionName = renditionDefinition.getRenditionName();
-                            logger.debug("Rendition of "+renditionName+" failed", e);
-                        }
-                        renditionService2.failure(sourceNodeRef, renditionDefinition, sourceContentUrlHashCode);
-                        throw e;
-                    }
-                    return null;
-                }), user);
-        });
+        PropertyCheck.mandatory(this, "readLimitTimeMs", readLimitTimeMs);
+        PropertyCheck.mandatory(this, "readLimitKBytes", readLimitKBytes);
+        PropertyCheck.mandatory(this, "pageLimit", pageLimit);
+        PropertyCheck.mandatory(this, "maxPages", maxPages);
     }
 
     /**
@@ -259,7 +170,7 @@ public class LocalTransformClient extends AbstractTransformClient implements Tra
      * use the same options as the Transform Service.
      */
     @Deprecated
-    static TransformationOptions getTransformationOptions(String renditionName, Map<String, String> options)
+    TransformationOptions getTransformationOptions(String renditionName, Map<String, String> options)
     {
         TransformationOptions transformationOptions = null;
         Set<String> optionNames = options.keySet();
@@ -284,9 +195,11 @@ public class LocalTransformClient extends AbstractTransformClient implements Tra
                 {
                     ImageResizeOptions imageResizeOptions = new ImageResizeOptions();
                     opts.setResizeOptions(imageResizeOptions);
+                    // PDF
                     ifSet(options, WIDTH, (v) -> imageResizeOptions.setWidth(Integer.parseInt(v)));
-                    ifSet(options, RESIZE_WIDTH, (v) -> imageResizeOptions.setWidth(Integer.parseInt(v)));
                     ifSet(options, HEIGHT, (v) -> imageResizeOptions.setHeight(Integer.parseInt(v)));
+                    // ImageMagick
+                    ifSet(options, RESIZE_WIDTH, (v) -> imageResizeOptions.setWidth(Integer.parseInt(v)));
                     ifSet(options, RESIZE_HEIGHT, (v) -> imageResizeOptions.setHeight(Integer.parseInt(v)));
                     ifSet(options, THUMBNAIL, (v) ->imageResizeOptions.setResizeToThumbnail(Boolean.parseBoolean(v)));
                     ifSet(options, RESIZE_PERCENTAGE, (v) ->imageResizeOptions.setPercentResize(Boolean.parseBoolean(v)));
@@ -344,7 +257,7 @@ public class LocalTransformClient extends AbstractTransformClient implements Tra
         {
             StringJoiner sj = new StringJoiner("\n    ");
             sj.add("The RenditionDefinition2 "+renditionName +
-                " contains options that cannot be mapped to TransformationOptions used by local transformers");
+                    " contains options that cannot be mapped to TransformationOptions used by local transformers");
             HashSet<String> otherNames = new HashSet<>(optionNames);
             otherNames.removeAll(FLASH_OPTIONS);
             otherNames.removeAll(IMAGE_OPTIONS);
@@ -363,23 +276,19 @@ public class LocalTransformClient extends AbstractTransformClient implements Tra
         {
             TransformationOptionLimits limits = new TransformationOptionLimits();
             transformationOptions.setLimits(limits);
-            ifSet(options, OPT_TIMEOUT_MS, (v) -> limits.setTimeoutMs(Long.parseLong(v)));
-            ifSet(options, OPT_READ_LIMIT_TIME_MS, (v) -> limits.setReadLimitTimeMs(Long.parseLong(v)));
-            ifSet(options, OPT_MAX_PAGES, (v) -> limits.setMaxPages(Integer.parseInt(v)));
-            ifSet(options, OPT_PAGE_LIMIT, (v) -> limits.setPageLimit(Integer.parseInt(v)));
-            ifSet(options, OPT_MAX_SOURCE_SIZE_K_BYTES, (v) -> limits.setMaxSourceSizeKBytes(Long.parseLong(v)));
-            ifSet(options, OPT_READ_LIMIT_K_BYTES, (v) -> limits.setReadLimitKBytes(Long.parseLong(v)));
+            ifSet(options, TIMEOUT, (v) -> limits.setTimeoutMs(Long.parseLong(v)));
+            ifSet(options, MAX_SOURCE_SIZE_K_BYTES, (v) -> limits.setMaxSourceSizeKBytes(Long.parseLong(v)));
+            limits.setReadLimitKBytes(readLimitTimeMs);
+            limits.setReadLimitTimeMs(readLimitKBytes);
+            limits.setMaxPages(maxPages);
+            limits.setPageLimit(pageLimit);
         }
 
         transformationOptions.setUse(renditionName);
         return transformationOptions;
     }
 
-    private interface Setter {
-        void set(String s);
-    }
-
-    private static <T> void ifSet(Map<String, String> options, String key, Setter setter)
+    private <T> void ifSet(Map<String, String> options, String key, TransformationOptionsConverter.Setter setter)
     {
         String value = options.get(key);
         if (value != null)
