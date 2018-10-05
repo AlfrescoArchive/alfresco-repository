@@ -171,14 +171,4 @@ public class LegacyLocalTransformClient extends AbstractTransformClient implemen
                 }), user);
         });
     }
-
-    /**
-     * @deprecated as we do not plan to use TransformationOptions moving forwards as local transformations will also
-     * use the same options as the Transform Service.
-     */
-    @Deprecated
-    static TransformationOptions getTransformationOptions(String renditionName, Map<String, String> options)
-    {
-        return null; // TODO cahnge caller so they call the new class.
-    }
 }
