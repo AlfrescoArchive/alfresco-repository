@@ -36,6 +36,7 @@ import java.nio.channels.ReadableByteChannel;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.alfresco.MiscContextTestSuite;
 import org.alfresco.repo.content.AbstractContentReader;
 import org.alfresco.repo.content.MimetypeMap;
 import org.alfresco.service.ServiceRegistry;
@@ -47,11 +48,7 @@ import org.alfresco.service.cmr.repository.TransformationOptionLimits;
 import org.alfresco.service.cmr.repository.TransformationOptions;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringRunner;
 
 /**
  * Test methods that control limits in {@link AbstractContentTransformerLimits}
@@ -59,8 +56,6 @@ import org.springframework.test.context.junit4.SpringRunner;
  * @deprecated The transformations code is being moved out of the codebase and replaced by the new async RenditionService2 or other external libraries.
  */
 @Deprecated
-@RunWith(SpringRunner.class)
-@ContextConfiguration({"classpath:alfresco/minimal-context.xml"})
 public class AbstractContentTransformerLimitsTest
 {
     private static final String A = MimetypeMap.MIMETYPE_XML;
@@ -71,17 +66,15 @@ public class AbstractContentTransformerLimitsTest
     private TransformationOptionLimits limits;
     private Map<String, Map<String, TransformationOptionLimits>> mimetypeLimits;
     private TransformationOptions options;
-
-    @Autowired
-    private ApplicationContext applicationContext;
-
+    
     @Before
     public void setUp() throws Exception
     {
-        ServiceRegistry serviceRegistry = (ServiceRegistry) applicationContext.getBean(ServiceRegistry.SERVICE_REGISTRY);
+        ApplicationContext ctx = MiscContextTestSuite.getMinimalContext();
+        ServiceRegistry serviceRegistry = (ServiceRegistry) ctx.getBean(ServiceRegistry.SERVICE_REGISTRY);
         MimetypeService mimetypeService = serviceRegistry.getMimetypeService();
-        TransformerDebug transformerDebug = (TransformerDebug) applicationContext.getBean("transformerDebug");
-        TransformerConfig transformerConfig = (TransformerConfig) applicationContext.getBean("transformerConfig");
+        TransformerDebug transformerDebug = (TransformerDebug) ctx.getBean("transformerDebug");
+        TransformerConfig transformerConfig = (TransformerConfig) ctx.getBean("transformerConfig");
 
         transformer = new AbstractContentTransformer2()
         {

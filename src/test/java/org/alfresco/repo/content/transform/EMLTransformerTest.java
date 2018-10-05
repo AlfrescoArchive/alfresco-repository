@@ -37,7 +37,6 @@ import org.alfresco.service.cmr.repository.ContentReader;
 import org.alfresco.service.cmr.repository.ContentWriter;
 import org.alfresco.service.cmr.repository.TransformationOptions;
 import org.alfresco.util.TempFileProvider;
-import org.junit.Test;
 
 /**
  * @see org.alfresco.repo.content.transform.EMLTransformer
@@ -68,9 +67,9 @@ public class EMLTransformerTest extends AbstractContentTransformerTest
     private ContentTransformerRegistry registry;
 
     @Override
-    public void before() throws Exception
+    public void setUp() throws Exception
     {
-        super.before();
+        super.setUp();
 
         transformer = new EMLTransformer();
         transformer.setMimetypeService(mimetypeService);
@@ -97,7 +96,6 @@ public class EMLTransformerTest extends AbstractContentTransformerTest
     /**
      * Test transforming a valid eml file to text
      */
-    @Test
     public void testRFC822ToText() throws Exception
     {
         File emlSourceFile = loadQuickTestFile("eml");
@@ -117,7 +115,6 @@ public class EMLTransformerTest extends AbstractContentTransformerTest
     /**
      * Test transforming a valid eml file to pdf using complex transformer ("Rfc822ToPdf") - eg. for HTML5 preview
      */
-    @Test
     public void testRFC822ToPdf() throws Exception
     {
         String sourceMimetype = MimetypeMap.MIMETYPE_RFC822;
@@ -165,7 +162,6 @@ public class EMLTransformerTest extends AbstractContentTransformerTest
     /**
      * Test transforming a non-ascii eml file to text
      */
-    @Test
     public void testNonAsciiRFC822ToText() throws Exception
     {
         File emlSourceFile = loadQuickTestFile("spanish.eml");
@@ -186,7 +182,6 @@ public class EMLTransformerTest extends AbstractContentTransformerTest
     /**
      * Test transforming a valid eml with an attachment to text; attachment should be ignored
      */
-    @Test
     public void testRFC822WithAttachmentToText() throws Exception
     {
         File emlSourceFile = loadQuickTestFile("attachment.eml");
@@ -208,7 +203,6 @@ public class EMLTransformerTest extends AbstractContentTransformerTest
     /**
      * Test transforming a valid eml with minetype multipart/alternative to text
      */
-    @Test
     public void testRFC822AlternativeToText() throws Exception
     {
         File emlSourceFile = loadQuickTestFile("alternative.eml");
@@ -229,7 +223,6 @@ public class EMLTransformerTest extends AbstractContentTransformerTest
     /**
      * Test transforming a valid eml with nested mimetype multipart/alternative to text
      */
-    @Test
     public void testRFC822NestedAlternativeToText() throws Exception
     {
         File emlSourceFile = loadQuickTestFile("nested.alternative.eml");
@@ -250,7 +243,6 @@ public class EMLTransformerTest extends AbstractContentTransformerTest
     /**
      * Test transforming a valid eml with a html part containing html special characters to text
      */
-    @Test
     public void testHtmlSpecialCharsToText() throws Exception
     {
         File emlSourceFile = loadQuickTestFile("htmlChars.eml");

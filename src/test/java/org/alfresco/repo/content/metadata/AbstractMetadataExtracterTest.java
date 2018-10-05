@@ -68,27 +68,19 @@ import org.alfresco.util.ApplicationContextHelper;
 import org.alfresco.util.PropertyMap;
 import org.alfresco.util.TempFileProvider;
 import org.joda.time.DateTimeZone;
-import org.junit.Before;
-import org.junit.runner.RunWith;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringRunner;
 
 /**
  * @see org.alfresco.repo.content.metadata.MetadataExtracter
  *
  * @author Jesper Steen Møller
  */
-@RunWith(SpringRunner.class)
-@ContextConfiguration({"classpath:alfresco/minimal-context.xml"})
 public abstract class AbstractMetadataExtracterTest extends TestCase
 {
    /**
     * This context will be fetched each time, but almost always
     *  will have been cached by {@link ApplicationContextHelper}
     */
-    @Autowired
     protected ApplicationContext ctx;
     
     public static final String QUICK_TITLE = "The quick brown fox jumps over the lazy dog";
@@ -105,9 +97,13 @@ public abstract class AbstractMetadataExtracterTest extends TestCase
     /**
      * Ensures that the temp locations are cleaned out before the tests start
      */
-    @Before
-    public void before() throws Exception
+    @Override
+    public void setUp() throws Exception
     {
+        // Grab the context, which will normally have been
+        //  cached by the ApplicationContextHelper
+        ctx = MiscContextTestSuite.getMinimalContext();
+        
         this.mimetypeMap = (MimetypeMap) ctx.getBean("mimetypeService");
         this.dictionaryService = (DictionaryService) ctx.getBean("dictionaryService");
         

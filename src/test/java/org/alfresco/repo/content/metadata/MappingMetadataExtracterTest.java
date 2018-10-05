@@ -48,32 +48,21 @@ import org.alfresco.service.cmr.repository.ContentReader;
 import org.alfresco.service.namespace.NamespaceService;
 import org.alfresco.service.namespace.QName;
 import org.alfresco.util.TempFileProvider;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringRunner;
 
 /**
  * @see org.alfresco.repo.content.metadata.AbstractMappingMetadataExtracter
  * 
  * @author Derek Hulley
  */
-@RunWith(SpringRunner.class)
-@ContextConfiguration({"classpath:alfresco/minimal-context.xml"})
 public class MappingMetadataExtracterTest extends TestCase
 {
     private DummyMappingMetadataExtracter extracter;
     private ContentReader reader;
     private Map<QName, Serializable> destination;
 
-    @Autowired
-    private ApplicationContext ctx;
-
-    @Before
-    public void setUp() throws Exception
+    @Override
+    protected void setUp() throws Exception
     {
         extracter = new DummyMappingMetadataExtracter();
         extracter.register();
@@ -86,7 +75,6 @@ public class MappingMetadataExtracterTest extends TestCase
         destination.put(DummyMappingMetadataExtracter.QNAME_B, null);
     }
 
-    @Test
     public void testSetUp()
     {
         assertNotNull(reader);
@@ -95,7 +83,6 @@ public class MappingMetadataExtracterTest extends TestCase
     }
     
     /** Test the new alfresco/metadata properties location */
-    @Test
     public void testSetUpPropertiesLocationMetadata()
     {
         DummyPropertiesInMetadataLocationMappingMetadataExtracter metadataLocationExtracter = 
@@ -163,6 +150,7 @@ public class MappingMetadataExtracterTest extends TestCase
                 DummyMappingMetadataExtracter.EXTRACTER_NAME + 
                 AbstractMappingMetadataExtracter.PROPERTY_COMPONENT_EXTRACT;
 
+        ApplicationContext ctx = MiscContextTestSuite.getMinimalContext();
         Properties globalProperties = (Properties) ctx.getBean("global-properties");
         globalProperties.setProperty(
                 propertyPrefix + "namespace.prefix.my",

@@ -55,7 +55,6 @@ import org.apache.tika.parser.microsoft.OfficeParser;
 import org.apache.tika.parser.microsoft.ooxml.OOXMLParser;
 import org.apache.tika.parser.mp3.Mp3Parser;
 import org.apache.tika.parser.odf.OpenDocumentParser;
-import org.junit.Test;
 
 
 /**
@@ -72,9 +71,9 @@ public class TikaAutoMetadataExtracterTest extends AbstractMetadataExtracterTest
        QName.createQName("TikaMimeTypeTestProp");
 
     @Override
-    public void before() throws Exception
+    public void setUp() throws Exception
     {
-        super.before();
+        super.setUp();
         
         TikaConfig config = (TikaConfig)ctx.getBean("tikaConfig");
         extracter = new TikaAutoMetadataExtracter(config);
@@ -103,7 +102,6 @@ public class TikaAutoMetadataExtracterTest extends AbstractMetadataExtracterTest
         return extracter;
     }
 
-    @Test
     public void testSupports() throws Exception
     {
         ArrayList<String> mimeTypes = new ArrayList<String>();
@@ -129,7 +127,6 @@ public class TikaAutoMetadataExtracterTest extends AbstractMetadataExtracterTest
      * Test several different files
      * Note - doesn't use extractFromMimetype
      */
-    @Test
     public void testSupportedMimetypes() throws Exception
     {
         String[] testFiles = new String[] {
@@ -179,7 +176,6 @@ public class TikaAutoMetadataExtracterTest extends AbstractMetadataExtracterTest
      * Test MNT-15219 Excel (.xlsx) containing xmls (shapes/drawings) with multi byte characters may
      * cause OutOfMemory in Tika Note - doesn't use extractFromMimetype
      */
-    @Test
     public void testParsingOfShapesInXLSXFiles() throws Exception
     {
         AutoDetectParser ap = new AutoDetectParser();
@@ -290,9 +286,7 @@ public class TikaAutoMetadataExtracterTest extends AbstractMetadataExtracterTest
     *  this test ensures that they are
     */
    @SuppressWarnings("deprecation")
-   @Test
-   public void testImageVideo() throws Throwable
-   {
+public void testImageVideo() throws Throwable {
       Map<String, Serializable> p;
       
       // Image

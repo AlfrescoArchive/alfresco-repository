@@ -53,9 +53,9 @@ public class TextToPdfContentTransformerTest extends AbstractContentTransformerT
     private TextToPdfContentTransformer transformer;
     
     @Override
-    public void before() throws Exception
+    public void setUp() throws Exception
     {
-        super.before();
+        super.setUp();
         
         transformer = new TextToPdfContentTransformer();
         transformer.setMimetypeService(mimetypeService);

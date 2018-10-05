@@ -33,7 +33,6 @@ import org.alfresco.repo.content.filestore.FileContentWriter;
 import org.alfresco.service.cmr.repository.ContentReader;
 import org.alfresco.service.cmr.repository.TransformationOptions;
 import org.alfresco.util.TempFileProvider;
-import org.junit.Test;
 
 /**
  * @see org.alfresco.repo.content.transform.TextMiningContentTransformer
@@ -50,9 +49,9 @@ public class TextMiningContentTransformerTest extends AbstractContentTransformer
     private TextMiningContentTransformer transformer;
     
     @Override
-    public void before() throws Exception
+    public void setUp() throws Exception
     {
-        super.before();
+        super.setUp();
         
         transformer = new TextMiningContentTransformer();
         transformer.setMimetypeService(mimetypeService);
@@ -75,8 +74,7 @@ public class TextMiningContentTransformerTest extends AbstractContentTransformer
             "quick.doc", "quick95.doc", "quick6.doc"
       };
     }
-
-    @Test
+    
     public void testIsTransformable() throws Exception
     {
         assertFalse(transformer.isTransformable(MimetypeMap.MIMETYPE_TEXT_PLAIN, -1, MimetypeMap.MIMETYPE_WORD, new TransformationOptions()));
@@ -86,7 +84,6 @@ public class TextMiningContentTransformerTest extends AbstractContentTransformer
     /**
      * Tests a specific failure in the library
      */
-    @Test
     public void testBugFixAR1() throws Exception
     {
         File tempFile = TempFileProvider.createTempFile(

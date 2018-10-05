@@ -40,7 +40,7 @@ import org.alfresco.service.descriptor.DescriptorService;
 import org.alfresco.util.BaseAlfrescoTestCase;
 import org.alfresco.util.GUID;
 import org.alfresco.util.VersionNumber;
-import org.junit.Test;
+import org.alfresco.repo.module.ModuleVersionNumber;
 
 /**
  * @see org.alfresco.repo.module.ModuleComponentHelper
@@ -96,12 +96,12 @@ public class ModuleComponentHelperTest extends BaseAlfrescoTestCase
     
     private DummyModuleComponent[][] components;
     
-    public void before() throws Exception
+    public void setUp() throws Exception
     {
-        super.before();
+        super.setUp();
         
-        registryService = (RegistryService) applicationContext.getBean("RegistryService");
-        tenantAdminService = (TenantAdminService) applicationContext.getBean("tenantAdminService");
+        registryService = (RegistryService) ctx.getBean("RegistryService");
+        tenantAdminService = (TenantAdminService) ctx.getBean("tenantAdminService");
         
         descriptorService = serviceRegistry.getDescriptorService();
         
@@ -137,8 +137,7 @@ public class ModuleComponentHelperTest extends BaseAlfrescoTestCase
         // M1-C1 depends on M0-C1
         components[1][1].setDependsOn(Collections.<ModuleComponent>singletonList(components[0][1]));
     }
-
-    @org.junit.Test
+    
     public void testSetup() throws Exception
     {
         // See that it all starts OK
@@ -166,50 +165,43 @@ public class ModuleComponentHelperTest extends BaseAlfrescoTestCase
         // Check
         assertEquals("Incorrent number of executions (version " + moduleVersion + ")", expectedCount, executed);
     }
-
-    @org.junit.Test
+    
     public void testStartComponentsV00()
     {
         ModuleVersionNumber moduleVersion = new ModuleVersionNumber("0.0");
         startComponents(moduleVersion);
     }
-
-    @org.junit.Test
+    
     public void testStartComponentsV05()
     {
         ModuleVersionNumber moduleVersion = new ModuleVersionNumber("0.5");
         startComponents(moduleVersion);
     }
-
-    @org.junit.Test
+    
     public void testStartComponentsV10()
     {
         ModuleVersionNumber moduleVersion = new ModuleVersionNumber("1.0");
         startComponents(moduleVersion);
     }
-
-    @org.junit.Test
+    
     public void testStartComponentsV15()
     {
         ModuleVersionNumber moduleVersion = new ModuleVersionNumber("1.5");
         startComponents(moduleVersion);
     }
-
-    @org.junit.Test
+    
     public void testStartComponentsV30()
     {
         ModuleVersionNumber moduleVersion = new ModuleVersionNumber("3.0");
         startComponents(moduleVersion);
     }
-
-    @org.junit.Test
+    
     public void testStartComponentsV35()
     {
         ModuleVersionNumber moduleVersion = new ModuleVersionNumber("3.5");
         startComponents(moduleVersion);
     }
-
-    @org.junit.Test
+    
 	public void testgetModuleVersionNumber() {
 		ModuleVersionNumber moduleVersion = new ModuleVersionNumber("3.5");
 		VersionNumber versNumber = new VersionNumber("3.5");

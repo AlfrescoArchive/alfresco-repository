@@ -52,7 +52,7 @@ public class DefaultRemoteUserMapperTest extends AbstractChainedSubsystemTest
     ChildApplicationContextFactory childApplicationContextFactory;    
 
     /* (non-Javadoc)
-     * @see junit.framework.TestCase#before()
+     * @see junit.framework.TestCase#setUp()
      */
     @Override
     protected void setUp() throws Exception
@@ -65,7 +65,7 @@ public class DefaultRemoteUserMapperTest extends AbstractChainedSubsystemTest
     
     
     /* (non-Javadoc)
-     * @see junit.framework.TestCase#after()
+     * @see junit.framework.TestCase#tearDown()
      */
     @Override
     protected void tearDown() throws Exception

@@ -53,7 +53,6 @@ import org.alfresco.repo.content.MimetypeMap;
 import org.alfresco.repo.content.transform.AbstractContentTransformerTest;
 import org.alfresco.service.cmr.repository.datatype.DefaultTypeConverter;
 import org.alfresco.service.namespace.QName;
-import org.junit.Test;
 
 /**
  * @author Derek Hulley
@@ -64,9 +63,9 @@ public class MailMetadataExtracterTest extends AbstractMetadataExtracterTest
     private MailMetadataExtracter extracter;
 
     @Override
-    public void before() throws Exception
+    public void setUp() throws Exception
     {
-        super.before();
+        super.setUp();
         extracter = new MailMetadataExtracter();
         extracter.setDictionaryService(dictionaryService);
         extracter.register();
@@ -80,7 +79,6 @@ public class MailMetadataExtracterTest extends AbstractMetadataExtracterTest
         return extracter;
     }
 
-    @Test
     public void testSupports() throws Exception
     {
         for (String mimetype : MailMetadataExtracter.SUPPORTED_MIMETYPES)
@@ -90,7 +88,6 @@ public class MailMetadataExtracterTest extends AbstractMetadataExtracterTest
         }
     }
 
-    @Test
     public void testOutlookMsgExtraction() throws Exception
     {
         // Check we can find the file

@@ -291,7 +291,7 @@ public abstract class VirtualizationIntegrationTest implements VirtualizationTes
                          e);
         }
 
-       // super.after();
+       // super.tearDown();
     }
 
     /**

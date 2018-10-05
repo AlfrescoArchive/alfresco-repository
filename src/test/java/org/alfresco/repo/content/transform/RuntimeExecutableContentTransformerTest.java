@@ -31,6 +31,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.alfresco.MiscContextTestSuite;
 import org.alfresco.repo.content.MimetypeMap;
 import org.alfresco.repo.content.filestore.FileContentWriter;
 import org.alfresco.service.cmr.repository.ContentReader;
@@ -38,8 +39,6 @@ import org.alfresco.service.cmr.repository.ContentWriter;
 import org.alfresco.util.BaseAlfrescoTestCase;
 import org.alfresco.util.TempFileProvider;
 import org.alfresco.util.exec.RuntimeExec;
-import org.junit.Test;
-import org.springframework.test.context.ContextConfiguration;
 
 /**
  * @see org.alfresco.repo.content.transform.RuntimeExecutableContentTransformerWorker
@@ -49,15 +48,20 @@ import org.springframework.test.context.ContextConfiguration;
  * @deprecated The transformations code is being moved out of the codebase and replaced by the new async RenditionService2 or other external libraries.
  */
 @Deprecated
-@ContextConfiguration({"classpath:alfresco/minimal-context.xml"})
 public class RuntimeExecutableContentTransformerTest extends BaseAlfrescoTestCase
 {
     private ContentTransformer transformer;
+    
+    @Override
+    protected void setUpContext() {
+        // We use a smaller context
+       ctx = MiscContextTestSuite.getMinimalContext();
+    }
 
     @Override
-    public void before() throws Exception
+    protected void setUp() throws Exception
     {
-        super.before();
+        super.setUp();
         
         RuntimeExecutableContentTransformerWorker worker = new RuntimeExecutableContentTransformerWorker();
         // the command to execute
@@ -79,8 +83,8 @@ public class RuntimeExecutableContentTransformerTest extends BaseAlfrescoTestCas
         // initialise so that it doesn't score 0
         worker.afterPropertiesSet();
         
-        TransformerDebug transformerDebug = (TransformerDebug) applicationContext.getBean("transformerDebug");
-        TransformerConfig transformerConfig = (TransformerConfig) applicationContext.getBean("transformerConfig");
+        TransformerDebug transformerDebug = (TransformerDebug) ctx.getBean("transformerDebug");
+        TransformerConfig transformerConfig = (TransformerConfig) ctx.getBean("transformerConfig");
 
         ProxyContentTransformer transformer = new ProxyContentTransformer();
         transformer.setMimetypeService(serviceRegistry.getMimetypeService());
@@ -90,7 +94,6 @@ public class RuntimeExecutableContentTransformerTest extends BaseAlfrescoTestCas
         this.transformer = transformer;
     }
 
-    @org.junit.Test
     public void testCopyCommand() throws Exception
     {
         String content = "<A><B></B></A>";
