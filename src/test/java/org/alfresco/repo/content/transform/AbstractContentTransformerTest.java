@@ -38,8 +38,6 @@ import java.util.Set;
 import java.util.TreeSet;
 
 import junit.framework.TestCase;
-
-import org.alfresco.MiscContextTestSuite;
 import org.alfresco.repo.content.MimetypeMap;
 import org.alfresco.repo.content.filestore.FileContentReader;
 import org.alfresco.repo.content.filestore.FileContentWriter;
@@ -48,13 +46,17 @@ import org.alfresco.service.ServiceRegistry;
 import org.alfresco.service.cmr.repository.ContentReader;
 import org.alfresco.service.cmr.repository.ContentWriter;
 import org.alfresco.service.cmr.repository.MimetypeService;
-import org.alfresco.service.cmr.repository.TransformationOptions;
-import org.alfresco.util.ApplicationContextHelper;
+import org.alfresco.util.GUID;
 import org.alfresco.util.TempFileProvider;
-import org.alfresco.util.exec.RuntimeExec;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.util.ResourceUtils;
 
 /**
@@ -67,6 +69,8 @@ import org.springframework.util.ResourceUtils;
  * @deprecated The transformations code is being moved out of the codebase and replaced by the new async RenditionService2 or other external libraries.
  */
 @Deprecated
+@RunWith(SpringRunner.class)
+@ContextConfiguration({"classpath:alfresco/minimal-context.xml"})
 public abstract class AbstractContentTransformerTest extends TestCase
 {
     protected static String QUICK_CONTENT = "The quick brown fox jumps over the lazy dog";
@@ -75,10 +79,7 @@ public abstract class AbstractContentTransformerTest extends TestCase
     
     private static Log logger = LogFactory.getLog(AbstractContentTransformerTest.class);
     
-    /**
-     * This context will be fetched each time, but almost always
-     *  will have been cached by {@link ApplicationContextHelper}
-     */
+    @Autowired
     protected ApplicationContext ctx;
 
     protected ServiceRegistry serviceRegistry;
@@ -99,15 +100,17 @@ public abstract class AbstractContentTransformerTest extends TestCase
      */
     protected abstract ContentTransformer getTransformer(String sourceMimetype, String targetMimetype);
 
+    public String getName()
+    {
+        return GUID.generate();
+    }
+
     /**
      * Ensures that the temp locations are cleaned out before the tests start
      */
-    @Override
-    protected void setUp() throws Exception
+    @Before
+    public void before() throws Exception
     {
-        // Grab a suitably configured context
-        ctx = MiscContextTestSuite.getMinimalContext();
-
         // Grab other useful beans
         serviceRegistry = (ServiceRegistry) ctx.getBean(ServiceRegistry.SERVICE_REGISTRY);
         mimetypeService = serviceRegistry.getMimetypeService();
@@ -122,6 +125,7 @@ public abstract class AbstractContentTransformerTest extends TestCase
     /**
      * Check that all objects are present
      */
+    @Test
     public void testSetUp() throws Exception
     {
         assertNotNull("MimetypeMap not present", mimetypeService);
@@ -232,6 +236,7 @@ public abstract class AbstractContentTransformerTest extends TestCase
      * Results for the transformations are dumped to a temporary file named
      * <b>AbstractContentTransformerTest-results-1234.txt</b>.
      */
+    @Test
     public void testAllConversions() throws Exception
     {
         StringBuilder sb = new StringBuilder(2048);

@@ -42,9 +42,9 @@ public class AppleIWorksContentTransformerTest extends AbstractContentTransforme
     private AppleIWorksContentTransformer transformer;
     
     @Override
-    public void setUp() throws Exception
+    public void before() throws Exception
     {
-        super.setUp();
+        super.before();
         
         transformer = new AppleIWorksContentTransformer();
         

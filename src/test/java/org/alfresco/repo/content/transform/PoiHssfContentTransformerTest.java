@@ -35,6 +35,8 @@ import org.alfresco.service.cmr.repository.ContentReader;
 import org.alfresco.service.cmr.repository.ContentWriter;
 import org.alfresco.service.cmr.repository.TransformationOptions;
 import org.alfresco.util.TempFileProvider;
+import org.junit.Ignore;
+import org.junit.Test;
 
 /**
  * @see org.alfresco.repo.content.transform.PoiHssfContentTransformer
@@ -49,9 +51,9 @@ public class PoiHssfContentTransformerTest extends TikaPoweredContentTransformer
     private PoiHssfContentTransformer transformer;
     
     @Override
-    public void setUp() throws Exception
+    public void before() throws Exception
     {
-        super.setUp();
+        super.before();
         
         transformer = new PoiHssfContentTransformer();
         transformer.setMimetypeService(mimetypeService);
@@ -74,7 +76,8 @@ public class PoiHssfContentTransformerTest extends TikaPoweredContentTransformer
     {
         return transformer;
     }
-    
+
+    @Test
     public void testIsTransformable() throws Exception
     {
         assertFalse(transformer.isTransformable(MimetypeMap.MIMETYPE_TEXT_PLAIN, -1, MimetypeMap.MIMETYPE_EXCEL, new TransformationOptions()));
@@ -83,7 +86,8 @@ public class PoiHssfContentTransformerTest extends TikaPoweredContentTransformer
         assertTrue(transformer.isTransformable(MimetypeMap.MIMETYPE_EXCEL, -1, MimetypeMap.MIMETYPE_HTML, new TransformationOptions()));
         assertTrue(transformer.isTransformable(MimetypeMap.MIMETYPE_EXCEL, -1, MimetypeMap.MIMETYPE_XML, new TransformationOptions()));
     }
-    
+
+    @Test
     public void testCsvOutput() throws Exception
     {
        File sourceFile = AbstractContentTransformerTest.loadQuickTestFile("xls");
@@ -157,6 +161,8 @@ public class PoiHssfContentTransformerTest extends TikaPoweredContentTransformer
    /**
      * Tests a specific failure in the library
      */
+   @Ignore
+   @Test
     public void xxtestBugFixAR114() throws Exception
     {
         File tempFile = TempFileProvider.createTempFile(

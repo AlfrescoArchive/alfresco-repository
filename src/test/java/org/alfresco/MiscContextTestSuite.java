@@ -32,6 +32,8 @@ import org.junit.experimental.categories.Categories;
 import org.junit.runner.RunWith;
 import org.junit.runners.Suite;
 import org.springframework.context.ApplicationContext;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit4.SpringRunner;
 
 /**
  * Repository project tests using the various application contexts including the minimal context
@@ -145,20 +147,4 @@ import org.springframework.context.ApplicationContext;
 })
 public class MiscContextTestSuite
 {
-   /**
-    * Asks {@link ApplicationContextHelper} to give us a
-    *  suitable, perhaps cached context for use in our tests
-    */
-   public static ApplicationContext getMinimalContext() {
-      ApplicationContextHelper.setUseLazyLoading(false);
-      ApplicationContextHelper.setNoAutoStart(true);
-      return ApplicationContextHelper.getApplicationContext(
-           new String[] { "classpath:alfresco/minimal-context.xml" }
-      );
-   }
-
-   static
-   {
-       getMinimalContext();
-   }
 }

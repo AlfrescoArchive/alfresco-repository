@@ -52,6 +52,7 @@ import org.alfresco.repo.content.MimetypeMap;
 import org.alfresco.repo.content.transform.AbstractContentTransformerTest;
 import org.alfresco.service.cmr.repository.datatype.DefaultTypeConverter;
 import org.alfresco.service.namespace.QName;
+import org.junit.Test;
 
 /**
  * @author Jesper Steen Møller
@@ -62,9 +63,9 @@ public class HtmlMetadataExtracterTest extends AbstractMetadataExtracterTest
     private HtmlMetadataExtracter extracter;
 
     @Override
-    public void setUp() throws Exception
+    public void before() throws Exception
     {
-        super.setUp();
+        super.before();
         extracter = new HtmlMetadataExtracter();
         extracter.setDictionaryService(dictionaryService);
         extracter.register();
@@ -78,6 +79,7 @@ public class HtmlMetadataExtracterTest extends AbstractMetadataExtracterTest
         return extracter;
     }
 
+    @Test
     public void testSupports() throws Exception
     {
         for (String mimetype : HtmlMetadataExtracter.MIMETYPES)
@@ -87,11 +89,13 @@ public class HtmlMetadataExtracterTest extends AbstractMetadataExtracterTest
         }
     }
 
+    @Test
     public void testHtmlExtraction() throws Exception
     {
         testExtractFromMimetype(MimetypeMap.MIMETYPE_HTML);
     }
 
+    @Test
     public void testHtmlExtractionJapanese() throws Exception
     {
         String mimetype = MimetypeMap.MIMETYPE_HTML;

@@ -755,7 +755,7 @@ public class ImapMessageTest extends TestCase
     public void tearDown() throws Exception
     {
         // Deleting created test environment
-        logger.debug("tearDown ");
+        logger.debug("after ");
 
         UserTransaction txn = transactionService.getUserTransaction();
         txn.begin();
@@ -775,7 +775,7 @@ public class ImapMessageTest extends TestCase
         // Closing client connection
         folder.close(false);
         store.close();
-        logger.debug("tearDown end");
+        logger.debug("after end");
     }
 
 }

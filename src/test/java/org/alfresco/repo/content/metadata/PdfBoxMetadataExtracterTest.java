@@ -38,6 +38,7 @@ import org.alfresco.repo.content.transform.AbstractContentTransformerTest;
 import org.alfresco.service.cmr.repository.datatype.DefaultTypeConverter;
 import org.alfresco.service.namespace.QName;
 import org.apache.pdfbox.util.DateConverter;
+import org.junit.Test;
 
 /**
  * @see org.alfresco.repo.content.metadata.PdfBoxMetadataExtracter
@@ -52,9 +53,9 @@ public class PdfBoxMetadataExtracterTest extends AbstractMetadataExtracterTest
 	private static final double MAX_DOC_SIZE_MB = 0.03;
 
     @Override
-    public void setUp() throws Exception
+    public void before() throws Exception
     {
-        super.setUp();
+        super.before();
         extracter = new PdfBoxMetadataExtracter();
         extracter.setDictionaryService(dictionaryService);
         
@@ -76,6 +77,7 @@ public class PdfBoxMetadataExtracterTest extends AbstractMetadataExtracterTest
         return extracter;
     }
 
+    @Test
     public void testSupports() throws Exception
     {
         for (String mimetype : PdfBoxMetadataExtracter.SUPPORTED_MIMETYPES)
@@ -85,6 +87,7 @@ public class PdfBoxMetadataExtracterTest extends AbstractMetadataExtracterTest
         }
     }
 
+    @Test
     public void testPdfExtraction() throws Exception
     {
         testExtractFromMimetype(MimetypeMap.MIMETYPE_PDF);
@@ -94,6 +97,7 @@ public class PdfBoxMetadataExtracterTest extends AbstractMetadataExtracterTest
      * This test method extracts metadata from an Adobe Illustrator file (which in recent versions is a pdf file).
      * @since 3.5.0
      */
+    @Test
     public void testAiExtraction() throws Exception
     {
         testExtractFromMimetype(MimetypeMap.MIMETYPE_APPLICATION_ILLUSTRATOR);
@@ -113,6 +117,7 @@ public class PdfBoxMetadataExtracterTest extends AbstractMetadataExtracterTest
     /**
      * Test that will show when the workaround is in place.
      */
+    @Test
     public void testDateConversion() throws Exception {
        Calendar c = DateConverter.toCalendar("D:20050526205258+01'00'");
        assertEquals(2005, c.get(Calendar.YEAR));
@@ -124,6 +129,7 @@ public class PdfBoxMetadataExtracterTest extends AbstractMetadataExtracterTest
        //assertEquals(0, c.get(Calendar.MILLISECOND));
     }
 
+    @Test
     public void testMaxDocumentSizeLimit() throws Exception
     {
         File sourceFile = AbstractContentTransformerTest.loadNamedQuickTestFile("quick-size-limit.pdf");

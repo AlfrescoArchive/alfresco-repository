@@ -37,6 +37,7 @@ import org.alfresco.repo.content.transform.AbstractContentTransformerTest;
 import org.alfresco.service.cmr.repository.ContentReader;
 import org.alfresco.service.cmr.repository.datatype.DefaultTypeConverter;
 import org.alfresco.service.namespace.QName;
+import org.junit.Test;
 
 /**
  * @see org.alfresco.repo.content.metadata.PoiMetadataExtracter
@@ -58,9 +59,9 @@ public class PoiMetadataExtracterTest extends AbstractMetadataExtracterTest
     private Long extractionTimeWithLargeFootnotesLimit;
 
     @Override
-    public void setUp() throws Exception
+    public void before() throws Exception
     {
-        super.setUp();
+        super.before();
         extracter = new PoiMetadataExtracter();
         extracter.setDictionaryService(dictionaryService);
         extracter.register();
@@ -87,6 +88,7 @@ public class PoiMetadataExtracterTest extends AbstractMetadataExtracterTest
         }
     }
 
+    @Test
     public void testOffice2007Extraction() throws Exception
     {
         for (String mimetype : PoiMetadataExtracter.SUPPORTED_MIMETYPES)
@@ -138,6 +140,7 @@ public class PoiMetadataExtracterTest extends AbstractMetadataExtracterTest
      * 
      * @throws Exception
      */
+    @Test
     public void testProblemFootnotes() throws Exception
     {
         long timeoutMs = 2000;
@@ -173,6 +176,7 @@ public class PoiMetadataExtracterTest extends AbstractMetadataExtracterTest
      * 
      * @throws Exception
      */
+    @Test
     public void testFootnotesLimitParameterUsingDefault() throws Exception
     {
         PoiMetadataExtracter extractor = (PoiMetadataExtracter) getExtracter();

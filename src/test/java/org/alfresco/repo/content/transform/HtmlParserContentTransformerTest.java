@@ -32,6 +32,7 @@ import org.alfresco.repo.content.MimetypeMap;
 import org.alfresco.repo.content.filestore.FileContentWriter;
 import org.alfresco.service.cmr.repository.ContentWriter;
 import org.alfresco.service.cmr.repository.TransformationOptions;
+import org.junit.Test;
 
 /**
  * @see org.alfresco.repo.content.transform.HtmlParserContentTransformer
@@ -46,9 +47,9 @@ public class HtmlParserContentTransformerTest extends AbstractContentTransformer
     private HtmlParserContentTransformer transformer;
     
     @Override
-    public void setUp() throws Exception
+    public void before() throws Exception
     {
-        super.setUp();
+        super.before();
         transformer = new HtmlParserContentTransformer();
         transformer.setMimetypeService(mimetypeService);
         transformer.setTransformerDebug(transformerDebug);
@@ -60,6 +61,7 @@ public class HtmlParserContentTransformerTest extends AbstractContentTransformer
         return transformer;
     }
 
+    @Test
     public void testSetUp() throws Exception
     {
         assertNotNull(transformer);
@@ -84,6 +86,7 @@ public class HtmlParserContentTransformerTest extends AbstractContentTransformer
      *  On Windows, org.htmlparser.beans.StringBean.carriageReturn() appends a new system dependent new line
      *  so we must be careful when checking the returned text
      */
+    @Test
     public void testEncodingHandling() throws Exception
     {
         final String NEWLINE = System.getProperty ("line.separator");

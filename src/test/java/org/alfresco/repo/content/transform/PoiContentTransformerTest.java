@@ -27,6 +27,7 @@ package org.alfresco.repo.content.transform;
 
 import org.alfresco.repo.content.MimetypeMap;
 import org.alfresco.service.cmr.repository.TransformationOptions;
+import org.junit.Test;
 
 /**
  * @see org.alfresco.repo.content.transform.PoiContentTransformer
@@ -41,9 +42,9 @@ public class PoiContentTransformerTest extends AbstractContentTransformerTest
     private PoiContentTransformer transformer;
     
     @Override
-    public void setUp() throws Exception
+    public void before() throws Exception
     {
-        super.setUp();
+        super.before();
         
         transformer = new PoiContentTransformer();
         transformer.setMimetypeService(mimetypeService);
@@ -59,7 +60,8 @@ public class PoiContentTransformerTest extends AbstractContentTransformerTest
     {
         return transformer;
     }
-    
+
+    @Test
     public void testIsTransformable() throws Exception
     {
         assertFalse(transformer.isTransformable(MimetypeMap.MIMETYPE_TEXT_PLAIN, -1, MimetypeMap.MIMETYPE_WORD, new TransformationOptions()));

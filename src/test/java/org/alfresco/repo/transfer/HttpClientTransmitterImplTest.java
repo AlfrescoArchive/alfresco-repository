@@ -81,7 +81,7 @@ public class HttpClientTransmitterImplTest extends TestCase
     private NodeService mockedNodeService;
 
     /* (non-Javadoc)
-     * @see junit.framework.TestCase#setUp()
+     * @see junit.framework.TestCase#before()
      */
     @Override
     protected void setUp() throws Exception

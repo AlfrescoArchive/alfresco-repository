@@ -39,6 +39,7 @@ import org.alfresco.repo.content.transform.AbstractContentTransformerTest;
 import org.alfresco.service.cmr.repository.datatype.DefaultTypeConverter;
 import org.alfresco.service.namespace.QName;
 import org.apache.tika.metadata.Metadata;
+import org.junit.Test;
 
 
 /**
@@ -57,9 +58,9 @@ public class DWGMetadataExtracterTest extends AbstractMetadataExtracterTest
 
     @SuppressWarnings("deprecation")
     @Override
-    public void setUp() throws Exception
+    public void before() throws Exception
     {
-        super.setUp();
+        super.before();
         extracter = new DWGMetadataExtracter();
         extracter.setDictionaryService(dictionaryService);
         extracter.register();
@@ -89,6 +90,7 @@ public class DWGMetadataExtracterTest extends AbstractMetadataExtracterTest
         return extracter;
     }
 
+    @Test
     public void testSupports() throws Exception
     {
         for (String mimetype : DWGMetadataExtracter.SUPPORTED_MIMETYPES)
@@ -102,6 +104,7 @@ public class DWGMetadataExtracterTest extends AbstractMetadataExtracterTest
      * Test all the supported files.
      * Note - doesn't use extractFromMimetype
      */
+    @Test
     public void testSupportedMimetypes() throws Exception
     {
         String mimetype = MimetypeMap.MIMETYPE_APP_DWG; 
@@ -155,6 +158,7 @@ public class DWGMetadataExtracterTest extends AbstractMetadataExtracterTest
    /**
     * Test 2010 custom properties (ALF-16628)
     */
+   @Test
    public void test2010CustomProperties() throws Exception
    {
        String mimetype = MimetypeMap.MIMETYPE_APP_DWG; 

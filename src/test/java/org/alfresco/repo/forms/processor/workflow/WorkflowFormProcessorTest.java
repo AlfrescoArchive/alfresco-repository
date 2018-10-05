@@ -330,7 +330,7 @@ public class WorkflowFormProcessorTest extends FormProcessorTest
     }
    
     /*
-     * @see junit.framework.TestCase#setUp()
+     * @see junit.framework.TestCase#before()
      */
     @Override
     protected void setUp() throws Exception

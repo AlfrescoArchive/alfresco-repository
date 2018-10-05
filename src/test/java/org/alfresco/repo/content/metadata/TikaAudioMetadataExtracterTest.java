@@ -51,6 +51,7 @@ import org.alfresco.repo.content.MimetypeMap;
 import org.alfresco.service.cmr.repository.datatype.DefaultTypeConverter;
 import org.alfresco.service.namespace.NamespaceService;
 import org.alfresco.service.namespace.QName;
+import org.junit.Test;
 
 /**
  * Test for the audio metadata extraction.
@@ -63,9 +64,9 @@ public class TikaAudioMetadataExtracterTest extends AbstractMetadataExtracterTes
     private static final String GENRE  = "Foxtrot";
 
     @Override
-    public void setUp() throws Exception
+    public void before() throws Exception
     {
-        super.setUp();
+        super.before();
         extracter = (TikaAudioMetadataExtracter)ctx.getBean("extracter.Audio");
         extracter.register();
     }
@@ -78,6 +79,7 @@ public class TikaAudioMetadataExtracterTest extends AbstractMetadataExtracterTes
         return extracter;
     }
 
+    @Test
     public void testSupports() throws Exception
     {
         for (String mimetype : TikaAudioMetadataExtracter.SUPPORTED_MIMETYPES)
@@ -87,14 +89,19 @@ public class TikaAudioMetadataExtracterTest extends AbstractMetadataExtracterTes
         }
     }
 
+    @Test
     public void testOggExtraction() throws Exception
     {
         testExtractFromMimetype(MimetypeMap.MIMETYPE_VORBIS);
     }
+
+    @Test
     public void testFlacExtraction() throws Exception
     {
         testExtractFromMimetype(MimetypeMap.MIMETYPE_FLAC);
     }
+
+    @Test
     public void testMP4AudioExtraction() throws Exception
     {
         testExtractFromMimetype(MimetypeMap.MIMETYPE_AUDIO_MP4);

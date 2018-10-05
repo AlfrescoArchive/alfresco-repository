@@ -37,6 +37,7 @@ import org.alfresco.service.cmr.repository.ContentReader;
 import org.alfresco.service.cmr.repository.ContentWriter;
 import org.alfresco.service.cmr.repository.TransformationOptions;
 import org.alfresco.util.TempFileProvider;
+import org.junit.Test;
 
 /**
  * @see org.alfresco.repo.content.transform.MediaWikiContentTransformer
@@ -74,9 +75,9 @@ public class MediaWikiContentTransformerTest extends AbstractContentTransformerT
 
     
     @Override
-    public void setUp() throws Exception
+    public void before() throws Exception
     {
-        super.setUp();
+        super.before();
         transformer = new MediaWikiContentTransformer();
         transformer.setMimetypeService(mimetypeService);
         transformer.setTransformerDebug(transformerDebug);
@@ -88,18 +89,21 @@ public class MediaWikiContentTransformerTest extends AbstractContentTransformerT
         return transformer;
     }
 
+    @Test
     public void testSetUp() throws Exception
     {
         assertNotNull(transformer);
     }
-    
+
+    @Test
     public void testIsTransformable() throws Exception
     {
         // check reliability
         assertTrue(transformer.isTransformable(MimetypeMap.MIMETYPE_TEXT_MEDIAWIKI, -1, MimetypeMap.MIMETYPE_HTML, new TransformationOptions()));
         assertFalse(transformer.isTransformable(MimetypeMap.MIMETYPE_HTML, -1, MimetypeMap.MIMETYPE_TEXT_MEDIAWIKI, new TransformationOptions()));
     }
-    
+
+    @Test
     public void testMediaWikiToHTML() throws Exception
     {
        File input = TempFileProvider.createTempFile("mediaWikiTest", ".mw");

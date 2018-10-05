@@ -62,9 +62,9 @@ public class FailoverUnsupportedSubtransformerTest extends AbstractContentTransf
     private TestFailoverContentTransformer transformer;
     
     @Override
-    public void setUp() throws Exception
+    public void before() throws Exception
     {
-        super.setUp();
+        super.before();
         ApplicationContextHelper.getApplicationContext();
         
         transformer = (TestFailoverContentTransformer) failoverAppContext.getBean("transformer.failover.Test-PasswordProtectedMSExcel2Pdf");

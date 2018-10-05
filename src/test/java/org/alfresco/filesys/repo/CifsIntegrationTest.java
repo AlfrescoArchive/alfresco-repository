@@ -32,6 +32,7 @@ import org.alfresco.service.ServiceRegistry;
 import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.cmr.repository.NodeService;
 import org.alfresco.util.BaseAlfrescoTestCase;
+import org.junit.Test;
 
 /**
  * Checks that the required configuration details are obtainable from the CIFS components.
@@ -40,10 +41,11 @@ import org.alfresco.util.BaseAlfrescoTestCase;
  */
 public class CifsIntegrationTest extends BaseAlfrescoTestCase
 {
-    
+
+    @org.junit.Test
     public void testGetServerName()
     {
-        ServerConfigurationAccessor config = (ServerConfigurationAccessor) ctx.getBean("fileServerConfiguration");
+        ServerConfigurationAccessor config = (ServerConfigurationAccessor) applicationContext.getBean("fileServerConfiguration");
         assertNotNull("No file server config available", config);
         // the server might, quite legitimately, not start
         if (!config.isServerRunning( "CIFS"))
@@ -71,17 +73,17 @@ public class CifsIntegrationTest extends BaseAlfrescoTestCase
 
             // Check that the context is valid
             
-            ContentContext filesysCtx = (ContentContext) mainFilesys.getContext();
-            assertNotNull("Content context is null", filesysCtx);
-            assertNotNull("Store id is null", filesysCtx.getStoreName());
-            assertNotNull("Root path is null", filesysCtx.getRootPath());
-            assertNotNull("Root node is null", filesysCtx.getRootNode());
+            ContentContext filesysapplicationContext = (ContentContext) mainFilesys.getContext();
+            assertNotNull("Content context is null", filesysapplicationContext);
+            assertNotNull("Store id is null", filesysapplicationContext.getStoreName());
+            assertNotNull("Root path is null", filesysapplicationContext.getRootPath());
+            assertNotNull("Root node is null", filesysapplicationContext.getRootNode());
             
             // Check the root node
             
-            NodeService nodeService = (NodeService) ctx.getBean(ServiceRegistry.NODE_SERVICE.getLocalName());
+            NodeService nodeService = (NodeService) applicationContext.getBean(ServiceRegistry.NODE_SERVICE.getLocalName());
             // get the share root node and check that it exists
-            NodeRef shareNodeRef = filesysCtx.getRootNode();
+            NodeRef shareNodeRef = filesysapplicationContext.getRootNode();
             assertNotNull("No share root node available", shareNodeRef);
             assertTrue("Share root node doesn't exist", nodeService.exists(shareNodeRef));
         }
