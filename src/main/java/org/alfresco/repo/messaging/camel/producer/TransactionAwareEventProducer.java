@@ -124,7 +124,7 @@ public class TransactionAwareEventProducer extends AbstractEventProducer
 
             if (logger.isDebugEnabled())
             {
-                logger.debug("Created lister with id = " + id);
+                logger.debug("Created listener with id = " + id);
             }
         }
 

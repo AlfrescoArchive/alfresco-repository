@@ -333,6 +333,10 @@ public class RenditionService2Impl implements RenditionService2, InitializingBea
                             {
                                 try
                                 {
+                                    if (logger.isDebugEnabled())
+                                    {
+                                        logger.debug("Updating rendition's content " + renditionNode);
+                                    }
                                     // Set or replace rendition content
                                     ContentWriter contentWriter = contentService.getWriter(renditionNode, DEFAULT_RENDITION_CONTENT_PROP, true);
                                     String targetMimetype = renditionDefinition.getTargetMimetype();
@@ -349,6 +353,10 @@ public class RenditionService2Impl implements RenditionService2, InitializingBea
                             }
                             else
                             {
+                                if (logger.isDebugEnabled())
+                                {
+                                    logger.debug("Removing rendition's content " + renditionNode);
+                                }
                                 Serializable content = nodeService.getProperty(renditionNode, PROP_CONTENT);
                                 if (content != null)
                                 {
@@ -616,6 +624,10 @@ public class RenditionService2Impl implements RenditionService2, InitializingBea
         }
         if (renditions.isEmpty())
         {
+            if (logger.isDebugEnabled())
+            {
+                logger.debug("Did not find any renditions for the node: " + sourceNodeRef);
+            }
             return null;
         }
         else
@@ -626,7 +638,13 @@ public class RenditionService2Impl implements RenditionService2, InitializingBea
             }
             ChildAssociationRef childAssoc = renditions.get(0);
             NodeRef renditionNode = childAssoc.getChildRef();
-            return !isRenditionAvailable(sourceNodeRef, renditionNode) ? null: childAssoc;
+            boolean isRenditionsAvailable = isRenditionAvailable(sourceNodeRef, renditionNode);
+            if (logger.isDebugEnabled())
+            {
+                logger.debug("Found rendition node: " + renditionNode +
+                        "\n this rendition is available: " + isRenditionsAvailable);
+            }
+            return !isRenditionsAvailable ? null: childAssoc;
         }
     }
 

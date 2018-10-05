@@ -68,7 +68,7 @@ public class PostTxnCallbackScheduler
         {
             this.callback = callback;
             this.id = uniqueId;
-            logger.debug("Created lister with id = " + id);
+            logger.debug("Created listener with id = " + id);
         }
 
         @Override

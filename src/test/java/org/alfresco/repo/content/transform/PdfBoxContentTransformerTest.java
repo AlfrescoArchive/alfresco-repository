@@ -41,7 +41,9 @@ import org.alfresco.service.cmr.repository.ContentReader;
 import org.alfresco.service.cmr.repository.ContentWriter;
 import org.alfresco.service.cmr.repository.TransformationOptions;
 import org.alfresco.util.TempFileProvider;
+import org.alfresco.util.testing.category.PerformanceTests;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 
 /**
  * @see org.alfresco.repo.content.transform.PdfBoxContentTransformer
@@ -96,9 +98,9 @@ public class PdfBoxContentTransformerTest extends AbstractContentTransformerTest
      * Added to test a single transform that appeared to have problems.
      * Commented out once issue was fixed, but left in the code to help with
      * future issues.
-     * @throws Exception
      */
     @Test
+    @Category(PerformanceTests.class)
     public void testPdfToTextConversions() throws Exception
     {
         final String sourceMimetype = MimetypeMap.MIMETYPE_PDF;

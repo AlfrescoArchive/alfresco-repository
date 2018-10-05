@@ -143,13 +143,7 @@ import org.springframework.test.context.junit4.SpringRunner;
     org.alfresco.ibatis.HierarchicalSqlSessionFactoryBeanTest.class,
     // [classpath:/test-desktop-sync-messaging-context.xml]
     // TODO enable in REPO-3811
-    //org.alfresco.repo.messaging.camel.CamelRoutesTest.class,
-    // Requires a running ActiveMQ
-    org.alfresco.repo.rawevents.EventBehaviourTest.class,
-    org.alfresco.repo.rawevents.TransactionAwareEventProducerTest.class,
-    // Requires running transformers
-    org.alfresco.repo.rendition2.RenditionService2IntegrationTest.class,
-    org.alfresco.repo.rendition2.LocalTransformClientIntegrationTest.class
+    //org.alfresco.repo.messaging.camel.CamelRoutesTest.class
 })
 public class MiscContextTestSuite
 {

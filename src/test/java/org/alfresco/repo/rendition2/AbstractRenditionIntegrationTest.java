@@ -37,8 +37,8 @@ import org.alfresco.service.cmr.repository.MimetypeService;
 import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.cmr.repository.NodeService;
 import org.alfresco.service.cmr.repository.StoreRef;
-import org.alfresco.service.cmr.security.AuthenticationService;
 import org.alfresco.service.cmr.security.MutableAuthenticationService;
+import org.alfresco.service.cmr.security.PermissionService;
 import org.alfresco.service.cmr.security.PersonService;
 import org.alfresco.service.namespace.QName;
 import org.alfresco.service.transaction.TransactionService;
@@ -46,6 +46,7 @@ import org.alfresco.util.BaseSpringTest;
 import org.alfresco.util.GUID;
 import org.alfresco.util.PropertyMap;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.util.ResourceUtils;
 
 /**
@@ -54,9 +55,11 @@ import org.springframework.util.ResourceUtils;
 public abstract class AbstractRenditionIntegrationTest extends BaseSpringTest
 {
     @Autowired
+    @Qualifier("NodeService")
     NodeService nodeService;
 
     @Autowired
+    @Qualifier("ContentService")
     ContentService contentService;
 
     @Autowired
@@ -66,21 +69,29 @@ public abstract class AbstractRenditionIntegrationTest extends BaseSpringTest
     TransactionService transactionService;
 
     @Autowired
+    @Qualifier("PersonService")
     PersonService personService;
 
     @Autowired
     MutableAuthenticationService authenticationService;
+
+    @Autowired
+    PermissionService permissionService;
 
     static String PASSWORD = "password";
 
     NodeRef createContentNodeFromQuickFile(String fileName) throws FileNotFoundException
     {
         NodeRef rootNodeRef = nodeService.getRootNode(StoreRef.STORE_REF_WORKSPACE_SPACESSTORE);
-        NodeRef folderNodeRef = nodeService.createNode(
-                rootNodeRef,
-                ContentModel.ASSOC_CHILDREN,
-                QName.createQName(getName() + GUID.generate()),
-                ContentModel.TYPE_FOLDER).getChildRef();
+        NodeRef folderNodeRef = AuthenticationUtil.runAs(() -> {
+            NodeRef folder = nodeService.createNode(
+                    rootNodeRef,
+                    ContentModel.ASSOC_CHILDREN,
+                    QName.createQName(getName() + GUID.generate()),
+                    ContentModel.TYPE_FOLDER).getChildRef();
+            permissionService.setPermission(folder, PermissionService.ALL_AUTHORITIES, PermissionService.ALL_PERMISSIONS, true);
+            return folder;
+        }, AuthenticationUtil.getAdminUserName());
 
         File file = ResourceUtils.getFile("classpath:quick/" + fileName);
         NodeRef contentRef = nodeService.createNode(

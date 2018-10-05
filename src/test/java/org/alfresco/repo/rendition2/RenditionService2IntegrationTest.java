@@ -30,6 +30,7 @@ import org.alfresco.model.ContentModel;
 import org.alfresco.model.RenditionModel;
 import org.alfresco.repo.security.authentication.AuthenticationUtil;
 import org.alfresco.repo.security.permissions.AccessDeniedException;
+import org.alfresco.repo.transaction.AlfrescoTransactionSupport;
 import org.alfresco.service.cmr.rendition.RenditionService;
 import org.alfresco.service.cmr.repository.ChildAssociationRef;
 import org.alfresco.service.cmr.repository.ContentWriter;
@@ -60,8 +61,6 @@ public class RenditionService2IntegrationTest extends AbstractRenditionIntegrati
     private RenditionService2Impl renditionService2;
     @Autowired
     private TransformClient transformClient;
-    @Autowired
-    private PermissionService permissionService;
     @Autowired
     private RenditionService renditionService;
 
@@ -120,7 +119,7 @@ public class RenditionService2IntegrationTest extends AbstractRenditionIntegrati
                 {
                     updateContent(sourceNodeRef, testFileName);
                     return null;
-                }), user);
+                }, false, true), user);
     }
 
     // Changes the content of a source node as the current user in the current transaction.
@@ -144,7 +143,7 @@ public class RenditionService2IntegrationTest extends AbstractRenditionIntegrati
                 {
                     clearContent(sourceNodeRef);
                     return null;
-                }), user);
+                }, false, true), user);
     }
 
     // Clears the content of a source node as the current user in the current transaction.
@@ -161,7 +160,7 @@ public class RenditionService2IntegrationTest extends AbstractRenditionIntegrati
                 {
                     render(sourceNode, renditionName);
                     return null;
-                }), user);
+                }, false, true), user);
     }
 
     // Requests a new rendition as the current user in the current transaction.
@@ -179,6 +178,7 @@ public class RenditionService2IntegrationTest extends AbstractRenditionIntegrati
     // As the current user waitForRendition for a rendition to appear. Creates new transactions to do this.
     private NodeRef waitForRendition(NodeRef sourceNodeRef, String renditionName) throws InterruptedException
     {
+        sleep(500);
         long maxMillis = 20000;
         ChildAssociationRef assoc = null;
         for (int i = (int)(maxMillis / 500); i >= 0; i--)
@@ -345,7 +345,8 @@ public class RenditionService2IntegrationTest extends AbstractRenditionIntegrati
         renditionNodeRef = waitForRendition(otherUserName, sourceNodeRef, DOC_LIB);
         assertNotNull("The rendition is not visible for non-owner user with read permissions", renditionNodeRef);
         assertEquals("The creator of the rendition is not correct",
-                ownerUserName, nodeService.getProperty(sourceNodeRef, ContentModel.PROP_CREATOR));
+                ownerUserName, (String) AuthenticationUtil.runAs(() ->
+                        nodeService.getProperty(sourceNodeRef, ContentModel.PROP_CREATOR), otherUserName));
     }
 
     @Test
@@ -365,7 +366,8 @@ public class RenditionService2IntegrationTest extends AbstractRenditionIntegrati
         renditionNodeRef = waitForRendition(otherUserName, sourceNodeRef, DOC_LIB);
         assertNotNull("The rendition is not visible for owner of rendition node", renditionNodeRef);
         assertEquals("The creator of the rendition is not correct",
-                ownerUserName, nodeService.getProperty(sourceNodeRef, ContentModel.PROP_CREATOR));
+                ownerUserName, (String) AuthenticationUtil.runAs(() ->
+                        nodeService.getProperty(sourceNodeRef, ContentModel.PROP_CREATOR), otherUserName));
     }
 
     @Test
@@ -519,7 +521,7 @@ public class RenditionService2IntegrationTest extends AbstractRenditionIntegrati
      */
     @Deprecated
     @Test
-    public void testSwitchToNewServiceViaContentUpdate()
+    public void testSwitchToNewServiceViaContentUpdate() throws InterruptedException
     {
         renditionService2.setEnabled(false);
         try
@@ -535,9 +537,25 @@ public class RenditionService2IntegrationTest extends AbstractRenditionIntegrati
             renditionService2.setEnabled(true);
 
             updateContent(ADMIN, sourceNodeRef, "quick.png");
-            NodeRef renditionNodeRef = waitForRendition(ADMIN, sourceNodeRef, DOC_LIB);
-            boolean hasAspect = nodeService.hasAspect(renditionNodeRef, RenditionModel.ASPECT_RENDITION2);
-            assertFalse("Should have switched to the old rendition service", hasAspect);
+            Thread.sleep(200);
+            boolean hasRendition2Aspect = false;
+            for (int i = 0; i < 5; i++)
+            {
+                hasRendition2Aspect = AuthenticationUtil.runAs(() ->
+                        {
+                            NodeRef renditionNodeRef = waitForRendition(ADMIN, sourceNodeRef, DOC_LIB);
+                            return nodeService.hasAspect(renditionNodeRef, RenditionModel.ASPECT_RENDITION2);
+                        }, ADMIN);
+                if (hasRendition2Aspect)
+                {
+                    break;
+                }
+                else
+                {
+                    Thread.sleep(500);
+                }
+            }
+            assertTrue("Should have switched to the new rendition service", hasRendition2Aspect);
         }
         finally
         {

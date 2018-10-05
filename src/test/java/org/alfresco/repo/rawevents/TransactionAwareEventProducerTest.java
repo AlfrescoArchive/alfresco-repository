@@ -25,20 +25,16 @@
  */
 package org.alfresco.repo.rawevents;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-
 import org.alfresco.repo.messaging.camel.producer.TransactionAwareEventProducer;
 import org.alfresco.repo.events.raw.EventType;
 import org.alfresco.repo.events.raw.OnContentUpdatePolicyEvent;
 import org.alfresco.repo.transaction.RetryingTransactionHelper;
-import org.alfresco.util.ApplicationContextHelper;
+import org.alfresco.util.BaseSpringTest;
 import org.alfresco.util.GUID;
 import org.apache.camel.CamelContext;
 import org.apache.camel.component.mock.MockEndpoint;
-import org.junit.Before;
 import org.junit.Test;
-import org.springframework.context.ApplicationContext;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -47,26 +43,16 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  *
  * @author Cristian Turlica
  */
-//@Category(OwnJVMTestsCategory.class)
-public class TransactionAwareEventProducerTest
+public class TransactionAwareEventProducerTest extends BaseSpringTest
 {
+    @Autowired
     private RetryingTransactionHelper retryingTransactionHelper;
+    @Autowired
     private CamelContext camelContext;
+    @Autowired
     private TransactionAwareEventProducer eventProducer;
+    @Autowired
     private ObjectMapper messagingObjectMapper;
-
-//    @Rule
-//    public TestName name = new TestName();
-
-    @Before
-    public void setUp() throws Exception
-    {
-        ApplicationContext ctx = ApplicationContextHelper.getApplicationContext();
-        retryingTransactionHelper = (RetryingTransactionHelper) ctx.getBean("retryingTransactionHelper");
-        camelContext = (CamelContext) ctx.getBean("camelContext");
-        eventProducer = (TransactionAwareEventProducer) ctx.getBean("transactionAwareEventProducer");
-        messagingObjectMapper = (ObjectMapper) ctx.getBean("alfrescoEventObjectMapper");
-    }
 
     @Test
     public void send() throws Exception
