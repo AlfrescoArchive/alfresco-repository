@@ -37,12 +37,7 @@ import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.cmr.repository.NodeService;
 import org.alfresco.service.cmr.repository.StoreRef;
 import org.alfresco.service.transaction.TransactionService;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.runner.RunWith;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
-import org.springframework.test.context.junit4.SpringRunner;
 
 /**
  * Base Alfresco test.
@@ -53,6 +48,12 @@ import org.springframework.test.context.junit4.SpringRunner;
  */
 public abstract class BaseAlfrescoTestCase extends RetryingTransactionHelperTestCase
 {
+    /**
+     * This context will be fetched each time, but almost always
+     *  will have been cached by {@link ApplicationContextHelper}
+     */
+    protected ApplicationContext ctx;
+
     /** the service registry */
     protected ServiceRegistry serviceRegistry;
     
@@ -81,6 +82,16 @@ public abstract class BaseAlfrescoTestCase extends RetryingTransactionHelperTest
     protected RetryingTransactionHelper retryingTransactionHelper;
     
     /**
+     * By default will return the full context.
+     * Override this if your test needs a different one.
+     */
+    protected void setUpContext()
+    {
+       // Fetch the default, full context
+       ctx = ApplicationContextHelper.getApplicationContext();
+    }
+    
+    /**
      * @return  true if using spaces store, otherwise creates own store
      */
     protected boolean useSpacesStore()
@@ -88,21 +99,25 @@ public abstract class BaseAlfrescoTestCase extends RetryingTransactionHelperTest
         return false;
     }
     
-    @Before
-    public void before() throws Exception
+    /**
+     * @see junit.framework.TestCase#setUp()
+     */
+    @Override
+    protected void setUp() throws Exception
     {
         super.setUp();
+        setUpContext();
 
         // Get the service register
-        this.serviceRegistry = (ServiceRegistry) applicationContext.getBean(ServiceRegistry.SERVICE_REGISTRY);
+        this.serviceRegistry = (ServiceRegistry) ctx.getBean(ServiceRegistry.SERVICE_REGISTRY);
         
         // Get content services
         this.nodeService = serviceRegistry.getNodeService();
         this.contentService = serviceRegistry.getContentService();
-        this.authenticationComponent = (AuthenticationComponent)applicationContext.getBean("authenticationComponent");
-        this.actionService = (ActionService)applicationContext.getBean("actionService");
+        this.authenticationComponent = (AuthenticationComponent)ctx.getBean("authenticationComponent");
+        this.actionService = (ActionService)ctx.getBean("actionService");
         this.transactionService = serviceRegistry.getTransactionService();
-        this.retryingTransactionHelper = (RetryingTransactionHelper)applicationContext.getBean("retryingTransactionHelper");
+        this.retryingTransactionHelper = (RetryingTransactionHelper)ctx.getBean("retryingTransactionHelper");
         
         retryingTransactionHelper.doInTransaction(new RetryingTransactionCallback<Object>()
         {
@@ -143,8 +158,8 @@ public abstract class BaseAlfrescoTestCase extends RetryingTransactionHelperTest
     /** 
      * @see junit.framework.TestCase#tearDown()
      */
-    @After
-    public void after() throws Exception
+    @Override
+    protected void tearDown() throws Exception
     {
         retryingTransactionHelper.doInTransaction(new RetryingTransactionCallback<Object>()
         {

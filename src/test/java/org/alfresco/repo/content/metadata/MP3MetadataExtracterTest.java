@@ -50,7 +50,6 @@ import org.alfresco.model.ContentModel;
 import org.alfresco.repo.content.MimetypeMap;
 import org.alfresco.service.cmr.repository.datatype.DefaultTypeConverter;
 import org.alfresco.service.namespace.QName;
-import org.junit.Test;
 
 /**
  * Test for the MP3 metadata extraction from id3 tags.
@@ -60,9 +59,9 @@ public class MP3MetadataExtracterTest extends TikaAudioMetadataExtracterTest
     private MP3MetadataExtracter extracter;
  
     @Override
-    public void before() throws Exception
+    public void setUp() throws Exception
     {
-        super.before();
+        super.setUp();
         extracter = (MP3MetadataExtracter)ctx.getBean("extracter.MP3");
         extracter.register();
     }
@@ -75,7 +74,6 @@ public class MP3MetadataExtracterTest extends TikaAudioMetadataExtracterTest
         return extracter;
     }
 
-    @Test
     public void testSupports() throws Exception
     {
         for (String mimetype : MP3MetadataExtracter.SUPPORTED_MIMETYPES)
@@ -85,7 +83,6 @@ public class MP3MetadataExtracterTest extends TikaAudioMetadataExtracterTest
         }
     }
 
-    @Test
     public void testMP3Extraction() throws Exception
     {
         testExtractFromMimetype(MimetypeMap.MIMETYPE_MP3);

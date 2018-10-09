@@ -45,7 +45,6 @@ import org.alfresco.sync.events.types.ContentEventImpl;
 import org.alfresco.repo.content.MimetypeMap;
 import org.alfresco.repo.content.filestore.FileContentWriter;
 import org.alfresco.repo.domain.node.ContentDataWithId;
-import org.alfresco.repo.events.EventPublisherForTestingOnly;
 import org.alfresco.repo.security.authentication.AuthenticationComponent;
 import org.alfresco.service.ServiceRegistry;
 import org.alfresco.service.cmr.coci.CheckOutCheckInService;
@@ -104,8 +103,7 @@ public class OpenCmisLocalTest extends TestCase
     private static final String BEAN_NAME_AUTHENTICATION_COMPONENT = "authenticationComponent";
     private static final String MIME_PLAIN_TEXT = "text/plain";
     private TempStoreOutputStreamFactory streamFactory;
-    private EventPublisherForTestingOnly eventPublisher;
-    
+
     /**
      * Test class to provide the service factory
      * 
@@ -159,7 +157,6 @@ public class OpenCmisLocalTest extends TestCase
         ctx = ApplicationContextHelper.getApplicationContext(CONFIG_LOCATIONS);
         File tempDir = new File(TempFileProvider.getTempDir(), GUID.generate());
         this.streamFactory = TempStoreOutputStreamFactory.newInstance(tempDir, 1024, 1024, false);
-        this.eventPublisher = (EventPublisherForTestingOnly) ctx.getBean("eventPublisher");
     }
     
     public void testVoid()

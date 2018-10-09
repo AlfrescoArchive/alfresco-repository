@@ -36,7 +36,6 @@ import org.alfresco.service.cmr.repository.ContentWriter;
 import org.alfresco.service.cmr.repository.MimetypeService;
 import org.alfresco.service.cmr.repository.TransformationOptions;
 import org.alfresco.util.TempFileProvider;
-import org.junit.Test;
 
 /**
  * @see org.alfresco.repo.content.transform.ContentTransformerRegistry
@@ -70,9 +69,9 @@ public class ContentTransformerRegistryTest extends AbstractContentTransformerTe
     private DummyTransformer ad25b;
     
     @Override
-    public void before() throws Exception
+    public void setUp() throws Exception
     {
-        super.before();
+        super.setUp();
         
         registry = (ContentTransformerRegistry) ctx.getBean("contentTransformerRegistry");
         
@@ -109,7 +108,6 @@ public class ContentTransformerRegistryTest extends AbstractContentTransformerTe
     /**
      * Checks that required objects are present
      */
-    @Test
     public void testSetUp() throws Exception
     {
         super.testSetUp();
@@ -124,7 +122,6 @@ public class ContentTransformerRegistryTest extends AbstractContentTransformerTe
         return registry.getTransformer(sourceMimetype, -1, targetMimetype, options);
     }
 
-    @Test
     public void testNullRetrieval() throws Exception
     {
         ContentTransformer transformer = null;
@@ -135,8 +132,7 @@ public class ContentTransformerRegistryTest extends AbstractContentTransformerTe
         transformer = dummyRegistry.getTransformer(B, -1, A, OPTIONS);
         assertNull("No transformer expected", transformer);
     }
-
-    @Test
+    
     public void testSimpleRetrieval() throws Exception
     {
         ContentTransformer transformer = null;
@@ -153,7 +149,6 @@ public class ContentTransformerRegistryTest extends AbstractContentTransformerTe
      * different average transformation times.  Check that the registry
      * copes with the new averages after a reset.
      */
-    @Test
     public void testPerformanceRetrieval() throws Exception
     {
         // Until the threshold (3) is reached by each transformer with the same priority it will
@@ -202,8 +197,7 @@ public class ContentTransformerRegistryTest extends AbstractContentTransformerTe
         assertEquals("Incorrect order", 20L, activeTransformers.get(1).getTransformationTime(A, D));
         assertEquals("Incorrect order", 25L, activeTransformers.get(2).getTransformationTime(A, D));
     }
-
-    @Test
+    
     public void testScoredRetrieval() throws Exception
     {
         ContentTransformer transformer = null;
@@ -223,7 +217,6 @@ public class ContentTransformerRegistryTest extends AbstractContentTransformerTe
      * Set an explicit, and bizarre, transformation.  Check that it is used.
      *
      */
-    @Test
     public void testExplicitTransformation()
     {
         AbstractContentTransformer2 dummyTransformer = new DummyTransformer(

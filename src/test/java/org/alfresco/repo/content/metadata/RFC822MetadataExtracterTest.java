@@ -29,6 +29,7 @@ import static org.junit.Assert.assertEquals;
 
 import java.io.File;
 import java.io.Serializable;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -42,7 +43,6 @@ import org.alfresco.service.namespace.QName;
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
-import org.junit.Test;
 
 /**
  * Test for the RFC822 (imap/mbox) extractor
@@ -59,9 +59,9 @@ public class RFC822MetadataExtracterTest extends AbstractMetadataExtracterTest
        QName.createQName("MessageCCTest");
 
     @Override
-    public void before() throws Exception
+    public void setUp() throws Exception
     {
-        super.before();
+        super.setUp();
         
         // Ask Spring for the extractor, so it
         //  gets its date formats populated
@@ -100,34 +100,29 @@ public class RFC822MetadataExtracterTest extends AbstractMetadataExtracterTest
     }
 
     // RFC822 has a non-standard date format. 1. EEE, d MMM yyyy HH:mm:ss Z
-    @Test
     public void testHasDateFormats1() throws Exception
     {
         assertEquals("16 Aug 2012 15:13:29 GMT", extracter.makeDate("Thu, 16 Aug 2012 08:13:29 -0700").toGMTString());
     }
     
     // RFC822 has a non-standard date format. 2. EEE, d MMM yy HH:mm:ss Z
-    @Test
     public void testHasDateFormats2() throws Exception
     {
         assertEquals("16 Aug 2012 15:13:29 GMT", extracter.makeDate("Thu, 16 Aug 12 08:13:29 -0700").toGMTString());
     }
     
     // RFC822 has a non-standard date format. 3. d MMM yyyy HH:mm:ss Z
-    @Test
     public void testHasDateFormats3() throws Exception
     {
         assertEquals("16 Aug 2012 15:13:29 GMT", extracter.makeDate("16 Aug 2012 08:13:29 -0700").toGMTString());
     }
     
     // Check time zone names are ignored - these are not handled by org.joda.time.format.DateTimeFormat
-    @Test
     public void testHasDateFormatsZoneName() throws Exception
     {
         assertEquals("16 Aug 2012 15:13:29 GMT", extracter.makeDate("Thu, 16 Aug 2012 08:13:29 -0700 (PDT)").toGMTString());
     }
-
-    @Test
+    
     public void testJodaFormats()
     {
         String[][] testData = new String[][]
@@ -179,8 +174,7 @@ public class RFC822MetadataExtracterTest extends AbstractMetadataExtracterTest
             }
         }
     }
-
-    @Test
+    
     public void testSupports() throws Exception
     {
         for (String mimetype : RFC822MetadataExtracter.SUPPORTED_MIMETYPES)
@@ -190,13 +184,11 @@ public class RFC822MetadataExtracterTest extends AbstractMetadataExtracterTest
         }
     }
 
-    @Test
     public void testEmailExtraction() throws Exception
     {
         testExtractFromMimetype(MimetypeMap.MIMETYPE_RFC822);
     }
-
-    @Test
+    
     public void testSpanishEmailExtraction() throws Exception
     {
         File spanishEml = AbstractContentTransformerTest.loadNamedQuickTestFile("quick.spanish.eml");

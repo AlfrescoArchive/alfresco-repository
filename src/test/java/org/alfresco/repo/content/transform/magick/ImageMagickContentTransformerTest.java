@@ -56,9 +56,9 @@ public class ImageMagickContentTransformerTest extends AbstractContentTransforme
     private ProxyContentTransformer transformer;
     
     @Override
-    public void before() throws Exception
+    public void setUp() throws Exception
     {
-        super.before();
+        super.setUp();
         
         // Setup a mimetype service that will return a truncated set of mimetypes
         MockMimetypeService testMimetypeService = new MockMimetypeService();

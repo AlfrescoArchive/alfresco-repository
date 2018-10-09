@@ -31,7 +31,6 @@ import java.util.List;
 
 import org.alfresco.repo.content.MimetypeMap;
 import org.alfresco.service.cmr.repository.TransformationOptions;
-import org.junit.Test;
 
 /**
  * Tests a transformation from Powerpoint->PDF->Text.
@@ -49,9 +48,9 @@ public class ComplexContentTransformerTest extends AbstractContentTransformerTes
     private boolean isAvailable;
     
     @Override
-    public void before() throws Exception
+    public void setUp() throws Exception
     {
-        super.before();
+        super.setUp();
         
         ContentTransformer unoTransformer = (ContentTransformer) ctx.getBean("transformer.JodConverter");
         ContentTransformer pdfBoxTransformer = (ContentTransformer) ctx.getBean("transformer.PdfBox");
@@ -92,8 +91,7 @@ public class ComplexContentTransformerTest extends AbstractContentTransformerTes
     {
         return transformer;
     }
-
-    @Test
+    
     public void testReliability() throws Exception
     {
         if (!isAvailable)

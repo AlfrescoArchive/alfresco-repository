@@ -27,7 +27,6 @@ package org.alfresco.repo.content.transform;
 
 import org.alfresco.repo.content.MimetypeMap;
 import org.alfresco.service.cmr.repository.TransformationOptions;
-import org.junit.Test;
 
 /**
  * @see org.alfresco.repo.content.transform.BinaryPassThroughContentTransformer
@@ -42,9 +41,9 @@ public class BinaryPassThroughContentTransformerTest extends AbstractContentTran
     private BinaryPassThroughContentTransformer transformer;
 
     @Override
-    public void before() throws Exception
+    public void setUp() throws Exception
     {
-        super.before();
+        super.setUp();
         
         transformer = new BinaryPassThroughContentTransformer();
         transformer.setMimetypeService(mimetypeService);
@@ -59,8 +58,7 @@ public class BinaryPassThroughContentTransformerTest extends AbstractContentTran
     {
         return transformer;
     }
-
-    @Test
+    
     public void testIsTransformable() throws Exception
     {
         TransformationOptions options = new TransformationOptions();

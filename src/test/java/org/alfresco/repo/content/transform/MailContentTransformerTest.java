@@ -34,7 +34,6 @@ import org.alfresco.service.cmr.repository.ContentReader;
 import org.alfresco.service.cmr.repository.ContentWriter;
 import org.alfresco.service.cmr.repository.TransformationOptions;
 import org.alfresco.util.TempFileProvider;
-import org.junit.Test;
 
 /**
  * @see org.alfresco.repo.content.transform.MailContentTransformer
@@ -49,9 +48,9 @@ public class MailContentTransformerTest extends AbstractContentTransformerTest
     private MailContentTransformer transformer;
     
     @Override
-    public void before() throws Exception
+    public void setUp() throws Exception
     {
-        super.before();
+        super.setUp();
         
         transformer = new MailContentTransformer();
         transformer.setMimetypeService(mimetypeService);
@@ -67,8 +66,7 @@ public class MailContentTransformerTest extends AbstractContentTransformerTest
     {
         return transformer;
     }
-
-    @Test
+    
     public void testIsTransformable() throws Exception
     {
         assertFalse(transformer.isTransformable(MimetypeMap.MIMETYPE_TEXT_PLAIN, -1, MimetypeMap.MIMETYPE_OUTLOOK_MSG, new TransformationOptions()));
@@ -78,7 +76,6 @@ public class MailContentTransformerTest extends AbstractContentTransformerTest
     /**
      * Test transforming a valid msg file to text
      */
-    @Test
     public void testMsgToText() throws Exception
     {
         File msgSourceFile = loadQuickTestFile("msg");
@@ -98,7 +95,6 @@ public class MailContentTransformerTest extends AbstractContentTransformerTest
     /**
      * Test transforming a valid unicode msg file to text
      */
-    @Test
     public void testUnicodeMsgToText() throws Exception
     {
         File msgSourceFile = loadQuickTestFile("unicode.msg");
@@ -119,7 +115,6 @@ public class MailContentTransformerTest extends AbstractContentTransformerTest
      * Test transforming a chinese non-unicode msg file to
      *  text
      */
-    @Test
     public void testNonUnicodeChineseMsgToText() throws Exception
     {
         File msgSourceFile = loadQuickTestFile("chinese.msg");

@@ -159,7 +159,7 @@ public class ModelValidatorTest
 
         final QName modelQName = QName.createQName(testNamespace, modelName);
 
-        // Create a node that uses the new type (type is created in before)
+        // Create a node that uses the new type (type is created in setUp)
         RetryingTransactionCallback<NodeRef> createNodeCallback = new RetryingTransactionCallback<NodeRef>()
         {
             public NodeRef execute() throws Throwable
@@ -220,7 +220,7 @@ public class ModelValidatorTest
 
         final QName modelQName = QName.createQName(testNamespace, modelName);
 
-        // Create a node that uses the new type (type is created in before)
+        // Create a node that uses the new type (type is created in setUp)
         RetryingTransactionCallback<NodeRef> createNodeCallback = new RetryingTransactionCallback<NodeRef>()
         {
             public NodeRef execute() throws Throwable
@@ -290,7 +290,7 @@ public class ModelValidatorTest
 
         final QName modelQName = QName.createQName(testNamespace, modelName);
 
-        // Create a node that uses the new type (type is created in before)
+        // Create a node that uses the new type (type is created in setUp)
         RetryingTransactionCallback<NodeRef> createNodeCallback = new RetryingTransactionCallback<NodeRef>()
         {
             public NodeRef execute() throws Throwable

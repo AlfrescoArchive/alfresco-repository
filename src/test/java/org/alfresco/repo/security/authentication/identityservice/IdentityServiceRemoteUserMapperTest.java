@@ -94,7 +94,7 @@ public class IdentityServiceRemoteUserMapperTest extends AbstractChainedSubsyste
     private IdentityServiceConfig identityServiceConfig;
 
     /* (non-Javadoc)
-     * @see junit.framework.TestCase#before()
+     * @see junit.framework.TestCase#setUp()
      */
     @Override
     protected void setUp() throws Exception
@@ -117,7 +117,7 @@ public class IdentityServiceRemoteUserMapperTest extends AbstractChainedSubsyste
     }
     
     /* (non-Javadoc)
-     * @see junit.framework.TestCase#after()
+     * @see junit.framework.TestCase#tearDown()
      */
     @Override
     protected void tearDown() throws Exception

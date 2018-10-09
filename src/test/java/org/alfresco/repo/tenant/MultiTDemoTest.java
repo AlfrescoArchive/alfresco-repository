@@ -304,7 +304,7 @@ public class MultiTDemoTest extends TestCase
     /*
     public void test00_Setup() throws Throwable
     {
-        // test common setup (see "before")
+        // test common setup (see "setUp")
     }
     */
     

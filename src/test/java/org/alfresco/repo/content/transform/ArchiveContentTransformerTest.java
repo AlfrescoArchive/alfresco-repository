@@ -55,9 +55,9 @@ public class ArchiveContentTransformerTest extends AbstractContentTransformerTes
     private ContentTransformerRegistry registry;
     
     @Override
-    public void before() throws Exception
+    public void setUp() throws Exception
     {
-        super.before();
+        super.setUp();
         
         transformer = new ArchiveContentTransformer();
         transformer.setMimetypeService(mimetypeService);

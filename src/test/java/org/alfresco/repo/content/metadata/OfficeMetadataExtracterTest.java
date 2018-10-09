@@ -35,7 +35,6 @@ import org.alfresco.model.ContentModel;
 import org.alfresco.repo.content.MimetypeMap;
 import org.alfresco.service.cmr.repository.datatype.DefaultTypeConverter;
 import org.alfresco.service.namespace.QName;
-import org.junit.Test;
 
 
 /**
@@ -53,9 +52,9 @@ public class OfficeMetadataExtracterTest extends AbstractMetadataExtracterTest
              QName.createQName("LastAuthorTest");
 
     @Override
-    public void before() throws Exception
+    public void setUp() throws Exception
     {
-        super.before();
+        super.setUp();
         extracter = new OfficeMetadataExtracter();
         extracter.setDictionaryService(dictionaryService);
         extracter.register();
@@ -85,7 +84,6 @@ public class OfficeMetadataExtracterTest extends AbstractMetadataExtracterTest
         return extracter;
     }
 
-    @Test
     public void testSupports() throws Exception
     {
         for (String mimetype : OfficeMetadataExtracter.SUPPORTED_MIMETYPES)
@@ -98,7 +96,6 @@ public class OfficeMetadataExtracterTest extends AbstractMetadataExtracterTest
     /**
      * Test all the supported mimetypes
      */
-    @Test
     public void testSupportedMimetypes() throws Exception
     {
         for (String mimetype : OfficeMetadataExtracter.SUPPORTED_MIMETYPES)

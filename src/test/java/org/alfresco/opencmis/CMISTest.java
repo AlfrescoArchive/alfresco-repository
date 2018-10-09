@@ -2670,7 +2670,7 @@ public class CMISTest
     @Test
     public void testCMISChangeLogObjectIds() throws Exception
     {
-        // before audit subsystem
+        // setUp audit subsystem
         setupAudit();
         
         AuthenticationUtil.pushAuthentication();
@@ -2806,7 +2806,7 @@ public class CMISTest
     @Test
     public void testMoveRenameWithCMISshouldBeAuditedAsUPDATE() throws Exception
     {
-        // before audit subsystem
+        // setUp audit subsystem
         setupAudit();
 
         AuthenticationUtil.pushAuthentication();
@@ -3860,7 +3860,7 @@ public class CMISTest
     @Test
     public void testCMISGetObjectParents() throws Exception
     {
-        // before audit subsystem
+        // setUp audit subsystem
         setupAudit();
         
         AuthenticationUtil.pushAuthentication();

@@ -36,7 +36,6 @@ import org.alfresco.service.cmr.repository.ContentWriter;
 import org.alfresco.service.cmr.repository.TransformationOptions;
 import org.alfresco.util.TempFileProvider;
 import org.junit.Ignore;
-import org.junit.Test;
 
 /**
  * We no longer use ooo.direct in Community. This test class now is connnected up to the JODConverter which was moved
@@ -55,9 +54,9 @@ public class OpenOfficeContentTransformerTest extends AbstractContentTransformer
     private ProxyContentTransformer transformer;
     
     @Override
-    public void before() throws Exception
+    public void setUp() throws Exception
     {
-        super.before();
+        super.setUp();
         
         this.worker = (ContentTransformerWorker) ctx.getBean("transformer.worker.JodConverter");
         transformer = new ProxyContentTransformer();
@@ -75,14 +74,12 @@ public class OpenOfficeContentTransformerTest extends AbstractContentTransformer
         return transformer;
     }
 
-    @Test
     public void testSetUp() throws Exception
     {
         super.testSetUp();
         assertNotNull(mimetypeService);
     }
-
-    @Test
+    
     public void testReliability() throws Exception
     {
         if (!isOpenOfficeWorkerAvailable())
@@ -106,7 +103,6 @@ public class OpenOfficeContentTransformerTest extends AbstractContentTransformer
     /**
      * Test what is up with HTML to PDF
      */
-    @Test
     public void testHtmlToPdf() throws Exception
     {
         if (!isOpenOfficeWorkerAvailable())
@@ -130,8 +126,6 @@ public class OpenOfficeContentTransformerTest extends AbstractContentTransformer
      * @throws Exception
      */
     // The test was never run and fails on remote transformer
-    @Ignore
-    @Test
     public void ignoreTestEmptyHtmlToEmptyPdf() throws Exception
     {
         if (!isOpenOfficeWorkerAvailable())

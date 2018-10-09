@@ -140,11 +140,24 @@ import org.springframework.test.context.junit4.SpringRunner;
     org.alfresco.repo.rendition.RenditionServicePermissionsTest.class,
 
     // [ibatis/hierarchy-test/hierarchy-test-context.xml]
-    org.alfresco.ibatis.HierarchicalSqlSessionFactoryBeanTest.class,
-    // [classpath:/test-desktop-sync-messaging-context.xml]
-    // TODO enable in REPO-3811
-    //org.alfresco.repo.messaging.camel.CamelRoutesTest.class
+    org.alfresco.ibatis.HierarchicalSqlSessionFactoryBeanTest.class
 })
 public class MiscContextTestSuite
 {
+   /**
+    * Asks {@link ApplicationContextHelper} to give us a
+    *  suitable, perhaps cached context for use in our tests
+    */
+   public static ApplicationContext getMinimalContext() {
+      ApplicationContextHelper.setUseLazyLoading(false);
+      ApplicationContextHelper.setNoAutoStart(true);
+      return ApplicationContextHelper.getApplicationContext(
+           new String[] { "classpath:alfresco/minimal-context.xml" }
+      );
+   }
+
+   static
+   {
+       getMinimalContext();
+   }
 }

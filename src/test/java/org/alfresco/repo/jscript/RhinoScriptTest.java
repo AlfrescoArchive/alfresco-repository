@@ -73,7 +73,7 @@ public class RhinoScriptTest extends TestCase
     private ScriptService scriptService;
     
     /*
-     * @see junit.framework.TestCase#before()
+     * @see junit.framework.TestCase#setUp()
      */
     protected void setUp() throws Exception
     {

@@ -66,7 +66,6 @@ import org.alfresco.test_category.OwnJVMTestsCategory;
 import org.alfresco.util.ApplicationContextHelper;
 import org.alfresco.util.PropertyMap;
 import org.alfresco.util.testing.category.LuceneTests;
-import org.alfresco.util.testing.category.PerformanceTests;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.junit.experimental.categories.Category;
@@ -395,7 +394,6 @@ public class SOLRTrackingComponentTest extends TestCase
         //        assertEquals("Unxpected number of nodes", 3, bt.getSuccessCount());
     }
 
-    @Category(PerformanceTests.class)
     public void testNodeMetaDataManyNodes() throws Exception
     {
         long fromCommitTime = System.currentTimeMillis();
@@ -453,7 +451,6 @@ public class SOLRTrackingComponentTest extends TestCase
         getNodeMetaData(nodeMetaDataParams, null, st);
     }
 
-    @Category(PerformanceTests.class)
     public void testNodeMetaDataCache() throws Exception
     {
         long fromCommitTime = System.currentTimeMillis();
