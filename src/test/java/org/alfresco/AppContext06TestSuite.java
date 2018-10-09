@@ -48,17 +48,17 @@ import org.junit.runners.Suite;
     org.alfresco.repo.solr.SOLRTrackingComponentTest.class,
     org.alfresco.repo.tagging.TaggingServiceImplTest.class,
     org.alfresco.repo.transaction.AlfrescoTransactionSupportTest.class,
-//    org.alfresco.repo.transaction.RetryingTransactionHelperTest.class,
-//    org.alfresco.repo.transaction.TransactionAwareSingletonTest.class,
-//    org.alfresco.repo.transaction.TransactionServiceImplTest.class,
-//    org.alfresco.repo.oauth1.OAuth1CredentialsStoreServiceTest.class,
-//    org.alfresco.repo.oauth2.OAuth2CredentialsStoreServiceTest.class,
-//    org.alfresco.repo.template.TemplateServiceImplTest.class,
-//    org.alfresco.repo.tenant.MultiTServiceImplTest.class,
-//    org.alfresco.repo.search.SearcherComponentTest.class,
-//    org.alfresco.repo.blog.BlogServiceImplTest.class,
-//    org.alfresco.repo.action.scheduled.ScheduledPersistedActionServiceTest.class,
-//    org.alfresco.repo.rendition2.RenditionDefinitionTest.class
+    org.alfresco.repo.transaction.RetryingTransactionHelperTest.class,
+    org.alfresco.repo.transaction.TransactionAwareSingletonTest.class,
+    org.alfresco.repo.transaction.TransactionServiceImplTest.class,
+    org.alfresco.repo.oauth1.OAuth1CredentialsStoreServiceTest.class,
+    org.alfresco.repo.oauth2.OAuth2CredentialsStoreServiceTest.class,
+    org.alfresco.repo.template.TemplateServiceImplTest.class,
+    org.alfresco.repo.tenant.MultiTServiceImplTest.class,
+    org.alfresco.repo.search.SearcherComponentTest.class,
+    org.alfresco.repo.blog.BlogServiceImplTest.class,
+    org.alfresco.repo.action.scheduled.ScheduledPersistedActionServiceTest.class,
+    org.alfresco.repo.rendition2.RenditionDefinitionTest.class
 })
 public class AppContext06TestSuite
 {
