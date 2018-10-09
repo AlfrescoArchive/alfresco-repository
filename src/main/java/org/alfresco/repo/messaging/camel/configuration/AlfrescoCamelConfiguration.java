@@ -43,7 +43,7 @@ import org.springframework.context.annotation.Configuration;
 @ComponentScan
 public class AlfrescoCamelConfiguration extends CamelConfiguration
 {
-    public static String CAMEL_CONTEXT_NAME = "alfCamelContext";
+    public static String CAMEL_CONTEXT_NAME = "alfrescoCamelContext";
 
     @Override
     protected void setupCamelContext(CamelContext camelContext) throws Exception
