@@ -7,12 +7,12 @@
       {"sourceExt": "doc",  "maxSourceSizeBytes": -1, "targetExt": "docx" },
       {"sourceExt": "docx",  "maxSourceSizeBytes": -1, "targetExt": "doc" },
       {"sourceExt": "docx",  "maxSourceSizeBytes": -1, "targetExt": "docx" },
-      {"sourceExt": "doc",  "maxSourceSizeBytes": -1, "targetExt": "pdf" },
-      {"sourceExt": "xls",  "maxSourceSizeBytes": 1024000, "targetExt": "pdf"},
-      {"sourceExt": "ppt",  "maxSourceSizeBytes": -1, "targetExt": "pdf" },
-      {"sourceExt": "docx", "maxSourceSizeBytes": -1, "targetExt": "pdf" },
-      {"sourceExt": "xlsx", "maxSourceSizeBytes": 1024000, "targetExt": "pdf"},
-      {"sourceExt": "pptx", "maxSourceSizeBytes": -1, "targetExt": "pdf" },
+      {"sourceExt": "doc",  "maxSourceSizeBytes": 10485760, "targetExt": "pdf" },
+      {"sourceExt": "xls",  "maxSourceSizeBytes": 10485760, "targetExt": "pdf"},
+      {"sourceExt": "ppt",  "maxSourceSizeBytes":  6291456, "targetExt": "pdf" },
+      {"sourceExt": "docx", "maxSourceSizeBytes":   786432, "targetExt": "pdf" },
+      {"sourceExt": "xlsx", "maxSourceSizeBytes":  1572864, "targetExt": "pdf"},
+      {"sourceExt": "pptx", "maxSourceSizeBytes":  4194304, "targetExt": "pdf" },
       {"sourceExt": "msg",  "maxSourceSizeBytes": -1, "targetExt": "pdf"}
     ]
   },
@@ -27,7 +27,7 @@
       {"value": {"required": false, "name": "targetEncoding"}}
     ],
     "supportedSourceAndTargetList": [
-      {"sourceExt": "pdf",  "maxSourceSizeBytes": -1, "targetExt": "txt" },
+      {"sourceExt": "pdf",  "maxSourceSizeBytes": 26214400, "targetExt": "txt" },
       {"sourceExt": "doc",  "maxSourceSizeBytes": -1, "targetExt": "txt"},
       {"sourceExt": "xls",  "maxSourceSizeBytes": -1, "targetExt": "txt" },
       {"sourceExt": "ppt",  "maxSourceSizeBytes": -1, "targetExt": "txt" },

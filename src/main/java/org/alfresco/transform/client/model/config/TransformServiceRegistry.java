@@ -37,7 +37,7 @@ public interface TransformServiceRegistry
      * target mimetype given a list of actual transform option names and values (Strings) plus the data contained in the
      * {@Transform} objects registered with this class.
      * @param sourceMimetype the mimetype of the source content
-     * @param sourceSizeInBytes the size in bytes of the source content
+     * @param sourceSizeInBytes the size in bytes of the source content. Ignored if negative.
      * @param targetMimetype the mimetype of the target
      * @param actualOptions the actual name value pairs available that could be passed to the Transform Service.
      * @param transformName (optional) name for the set of options and target mimetype. If supplied is used to cache

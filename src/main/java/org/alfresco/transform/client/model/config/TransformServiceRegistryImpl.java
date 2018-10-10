@@ -114,7 +114,7 @@ public class TransformServiceRegistryImpl implements TransformServiceRegistry, I
                                Map<String, String> actualOptions, String transformName)
     {
         long maxSize = getMaxSize(sourceMimetype, targetMimetype, actualOptions, transformName);
-        return sourceSizeInBytes > 0 && (maxSize < 0 || maxSize >= sourceSizeInBytes);
+        return maxSize != 0 && (maxSize == -1L || maxSize >= sourceSizeInBytes);
     }
 
     @Override
@@ -124,6 +124,10 @@ public class TransformServiceRegistryImpl implements TransformServiceRegistry, I
         if (actualOptions == null)
         {
             actualOptions = Collections.EMPTY_MAP;
+        }
+        if (transformName != null && transformName.trim().isEmpty())
+        {
+            transformName = null;
         }
 
         Long maxSize = transformName == null ? null : cachedMaxSizes.computeIfAbsent(transformName, k -> new ConcurrentHashMap<>()).get(sourceMimetype);
