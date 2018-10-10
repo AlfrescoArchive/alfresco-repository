@@ -1,0 +1,156 @@
+[
+  {
+    "name": "libreOffice",
+    "version": "1",
+    "supportedSourceAndTargetList": [
+      {"sourceExt": "doc",  "maxSourceSizeBytes": -1, "targetExt": "doc" },
+      {"sourceExt": "doc",  "maxSourceSizeBytes": -1, "targetExt": "docx" },
+      {"sourceExt": "docx",  "maxSourceSizeBytes": -1, "targetExt": "doc" },
+      {"sourceExt": "docx",  "maxSourceSizeBytes": -1, "targetExt": "docx" },
+      {"sourceExt": "doc",  "maxSourceSizeBytes": -1, "targetExt": "pdf" },
+      {"sourceExt": "xls",  "maxSourceSizeBytes": 1024000, "targetExt": "pdf"},
+      {"sourceExt": "ppt",  "maxSourceSizeBytes": -1, "targetExt": "pdf" },
+      {"sourceExt": "docx", "maxSourceSizeBytes": -1, "targetExt": "pdf" },
+      {"sourceExt": "xlsx", "maxSourceSizeBytes": 1024000, "targetExt": "pdf"},
+      {"sourceExt": "pptx", "maxSourceSizeBytes": -1, "targetExt": "pdf" },
+      {"sourceExt": "msg",  "maxSourceSizeBytes": -1, "targetExt": "pdf"}
+    ]
+  },
+  {
+    "name": "tika",
+    "version": "1",
+    "transformOptions": [
+      {"value": {"required": false, "name": "transform"}},
+      {"value": {"required": false, "name": "includeContents"}},
+      {"value": {"required": false, "name": "notExtractBookmarksText"}},
+      {"value": {"required": false, "name": "targetMimetype"}},
+      {"value": {"required": false, "name": "targetEncoding"}}
+    ],
+    "supportedSourceAndTargetList": [
+      {"sourceExt": "pdf",  "maxSourceSizeBytes": -1, "targetExt": "txt" },
+      {"sourceExt": "doc",  "maxSourceSizeBytes": -1, "targetExt": "txt"},
+      {"sourceExt": "xls",  "maxSourceSizeBytes": -1, "targetExt": "txt" },
+      {"sourceExt": "ppt",  "maxSourceSizeBytes": -1, "targetExt": "txt" },
+      {"sourceExt": "docx", "maxSourceSizeBytes": -1, "targetExt": "txt"},
+      {"sourceExt": "xlsx", "maxSourceSizeBytes": -1, "targetExt": "txt" },
+      {"sourceExt": "pptx", "maxSourceSizeBytes": -1, "targetExt": "txt" },
+      {"sourceExt": "msg",  "maxSourceSizeBytes": -1, "targetExt": "txt"}
+    ]
+  },
+  {
+    "name": "pdfRenderer",
+    "version": "1",
+    "transformOptions": [
+      {"value": {"required": false, "name": "page"}},
+      {"value": {"required": false, "name": "width"}},
+      {"value": {"required": false, "name": "height"}},
+      {"value": {"required": false, "name": "allowEnlargement"}},
+      {"value": {"required": false, "name": "maintainAspectRatio"}}
+    ],
+    "supportedSourceAndTargetList": [
+      {"sourceExt": "pdf",  "maxSourceSizeBytes": -1, "targetExt": "pdf" },
+      {"sourceExt": "pdf",  "maxSourceSizeBytes": -1, "targetExt": "gif" },
+      {"sourceExt": "pdf",  "maxSourceSizeBytes": -1, "targetExt": "jpeg"},
+      {"sourceExt": "pdf",  "maxSourceSizeBytes": -1, "targetExt": "png" },
+      {"sourceExt": "pdf",  "maxSourceSizeBytes": -1, "targetExt": "tiff"}
+    ]
+  },
+  {
+    "name": "imageMagick",
+    "version": "1",
+    "transformOptions": [
+      {"value": {"required": false, "name": "alphaRemove"}},
+      {"value": {"required": false, "name": "autoOrient"}},
+      {"group": {"required": false, "transformOptions": [
+        {"value": {"required": false, "name": "cropGravity"}},
+        {"value": {"required": false, "name": "cropWidth"}},
+        {"value": {"required": false, "name": "cropHeight"}},
+        {"value": {"required": false, "name": "cropPercentage"}},
+        {"value": {"required": false, "name": "cropXOffset"}},
+        {"value": {"required": false, "name": "cropYOffset"}}
+      ]}},
+      {"group": {"required": false, "transformOptions": [
+        {"value": {"required": false, "name": "thumbnail"}},
+        {"value": {"required": false, "name": "resizeHeight"}},
+        {"value": {"required": false, "name": "resizeWidth"}},
+        {"value": {"required": false, "name": "resizePercentage"}},
+        {"value": {"required": false, "name": "maintainAspectRatio"}}
+      ]}}
+    ],
+    "supportedSourceAndTargetList": [
+      {"sourceExt": "gif",  "maxSourceSizeBytes": -1, "targetExt": "gif" },
+      {"sourceExt": "gif",  "maxSourceSizeBytes": -1, "targetExt": "jpeg"},
+      {"sourceExt": "gif",  "maxSourceSizeBytes": -1, "targetExt": "png" },
+      {"sourceExt": "gif",  "maxSourceSizeBytes": -1, "targetExt": "tiff"},
+
+      {"sourceExt": "jpeg", "maxSourceSizeBytes": -1, "targetExt": "gif" },
+      {"sourceExt": "jpeg", "maxSourceSizeBytes": -1, "targetExt": "jpeg"},
+      {"sourceExt": "jpeg", "maxSourceSizeBytes": -1, "targetExt": "png" },
+      {"sourceExt": "jpeg", "maxSourceSizeBytes": -1, "targetExt": "tiff"},
+
+      {"sourceExt": "png",  "maxSourceSizeBytes": -1, "targetExt": "gif" },
+      {"sourceExt": "png",  "maxSourceSizeBytes": -1, "targetExt": "jpeg"},
+      {"sourceExt": "png",  "maxSourceSizeBytes": -1, "targetExt": "png" },
+      {"sourceExt": "png",  "maxSourceSizeBytes": -1, "targetExt": "tiff"},
+
+      {"sourceExt": "tiff", "maxSourceSizeBytes": -1, "targetExt": "gif" },
+      {"sourceExt": "tiff", "maxSourceSizeBytes": -1, "targetExt": "jpeg"},
+      {"sourceExt": "tiff", "maxSourceSizeBytes": -1, "targetExt": "png" },
+      {"sourceExt": "tiff", "maxSourceSizeBytes": -1, "targetExt": "tiff"}
+    ]
+  },
+  {
+    "name": "officeToImageViaPdf",
+    "version": "1",
+    "transformOptions": [
+      {
+        "group": {
+          "required": true,
+          "transformOptions": [
+            {"value": {"required": false, "name": "page"}},
+            {"value": {"required": false, "name": "width"}},
+            {"value": {"required": false, "name": "height"}},
+            {"value": {"required": false, "name": "allowEnlargement"}},
+            {"value": {"required": false, "name": "maintainAspectRatio"}}
+          ]
+        }
+      }
+    ],
+    "supportedSourceAndTargetList": [
+      {"sourceExt": "doc",  "maxSourceSizeBytes": -1, "targetExt": "gif" },
+      {"sourceExt": "doc",  "maxSourceSizeBytes": -1, "targetExt": "jpeg"},
+      {"sourceExt": "doc",  "maxSourceSizeBytes": -1, "targetExt": "png" },
+      {"sourceExt": "doc",  "maxSourceSizeBytes": -1, "targetExt": "tiff"},
+
+      {"sourceExt": "xls",  "maxSourceSizeBytes": -1, "targetExt": "gif" },
+      {"sourceExt": "xls",  "maxSourceSizeBytes": -1, "targetExt": "jpeg"},
+      {"sourceExt": "xls",  "maxSourceSizeBytes": -1, "targetExt": "png" },
+      {"sourceExt": "xls",  "maxSourceSizeBytes": -1, "targetExt": "tiff"},
+
+      {"sourceExt": "ppt",  "maxSourceSizeBytes": -1, "targetExt": "gif" },
+      {"sourceExt": "ppt",  "maxSourceSizeBytes": -1, "targetExt": "jpeg"},
+      {"sourceExt": "ppt",  "maxSourceSizeBytes": -1, "targetExt": "png" },
+      {"sourceExt": "ppt",  "maxSourceSizeBytes": -1, "targetExt": "tiff"},
+
+      {"sourceExt": "docx", "maxSourceSizeBytes": -1, "targetExt": "gif" },
+      {"sourceExt": "docx", "maxSourceSizeBytes": -1, "targetExt": "jpeg"},
+      {"sourceExt": "docx", "maxSourceSizeBytes": -1, "targetExt": "png" },
+      {"sourceExt": "docx", "maxSourceSizeBytes": -1, "targetExt": "tiff"},
+
+      {"sourceExt": "xlsx", "maxSourceSizeBytes": -1, "targetExt": "gif" },
+      {"sourceExt": "xlsx", "maxSourceSizeBytes": -1, "targetExt": "jpeg"},
+      {"sourceExt": "xlsx", "maxSourceSizeBytes": -1, "targetExt": "png" },
+      {"sourceExt": "xlsx", "maxSourceSizeBytes": -1, "targetExt": "tiff"},
+
+      {"sourceExt": "pptx", "maxSourceSizeBytes": -1, "targetExt": "gif" },
+      {"sourceExt": "pptx", "maxSourceSizeBytes": -1, "targetExt": "jpeg"},
+      {"sourceExt": "pptx", "maxSourceSizeBytes": -1, "targetExt": "png" },
+      {"sourceExt": "pptx", "maxSourceSizeBytes": -1, "targetExt": "tiff"},
+
+      {"sourceExt": "msg",  "maxSourceSizeBytes": -1, "targetExt": "gif" },
+      {"sourceExt": "msg",  "maxSourceSizeBytes": -1, "targetExt": "jpeg"},
+      {"sourceExt": "msg",  "maxSourceSizeBytes": -1, "targetExt": "png" },
+      {"sourceExt": "msg",  "maxSourceSizeBytes": -1, "targetExt": "tiff"}
+    ]
+  }
+]
