@@ -94,7 +94,7 @@ public class ActiveMQConnectionFactoryConfiguration
 
     protected ConnectionFactory createConnectionFactory()
     {
-        logger.info("Crating ActiveMQ connection factory with URL: " + brokerUrl);
+        logger.info("Created ActiveMQ connection factory with URL: " + brokerUrl);
         return new ActiveMQConnectionFactory(username, password, brokerUrl);
     }
 
@@ -104,7 +104,7 @@ public class ActiveMQConnectionFactoryConfiguration
         factory.setKeyAndTrustManagers(keyStore.createKeyManagers(), trustStore.createTrustManagers(), new SecureRandom());
         factory.setUserName(username);
         factory.setPassword(password);
-        logger.info("Crating secure ActiveMQ connection factory with URL: " + brokerUrl);
+        logger.info("Created secure ActiveMQ connection factory with URL: " + brokerUrl);
         return factory;
     }
 
