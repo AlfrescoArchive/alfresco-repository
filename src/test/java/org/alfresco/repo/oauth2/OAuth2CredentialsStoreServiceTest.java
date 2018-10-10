@@ -44,18 +44,19 @@ import org.alfresco.service.cmr.security.PersonService;
 import org.alfresco.test_category.BaseSpringTestsCategory;
 import org.alfresco.test_category.OwnJVMTestsCategory;
 import org.alfresco.util.ApplicationContextHelper;
+import org.alfresco.util.BaseSpringTest;
+import org.alfresco.util.GUID;
 import org.alfresco.util.PropertyMap;
+import org.junit.After;
 import org.junit.AfterClass;
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.springframework.context.ApplicationContext;
 
-@Category(BaseSpringTestsCategory.class)
-public class OAuth2CredentialsStoreServiceTest
+public class OAuth2CredentialsStoreServiceTest extends BaseSpringTest
 {
-    private static ApplicationContext ctx = ApplicationContextHelper.getApplicationContext();
-
     private static OAuth2CredentialsStoreService oauth2CredentialsStoreService;
     private static ServiceRegistry serviceRegistry;
     private static RetryingTransactionHelper transactionHelper;
@@ -79,31 +80,28 @@ public class OAuth2CredentialsStoreServiceTest
     private static Date UpdatedIssuedAt = new Date(dec292012);
     
     //Users
-    private static String TEST_USER_ONE = OAuth2CredentialsStoreService.class.getSimpleName() + "testuser1";
-    private static String TEST_USER_TWO = OAuth2CredentialsStoreService.class.getSimpleName() + "testuser2";
+    private static String TEST_USER_ONE = OAuth2CredentialsStoreService.class.getSimpleName() + GUID.generate();
+    private static String TEST_USER_TWO = OAuth2CredentialsStoreService.class.getSimpleName() + GUID.generate();
     private static final String ADMIN_USER = AuthenticationUtil.getAdminUserName();
 
-    @BeforeClass
-    public static void setUp() throws Exception
+    @Before
+    public void setUp() throws Exception
     {
-        serviceRegistry = (ServiceRegistry) ctx.getBean(ServiceRegistry.SERVICE_REGISTRY);
+        serviceRegistry = (ServiceRegistry) applicationContext.getBean(ServiceRegistry.SERVICE_REGISTRY);
         transactionHelper = serviceRegistry.getTransactionService().getRetryingTransactionHelper();
         authenticationService = serviceRegistry.getAuthenticationService();
         personService = serviceRegistry.getPersonService();
-        oauth2CredentialsStoreService = (OAuth2CredentialsStoreService) ctx.getBean("oauth2CredentialsStoreService");
+        oauth2CredentialsStoreService = (OAuth2CredentialsStoreService) applicationContext.getBean("oauth2CredentialsStoreService");
         
         AuthenticationUtil.setFullyAuthenticatedUser(ADMIN_USER);
         createUser(TEST_USER_ONE);
         createUser(TEST_USER_TWO);
     }
 
-    @AfterClass
-    public static void tearDown() throws Exception
+    @After
+    public void tearDown() throws Exception
     {
-        // Do the teardown as admin
-        AuthenticationUtil.setFullyAuthenticatedUser(ADMIN_USER);
-        deleteUser(TEST_USER_ONE);
-        deleteUser(TEST_USER_TWO);      
+        AuthenticationUtil.clearCurrentSecurityContext();
     }
 
     @Test
@@ -239,22 +237,4 @@ public class OAuth2CredentialsStoreServiceTest
            }
         });
     }
-
-    private static void deleteUser(final String userName)
-    {
-        transactionHelper.doInTransaction(new RetryingTransactionHelper.RetryingTransactionCallback<Void>()
-        {
-           @Override
-           public Void execute() throws Throwable
-           {
-              if (personService.personExists(userName))
-              {
-                 personService.deletePerson(userName);
-              }
-
-              return null;
-           }
-        });
-    }
-
 }

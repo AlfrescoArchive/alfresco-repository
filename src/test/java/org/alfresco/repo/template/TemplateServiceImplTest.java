@@ -31,8 +31,6 @@ import java.io.StringWriter;
 import java.util.HashMap;
 import java.util.Map;
 
-import junit.framework.TestCase;
-
 import org.alfresco.model.ContentModel;
 import org.alfresco.repo.dictionary.DictionaryComponent;
 import org.alfresco.repo.dictionary.DictionaryDAO;
@@ -41,7 +39,6 @@ import org.alfresco.repo.node.BaseNodeServiceTest;
 import org.alfresco.repo.security.authentication.AuthenticationComponent;
 import org.alfresco.repo.transaction.RetryingTransactionHelper.RetryingTransactionCallback;
 import org.alfresco.service.ServiceRegistry;
-import org.alfresco.service.cmr.model.FileFolderService;
 import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.cmr.repository.NodeService;
 import org.alfresco.service.cmr.repository.StoreRef;
@@ -50,20 +47,18 @@ import org.alfresco.service.cmr.repository.TemplateService;
 import org.alfresco.service.namespace.NamespaceService;
 import org.alfresco.service.namespace.QName;
 import org.alfresco.service.transaction.TransactionService;
-import org.alfresco.test_category.OwnJVMTestsCategory;
-import org.alfresco.util.ApplicationContextHelper;
-import org.junit.experimental.categories.Category;
-import org.springframework.context.ApplicationContext;
+import org.alfresco.util.BaseSpringTest;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
 import org.springframework.extensions.surf.util.I18NUtil;
 
 /**
  * @author Kevin Roast
  */
-@Category(OwnJVMTestsCategory.class)
-public class TemplateServiceImplTest extends TestCase
+public class TemplateServiceImplTest extends BaseSpringTest
 {
     private static final String TEMPLATE_1 = "org/alfresco/repo/template/test_template1.ftl";
-    private static final ApplicationContext ctx = ApplicationContextHelper.getApplicationContext();
     private NodeRef root_node;
 
     private TemplateService templateService;
@@ -72,22 +67,18 @@ public class TemplateServiceImplTest extends TestCase
     private ServiceRegistry serviceRegistry;
     private AuthenticationComponent authenticationComponent;
     
-    /*
-     * @see junit.framework.TestCase#setUp()
-     */
-    protected void setUp() throws Exception
+    @Before
+    public void setUp() throws Exception
     {
-        super.setUp();
+        transactionService = (TransactionService)applicationContext.getBean("transactionComponent");
+        nodeService = (NodeService)applicationContext.getBean("nodeService");
+        templateService = (TemplateService)applicationContext.getBean("templateService");
+        serviceRegistry = (ServiceRegistry)applicationContext.getBean("ServiceRegistry");
         
-        transactionService = (TransactionService)ctx.getBean("transactionComponent");
-        nodeService = (NodeService)ctx.getBean("nodeService");
-        templateService = (TemplateService)ctx.getBean("templateService");
-        serviceRegistry = (ServiceRegistry)ctx.getBean("ServiceRegistry");
-        
-        this.authenticationComponent = (AuthenticationComponent)ctx.getBean("authenticationComponent");
+        this.authenticationComponent = (AuthenticationComponent)applicationContext.getBean("authenticationComponent");
         this.authenticationComponent.setSystemUserAsCurrentUser();
         
-        DictionaryDAO dictionaryDao = (DictionaryDAO)ctx.getBean("dictionaryDAO");
+        DictionaryDAO dictionaryDao = (DictionaryDAO)applicationContext.getBean("dictionaryDAO");
         
         // load the system model
         ClassLoader cl = BaseNodeServiceTest.class.getClassLoader();
@@ -104,7 +95,7 @@ public class TemplateServiceImplTest extends TestCase
         
         DictionaryComponent dictionary = new DictionaryComponent();
         dictionary.setDictionaryDAO(dictionaryDao);
-        BaseNodeServiceTest.loadModel(ctx);
+        BaseNodeServiceTest.loadModel(applicationContext);
 
         transactionService.getRetryingTransactionHelper().doInTransaction(
                 new RetryingTransactionCallback<Object>()
@@ -142,13 +133,14 @@ public class TemplateServiceImplTest extends TestCase
                 });
     }
 
-    @Override
-    protected void tearDown() throws Exception
+    @After
+    public void tearDown() throws Exception
     {
         authenticationComponent.clearCurrentSecurityContext();
         super.tearDown();
     }
     
+    @Test
     public void testTemplates()
     {
         transactionService.getRetryingTransactionHelper().doInTransaction(
@@ -185,11 +177,13 @@ public class TemplateServiceImplTest extends TestCase
         return model;
     }
 
+    @Test
     public void testGetTemplateProcessor()
     {
         assertNotNull(templateService.getTemplateProcessor(null));
     }
 
+    @Test
     public void testProcessTemplate()
     {
         Map model = createTemplateModel(root_node);

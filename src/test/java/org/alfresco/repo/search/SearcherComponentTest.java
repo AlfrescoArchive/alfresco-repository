@@ -33,8 +33,6 @@ import java.util.Map;
 import javax.transaction.Status;
 import javax.transaction.UserTransaction;
 
-import junit.framework.TestCase;
-
 import org.alfresco.model.ContentModel;
 import org.alfresco.repo.domain.dialect.Dialect;
 import org.alfresco.repo.domain.dialect.PostgreSQLDialect;
@@ -51,22 +49,19 @@ import org.alfresco.service.cmr.search.QueryParameterDefinition;
 import org.alfresco.service.namespace.DynamicNamespacePrefixResolver;
 import org.alfresco.service.namespace.QName;
 import org.alfresco.service.transaction.TransactionService;
-import org.alfresco.test_category.OwnJVMTestsCategory;
-import org.alfresco.util.ApplicationContextHelper;
+import org.alfresco.util.BaseSpringTest;
 import org.alfresco.util.ISO9075;
-import org.junit.experimental.categories.Category;
-import org.springframework.context.ApplicationContext;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
 
 /**
  * @see org.alfresco.repo.search.SearcherComponent
  * 
  * @author Derek Hulley
  */
-@Category({OwnJVMTestsCategory.class})
-public class SearcherComponentTest extends TestCase
+public class SearcherComponentTest extends BaseSpringTest
 {
-    private static ApplicationContext ctx = ApplicationContextHelper.getApplicationContext();
-
     //private static String COMPLEX_LOCAL_NAME = " `¬¦!\"£$%^&*()-_=+\t\n\\\u0000[]{};'#:@~,./<>?\\|\u0123\u4567\u8900\uabcd\uefff_xT65A_";
     // \u0123 and \u8900 removed
 
@@ -96,9 +91,10 @@ public class SearcherComponentTest extends TestCase
     // TODO: pending replacement
     private Dialect dialect;
 
+    @Before
     public void setUp() throws Exception
     {
-        dialect = (Dialect) ctx.getBean("dialect");
+        dialect = (Dialect) applicationContext.getBean("dialect");
         if (dialect instanceof PostgreSQLDialect)
         {
             // Note: PostgreSQL does not support \u0000 char embedded in a string
@@ -106,16 +102,16 @@ public class SearcherComponentTest extends TestCase
             COMPLEX_LOCAL_NAME = COMPLEX_LOCAL_NAME_NO_U0000;
         }
         
-        serviceRegistry = (ServiceRegistry) ctx.getBean(ServiceRegistry.SERVICE_REGISTRY);
+        serviceRegistry = (ServiceRegistry) applicationContext.getBean(ServiceRegistry.SERVICE_REGISTRY);
         transactionService = serviceRegistry.getTransactionService();
-        dictionaryService = BaseNodeServiceTest.loadModel(ctx);
+        dictionaryService = BaseNodeServiceTest.loadModel(applicationContext);
         nodeService = serviceRegistry.getNodeService();
 
-        this.authenticationComponent = (AuthenticationComponent) ctx.getBean("authenticationComponent");
+        this.authenticationComponent = (AuthenticationComponent) applicationContext.getBean("authenticationComponent");
         this.authenticationComponent.setSystemUserAsCurrentUser();
 
         // get the indexer and searcher factory
-        IndexerAndSearcher indexerAndSearcher = (IndexerAndSearcher) ctx.getBean("indexerAndSearcherFactory");
+        IndexerAndSearcher indexerAndSearcher = (IndexerAndSearcher) applicationContext.getBean("indexerAndSearcherFactory");
         searcher = new SearcherComponent();
         searcher.setIndexerAndSearcherFactory(indexerAndSearcher);
         // create a test workspace
@@ -127,6 +123,7 @@ public class SearcherComponentTest extends TestCase
         txn.begin();
     }
 
+    @After
     public void tearDown() throws Exception
     {
         if (txn.getStatus() == Status.STATUS_ACTIVE)
@@ -137,6 +134,7 @@ public class SearcherComponentTest extends TestCase
         super.tearDown();
     }
 
+    @Test
     public void testNodeXPath() throws Exception
     {
         Map<QName, ChildAssociationRef> assocRefs = BaseNodeServiceTest.buildNodeGraph(nodeService, rootNodeRef);
@@ -299,6 +297,7 @@ public class SearcherComponentTest extends TestCase
         assertEquals(2, list.size());
     }
 
+    @Test
     public void testSelectAPI() throws Exception
     {
         Map<QName, ChildAssociationRef> assocRefs = BaseNodeServiceTest.buildNodeGraph(nodeService, rootNodeRef);

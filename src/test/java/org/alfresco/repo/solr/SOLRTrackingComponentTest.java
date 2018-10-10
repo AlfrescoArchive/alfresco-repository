@@ -35,8 +35,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import junit.framework.TestCase;
-
 import org.alfresco.model.ContentModel;
 import org.alfresco.repo.dictionary.DictionaryDAO;
 import org.alfresco.repo.dictionary.M2Model;
@@ -62,26 +60,24 @@ import org.alfresco.service.cmr.repository.StoreRef;
 import org.alfresco.service.namespace.NamespaceService;
 import org.alfresco.service.namespace.QName;
 import org.alfresco.service.transaction.TransactionService;
-import org.alfresco.test_category.OwnJVMTestsCategory;
-import org.alfresco.util.ApplicationContextHelper;
+import org.alfresco.util.BaseSpringTest;
 import org.alfresco.util.PropertyMap;
-import org.alfresco.util.testing.category.LuceneTests;
+import org.alfresco.util.testing.category.PerformanceTests;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.junit.Before;
+import org.junit.Test;
 import org.junit.experimental.categories.Category;
-import org.springframework.context.ConfigurableApplicationContext;
 
 /**
  * Tests tracking component
  *
  * @since 4.0
  */
-@Category({OwnJVMTestsCategory.class, LuceneTests.class})
-public class SOLRTrackingComponentTest extends TestCase
+public class SOLRTrackingComponentTest extends BaseSpringTest
 {
     private static final Log logger = LogFactory.getLog(SOLRTrackingComponentTest.class);
 
-    private ConfigurableApplicationContext ctx = (ConfigurableApplicationContext) ApplicationContextHelper.getApplicationContext();
     private static enum NodeStatus
     {
         UPDATED, DELETED;
@@ -103,24 +99,24 @@ public class SOLRTrackingComponentTest extends TestCase
     private StoreRef storeRef;
     private NodeRef rootNodeRef;
 
-    @Override
-    public void setUp() throws Exception
+    @Before
+    public void before() throws Exception
     {
-        ServiceRegistry serviceRegistry = (ServiceRegistry) ctx.getBean(ServiceRegistry.SERVICE_REGISTRY);
+        ServiceRegistry serviceRegistry = (ServiceRegistry) applicationContext.getBean(ServiceRegistry.SERVICE_REGISTRY);
         transactionService = serviceRegistry.getTransactionService();
         txnHelper = transactionService.getRetryingTransactionHelper();
 
-        solrTrackingComponent = (SOLRTrackingComponent) ctx.getBean("solrTrackingComponent");
-        nodeDAO = (NodeDAO)ctx.getBean("nodeDAO");
-        qnameDAO = (QNameDAO) ctx.getBean("qnameDAO");
-        dictionaryDAO =  (DictionaryDAO)ctx.getBean("dictionaryDAO");
-        nodeService = (NodeService)ctx.getBean("NodeService");
-        fileFolderService = (FileFolderService)ctx.getBean("FileFolderService");
+        solrTrackingComponent = (SOLRTrackingComponent) applicationContext.getBean("solrTrackingComponent");
+        nodeDAO = (NodeDAO)applicationContext.getBean("nodeDAO");
+        qnameDAO = (QNameDAO) applicationContext.getBean("qnameDAO");
+        dictionaryDAO =  (DictionaryDAO)applicationContext.getBean("dictionaryDAO");
+        nodeService = (NodeService)applicationContext.getBean("NodeService");
+        fileFolderService = (FileFolderService)applicationContext.getBean("FileFolderService");
         dictionaryService = serviceRegistry.getDictionaryService();
         namespaceService = serviceRegistry.getNamespaceService();
-        authenticationComponent = (AuthenticationComponent)ctx.getBean("authenticationComponent");
+        authenticationComponent = (AuthenticationComponent)applicationContext.getBean("authenticationComponent");
 
-        dbNodeService = (DbNodeServiceImpl)ctx.getBean("dbNodeService");
+        dbNodeService = (DbNodeServiceImpl)applicationContext.getBean("dbNodeService");
         dbNodeService.setEnableTimestampPropagation(false);
 
         authenticationComponent.setSystemUserAsCurrentUser();
@@ -129,6 +125,7 @@ public class SOLRTrackingComponentTest extends TestCase
         rootNodeRef = nodeService.getRootNode(storeRef);
     }
 
+    @Test
     public void testAclChangeSetLimits()
     {
         List<AclChangeSet> aclChangeSets = getAclChangeSets(null, null, null, null, 50);
@@ -148,6 +145,7 @@ public class SOLRTrackingComponentTest extends TestCase
     // This test is no longer valid as we may or may include shared acls not linked to defining ones 
     // If they are not linked to a node they will be counted wring ...
     
+//    @Test
 //    public void testGetAcls_Simple()
 //    {
 //        List<AclChangeSet> cs = getAclChangeSets(null, null, null, null, 50);
@@ -170,6 +168,7 @@ public class SOLRTrackingComponentTest extends TestCase
 //        assertEquals("ACL count should have matched", totalAcls, totalAclsCheck);
 //    }
 
+    @Test
     public void testGetNodeMetaData()
     {
         long startTime = System.currentTimeMillis();
@@ -283,6 +282,7 @@ public class SOLRTrackingComponentTest extends TestCase
         return transactionService.getRetryingTransactionHelper().doInTransaction(callback, true);
     }
 
+    @Test
     public void testGetTransactionLimits()
     {
         long startTime = System.currentTimeMillis();
@@ -341,6 +341,7 @@ public class SOLRTrackingComponentTest extends TestCase
         assertEquals(0, txns.size());
     }
 
+    @Test
     public void testGetNodeMetaDataExludesResidualProperties()
     {
         long startTime = System.currentTimeMillis();
@@ -365,6 +366,7 @@ public class SOLRTrackingComponentTest extends TestCase
 
     }
 
+    @Test
     public void testGetNodeMetaData100Nodes()
     {
         long startTime = System.currentTimeMillis();
@@ -394,6 +396,8 @@ public class SOLRTrackingComponentTest extends TestCase
         //        assertEquals("Unxpected number of nodes", 3, bt.getSuccessCount());
     }
 
+    @Category(PerformanceTests.class)
+    @Test
     public void testNodeMetaDataManyNodes() throws Exception
     {
         long fromCommitTime = System.currentTimeMillis();
@@ -451,6 +455,8 @@ public class SOLRTrackingComponentTest extends TestCase
         getNodeMetaData(nodeMetaDataParams, null, st);
     }
 
+    @Category(PerformanceTests.class)
+    @Test
     public void testNodeMetaDataCache() throws Exception
     {
         long fromCommitTime = System.currentTimeMillis();
@@ -481,6 +487,7 @@ public class SOLRTrackingComponentTest extends TestCase
         getNodeMetaData(nodeMetaDataParams, filter, st);
     }
 
+    @Test
     public void testNodeMetaDataNullPropertyValue() throws Exception
     {
         long fromCommitTime = System.currentTimeMillis();
@@ -503,6 +510,7 @@ public class SOLRTrackingComponentTest extends TestCase
         getNodeMetaData(nodeMetaDataParams, null, st);
     }
 
+    @Test
     public void testFilters()
     {
         long startTime = System.currentTimeMillis();
@@ -525,6 +533,7 @@ public class SOLRTrackingComponentTest extends TestCase
         getNodeMetaData(nodeMetaDataParams, null, st);
     }
 
+    @Test
     public void testModelDiffs()
     {
         Collection<QName> allModels = dictionaryService.getAllModels();

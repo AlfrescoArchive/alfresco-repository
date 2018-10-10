@@ -37,7 +37,6 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import javax.transaction.Status;
 import javax.transaction.UserTransaction;
-import junit.framework.TestCase;
 import org.alfresco.error.ExceptionStackUtil;
 import org.alfresco.model.ContentModel;
 import org.alfresco.repo.domain.dialect.Dialect;
@@ -55,15 +54,16 @@ import org.alfresco.service.cmr.repository.StoreRef;
 import org.alfresco.service.namespace.NamespaceService;
 import org.alfresco.service.namespace.QName;
 import org.alfresco.service.transaction.TransactionService;
-import org.alfresco.test_category.OwnJVMTestsCategory;
-import org.alfresco.util.ApplicationContextHelper;
+import org.alfresco.util.BaseSpringTest;
+import org.alfresco.util.GUID;
 import org.alfresco.util.Pair;
 import org.alfresco.util.transaction.TransactionListenerAdapter;
 import org.apache.commons.lang.mutable.MutableInt;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.junit.experimental.categories.Category;
-import org.springframework.context.ApplicationContext;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
 import org.springframework.dao.ConcurrencyFailureException;
 
 /**
@@ -75,15 +75,12 @@ import org.springframework.dao.ConcurrencyFailureException;
  * @author Derek Hulley
  * @since 2.1
  */
-@Category(OwnJVMTestsCategory.class)
-public class RetryingTransactionHelperTest extends TestCase
+public class RetryingTransactionHelperTest extends BaseSpringTest
 {
     private static Log logger = LogFactory.getLog("org.alfresco.repo.transaction.RetryingTransactionHelperTest");
     
     private static final QName PROP_CHECK_VALUE = QName.createQName(NamespaceService.CONTENT_MODEL_1_0_URI, "check_value");
     
-    private static ApplicationContext ctx = ApplicationContextHelper.getApplicationContext();
-
     private ServiceRegistry serviceRegistry;
     private AuthenticationComponent authenticationComponent;
     private TransactionService transactionService;
@@ -95,13 +92,13 @@ public class RetryingTransactionHelperTest extends TestCase
     private NodeRef rootNodeRef;
     private NodeRef workingNodeRef;
     
-    @Override
+    @Before
     public void setUp() throws Exception
     {
-        dialect = (Dialect) ctx.getBean("dialect");
+        dialect = (Dialect) applicationContext.getBean("dialect");
         
-        serviceRegistry = (ServiceRegistry) ctx.getBean(ServiceRegistry.SERVICE_REGISTRY);
-        authenticationComponent = (AuthenticationComponent) ctx.getBean("authenticationComponent");
+        serviceRegistry = (ServiceRegistry) applicationContext.getBean(ServiceRegistry.SERVICE_REGISTRY);
+        authenticationComponent = (AuthenticationComponent) applicationContext.getBean("authenticationComponent");
         transactionService = serviceRegistry.getTransactionService();
         nodeService = serviceRegistry.getNodeService();
         txnHelper = transactionService.getRetryingTransactionHelper();
@@ -111,22 +108,23 @@ public class RetryingTransactionHelperTest extends TestCase
         
         StoreRef storeRef = nodeService.createStore(
                 StoreRef.PROTOCOL_WORKSPACE,
-                "test-" + getName() + "-" + System.currentTimeMillis());
+                "test-" + System.currentTimeMillis());
         rootNodeRef = nodeService.getRootNode(storeRef);
         // Create a node to work on
         workingNodeRef = nodeService.createNode(
                 rootNodeRef,
                 ContentModel.ASSOC_CHILDREN,
-                QName.createQName(NamespaceService.CONTENT_MODEL_1_0_URI, getName()),
+                QName.createQName(NamespaceService.CONTENT_MODEL_1_0_URI, GUID.generate()),
                 ContentModel.TYPE_CMOBJECT).getChildRef();
     }
     
-    @Override
+    @After
     public void tearDown() throws Exception
     {
         try { authenticationComponent.clearCurrentSecurityContext(); } catch (Throwable e) {}
     }
     
+    @Test
     public void testSetUp() throws Exception
     {
         assertNotNull(rootNodeRef);
@@ -177,6 +175,7 @@ public class RetryingTransactionHelperTest extends TestCase
     /**
      * Check that it works without complications.
      */
+    @Test
     public void testSuccessNoRetry()
     {
         long beforeValue = getCheckValue();
@@ -198,6 +197,7 @@ public class RetryingTransactionHelperTest extends TestCase
      * This also checks that any mischievous attempts to manipulate the transaction
      * (other than setRollback) are detected. 
      */
+    @Test
     public void testUserTransactionStatus()
     {
         UserTransaction txnBefore = RetryingTransactionHelper.getActiveUserTransaction();
@@ -251,6 +251,7 @@ public class RetryingTransactionHelperTest extends TestCase
     /**
      * Check that the retries happening for simple concurrency exceptions
      */
+    @Test
     public void testSuccessWithRetry()
     {
         RetryingTransactionCallback<Long> callback = new RetryingTransactionCallback<Long>()
@@ -278,6 +279,7 @@ public class RetryingTransactionHelperTest extends TestCase
     /**
      * Checks that a non-retrying exception is passed out and that the transaction is rolled back.
      */
+    @Test
     public void testNonRetryingFailure()
     {
         RetryingTransactionCallback<Long> callback = new RetryingTransactionCallback<Long>()
@@ -312,6 +314,7 @@ public class RetryingTransactionHelperTest extends TestCase
      * absorbed and that another isn't generated, but that the transaction was rolled back
      * properly.
      */
+    @Test
     public void testNonRetryingSilentRollback()
     {
         RetryingTransactionCallback<Long> callback = new RetryingTransactionCallback<Long>()
@@ -338,6 +341,7 @@ public class RetryingTransactionHelperTest extends TestCase
     /**
      * Checks nesting of two transactions with <code>requiresNew == false</code>
      */
+    @Test
     public void testNestedWithPropagation()
     {
         RetryingTransactionCallback<Long> callback = new RetryingTransactionCallback<Long>()
@@ -366,6 +370,7 @@ public class RetryingTransactionHelperTest extends TestCase
     /**
      * Checks nesting of two transactions with <code>requiresNew == true</code>
      */
+    @Test
     public void testNestedWithoutPropagation()
     {
         RetryingTransactionCallback<Long> callback = new RetryingTransactionCallback<Long>()
@@ -397,6 +402,7 @@ public class RetryingTransactionHelperTest extends TestCase
      * <p/>
      * Note: skip test for non-MySQL
      */
+    @Test
     public void testNestedWithoutPropagationConcurrentUntilFailureMySQL() throws InterruptedException
     {
         final RetryingTransactionHelper txnHelperForTest = transactionService.getRetryingTransactionHelper();
@@ -441,6 +447,7 @@ public class RetryingTransactionHelperTest extends TestCase
         }
     }
     
+    @Test
     public void testConcurrencyRetryingNoFailure() throws InterruptedException
     {
         Thread t1 = new Thread(new ConcurrentTransaction(5000)); 
@@ -497,6 +504,7 @@ public class RetryingTransactionHelperTest extends TestCase
         }
     }
     
+    @Test
     public void testZeroAndNegativeRetries()
     {
         final MutableInt callCount = new MutableInt(0);
@@ -536,6 +544,7 @@ public class RetryingTransactionHelperTest extends TestCase
     }
     
     @SuppressWarnings({ "unchecked", "rawtypes" })
+    @Test
     public void testTimeLimit()
     {
         final RetryingTransactionHelper txnHelper = new RetryingTransactionHelper();
@@ -557,6 +566,7 @@ public class RetryingTransactionHelperTest extends TestCase
         }
     }
     
+    @Test
     public void testALF_17631()
     {
         final MutableInt callCount = new MutableInt(0);
@@ -598,6 +608,7 @@ public class RetryingTransactionHelperTest extends TestCase
         
     }
 
+    @Test
     public void testForceWritable() throws Exception
     {
         authenticationComponent.setCurrentUser(AuthenticationUtil.getAdminUserName());
@@ -670,6 +681,7 @@ public class RetryingTransactionHelperTest extends TestCase
         }
     }
 
+    @Test
     public void testStartNewTransaction() throws Exception
     {
         // MNT-10096

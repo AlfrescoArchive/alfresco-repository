@@ -25,10 +25,6 @@
  */
 package org.alfresco.repo.oauth1;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-
 import java.util.List;
 
 import org.alfresco.model.ContentModel;
@@ -40,24 +36,18 @@ import org.alfresco.service.cmr.oauth1.OAuth1CredentialsStoreService;
 import org.alfresco.service.cmr.remotecredentials.OAuth1CredentialsInfo;
 import org.alfresco.service.cmr.security.MutableAuthenticationService;
 import org.alfresco.service.cmr.security.PersonService;
-import org.alfresco.test_category.BaseSpringTestsCategory;
-import org.alfresco.test_category.OwnJVMTestsCategory;
-import org.alfresco.util.ApplicationContextHelper;
+import org.alfresco.util.BaseSpringTest;
+import org.alfresco.util.GUID;
 import org.alfresco.util.PropertyMap;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.FixMethodOrder;
-import org.junit.experimental.categories.Category;
 import org.junit.runners.MethodSorters;
 import org.junit.Test;
-import org.springframework.context.ApplicationContext;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-@Category(BaseSpringTestsCategory.class)
-public class OAuth1CredentialsStoreServiceTest
+public class OAuth1CredentialsStoreServiceTest extends BaseSpringTest
 {
-    private static ApplicationContext ctx = ApplicationContextHelper.getApplicationContext();
-
     private static OAuth1CredentialsStoreService oauth1CredentialsStoreService;
     private static ServiceRegistry serviceRegistry;
     private static RetryingTransactionHelper transactionHelper;
@@ -75,31 +65,28 @@ public class OAuth1CredentialsStoreServiceTest
     private static String UpdatedSecret = "321ihgfedcba";
     
     //Users
-    private static String TEST_USER_ONE = OAuth1CredentialsStoreService.class.getSimpleName() + "testuser1";
-    private static String TEST_USER_TWO = OAuth1CredentialsStoreService.class.getSimpleName() + "testuser2";
+    private static String TEST_USER_ONE = OAuth1CredentialsStoreService.class.getSimpleName() + GUID.generate();
+    private static String TEST_USER_TWO = OAuth1CredentialsStoreService.class.getSimpleName() + GUID.generate();
     private static final String ADMIN_USER = AuthenticationUtil.getAdminUserName();
 
-    @BeforeClass
-    public static void setUp() throws Exception
+    @Before
+    public void before() throws Exception
     {
-        serviceRegistry = (ServiceRegistry) ctx.getBean(ServiceRegistry.SERVICE_REGISTRY);
+        serviceRegistry = (ServiceRegistry) applicationContext.getBean(ServiceRegistry.SERVICE_REGISTRY);
         transactionHelper = serviceRegistry.getTransactionService().getRetryingTransactionHelper();
         authenticationService = serviceRegistry.getAuthenticationService();
         personService = serviceRegistry.getPersonService();
-        oauth1CredentialsStoreService = (OAuth1CredentialsStoreService) ctx.getBean("oauth1CredentialsStoreService");
+        oauth1CredentialsStoreService = (OAuth1CredentialsStoreService) applicationContext.getBean("oauth1CredentialsStoreService");
         
         AuthenticationUtil.setFullyAuthenticatedUser(ADMIN_USER);
         createUser(TEST_USER_ONE);
         createUser(TEST_USER_TWO);
     }
 
-    @AfterClass
-    public static void tearDown() throws Exception
+    @After
+    public void tearDown() throws Exception
     {
-        // Do the teardown as admin
-        AuthenticationUtil.setFullyAuthenticatedUser(ADMIN_USER);
-        deleteUser(TEST_USER_ONE);
-        deleteUser(TEST_USER_TWO);      
+        AuthenticationUtil.clearCurrentSecurityContext();
     }
 
     @Test
@@ -226,22 +213,4 @@ public class OAuth1CredentialsStoreServiceTest
            }
         });
     }
-
-    private static void deleteUser(final String userName)
-    {
-        transactionHelper.doInTransaction(new RetryingTransactionHelper.RetryingTransactionCallback<Void>()
-        {
-           @Override
-           public Void execute() throws Throwable
-           {
-              if (personService.personExists(userName))
-              {
-                 personService.deletePerson(userName);
-              }
-
-              return null;
-           }
-        });
-    }
-
 }

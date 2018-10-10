@@ -47,7 +47,10 @@ import org.alfresco.service.namespace.QName;
 import org.alfresco.service.transaction.ReadOnlyServerException;
 import org.alfresco.test_category.OwnJVMTestsCategory;
 import org.alfresco.util.ApplicationContextHelper;
+import org.alfresco.util.BaseSpringTest;
 import org.alfresco.util.PropertyMap;
+import org.junit.Before;
+import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.springframework.context.ApplicationContext;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
@@ -60,11 +63,8 @@ import org.springframework.transaction.PlatformTransactionManager;
  * 
  * @author Derek Hulley
  */
-@Category(OwnJVMTestsCategory.class)
-public class TransactionServiceImplTest extends TestCase
+public class TransactionServiceImplTest extends BaseSpringTest
 {
-    private static ApplicationContext ctx = ApplicationContextHelper.getApplicationContext();
-    
     private PlatformTransactionManager transactionManager;
     private TransactionServiceImpl transactionService;
     private NodeService nodeService;
@@ -76,20 +76,22 @@ public class TransactionServiceImplTest extends TestCase
     
     private Dialect dialect;
     
+    @Before
     public void setUp() throws Exception
     {
-        transactionManager = (PlatformTransactionManager) ctx.getBean("transactionManager");
+        transactionManager = (PlatformTransactionManager) applicationContext.getBean("transactionManager");
         transactionService = new TransactionServiceImpl();
         transactionService.setTransactionManager(transactionManager);   
         transactionService.setAllowWrite(true, vetoName);
         
-        nodeService = (NodeService) ctx.getBean("dbNodeService");
-        authenticationService = (MutableAuthenticationService) ctx.getBean("AuthenticationService");
-        personService = (PersonService) ctx.getBean("PersonService");
+        nodeService = (NodeService) applicationContext.getBean("dbNodeService");
+        authenticationService = (MutableAuthenticationService) applicationContext.getBean("AuthenticationService");
+        personService = (PersonService) applicationContext.getBean("PersonService");
         
-        dialect = (Dialect) ctx.getBean("dialect");
+        dialect = (Dialect) applicationContext.getBean("dialect");
     }
     
+    @Test
     public void testPropagatingTxn() throws Exception
     {
         // start a transaction
@@ -124,6 +126,7 @@ public class TransactionServiceImplTest extends TestCase
         }
     }
     
+    @Test
     public void testNonPropagatingTxn() throws Exception
     {
         // start a transaction
@@ -146,6 +149,7 @@ public class TransactionServiceImplTest extends TestCase
         txnOuter.commit();
     }
     
+    @Test
     public void testReadOnlyTxn() throws Exception
     {
         // start a read-only transaction
@@ -218,6 +222,7 @@ public class TransactionServiceImplTest extends TestCase
      * Test the write veto
      * @throws Exception
      */
+    @Test
     public void testReadOnlyVetoTxn() throws Exception
     {
        
@@ -254,6 +259,7 @@ public class TransactionServiceImplTest extends TestCase
         }
     }
            
+    @Test
     public void testGetRetryingTransactionHelper()
     {
         RetryingTransactionCallback<Object> callback = new RetryingTransactionCallback<Object>()
@@ -268,7 +274,7 @@ public class TransactionServiceImplTest extends TestCase
         assertFalse("Retriers must be new instances",
                 transactionService.getRetryingTransactionHelper() == transactionService.getRetryingTransactionHelper());
         // The same must apply when using the ServiceRegistry (ALF-18718)
-        ServiceRegistry serviceRegistry = (ServiceRegistry) ctx.getBean(ServiceRegistry.SERVICE_REGISTRY);
+        ServiceRegistry serviceRegistry = (ServiceRegistry) applicationContext.getBean(ServiceRegistry.SERVICE_REGISTRY);
         assertFalse("Retriers must be new instance when retrieved from ServiceRegistry",
                 serviceRegistry.getRetryingTransactionHelper() == serviceRegistry.getRetryingTransactionHelper());
         
@@ -322,6 +328,7 @@ public class TransactionServiceImplTest extends TestCase
         AuthenticationUtil.clearCurrentSecurityContext();
     }
 
+    @Test
     public void testSystemUserHasWritePermissionsInReadOnlyMode()
     {
         createUser(USER_ALFRESCO);

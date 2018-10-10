@@ -25,11 +25,6 @@
  */
 package org.alfresco.repo.blog;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
@@ -45,7 +40,6 @@ import org.alfresco.query.PagingRequest;
 import org.alfresco.query.PagingResults;
 import org.alfresco.repo.policy.BehaviourFilter;
 import org.alfresco.repo.security.authentication.AuthenticationUtil;
-import org.alfresco.repo.site.SiteModel;
 import org.alfresco.repo.transaction.RetryingTransactionHelper;
 import org.alfresco.service.cmr.blog.BlogPostInfo;
 import org.alfresco.service.cmr.blog.BlogService;
@@ -62,19 +56,15 @@ import org.alfresco.service.cmr.site.SiteService;
 import org.alfresco.service.cmr.site.SiteVisibility;
 import org.alfresco.service.cmr.tagging.TaggingService;
 import org.alfresco.service.namespace.QName;
-import org.alfresco.util.ApplicationContextHelper;
+import org.alfresco.util.BaseSpringTest;
 import org.alfresco.util.GUID;
 import org.alfresco.util.Pair;
 import org.alfresco.util.PropertyMap;
 import org.alfresco.util.testing.category.LuceneTests;
 import org.alfresco.util.testing.category.RedundantTests;
-import org.junit.After;
-import org.junit.AfterClass;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
-import org.springframework.context.ApplicationContext;
 
 /**
  * Test cases for {@link BlogServiceImpl}.
@@ -83,11 +73,8 @@ import org.springframework.context.ApplicationContext;
  * @since 4.0
  */
 @Category(LuceneTests.class)
-public class BlogServiceImplTest
+public class BlogServiceImplTest extends BaseSpringTest
 {
-
-    private static final ApplicationContext testContext = ApplicationContextHelper.getApplicationContext();
-    
     // injected services
     private static MutableAuthenticationService AUTHENTICATION_SERVICE;
     private static BehaviourFilter              BEHAVIOUR_FILTER;
@@ -99,7 +86,7 @@ public class BlogServiceImplTest
     private static SiteService                  SITE_SERVICE;
     private static TaggingService               TAGGING_SERVICE;
     
-    private static final String TEST_USER = BlogServiceImplTest.class.getSimpleName() + "_testuser";
+    private static final String TEST_USER = BlogServiceImplTest.class.getSimpleName() + GUID.generate();
     private static final String ADMIN_USER = AuthenticationUtil.getAdminUserName();
 
     
@@ -115,17 +102,18 @@ public class BlogServiceImplTest
     private static SiteInfo BLOG_SITE;
     private static NodeRef BLOG_CONTAINER_NODE;
     
-    @BeforeClass public static void initTestsContext() throws Exception
+    @Before
+    public void before() throws Exception
     {
-        AUTHENTICATION_SERVICE = (MutableAuthenticationService)testContext.getBean("authenticationService");
-        BEHAVIOUR_FILTER       = (BehaviourFilter)testContext.getBean("policyBehaviourFilter");
-        BLOG_SERVICE           = (BlogService)testContext.getBean("blogService");
-        DICTIONARY_SERVICE     = (DictionaryService)testContext.getBean("dictionaryService");
-        NODE_SERVICE           = (NodeService)testContext.getBean("nodeService");
-        PERSON_SERVICE         = (PersonService)testContext.getBean("personService");
-        TRANSACTION_HELPER     = (RetryingTransactionHelper)testContext.getBean("retryingTransactionHelper");
-        SITE_SERVICE           = (SiteService)testContext.getBean("siteService");
-        TAGGING_SERVICE        = (TaggingService)testContext.getBean("TaggingService");
+        AUTHENTICATION_SERVICE = (MutableAuthenticationService)applicationContext.getBean("authenticationService");
+        BEHAVIOUR_FILTER       = (BehaviourFilter)applicationContext.getBean("policyBehaviourFilter");
+        BLOG_SERVICE           = (BlogService)applicationContext.getBean("blogService");
+        DICTIONARY_SERVICE     = (DictionaryService)applicationContext.getBean("dictionaryService");
+        NODE_SERVICE           = (NodeService)applicationContext.getBean("nodeService");
+        PERSON_SERVICE         = (PersonService)applicationContext.getBean("personService");
+        TRANSACTION_HELPER     = (RetryingTransactionHelper)applicationContext.getBean("retryingTransactionHelper");
+        SITE_SERVICE           = (SiteService)applicationContext.getBean("siteService");
+        TAGGING_SERVICE        = (TaggingService)applicationContext.getBean("TaggingService");
         
         AuthenticationUtil.setFullyAuthenticatedUser(ADMIN_USER);
         createUser(TEST_USER);
@@ -133,6 +121,7 @@ public class BlogServiceImplTest
         // We need to create the test site as the test user so that they can contribute content to it in tests below.
         AuthenticationUtil.setFullyAuthenticatedUser(TEST_USER);
         createTestSiteWithBlogContainer();
+        AuthenticationUtil.setFullyAuthenticatedUser(ADMIN_USER);
     }
     
     private static void createTestSiteWithBlogContainer() throws Exception
@@ -167,61 +156,6 @@ public class BlogServiceImplTest
                     }
                       
                     return result;
-                }
-            });
-    }
-
-    /**
-     * By default, all tests are run as the admin user.
-     */
-    @Before public void setAdminUser()
-    {
-        AuthenticationUtil.setFullyAuthenticatedUser(ADMIN_USER);
-    }
-    
-    @After public void deleteTestNodes() throws Exception
-    {
-        performDeletionOfNodes(testNodesToTidy);
-    }
-    
-    @AfterClass public static void deleteClassTestNodesAndUsers() throws Exception
-    {
-        performDeletionOfNodes(CLASS_TEST_NODES_TO_TIDY);
-        deleteUser(TEST_USER);
-    }
-
-    /**
-     * Deletes the specified NodeRefs, if they exist.
-     * @param nodesToDelete List<NodeRef>
-     */
-    private static void performDeletionOfNodes(final List<NodeRef> nodesToDelete)
-    {
-        TRANSACTION_HELPER.doInTransaction(new RetryingTransactionHelper.RetryingTransactionCallback<Void>()
-            {
-                @Override
-                public Void execute() throws Throwable
-                {
-                    AuthenticationUtil.setFullyAuthenticatedUser(ADMIN_USER);
-                    
-                    for (NodeRef node : nodesToDelete)
-                    {
-                        if (NODE_SERVICE.exists(node))
-                        {
-                            // st:site nodes can only be deleted via the SiteService
-                            if (NODE_SERVICE.getType(node).equals(SiteModel.TYPE_SITE))
-                            {
-                                
-                                SiteInfo siteInfo = SITE_SERVICE.getSite(node);
-                                SITE_SERVICE.deleteSite(siteInfo.getShortName());
-                            }
-                            else
-                            {
-                                NODE_SERVICE.deleteNode(node);
-                            }
-                        }
-                    }
-                    
-                    return null;
                 }
             });
     }
@@ -900,23 +834,6 @@ public class BlogServiceImplTest
                         ppOne.put(ContentModel.PROP_JOBTITLE, "jobTitle");
                         
                         PERSON_SERVICE.createPerson(ppOne);
-                    }
-                    
-                    return null;
-                }
-            });
-    }
-
-    private static void deleteUser(final String userName)
-    {
-        TRANSACTION_HELPER.doInTransaction(new RetryingTransactionHelper.RetryingTransactionCallback<Void>()
-            {
-                @Override
-                public Void execute() throws Throwable
-                {
-                    if (PERSON_SERVICE.personExists(userName))
-                    {
-                        PERSON_SERVICE.deletePerson(userName);
                     }
                     
                     return null;

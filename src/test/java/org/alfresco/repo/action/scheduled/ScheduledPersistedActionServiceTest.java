@@ -30,8 +30,6 @@ import java.util.List;
 
 import javax.transaction.UserTransaction;
 
-import junit.framework.TestCase;
-
 import org.alfresco.model.ContentModel;
 import org.alfresco.repo.action.ActionImpl;
 import org.alfresco.repo.action.RuntimeActionService;
@@ -48,10 +46,11 @@ import org.alfresco.service.cmr.repository.NodeService;
 import org.alfresco.service.namespace.QName;
 import org.alfresco.service.namespace.RegexQNamePattern;
 import org.alfresco.service.transaction.TransactionService;
-import org.alfresco.test_category.OwnJVMTestsCategory;
 import org.alfresco.repo.transaction.RetryingTransactionHelper.RetryingTransactionCallback;
-import org.alfresco.util.ApplicationContextHelper;
-import org.junit.experimental.categories.Category;
+import org.alfresco.util.BaseSpringTest;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
 import org.quartz.CalendarIntervalTrigger;
 import org.quartz.DateBuilder;
 import org.quartz.Job;
@@ -74,11 +73,8 @@ import org.springframework.context.ConfigurableApplicationContext;
 /**
  * Unit tests for the {@link ScheduledPersistedActionService}
  */
-@Category(OwnJVMTestsCategory.class)
-public class ScheduledPersistedActionServiceTest extends TestCase 
+public class ScheduledPersistedActionServiceTest extends BaseSpringTest
 {
-    private static ConfigurableApplicationContext ctx = (ConfigurableApplicationContext) ApplicationContextHelper.getApplicationContext();
-
     private ScheduledPersistedActionServiceBootstrap bootstrap;
     private ScheduledPersistedActionService service;
     private ScheduledPersistedActionServiceImpl serviceImpl;
@@ -93,17 +89,17 @@ public class ScheduledPersistedActionServiceTest extends TestCase
     private Action testAction2;
     private Action testAction3;
 
-    @Override
-    protected void setUp() throws Exception
+    @Before
+    public void setUp() throws Exception
     {
-        actionService = (ActionService) ctx.getBean("actionService");
-        nodeService = (NodeService) ctx.getBean("nodeService");
-        transactionService = (TransactionService) ctx.getBean("transactionService");
-        runtimeActionService = (RuntimeActionService) ctx.getBean("actionService");
-        service = (ScheduledPersistedActionService) ctx.getBean("ScheduledPersistedActionService");
-        serviceImpl = (ScheduledPersistedActionServiceImpl) ctx.getBean("scheduledPersistedActionService");
-        scheduler = (Scheduler) ctx.getBean("schedulerFactory");
-        bootstrap = (ScheduledPersistedActionServiceBootstrap) ctx.getBean("scheduledPersistedActionServiceBootstrap");
+        actionService = (ActionService) applicationContext.getBean("actionService");
+        nodeService = (NodeService) applicationContext.getBean("nodeService");
+        transactionService = (TransactionService) applicationContext.getBean("transactionService");
+        runtimeActionService = (RuntimeActionService) applicationContext.getBean("actionService");
+        service = (ScheduledPersistedActionService) applicationContext.getBean("ScheduledPersistedActionService");
+        serviceImpl = (ScheduledPersistedActionServiceImpl) applicationContext.getBean("scheduledPersistedActionService");
+        scheduler = (Scheduler) applicationContext.getBean("schedulerFactory");
+        bootstrap = (ScheduledPersistedActionServiceBootstrap) applicationContext.getBean("scheduledPersistedActionServiceBootstrap");
 
         // Set the current security context as admin
         AuthenticationUtil.setFullyAuthenticatedUser(AuthenticationUtil.getAdminUserName());
@@ -112,7 +108,7 @@ public class ScheduledPersistedActionServiceTest extends TestCase
         txn.begin();
 
         // Register the test executor, if needed
-        SleepActionExecuter.registerIfNeeded(ctx);
+        SleepActionExecuter.registerIfNeeded(applicationContext);
 
         // Zap all test schedules
         List<ScheduledPersistedAction> schedules = service.listSchedules();
@@ -140,8 +136,8 @@ public class ScheduledPersistedActionServiceTest extends TestCase
         scheduler.standby();
     }
 
-    @Override
-    protected void tearDown() throws Exception
+    @After
+    public void tearDown() throws Exception
     {
         UserTransaction txn = transactionService.getUserTransaction();
         txn.begin();
@@ -161,6 +157,7 @@ public class ScheduledPersistedActionServiceTest extends TestCase
     /**
      * Test that the {@link ScheduledPersistedAction} implementation behaves properly
      */
+    @Test
     public void testPersistedActionImpl() throws Exception
     {
         ScheduledPersistedActionImpl schedule = new ScheduledPersistedActionImpl(testAction);
@@ -250,6 +247,7 @@ public class ScheduledPersistedActionServiceTest extends TestCase
     /**
      * Tests that the to-trigger stuff works properly
      */
+    @Test
     public void testActionToTrigger() throws Exception
     {
         // Can't get a trigger until persisted
@@ -385,6 +383,7 @@ public class ScheduledPersistedActionServiceTest extends TestCase
     /**
      * Tests that the triggers are suitably tweaked based on when the last run occured
      */
+    @Test
     public void testAsTriggerLastRun() throws Exception
     {
         long future = System.currentTimeMillis() + 1234567;
@@ -571,6 +570,7 @@ public class ScheduledPersistedActionServiceTest extends TestCase
     /**
      * Tests that we can create, save, edit, delete etc the scheduled persisted actions
      */
+    @Test
     public void testCreation()
     {
         ScheduledPersistedAction schedule = service.createSchedule(testAction);
@@ -592,6 +592,7 @@ public class ScheduledPersistedActionServiceTest extends TestCase
         assertEquals(ScheduledPersistedAction.IntervalPeriod.Day, schedule.getScheduleIntervalPeriod());
     }
 
+    @Test
     public void testCreateSaveLoad() throws Exception
     {
         // create and save schedule
@@ -648,6 +649,7 @@ public class ScheduledPersistedActionServiceTest extends TestCase
      * Ensures that we can create, save, edit, save load, edit, save, load etc, all without problems, and without
      * creating duplicates
      */
+    @Test
     public void testEditing() throws Exception
     {
         // create and save schedule
@@ -729,6 +731,7 @@ public class ScheduledPersistedActionServiceTest extends TestCase
     /**
      * Tests that the listings work, both of all scheduled, and from an action
      */
+    @Test
     public void testLoadList() throws Exception
     {
         assertEquals(0, service.listSchedules().size());
@@ -750,6 +753,7 @@ public class ScheduledPersistedActionServiceTest extends TestCase
         assertEquals(2, service.listSchedules().size());
     }
 
+    @Test
     public void testLoadFromAction() throws Exception
     {
         // Create schedule
@@ -770,6 +774,7 @@ public class ScheduledPersistedActionServiceTest extends TestCase
     /**
      * Tests that the startup registering works properly
      */
+    @Test
     public void testStartup() throws Exception
     {
         // Startup with none there, nothing happens
@@ -792,7 +797,7 @@ public class ScheduledPersistedActionServiceTest extends TestCase
         schedule.setScheduleStart(new Date(future));
         service.saveSchedule(schedule);
 
-        ((ScheduledPersistedActionServiceImpl) ctx.getBean("scheduledPersistedActionService"))
+        ((ScheduledPersistedActionServiceImpl) applicationContext.getBean("scheduledPersistedActionService"))
                 .removeFromScheduler((ScheduledPersistedActionImpl) schedule);
 
         assertEquals(0, scheduler
@@ -812,6 +817,7 @@ public class ScheduledPersistedActionServiceTest extends TestCase
     /**
      * Ensures that deletion works correctly
      */
+    @Test
     public void testDeletion() throws Exception
     {
         // Delete does nothing if not persisted
@@ -890,6 +896,7 @@ public class ScheduledPersistedActionServiceTest extends TestCase
     /**
      * Tests that things get properly injected onto the job bean
      */
+    @Test
     public void testJobBeanInjection() throws Exception
     {
         // This test needs the scheduler running properly
@@ -906,7 +913,7 @@ public class ScheduledPersistedActionServiceTest extends TestCase
                 .startAt(new Date(1))
                 .withSchedule(SimpleScheduleBuilder.simpleSchedule().withMisfireHandlingInstructionFireNow())
                 .build();
-        Scheduler scheduler = (Scheduler) ctx.getBean("schedulerFactory");
+        Scheduler scheduler = (Scheduler) applicationContext.getBean("schedulerFactory");
         scheduler.scheduleJob(details, now);
 
         // Allow it to run
@@ -924,9 +931,10 @@ public class ScheduledPersistedActionServiceTest extends TestCase
     /**
      * Tests that things actually get run correctly. Each sub-test runs in its own transaction
      */
+    @Test
     public void testExecution() throws Exception
     {
-        final SleepActionExecuter sleepActionExec = (SleepActionExecuter) ctx.getBean(SleepActionExecuter.NAME);
+        final SleepActionExecuter sleepActionExec = (SleepActionExecuter) applicationContext.getBean(SleepActionExecuter.NAME);
         sleepActionExec.resetTimesExecuted();
         sleepActionExec.setSleepMs(1);
 
@@ -1114,9 +1122,10 @@ public class ScheduledPersistedActionServiceTest extends TestCase
      * Tests that when we have more than one schedule defined and active, then the correct things run at the correct
      * times, and we never get confused
      */
+    @Test
     public void testMultipleExecutions() throws Exception
     {
-        final SleepActionExecuter sleepActionExec = (SleepActionExecuter) ctx.getBean(SleepActionExecuter.NAME);
+        final SleepActionExecuter sleepActionExec = (SleepActionExecuter) applicationContext.getBean(SleepActionExecuter.NAME);
         sleepActionExec.resetTimesExecuted();
         sleepActionExec.setSleepMs(1);
 

@@ -29,24 +29,19 @@ import java.util.Random;
 
 import javax.transaction.UserTransaction;
 
-import junit.framework.TestCase;
-
 import org.alfresco.repo.transaction.RetryingTransactionHelper.RetryingTransactionCallback;
 import org.alfresco.service.transaction.TransactionService;
-import org.alfresco.test_category.OwnJVMTestsCategory;
-import org.alfresco.util.ApplicationContextHelper;
-import org.junit.experimental.categories.Category;
-import org.springframework.context.ApplicationContext;
+import org.alfresco.util.BaseSpringTest;
+import org.junit.Before;
+import org.junit.Test;
 
 /**
  * @see org.alfresco.repo.transaction.TransactionAwareSingleton
  * 
  * @author Derek Hulley
  */
-@Category(OwnJVMTestsCategory.class)
-public class TransactionAwareSingletonTest extends TestCase
+public class TransactionAwareSingletonTest extends BaseSpringTest
 {
-    private static ApplicationContext ctx = ApplicationContextHelper.getApplicationContext();
     private static Random rand = new Random();
     
     /** the instance to test */
@@ -55,12 +50,14 @@ public class TransactionAwareSingletonTest extends TestCase
     private static final Integer INTEGER_TWO = new Integer(2);
     
     private TransactionService transactionService;
-    
+
+    @Before
     public void setUp() throws Exception
     {
-        transactionService = (TransactionService) ctx.getBean("transactionComponent");
+        transactionService = (TransactionService) applicationContext.getBean("transactionComponent");
     }
     
+    @Test
     public void testCommit() throws Throwable
     {
         UserTransaction txn = transactionService.getUserTransaction();
@@ -84,6 +81,7 @@ public class TransactionAwareSingletonTest extends TestCase
         check(INTEGER_ONE, false);
     }
     
+    @Test
     public void testRollback() throws Throwable
     {
         UserTransaction txn = transactionService.getUserTransaction();
@@ -108,6 +106,7 @@ public class TransactionAwareSingletonTest extends TestCase
     }
     
     private static final int THREAD_COUNT = 20;
+    @Test
     public void testThreadsCommit() throws Throwable
     {
         TestThread[] threads = new TestThread[THREAD_COUNT];
@@ -133,6 +132,7 @@ public class TransactionAwareSingletonTest extends TestCase
             }
         }
     }
+    @Test
     public void testThreadsRollback() throws Throwable
     {
         TestThread[] threads = new TestThread[THREAD_COUNT];

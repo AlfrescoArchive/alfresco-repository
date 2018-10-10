@@ -25,8 +25,6 @@
  */
 package org.alfresco.repo.tenant;
 
-import static org.junit.Assert.*;
-
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
@@ -49,12 +47,11 @@ import org.alfresco.service.cmr.security.PersonService;
 import org.alfresco.service.namespace.NamespaceService;
 import org.alfresco.service.namespace.QName;
 import org.alfresco.service.transaction.TransactionService;
-import org.alfresco.util.ApplicationContextHelper;
+import org.alfresco.util.BaseSpringTest;
 import org.alfresco.util.GUID;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.springframework.context.ApplicationContext;
 
 /**
  * A test for MultiTServiceImpl class.
@@ -62,9 +59,8 @@ import org.springframework.context.ApplicationContext;
  * @author alex.mukha
  * @since 4.2.3
  */
-public class MultiTServiceImplTest
+public class MultiTServiceImplTest extends BaseSpringTest
 {
-    private static ApplicationContext ctx = ApplicationContextHelper.getApplicationContext();
     private MultiTServiceImpl multiTServiceImpl;
     private TenantAdminService tenantAdminService;
     private PersonService personService;
@@ -112,15 +108,15 @@ public class MultiTServiceImplTest
     @Before
     public void setUp() throws Exception
     {
-        multiTServiceImpl = ctx.getBean("tenantService", MultiTServiceImpl.class);
-        tenantAdminService = ctx.getBean("tenantAdminService", TenantAdminService.class);
-        personService = ctx.getBean("PersonService", PersonService.class);
-        tenantService = ctx.getBean("tenantService", TenantService.class);
-        authenticationService = ctx.getBean("AuthenticationService", MutableAuthenticationService.class);
-        transactionService = ctx.getBean("TransactionService", TransactionService.class);
-        nodeService = ctx.getBean("NodeService", NodeService.class);
-        searchService = ctx.getBean("SearchService", SearchService.class);
-        namespaceService = ctx.getBean("NamespaceService", NamespaceService.class);
+        multiTServiceImpl = applicationContext.getBean("tenantService", MultiTServiceImpl.class);
+        tenantAdminService = applicationContext.getBean("tenantAdminService", TenantAdminService.class);
+        personService = applicationContext.getBean("PersonService", PersonService.class);
+        tenantService = applicationContext.getBean("tenantService", TenantService.class);
+        authenticationService = applicationContext.getBean("AuthenticationService", MutableAuthenticationService.class);
+        transactionService = applicationContext.getBean("TransactionService", TransactionService.class);
+        nodeService = applicationContext.getBean("NodeService", NodeService.class);
+        searchService = applicationContext.getBean("SearchService", SearchService.class);
+        namespaceService = applicationContext.getBean("NamespaceService", NamespaceService.class);
 
         DOMAIN = GUID.generate();
         USER1 = GUID.generate();
@@ -920,7 +916,7 @@ public class MultiTServiceImplTest
                             // TODO: WARNING: HACK for ALF-19155: MT deleteTenant does not work
                             //       PersonService prevents 'guest' authorities from being deleted
                             {
-                                BehaviourFilter behaviourFilter = (BehaviourFilter) ctx.getBean("policyBehaviourFilter");
+                                BehaviourFilter behaviourFilter = (BehaviourFilter) applicationContext.getBean("policyBehaviourFilter");
                                 behaviourFilter.disableBehaviour(ContentModel.TYPE_PERSON);
                                 behaviourFilter.disableBehaviour(ContentModel.ASPECT_UNDELETABLE);
                             }

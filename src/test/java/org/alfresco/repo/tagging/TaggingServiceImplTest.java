@@ -63,8 +63,7 @@ import org.alfresco.service.cmr.tagging.TagScope;
 import org.alfresco.service.namespace.NamespaceService;
 import org.alfresco.service.namespace.QName;
 import org.alfresco.service.transaction.TransactionService;
-import org.alfresco.test_category.OwnJVMTestsCategory;
-import org.alfresco.util.ApplicationContextHelper;
+import org.alfresco.util.BaseSpringTest;
 import org.alfresco.util.GUID;
 import org.alfresco.util.Pair;
 import org.alfresco.util.PropertyMap;
@@ -77,17 +76,12 @@ import org.junit.Before;
 import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
-import org.junit.runner.RunWith;
 import org.junit.runners.MethodSorters;
-import org.mockito.runners.MockitoJUnitRunner;
-import org.springframework.context.ConfigurableApplicationContext;
 
 import java.io.ByteArrayInputStream;
 import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
 import java.util.*;
-
-import static org.junit.Assert.*;
 
 /**
  * Tagging service implementation unit test
@@ -96,13 +90,8 @@ import static org.junit.Assert.*;
  * @author Nick Burch
  */
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-@Category({OwnJVMTestsCategory.class, LuceneTests.class})
-@RunWith(MockitoJUnitRunner.class)
-public class TaggingServiceImplTest
+public class TaggingServiceImplTest extends BaseSpringTest
 {
-   private static ConfigurableApplicationContext ctx = 
-      (ConfigurableApplicationContext)ApplicationContextHelper.getApplicationContext();
-   
    private static final Log logger = LogFactory.getLog(TaggingServiceImplTest.class);
    
     /** Services */
@@ -164,31 +153,31 @@ public class TaggingServiceImplTest
         }
         
         // Get services
-        this.taggingService = (TaggingServiceImpl)ctx.getBean("taggingService");
-        this.nodeService = (NodeService) ctx.getBean("NodeService");
-        this.fileFolderService = (FileFolderService) ctx.getBean("FileFolderService");
-        this.copyService = (CopyService) ctx.getBean("CopyService");
-        this.checkOutCheckInService = (CheckOutCheckInService) ctx.getBean("CheckoutCheckinService");
-        this.actionService = (ActionService)ctx.getBean("ActionService");
-        this.transactionService = (TransactionService)ctx.getBean("transactionComponent");
-        this.siteService = ctx.getBean("SiteService", SiteService.class);
+        this.taggingService = (TaggingServiceImpl)applicationContext.getBean("taggingService");
+        this.nodeService = (NodeService) applicationContext.getBean("NodeService");
+        this.fileFolderService = (FileFolderService) applicationContext.getBean("FileFolderService");
+        this.copyService = (CopyService) applicationContext.getBean("CopyService");
+        this.checkOutCheckInService = (CheckOutCheckInService) applicationContext.getBean("CheckoutCheckinService");
+        this.actionService = (ActionService)applicationContext.getBean("ActionService");
+        this.transactionService = (TransactionService)applicationContext.getBean("transactionComponent");
+        this.siteService = applicationContext.getBean("SiteService", SiteService.class);
         //MNT-10807 : Auditing does not take into account audit.filter.alfresco-access.transaction.user
         UserAuditFilter userAuditFilter = new UserAuditFilter();
         userAuditFilter.setUserFilterPattern("System;.*");
         userAuditFilter.afterPropertiesSet();
-        AuditComponent auditComponent = (AuditComponent) ctx.getBean("auditComponent");
+        AuditComponent auditComponent = (AuditComponent) applicationContext.getBean("auditComponent");
         auditComponent.setUserAuditFilter(userAuditFilter);
-        AuditServiceImpl auditServiceImpl = (AuditServiceImpl) ctx.getBean("auditService");
+        AuditServiceImpl auditServiceImpl = (AuditServiceImpl) applicationContext.getBean("auditService");
         auditServiceImpl.setAuditComponent(auditComponent);
-        this.auditService = (AuditService)ctx.getBean("auditService");
-        this.scriptService = (ScriptService)ctx.getBean("scriptService");        
-        this.actionTrackingService = (ActionTrackingService)ctx.getBean("actionTrackingService");
-        this.authenticationComponent = (AuthenticationComponent)ctx.getBean("authenticationComponent");
+        this.auditService = (AuditService)applicationContext.getBean("auditService");
+        this.scriptService = (ScriptService)applicationContext.getBean("scriptService");        
+        this.actionTrackingService = (ActionTrackingService)applicationContext.getBean("actionTrackingService");
+        this.authenticationComponent = (AuthenticationComponent)applicationContext.getBean("authenticationComponent");
         
-        this.personService = (PersonService)ctx.getBean("PersonService");
-        this.permissionService = (PermissionService)ctx.getBean("PermissionService");
-        this.authenticationService = (MutableAuthenticationService)ctx.getBean("authenticationService");
-        this.nodeRefPropInterceptor = (NodeRefPropertyMethodInterceptor)ctx.getBean("nodeRefPropertyInterceptor");
+        this.personService = (PersonService)applicationContext.getBean("PersonService");
+        this.permissionService = (PermissionService)applicationContext.getBean("PermissionService");
+        this.authenticationService = (MutableAuthenticationService)applicationContext.getBean("authenticationService");
+        this.nodeRefPropInterceptor = (NodeRefPropertyMethodInterceptor)applicationContext.getBean("nodeRefPropertyInterceptor");
 
         if (init == false)
         {
@@ -225,7 +214,7 @@ public class TaggingServiceImplTest
         
         // We want to know when tagging actions have finished running
         asyncOccurs = new AsyncOccurs();
-        ((PolicyComponent)ctx.getBean("policyComponent")).bindClassBehaviour(
+        ((PolicyComponent)applicationContext.getBean("policyComponent")).bindClassBehaviour(
               AsynchronousActionExecutionQueuePolicies.OnAsyncActionExecute.QNAME,
               ActionModel.TYPE_ACTION,
               new JavaBehaviour(asyncOccurs, "onAsyncActionExecute", NotificationFrequency.EVERY_EVENT)
@@ -233,7 +222,7 @@ public class TaggingServiceImplTest
     
         // We do want action tracking whenever the tag scope updater runs
         UpdateTagScopesActionExecuter updateTagsAction = 
-            (UpdateTagScopesActionExecuter)ctx.getBean("update-tagscope");
+            (UpdateTagScopesActionExecuter)applicationContext.getBean("update-tagscope");
         updateTagsAction.setTrackStatus(true);
 
         // Create the folders and documents to be tagged
@@ -1760,7 +1749,7 @@ public class TaggingServiceImplTest
     @Test
     public void test93OnStartupJob() throws Exception
     {
-        final UpdateTagScopesActionExecuter updateTagsAction = (UpdateTagScopesActionExecuter) ctx
+        final UpdateTagScopesActionExecuter updateTagsAction = (UpdateTagScopesActionExecuter) applicationContext
                 .getBean("update-tagscope");
         class TestData 
         {
@@ -2490,7 +2479,7 @@ public class TaggingServiceImplTest
 
                 // STEP5 start job taggingStartupJobDetail
                 // Fire off the quartz bean, this time it can really work
-                final UpdateTagScopesActionExecuter updateTagsAction = (UpdateTagScopesActionExecuter) ctx.getBean("update-tagscope");
+                final UpdateTagScopesActionExecuter updateTagsAction = (UpdateTagScopesActionExecuter) applicationContext.getBean("update-tagscope");
                 UpdateTagScopesQuartzJob job = new UpdateTagScopesQuartzJob();
                 job.execute(actionService, updateTagsAction);
 
