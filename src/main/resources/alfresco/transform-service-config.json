@@ -61,6 +61,8 @@
     "transformOptions": [
       {"value": {"required": false, "name": "alphaRemove"}},
       {"value": {"required": false, "name": "autoOrient"}},
+      {"value": {"required": false, "name": "startPage"}},
+      {"value": {"required": false, "name": "endPage"}},
       {"group": {"required": false, "transformOptions": [
         {"value": {"required": false, "name": "cropGravity"}},
         {"value": {"required": false, "name": "cropWidth"}},
@@ -74,6 +76,7 @@
         {"value": {"required": false, "name": "resizeHeight"}},
         {"value": {"required": false, "name": "resizeWidth"}},
         {"value": {"required": false, "name": "resizePercentage"}},
+        {"value": {"required": false, "name": "allowEnlargement"}},
         {"value": {"required": false, "name": "maintainAspectRatio"}}
       ]}}
     ],
