@@ -928,7 +928,7 @@ public class SchemaBootstrap extends AbstractLifecycleBean
         boolean activitiTablesExist = checkActivitiTablesExist(connection);
         if (logger.isInfoEnabled())
         {
-            logger.info("Activiti tables exist: " + activitiTablesExist);
+            logger.info("Activiti tables need to be " + (activitiTablesExist ? "checked for patches" : " created"));
         }
 
         if(!activitiTablesExist)
@@ -992,8 +992,8 @@ public class SchemaBootstrap extends AbstractLifecycleBean
 
             if (logger.isInfoEnabled())
             {
-                logger.info("Checking all patches have been applied, executed in: " + (System.currentTimeMillis() - start) 
-                    + " ms");
+                logger.info("Checking all patches have been applied, executed in: " +
+                             (System.currentTimeMillis() - start) + " ms");
             }
         }
 
