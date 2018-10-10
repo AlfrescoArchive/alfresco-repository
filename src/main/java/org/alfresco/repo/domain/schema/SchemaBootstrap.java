@@ -873,7 +873,7 @@ public class SchemaBootstrap extends AbstractLifecycleBean
             final int numberOfPatchesApplied = countAppliedPatches(connection);
             if (logger.isInfoEnabled())
             {
-                logger.info("Number of patches applied detected: " + numberOfPatchesApplied);
+                logger.info("Applied patches detected: " + numberOfPatchesApplied);
             }
         }
         catch (NoSchemaException e)
@@ -902,7 +902,7 @@ public class SchemaBootstrap extends AbstractLifecycleBean
 
             if (logger.isInfoEnabled())
             {
-                logger.info("Create scripts executed in " + (System.currentTimeMillis() - start) + " ms");
+                logger.info("Creating Alfresco tables took " + (System.currentTimeMillis() - start) + " ms");
             }
         }
         else
@@ -918,7 +918,7 @@ public class SchemaBootstrap extends AbstractLifecycleBean
             if (logger.isInfoEnabled())
             {
                 logger.info(
-                    "Update scripts executed in " + (System.currentTimeMillis() - start) + " ms");
+                    "Checking and patching Alfresco tables took " + (System.currentTimeMillis() - start) + " ms");
             }
         }
 
@@ -963,7 +963,7 @@ public class SchemaBootstrap extends AbstractLifecycleBean
             }
             if (logger.isInfoEnabled())
             {
-                logger.info("Creating and patching activiti tables executed in: " + (System.currentTimeMillis() - start) + " ms");
+                logger.info("Creating Activiti tables took " + (System.currentTimeMillis() - start) + " ms");
             }
         }
         else
@@ -978,7 +978,7 @@ public class SchemaBootstrap extends AbstractLifecycleBean
 
             if (logger.isInfoEnabled())
             {
-                logger.info("Checking and patching activiti tables executed in: " + (System.currentTimeMillis() - start) + " ms");
+                logger.info("Checking and patching Activiti tables took " + (System.currentTimeMillis() - start) + " ms");
             }
         }
 
@@ -992,8 +992,7 @@ public class SchemaBootstrap extends AbstractLifecycleBean
 
             if (logger.isInfoEnabled())
             {
-                logger.info("Checking all patches have been applied, executed in: " +
-                             (System.currentTimeMillis() - start) + " ms");
+                logger.info("Checking that all patches have been applied took " + (System.currentTimeMillis() - start) + " ms");
             }
         }
 
@@ -1007,11 +1006,6 @@ public class SchemaBootstrap extends AbstractLifecycleBean
      */
     private void initialiseActivitiDBSchema(Connection connection)
     {
-        if (logger.isInfoEnabled())
-        {
-            logger.info("Initialise Activiti DB Schema tables");
-        }
-
         // create instance of activiti engine to initialise schema
         ProcessEngine engine = null;
         ProcessEngineConfiguration engineConfig = ProcessEngineConfiguration.createStandaloneProcessEngineConfiguration();
@@ -1026,7 +1020,10 @@ public class SchemaBootstrap extends AbstractLifecycleBean
                 buildProcessEngine();
 
             String schemaName = dbSchemaName != null ? dbSchemaName : databaseMetaDataHelper.getSchema(connection);
-            // create or upgrade the DB schema
+            if (logger.isInfoEnabled())
+            {
+                logger.info("Creating Activiti DB schema tables");
+            }
             engine.getManagementService().databaseSchemaUpgrade(connection, null, schemaName);
         }
         finally
@@ -1117,8 +1114,7 @@ public class SchemaBootstrap extends AbstractLifecycleBean
     {
         if (isAnotherClusterMemberBootstrapping(connection))
         {
-            logger.info("Another cluster node is doing a DB schema initialization or DB update. "
-                + "Waiting for the other node to finish...");
+            logger.info("Another Alfresco cluster node is updating the DB. Waiting for the other node to finish...");
 
             // We throw a well-known exception to be handled by retrying code if required
             throw new LockFailedException();
