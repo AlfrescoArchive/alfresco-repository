@@ -1114,7 +1114,7 @@ public class SchemaBootstrap extends AbstractLifecycleBean
     {
         if (isAnotherClusterMemberBootstrapping(connection))
         {
-            logger.info("Another Alfresco cluster node is updating the DB. Waiting for the other node to finish...");
+            logger.info("Another Alfresco cluster node is updating the DB");
 
             // We throw a well-known exception to be handled by retrying code if required
             throw new LockFailedException();
@@ -1731,14 +1731,16 @@ public class SchemaBootstrap extends AbstractLifecycleBean
                         if (logger.isInfoEnabled())
                         {
                             logger.info(
-                                (createdSchema ? "Created" : "Updated") +
-                                    " schema in " + (System.currentTimeMillis() - start) + " ms");
+                                (createdSchema ? "Creating" : "Updating") +
+                                    " the DB schema took " + (System.currentTimeMillis() - start) + " ms");
                         }
                         break;
                     }
                     catch (LockFailedException e)
                     {
-                        logger.info("DB lock failed on schema bootstrap. Attempt: " + i);
+                        logger.info(
+                            "The current Alfresco cluster node is waiting for another chance to bootstrap the DB schema. "
+                                + "Attempt: " + (i + 1) + " of " + schemaUpdateLockRetryCount);
                         try { this.wait(schemaUpdateLockRetryWaitSeconds * 1000L); } catch (InterruptedException ee) {}
                     }
                 }
