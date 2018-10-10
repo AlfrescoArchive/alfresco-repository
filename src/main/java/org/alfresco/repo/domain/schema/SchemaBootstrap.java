@@ -918,7 +918,7 @@ public class SchemaBootstrap extends AbstractLifecycleBean
             if (logger.isInfoEnabled())
             {
                 logger.info(
-                    "Update case: checkSchemaPatchScripts scripts executed in " + (System.currentTimeMillis() - start) + " ms");
+                    "Update scripts executed in " + (System.currentTimeMillis() - start) + " ms");
             }
         }
 
@@ -992,7 +992,7 @@ public class SchemaBootstrap extends AbstractLifecycleBean
 
             if (logger.isInfoEnabled())
             {
-                logger.info("Update case: checking all patches are applied, executed in: " + (System.currentTimeMillis() - start)
+                logger.info("Checking all patches have been applied, executed in: " + (System.currentTimeMillis() - start) 
                     + " ms");
             }
         }
@@ -1727,11 +1727,16 @@ public class SchemaBootstrap extends AbstractLifecycleBean
                 {
                     try
                     {
+                        long start = System.currentTimeMillis();
+
                         createdSchema = updateSchema(connection);
                         updatedSchema = true;
+
                         if (logger.isInfoEnabled())
                         {
-                            logger.info("Created schema value: " + createdSchema);
+                            logger.info(
+                                (createdSchema ? "Created" : "Updated") +
+                                    " schema in " + (System.currentTimeMillis() - start) + " ms");
                         }
                         break;
                     }
