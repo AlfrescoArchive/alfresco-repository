@@ -32,6 +32,8 @@ import org.apache.camel.component.jackson.JacksonDataFormat;
 import org.apache.camel.core.xml.CamelJMXAgentDefinition;
 import org.apache.camel.impl.ExplicitCamelContextNameStrategy;
 import org.apache.camel.spring.javaconfig.CamelConfiguration;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
@@ -43,11 +45,14 @@ import org.springframework.context.annotation.Configuration;
 @ComponentScan
 public class AlfrescoCamelConfiguration extends CamelConfiguration
 {
+    private Log logger = LogFactory.getLog(AlfrescoCamelConfiguration.class);
+
     public static String CAMEL_CONTEXT_NAME = "alfrescoCamelContext";
 
     @Override
     protected void setupCamelContext(CamelContext camelContext) throws Exception
     {
+        logger.info("Starting Camel context with id: " + CAMEL_CONTEXT_NAME);
         camelContext.setNameStrategy(new ExplicitCamelContextNameStrategy(CAMEL_CONTEXT_NAME));
         super.setupCamelContext(camelContext);
     }

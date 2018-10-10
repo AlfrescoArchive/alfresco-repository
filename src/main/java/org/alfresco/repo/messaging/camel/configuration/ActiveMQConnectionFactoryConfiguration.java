@@ -35,6 +35,8 @@ import org.apache.activemq.ActiveMQConnectionFactory;
 import org.apache.activemq.ActiveMQSslConnectionFactory;
 import org.apache.activemq.pool.PooledConnectionFactory;
 import org.apache.camel.component.amqp.AMQPComponent;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
@@ -51,6 +53,8 @@ import org.springframework.jms.connection.JmsTransactionManager;
 @Configuration
 public class ActiveMQConnectionFactoryConfiguration
 {
+    private Log logger = LogFactory.getLog(ActiveMQConnectionFactoryConfiguration.class);
+
     @Value("${messaging.broker.connections.max}")
     private int maxConnections;
 
@@ -90,6 +94,7 @@ public class ActiveMQConnectionFactoryConfiguration
 
     protected ConnectionFactory createConnectionFactory()
     {
+        logger.info("Crating ActiveMQ connection factory with URL: " + brokerUrl);
         return new ActiveMQConnectionFactory(username, password, brokerUrl);
     }
 
@@ -99,6 +104,7 @@ public class ActiveMQConnectionFactoryConfiguration
         factory.setKeyAndTrustManagers(keyStore.createKeyManagers(), trustStore.createTrustManagers(), new SecureRandom());
         factory.setUserName(username);
         factory.setPassword(password);
+        logger.info("Crating secure ActiveMQ connection factory with URL: " + brokerUrl);
         return factory;
     }
 
