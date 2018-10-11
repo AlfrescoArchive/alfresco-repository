@@ -58,14 +58,15 @@ public class TransformServiceRegistryImpl implements TransformServiceRegistry, I
         }
     }
 
+    private ObjectMapper jsonObjectMapper;
     private ExtensionMap extensionMap;
 
     ConcurrentMap<String, ConcurrentMap<String, List<SupportedTransform>>> transformers = new ConcurrentHashMap<>();
     ConcurrentMap<String, ConcurrentMap<String, Long>> cachedMaxSizes = new ConcurrentHashMap<>();
 
-    public ExtensionMap getExtensionMap()
+    public void setJsonObjectMapper(ObjectMapper jsonObjectMapper)
     {
-        return extensionMap;
+        this.jsonObjectMapper = jsonObjectMapper;
     }
 
     public void setExtensionMap(ExtensionMap extensionMap)
@@ -76,6 +77,10 @@ public class TransformServiceRegistryImpl implements TransformServiceRegistry, I
     @Override
     public void afterPropertiesSet() throws Exception
     {
+        if (jsonObjectMapper == null)
+        {
+            throw new IllegalStateException("jsonObjectMapper has not been set");
+        }
         if (extensionMap == null)
         {
             throw new IllegalStateException("extensionMap has not been set");
@@ -104,8 +109,7 @@ public class TransformServiceRegistryImpl implements TransformServiceRegistry, I
 
     public void register(Reader reader) throws IOException
     {
-        ObjectMapper objectMapper = new ObjectMapper();
-        List<Transformer> transformers = objectMapper.readValue(reader, new TypeReference<List<Transformer>>(){});
+        List<Transformer> transformers = jsonObjectMapper.readValue(reader, new TypeReference<List<Transformer>>(){});
         transformers.forEach(t -> register(t));
     }
 

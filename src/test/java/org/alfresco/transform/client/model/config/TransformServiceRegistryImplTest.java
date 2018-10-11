@@ -79,7 +79,9 @@ public class TransformServiceRegistryImplTest
     public static final String PPTX_MIMETYPE = "application/vnd.openxmlformats-officedocument.presentationml.presentation";
     public static final String MSG_MIMETYPE = "application/vnd.ms-outlook";
     public static final String TXT_MIMETYPE = "text/plain";
+
     public static final String TRANSFORM_SERVICE_CONFIG = "alfresco/transform-service-config.json";
+    public static final ObjectMapper JSON_OBJECT_MAPPER = new ObjectMapper();
 
     private TransformServiceRegistryImpl registry;
     private TransformBuilder builder;
@@ -116,10 +118,17 @@ public class TransformServiceRegistryImplTest
             }
         };
 
-        registry = new TransformServiceRegistryImpl();
-        registry.setExtensionMap(extensionMap);
+        registry = buildTransformServiceRegistryImpl();
 
         builder = new TransformBuilder();
+    }
+
+    private TransformServiceRegistryImpl buildTransformServiceRegistryImpl()
+    {
+        TransformServiceRegistryImpl registry = new TransformServiceRegistryImpl();
+        registry.setExtensionMap(extensionMap);
+        registry.setJsonObjectMapper(JSON_OBJECT_MAPPER);
+        return registry;
     }
 
     @After
@@ -185,8 +194,7 @@ public class TransformServiceRegistryImplTest
                         new SupportedSourceAndTarget(DOC, TXT, -1),
                         new SupportedSourceAndTarget(XLS, TXT, 1024000)));
 
-        registry = new TransformServiceRegistryImpl();
-        registry.setExtensionMap(extensionMap);
+        registry = buildTransformServiceRegistryImpl();
         registry.register(transformer);
 
         assertTrue(registry.isSupported(XLS_MIMETYPE, 1024, TXT_MIMETYPE, Collections.emptyMap(), null));
@@ -205,8 +213,7 @@ public class TransformServiceRegistryImplTest
                                  Map<String, String> actualOptions, String unsupportedMsg,
                                  Transformer... transformers)
     {
-        registry = new TransformServiceRegistryImpl();
-        registry.setExtensionMap(extensionMap);
+        registry = buildTransformServiceRegistryImpl();
         for (Transformer transformer : transformers)
         {
             registry.register(transformer);
