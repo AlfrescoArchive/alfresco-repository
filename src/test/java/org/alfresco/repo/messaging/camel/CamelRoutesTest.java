@@ -57,7 +57,7 @@ public class CamelRoutesTest
     protected MockEndpoint dlqEndpoint;
     
     @Autowired
-    protected CamelContext camelContext;
+    protected CamelContext alfrescoCamelContext;
     
     @Produce(uri = "direct-vm:alfresco.test.1")
     protected ProducerTemplate template1;

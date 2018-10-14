@@ -81,7 +81,7 @@ public class EventBehaviourTest extends BaseSpringTest
     private NodeRef contentNodeRef;
 
     @Autowired
-    private CamelContext camelContext;
+    private CamelContext alfrescoCamelContext;
     @Autowired
     private AbstractEventProducer eventProducer;
 
@@ -115,7 +115,7 @@ public class EventBehaviourTest extends BaseSpringTest
         assertNotNull(rootNodeRef);
         assertNotNull(contentNodeRef);
 
-        assertNotNull(camelContext);
+        assertNotNull(alfrescoCamelContext);
         assertNotNull(eventProducer);
     }
 
@@ -151,7 +151,7 @@ public class EventBehaviourTest extends BaseSpringTest
         this.policyFired = false;
         String endpointUri = getMockEndpointUri();
 
-        MockEndpoint mockEndpoint = camelContext.getEndpoint(endpointUri, MockEndpoint.class);
+        MockEndpoint mockEndpoint = alfrescoCamelContext.getEndpoint(endpointUri, MockEndpoint.class);
         mockEndpoint.setAssertPeriod(500);
 
         retryingTransactionHelper.doInTransaction(() -> {
@@ -224,7 +224,7 @@ public class EventBehaviourTest extends BaseSpringTest
         this.policyFired = false;
         String endpointUri = getMockEndpointUri();
 
-        MockEndpoint mockEndpoint = camelContext.getEndpoint(endpointUri, MockEndpoint.class);
+        MockEndpoint mockEndpoint = alfrescoCamelContext.getEndpoint(endpointUri, MockEndpoint.class);
         mockEndpoint.setAssertPeriod(500);
 
         retryingTransactionHelper.doInTransaction(() -> {
@@ -310,7 +310,7 @@ public class EventBehaviourTest extends BaseSpringTest
         this.policyFired = false;
         String endpointUri = getMockEndpointUri();
 
-        MockEndpoint mockEndpoint = camelContext.getEndpoint(endpointUri, MockEndpoint.class);
+        MockEndpoint mockEndpoint = alfrescoCamelContext.getEndpoint(endpointUri, MockEndpoint.class);
         mockEndpoint.setAssertPeriod(500);
 
         retryingTransactionHelper.doInTransaction(() -> {
