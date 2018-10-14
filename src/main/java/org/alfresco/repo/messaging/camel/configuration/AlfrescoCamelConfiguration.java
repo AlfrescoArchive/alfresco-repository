@@ -28,7 +28,6 @@ package org.alfresco.repo.messaging.camel.configuration;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import org.apache.camel.CamelContext;
-import org.apache.camel.ProducerTemplate;
 import org.apache.camel.component.jackson.JacksonDataFormat;
 import org.apache.camel.core.xml.CamelJMXAgentDefinition;
 import org.apache.camel.impl.ExplicitCamelContextNameStrategy;
@@ -48,8 +47,7 @@ public class AlfrescoCamelConfiguration extends CamelConfiguration
 {
     private Log logger = LogFactory.getLog(AlfrescoCamelConfiguration.class);
 
-    public static final String CAMEL_CONTEXT_NAME = "alfrescoCamelContext";
-    public static final String CAMEL_PRODUCER_TEMPLATE_NAME = "alfrescoProducerTemplate";
+    public static String CAMEL_CONTEXT_NAME = "alfrescoCamelContext";
 
     @Override
     protected void setupCamelContext(CamelContext camelContext) throws Exception
@@ -57,20 +55,6 @@ public class AlfrescoCamelConfiguration extends CamelConfiguration
         logger.info("Starting Camel context with id: " + CAMEL_CONTEXT_NAME);
         camelContext.setNameStrategy(new ExplicitCamelContextNameStrategy(CAMEL_CONTEXT_NAME));
         super.setupCamelContext(camelContext);
-    }
-
-    @Override
-    @Bean(name = CAMEL_CONTEXT_NAME)
-    public CamelContext camelContext() throws Exception
-    {
-        return super.camelContext();
-    }
-
-    @Override
-    @Bean(initMethod = "", destroyMethod = "", name = CAMEL_PRODUCER_TEMPLATE_NAME)
-    public ProducerTemplate producerTemplate(CamelContext camelContext) throws Exception
-    {
-        return super.producerTemplate(camelContext);
     }
 
     @Bean

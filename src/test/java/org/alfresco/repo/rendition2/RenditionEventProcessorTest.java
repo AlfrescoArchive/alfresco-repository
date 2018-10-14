@@ -29,7 +29,6 @@ import static org.mockito.Mockito.doThrow;
 
 import org.alfresco.error.AlfrescoRuntimeException;
 import org.alfresco.repo.events.raw.OnContentUpdatePolicyEvent;
-import org.alfresco.repo.messaging.camel.configuration.AlfrescoCamelConfiguration;
 import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.transaction.TransactionService;
 import org.alfresco.util.ApplicationContextHelper;
@@ -74,7 +73,7 @@ public class RenditionEventProcessorTest
     {
         ApplicationContext ctx = ApplicationContextHelper.getApplicationContext();
 
-        camelContext = (CamelContext) ctx.getBean(AlfrescoCamelConfiguration.CAMEL_CONTEXT_NAME);
+        camelContext = (CamelContext) ctx.getBean("camelContext");
         messagingObjectMapper = (ObjectMapper) ctx.getBean("alfrescoEventObjectMapper");
         TransactionService transactionService = (TransactionService) ctx.getBean("transactionService");
 

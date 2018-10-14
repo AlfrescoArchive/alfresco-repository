@@ -29,7 +29,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.alfresco.error.AlfrescoRuntimeException;
-import org.alfresco.repo.messaging.camel.configuration.AlfrescoCamelConfiguration;
 import org.apache.activemq.transport.amqp.message.AmqpMessageSupport;
 import org.apache.camel.ProducerTemplate;
 import org.apache.commons.lang.StringUtils;
@@ -57,7 +56,7 @@ public abstract class AbstractEventProducer
     protected static final String ERROR_SENDING = "Could not send event";
 
     @Autowired
-    @Qualifier(AlfrescoCamelConfiguration.CAMEL_PRODUCER_TEMPLATE_NAME)
+    @Qualifier("producerTemplate")
     protected ProducerTemplate producer;
     protected String endpoint;
     @Autowired

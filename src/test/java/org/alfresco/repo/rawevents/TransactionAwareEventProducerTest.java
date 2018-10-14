@@ -48,7 +48,7 @@ public class TransactionAwareEventProducerTest extends BaseSpringTest
     @Autowired
     private RetryingTransactionHelper retryingTransactionHelper;
     @Autowired
-    private CamelContext alfrescoCamelContext;
+    private CamelContext camelContext;
     @Autowired
     private TransactionAwareEventProducer eventProducer;
     @Autowired
@@ -59,7 +59,7 @@ public class TransactionAwareEventProducerTest extends BaseSpringTest
     {
         String endpointUri = getMockEndpointUri();
 
-        MockEndpoint mockEndpoint = alfrescoCamelContext.getEndpoint(endpointUri, MockEndpoint.class);
+        MockEndpoint mockEndpoint = camelContext.getEndpoint(endpointUri, MockEndpoint.class);
         mockEndpoint.setAssertPeriod(500);
 
         String stringMessage = "stringMessage";
