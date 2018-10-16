@@ -1,0 +1,24 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!-- Logging related bean definitions -->
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+        http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+	<bean id="restMetricsProvider" class="org.alfresco.micrometer.RestMetricsProvider">
+		<property name="metricsController" ref="metricsController" />
+	</bean>
+
+	<bean id="jvmMetricsProvider" class="org.alfresco.micrometer.JVMMetricsProvider">
+		<property name="metricsController" ref="metricsController" />
+	</bean>
+
+	<bean id="metricsController" class="org.alfresco.micrometer.MetricsController">
+		<property name="registryFactory" ref="metricsRegistryFactory" />
+		<property name="enableMetrics" value="${webscripts.enableMetrics}" />
+	</bean>
+
+	<bean id="metricsRegistryFactory" class="org.alfresco.micrometer.MetricsRegistryFactory">
+	</bean>
+
+</beans>
