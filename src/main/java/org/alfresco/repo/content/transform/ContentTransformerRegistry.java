@@ -170,9 +170,7 @@ public class ContentTransformerRegistry
     public ContentTransformer getTransformer(String sourceMimetype, long sourceSize, String targetMimetype, TransformationOptions options)
     {
         // Get the sorted list of transformers
-        List<ContentTransformer> transformers = enabled
-                ? getActiveTransformers(sourceMimetype, sourceSize, targetMimetype, options)
-                : Collections.EMPTY_LIST;
+        List<ContentTransformer> transformers = getActiveTransformers(sourceMimetype, sourceSize, targetMimetype, options);
 
         // select the most performant transformer
         ContentTransformer bestTransformer = null;
@@ -190,7 +188,9 @@ public class ContentTransformerRegistry
     public List<ContentTransformer> getActiveTransformers(String sourceMimetype, long sourceSize, String targetMimetype, TransformationOptions options)
     {
         // Get the list of transformers
-        List<ContentTransformer> transformers = transformerSelector.selectTransformers(sourceMimetype, sourceSize, targetMimetype, options);
+        List<ContentTransformer> transformers = enabled
+                ? transformerSelector.selectTransformers(sourceMimetype, sourceSize, targetMimetype, options)
+                : Collections.EMPTY_LIST;
         if (logger.isDebugEnabled())
         {
             logger.debug("Searched for transformer: \n" +

@@ -25,9 +25,6 @@
  */
 package org.alfresco.repo.content.transform;
 
-import java.util.Collections;
-import java.util.List;
-
 import org.alfresco.repo.content.MimetypeMap;
 import org.alfresco.repo.content.filestore.FileContentReader;
 import org.alfresco.repo.content.filestore.FileContentWriter;
@@ -38,8 +35,10 @@ import org.alfresco.service.cmr.repository.TransformationOptions;
 import org.alfresco.util.TempFileProvider;
 import org.junit.Assert;
 
-import static org.alfresco.repo.content.MimetypeMap.MIMETYPE_OPENXML_WORDPROCESSING;
-import static org.alfresco.repo.content.MimetypeMap.MIMETYPE_PDF;
+import java.util.Collections;
+import java.util.List;
+
+import static org.alfresco.repo.content.MimetypeMap.MIMETYPE_TEXT_PLAIN;
 
 /**
  * @see org.alfresco.repo.content.transform.ContentTransformerRegistry
@@ -51,7 +50,7 @@ import static org.alfresco.repo.content.MimetypeMap.MIMETYPE_PDF;
 @Deprecated
 public class ContentTransformerRegistryTest extends AbstractContentTransformerTest
 {
-    private static final String A = MimetypeMap.MIMETYPE_TEXT_PLAIN;
+    private static final String A = MIMETYPE_TEXT_PLAIN;
     private static final String B = MimetypeMap.MIMETYPE_XML;
     private static final String C = MimetypeMap.MIMETYPE_WORD;
     private static final String D = MimetypeMap.MIMETYPE_HTML;
@@ -130,34 +129,34 @@ public class ContentTransformerRegistryTest extends AbstractContentTransformerTe
     {
         TransformationOptions options = new TransformationOptions();
 
-        Assert.assertNotNull(registry.getTransformer(MIMETYPE_OPENXML_WORDPROCESSING, -1, MIMETYPE_PDF, options));
+        Assert.assertNotNull(registry.getTransformer(MIMETYPE_TEXT_PLAIN, -1, MIMETYPE_TEXT_PLAIN, options));
         try
         {
             registry.setEnabled("false");
-            Assert.assertNull(registry.getTransformer(MIMETYPE_OPENXML_WORDPROCESSING, -1, MIMETYPE_PDF, options));
+            Assert.assertNull(registry.getTransformer(MIMETYPE_TEXT_PLAIN, -1, MIMETYPE_TEXT_PLAIN, options));
         }
         finally
         {
             registry.setEnabled("true");
         }
-        Assert.assertNotNull(registry.getTransformer(MIMETYPE_OPENXML_WORDPROCESSING, -1, MIMETYPE_PDF, options));
+        Assert.assertNotNull(registry.getTransformer(MIMETYPE_TEXT_PLAIN, -1, MIMETYPE_TEXT_PLAIN, options));
     }
 
     public void testGetActiveTransformersEnabledDisabled() throws Exception
     {
         TransformationOptions options = new TransformationOptions();
 
-        Assert.assertFalse(registry.getActiveTransformers(MIMETYPE_OPENXML_WORDPROCESSING, -1, MIMETYPE_PDF, options).isEmpty());
+        Assert.assertFalse(registry.getActiveTransformers(MIMETYPE_TEXT_PLAIN, -1, MIMETYPE_TEXT_PLAIN, options).isEmpty());
         try
         {
             registry.setEnabled("false");
-            Assert.assertTrue(registry.getActiveTransformers(MIMETYPE_OPENXML_WORDPROCESSING, -1, MIMETYPE_PDF, options).isEmpty());
+            Assert.assertTrue(registry.getActiveTransformers(MIMETYPE_TEXT_PLAIN, -1, MIMETYPE_TEXT_PLAIN, options).isEmpty());
         }
         finally
         {
             registry.setEnabled("true");
         }
-        Assert.assertFalse(registry.getActiveTransformers(MIMETYPE_OPENXML_WORDPROCESSING, -1, MIMETYPE_PDF, options).isEmpty());
+        Assert.assertFalse(registry.getActiveTransformers(MIMETYPE_TEXT_PLAIN, -1, MIMETYPE_TEXT_PLAIN, options).isEmpty());
     }
 
     public void testNullRetrieval() throws Exception
