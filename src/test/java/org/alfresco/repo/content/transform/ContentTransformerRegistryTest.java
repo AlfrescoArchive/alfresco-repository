@@ -126,7 +126,7 @@ public class ContentTransformerRegistryTest extends AbstractContentTransformerTe
         return registry.getTransformer(sourceMimetype, -1, targetMimetype, options);
     }
 
-    protected void testGetTransformerEnabledDisabled() throws Exception
+    public void testGetTransformerEnabledDisabled() throws Exception
     {
         TransformationOptions options = new TransformationOptions();
 
@@ -143,7 +143,7 @@ public class ContentTransformerRegistryTest extends AbstractContentTransformerTe
         Assert.assertNotNull(registry.getTransformer(MIMETYPE_OPENXML_WORDPROCESSING, -1, MIMETYPE_PDF, options));
     }
 
-    protected void testGetActiveTransformersEnabledDisabled() throws Exception
+    public void testGetActiveTransformersEnabledDisabled() throws Exception
     {
         TransformationOptions options = new TransformationOptions();
 
