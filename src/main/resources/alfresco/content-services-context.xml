@@ -328,7 +328,7 @@
       <constructor-arg>
          <ref bean="transformerSelector"/>
       </constructor-arg>
-       <property name="enabled" value="" />
+       <property name="enabled" value="${legacy.local.transform.service.enabled}" />
    </bean>
 
    <!-- Transformation Debug -->
