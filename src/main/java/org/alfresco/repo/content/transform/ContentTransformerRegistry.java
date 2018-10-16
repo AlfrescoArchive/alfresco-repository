@@ -55,7 +55,8 @@ import org.apache.commons.logging.LogFactory;
 public class ContentTransformerRegistry
 {
     private static final Log logger = LogFactory.getLog(ContentTransformerRegistry.class);
-    
+
+    private boolean enabled = true;
     private final List<ContentTransformer> transformers;
     private final List<ContentTransformer> allTransformers;
     
@@ -70,7 +71,13 @@ public class ContentTransformerRegistry
         this.transformers = new ArrayList<ContentTransformer>(70);
         this.allTransformers = new ArrayList<ContentTransformer>(70);
     }
-    
+
+    public void setEnabled(String enabled)
+    {
+        enabled = enabled == null ? null : enabled.trim().toLowerCase();
+        this.enabled = Boolean.parseBoolean(enabled);
+    }
+
     /**
      * Registers an individual transformer that can be queried to check for applicability.
      *  
@@ -163,7 +170,9 @@ public class ContentTransformerRegistry
     public ContentTransformer getTransformer(String sourceMimetype, long sourceSize, String targetMimetype, TransformationOptions options)
     {
         // Get the sorted list of transformers
-        List<ContentTransformer> transformers = getActiveTransformers(sourceMimetype, sourceSize, targetMimetype, options);
+        List<ContentTransformer> transformers = enabled
+                ? getActiveTransformers(sourceMimetype, sourceSize, targetMimetype, options)
+                : Collections.EMPTY_LIST;
 
         // select the most performant transformer
         ContentTransformer bestTransformer = null;

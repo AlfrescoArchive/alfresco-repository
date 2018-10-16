@@ -2,7 +2,7 @@
  * #%L
  * Alfresco Repository
  * %%
- * Copyright (C) 2005 - 2016 Alfresco Software Limited
+ * Copyright (C) 2005 - 2018 Alfresco Software Limited
  * %%
  * This file is part of the Alfresco software. 
  * If the software was purchased under a paid Alfresco license, the terms of 
@@ -36,6 +36,10 @@ import org.alfresco.service.cmr.repository.ContentWriter;
 import org.alfresco.service.cmr.repository.MimetypeService;
 import org.alfresco.service.cmr.repository.TransformationOptions;
 import org.alfresco.util.TempFileProvider;
+import org.junit.Assert;
+
+import static org.alfresco.repo.content.MimetypeMap.MIMETYPE_OPENXML_WORDPROCESSING;
+import static org.alfresco.repo.content.MimetypeMap.MIMETYPE_PDF;
 
 /**
  * @see org.alfresco.repo.content.transform.ContentTransformerRegistry
@@ -120,6 +124,40 @@ public class ContentTransformerRegistryTest extends AbstractContentTransformerTe
     protected ContentTransformer getTransformer(String sourceMimetype, String targetMimetype, TransformationOptions options)
     {
         return registry.getTransformer(sourceMimetype, -1, targetMimetype, options);
+    }
+
+    protected void testGetTransformerEnabledDisabled() throws Exception
+    {
+        TransformationOptions options = new TransformationOptions();
+
+        Assert.assertNotNull(registry.getTransformer(MIMETYPE_OPENXML_WORDPROCESSING, -1, MIMETYPE_PDF, options));
+        try
+        {
+            registry.setEnabled("false");
+            Assert.assertNull(registry.getTransformer(MIMETYPE_OPENXML_WORDPROCESSING, -1, MIMETYPE_PDF, options));
+        }
+        finally
+        {
+            registry.setEnabled("true");
+        }
+        Assert.assertNotNull(registry.getTransformer(MIMETYPE_OPENXML_WORDPROCESSING, -1, MIMETYPE_PDF, options));
+    }
+
+    protected void testGetActiveTransformersEnabledDisabled() throws Exception
+    {
+        TransformationOptions options = new TransformationOptions();
+
+        Assert.assertFalse(registry.getActiveTransformers(MIMETYPE_OPENXML_WORDPROCESSING, -1, MIMETYPE_PDF, options).isEmpty());
+        try
+        {
+            registry.setEnabled("false");
+            Assert.assertTrue(registry.getActiveTransformers(MIMETYPE_OPENXML_WORDPROCESSING, -1, MIMETYPE_PDF, options).isEmpty());
+        }
+        finally
+        {
+            registry.setEnabled("true");
+        }
+        Assert.assertFalse(registry.getActiveTransformers(MIMETYPE_OPENXML_WORDPROCESSING, -1, MIMETYPE_PDF, options).isEmpty());
     }
 
     public void testNullRetrieval() throws Exception

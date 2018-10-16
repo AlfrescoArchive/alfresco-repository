@@ -43,8 +43,8 @@ import java.util.Map;
 public class LegacyLocalTransformServiceRegistry extends AbstractTransformServiceRegistry implements InitializingBean
 {
     private ContentService contentService;
-
     private TransformationOptionsConverter converter;
+    private boolean enabled = true;
 
     public void setContentService(ContentService contentService)
     {
@@ -54,6 +54,12 @@ public class LegacyLocalTransformServiceRegistry extends AbstractTransformServic
     public void setConverter(TransformationOptionsConverter converter)
     {
         this.converter = converter;
+    }
+
+    public void setEnabled(String enabled)
+    {
+        enabled = enabled == null ? null : enabled.trim().toLowerCase();
+        this.enabled = Boolean.parseBoolean(enabled);
     }
 
     @Override
@@ -66,8 +72,12 @@ public class LegacyLocalTransformServiceRegistry extends AbstractTransformServic
     @Override
     public long getMaxSize(String sourceMimetype, String targetMimetype, Map<String, String> options, String renditionName)
     {
-        TransformationOptions transformationOptions = converter.getTransformationOptions(renditionName, options);
-        long maxSize = contentService.getMaxSourceSizeBytes(sourceMimetype, targetMimetype, transformationOptions);
+        long maxSize = 0;
+        if (enabled)
+        {
+            TransformationOptions transformationOptions = converter.getTransformationOptions(renditionName, options);
+            maxSize = contentService.getMaxSourceSizeBytes(sourceMimetype, targetMimetype, transformationOptions);
+        }
         return maxSize;
     }
 }

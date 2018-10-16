@@ -328,6 +328,7 @@
       <constructor-arg>
          <ref bean="transformerSelector"/>
       </constructor-arg>
+       <property name="enabled" value="" />
    </bean>
 
    <!-- Transformation Debug -->
