@@ -1385,12 +1385,13 @@ public class TransformerDebug
                                              int contentHashcode, String fileName, String targetMimetype, String use)
     {
         pushMisc();
-        debug("TransformService " +
-                getMimetypeExt(sourceMimetype)+getMimetypeExt(targetMimetype) +
-                ((fileName != null) ? fileName+' ' : "")+
-                ((sourceSize >= 0) ? fileSize(sourceSize)+' ' : "") +
-                (use != null ? "-- "+use+" -- " : ""));
-        debug("TransformService " + sourceNodeRef + ' ' +contentHashcode);
+        debug(getMimetypeExt(sourceMimetype)+getMimetypeExt(targetMimetype) +
+              ((fileName != null) ? fileName+' ' : "")+
+              ((sourceSize >= 0) ? fileSize(sourceSize)+' ' : "") +
+              (use != null ? "-- "+use+" -- " : "") + " RenditionService2");
+        // **a)  [50]
+        debug(sourceNodeRef.toString() + ' ' +contentHashcode);
+        debug(" **a)  [50] TransformService");
         pop(Call.AVAILABLE, true);
     }
 
@@ -1400,8 +1401,8 @@ public class TransformerDebug
     public void debugTransformServiceResponse(NodeRef sourceNodeRef, int contentHashcode, String msg)
     {
         pushMisc();
-        debug("TransformService " + msg);
-        debug("TransformService " + sourceNodeRef + ' ' +contentHashcode);
+        debug(msg);
+        debug(sourceNodeRef.toString() + ' ' +contentHashcode);
         pop(Call.AVAILABLE, true);
     }
 
