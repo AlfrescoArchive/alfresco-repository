@@ -46,6 +46,7 @@ public class LegacyLocalTransformServiceRegistry extends AbstractTransformServic
     private ContentService contentService;
     private TransformationOptionsConverter converter;
     private boolean enabled = true;
+    private boolean firstTime = true;
     private TransformerDebug transformerDebug;
 
     public void setContentService(ContentService contentService)
@@ -75,13 +76,18 @@ public class LegacyLocalTransformServiceRegistry extends AbstractTransformServic
         PropertyCheck.mandatory(this, "contentService", contentService);
         PropertyCheck.mandatory(this, "converter", converter);
         PropertyCheck.mandatory(this, "transformerDebug", transformerDebug);
-
-        transformerDebug.debug("Local legacy transformers are "+(enabled ? "enabled" : "disabled"));
     }
 
     @Override
     public long getMaxSize(String sourceMimetype, String targetMimetype, Map<String, String> options, String renditionName)
     {
+        // This message is not logged if placed in afterPropertiesSet
+        if (firstTime)
+        {
+            firstTime = false;
+            transformerDebug.debug("Local legacy transformers are "+(enabled ? "enabled" : "disabled"));
+        }
+
         long maxSize = 0;
         if (enabled)
         {
