@@ -17,6 +17,9 @@
     -->
     <import resource="classpath:alfresco/application-context-highlevel.xml" />
 
+	<!-- Import metrics context -->
+	<import resource="classpath*:alfresco/metrics-context.xml" />
+
     <!--  Import remote API hooks if present -->
     <import resource="classpath*:alfresco/remote-api-context.xml" />
 
