@@ -25,17 +25,13 @@
  */
 package org.alfresco.repo.metrics.db;
 
-import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tag;
-import io.micrometer.prometheus.PrometheusMeterRegistry;
-import org.alfresco.micrometer.PrometheusRegistryConfig;
+import org.alfresco.micrometer.MetricsController;
+import org.alfresco.util.PropertyCheck;
 import org.apache.commons.dbcp.BasicDataSource;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.InitializingBean;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.ApplicationContextAware;
 
 import javax.sql.DataSource;
 import java.util.ArrayList;
@@ -43,9 +39,9 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-public class DBMetricsReporterImpl implements DBMetricsReporter, ApplicationContextAware, InitializingBean
+public class DBMetricsReporterImpl implements DBMetricsReporter, InitializingBean
 {
-    public static final String METER_REGISTRY_BEAN_ERROR_MESSAGE = "Could not get the meterRegistry bean, essential for reporting DB metrics.";
+    public static final String METER_REGISTRY_BEAN_ERROR_MESSAGE = "Did not get the meterRegistry bean, essential for reporting DB metrics.";
     public static final String QUERIES_EXECUTION_TIME = "queries.execution.time";
     public static final int MAX_TAG_LENGTH = 1024;
 
@@ -56,13 +52,15 @@ public class DBMetricsReporterImpl implements DBMetricsReporter, ApplicationCont
     private boolean queryStatementsMetricsEnabled;
 
     private DataSource dataSource;
-    private ApplicationContext applicationContext;
 
-    MeterRegistry meterRegistry;
+    MetricsController metricsController;
 
     @Override
     public void afterPropertiesSet() throws Exception
     {
+        // metricsController should never be null
+        // metricsController.getRegistry() can be null, and probably should be null if metricsController.isEnabled() is false
+        PropertyCheck.mandatory(this, "metricsController", metricsController);
         try
         {
             init();
@@ -78,7 +76,7 @@ public class DBMetricsReporterImpl implements DBMetricsReporter, ApplicationCont
 
     private void init()
     {
-        if (!enabled)
+        if (!isEnabled())
         {
             if (logger.isDebugEnabled())
             {
@@ -86,35 +84,23 @@ public class DBMetricsReporterImpl implements DBMetricsReporter, ApplicationCont
             }
             return;
         }
-        try
-        {
-            //    meterRegistry = (MeterRegistry) applicationContext.getBean("meterRegistry");
-            //TODO this is temporary
-            final PrometheusMeterRegistry prometheus = PrometheusRegistryConfig.prometheus();
-            meterRegistry = prometheus;
-        }
-        catch (Exception e)
-        {
-            logger.error(METER_REGISTRY_BEAN_ERROR_MESSAGE + " Cause: " + e.getMessage(), e);
-        }
 
-        if (meterRegistry == null)
+        if (isEnabled() && metricsController.getRegistry() == null)
         {
-            logger.warn(METER_REGISTRY_BEAN_ERROR_MESSAGE);
+            logger.error(METER_REGISTRY_BEAN_ERROR_MESSAGE);
             return;
         }
 
         initConnectionMetrics();
-
     }
 
     private void initConnectionMetrics()
     {
-        if (meterRegistry != null)
+        if (metricsController.getRegistry() != null)
         {
-            meterRegistry
+            metricsController.getRegistry()
                 .gauge("num.connections.active", Collections.emptyList(), dataSource, ConnectionGaugeDataProvider::getNumActive);
-            meterRegistry
+            metricsController.getRegistry()
                 .gauge("num.connections.idle", Collections.emptyList(), dataSource, ConnectionGaugeDataProvider::getNumIdle);
         }
     }
@@ -124,10 +110,10 @@ public class DBMetricsReporterImpl implements DBMetricsReporter, ApplicationCont
     {
         try
         {
-            if (isQueryMetricsEnabled() && meterRegistry != null && !isEmpty(queryTpe) && milliseconds >= 0)
+            if (isQueryMetricsEnabled() && metricsController.getRegistry() != null && !isEmpty(queryTpe) && milliseconds >= 0)
             {
                 List<Tag> tags = buildTagsForQueryExecution(queryTpe, statementID);
-                meterRegistry.timer(QUERIES_EXECUTION_TIME, tags).record(milliseconds, TimeUnit.MILLISECONDS);
+                metricsController.getRegistry().timer(QUERIES_EXECUTION_TIME, tags).record(milliseconds, TimeUnit.MILLISECONDS);
             }
         }
         catch (Exception e)
@@ -166,7 +152,7 @@ public class DBMetricsReporterImpl implements DBMetricsReporter, ApplicationCont
     @Override
     public boolean isEnabled()
     {
-        return enabled;
+        return metricsController.isEnabled() && enabled;
     }
 
     public void setEnabled(boolean enabled)
@@ -177,7 +163,7 @@ public class DBMetricsReporterImpl implements DBMetricsReporter, ApplicationCont
     @Override
     public boolean isQueryMetricsEnabled()
     {
-        return this.enabled && queryMetricsEnabled;
+        return isEnabled() && queryMetricsEnabled;
     }
 
     public void setQueryMetricsEnabled(boolean queryMetricsEnabled)
@@ -201,10 +187,9 @@ public class DBMetricsReporterImpl implements DBMetricsReporter, ApplicationCont
         this.dataSource = dataSource;
     }
 
-    @Override
-    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException
+    public void setMetricsController(MetricsController metricsController)
     {
-        this.applicationContext = applicationContext;
+        this.metricsController = metricsController;
     }
 
     private void logMetricReportingProblem(Exception e)

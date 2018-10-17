@@ -1360,7 +1360,17 @@
    </bean>
 
     <!-- micrometer metrics -->
+    <bean id="metricsRegistryFactory" class="org.alfresco.micrometer.MetricsRegistryFactory"/>
+
+    <bean id="metricsController" class="org.alfresco.micrometer.MetricsControllerPrometheusImpl">
+        <property name="metricsRegistryFactory" ref="metricsRegistryFactory"/>
+        <property name="enabled">
+            <value>${metrics.enabled}</value>
+        </property>
+    </bean>
+
     <bean id="dbMetricsReporter" class="org.alfresco.repo.metrics.db.DBMetricsReporterImpl">
+        <property name="metricsController" ref="metricsController"/>
         <property name="enabled">
             <value>${metrics.dbMetricsReporter.enabled}</value>
         </property>

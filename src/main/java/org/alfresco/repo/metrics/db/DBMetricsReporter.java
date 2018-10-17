@@ -25,7 +25,9 @@
  */
 package org.alfresco.repo.metrics.db;
 
-public interface DBMetricsReporter
+import org.alfresco.micrometer.MetricsReporter;
+
+public interface DBMetricsReporter extends MetricsReporter
 {
     /**
      * Report the time it took to execute a query.
