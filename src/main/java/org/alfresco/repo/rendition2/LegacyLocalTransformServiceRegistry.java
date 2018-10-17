@@ -25,6 +25,7 @@
  */
 package org.alfresco.repo.rendition2;
 
+import org.alfresco.repo.content.transform.TransformerDebug;
 import org.alfresco.service.cmr.repository.ContentService;
 import org.alfresco.service.cmr.repository.TransformationOptions;
 import org.alfresco.transform.client.model.config.TransformServiceRegistry;
@@ -45,6 +46,7 @@ public class LegacyLocalTransformServiceRegistry extends AbstractTransformServic
     private ContentService contentService;
     private TransformationOptionsConverter converter;
     private boolean enabled = true;
+    private TransformerDebug transformerDebug;
 
     public void setContentService(ContentService contentService)
     {
@@ -62,11 +64,19 @@ public class LegacyLocalTransformServiceRegistry extends AbstractTransformServic
         this.enabled = Boolean.parseBoolean(enabled);
     }
 
+    public void setTransformerDebug(TransformerDebug transformerDebug)
+    {
+        this.transformerDebug = transformerDebug;
+    }
+
     @Override
     public void afterPropertiesSet()
     {
         PropertyCheck.mandatory(this, "contentService", contentService);
         PropertyCheck.mandatory(this, "converter", converter);
+        PropertyCheck.mandatory(this, "transformerDebug", transformerDebug);
+
+        transformerDebug.debug("Local legacy transformers are "+(enabled ? "enabled" : "disabled"));
     }
 
     @Override
@@ -77,6 +87,10 @@ public class LegacyLocalTransformServiceRegistry extends AbstractTransformServic
         {
             TransformationOptions transformationOptions = converter.getTransformationOptions(renditionName, options);
             maxSize = contentService.getMaxSourceSizeBytes(sourceMimetype, targetMimetype, transformationOptions);
+        }
+        else
+        {
+            transformerDebug.debug("Local legacy transformers are disabled");
         }
         return maxSize;
     }

@@ -94,6 +94,7 @@ public class ContentTransformerRegistryTest extends AbstractContentTransformerTe
         transformerSelector.setContentTransformerRegistry(dummyRegistry);
         dummyRegistry = new ContentTransformerRegistry(transformerSelector);
         transformerSelector.setContentTransformerRegistry(dummyRegistry);
+        dummyRegistry.setTransformerDebug(transformerDebug);
         // create some dummy transformers for reliability tests
         new DummyTransformer(mimetypeService, "transformer.testAB10a", transformerDebug, transformerConfig, dummyRegistry, A, B, 10L);
         new DummyTransformer(mimetypeService, "transformer.testAB10b", transformerDebug, transformerConfig, dummyRegistry, A, B, 10L);

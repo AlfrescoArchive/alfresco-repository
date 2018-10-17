@@ -56,12 +56,13 @@ public class ContentTransformerRegistry
 {
     private static final Log logger = LogFactory.getLog(ContentTransformerRegistry.class);
 
-    private boolean enabled = true;
     private final List<ContentTransformer> transformers;
     private final List<ContentTransformer> allTransformers;
     
     private final TransformerSelector transformerSelector;
-    
+    private boolean enabled = true;
+    private TransformerDebug transformerDebug;
+
     /**
      * @param transformerSelector Transformer selector
      */
@@ -76,6 +77,11 @@ public class ContentTransformerRegistry
     {
         enabled = enabled == null ? null : enabled.trim().toLowerCase();
         this.enabled = Boolean.parseBoolean(enabled);
+    }
+
+    public void setTransformerDebug(TransformerDebug transformerDebug)
+    {
+        this.transformerDebug = transformerDebug;
     }
 
     /**
@@ -188,9 +194,16 @@ public class ContentTransformerRegistry
     public List<ContentTransformer> getActiveTransformers(String sourceMimetype, long sourceSize, String targetMimetype, TransformationOptions options)
     {
         // Get the list of transformers
-        List<ContentTransformer> transformers = enabled
-                ? transformerSelector.selectTransformers(sourceMimetype, sourceSize, targetMimetype, options)
-                : Collections.EMPTY_LIST;
+        List<ContentTransformer> transformers;
+        if (enabled)
+        {
+            transformers = transformerSelector.selectTransformers(sourceMimetype, sourceSize, targetMimetype, options);
+        }
+        else
+        {
+            transformerDebug.debug("Local legacy transformers are disabled");
+            transformers = Collections.EMPTY_LIST;
+        }
         if (logger.isDebugEnabled())
         {
             logger.debug("Searched for transformer: \n" +
