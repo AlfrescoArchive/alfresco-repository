@@ -41,7 +41,6 @@ import java.util.concurrent.TimeUnit;
 
 public class DBMetricsReporterImpl implements DBMetricsReporter, InitializingBean
 {
-    public static final String METER_REGISTRY_BEAN_ERROR_MESSAGE = "Did not get the meterRegistry bean, essential for reporting DB metrics.";
     public static final String QUERIES_EXECUTION_TIME = "queries.execution.time";
     public static final int MAX_TAG_LENGTH = 1024;
 
@@ -87,7 +86,8 @@ public class DBMetricsReporterImpl implements DBMetricsReporter, InitializingBea
 
         if (isEnabled() && metricsController.getRegistry() == null)
         {
-            logger.error(METER_REGISTRY_BEAN_ERROR_MESSAGE);
+            logger.error(
+                "There is no meterRegistry object defined in the metricsController. That is essential for reporting DB metrics.");
             return;
         }
 
@@ -122,10 +122,10 @@ public class DBMetricsReporterImpl implements DBMetricsReporter, InitializingBea
         }
     }
 
-    private List<Tag> buildTagsForQueryExecution(String queryTpe, String statementID)
+    private List<Tag> buildTagsForQueryExecution(final String queryType, final String statementID)
     {
-        // we know that queryTpe is not empty at this point, but just for safe measure, sanitize it
-        String sanitizedQueryType = sanitizeTagValue(queryTpe);
+        // we know that queryType is not empty at this point, but just for safe measure, sanitize it
+        String sanitizedQueryType = sanitizeTagValue(queryType);
         List<Tag> tags = new ArrayList<>();
         tags.add(Tag.of("queryType", sanitizedQueryType));
 
@@ -138,7 +138,7 @@ public class DBMetricsReporterImpl implements DBMetricsReporter, InitializingBea
         return tags;
     }
 
-    private String sanitizeTagValue(String tagValue)
+    private String sanitizeTagValue(final String tagValue)
     {
         //we always assume parameter is not null
         String str = tagValue.trim();
@@ -174,7 +174,7 @@ public class DBMetricsReporterImpl implements DBMetricsReporter, InitializingBea
     @Override
     public boolean isQueryStatementsMetricsEnabled()
     {
-        return queryStatementsMetricsEnabled;
+        return isQueryMetricsEnabled() && queryStatementsMetricsEnabled;
     }
 
     public void setQueryStatementsMetricsEnabled(boolean queryStatementsMetricsEnabled)
