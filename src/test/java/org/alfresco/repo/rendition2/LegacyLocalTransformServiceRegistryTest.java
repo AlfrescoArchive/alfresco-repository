@@ -75,7 +75,7 @@ public class LegacyLocalTransformServiceRegistryTest extends AbstractRenditionIn
         Assert.assertFalse(transformServiceRegistry.isSupported(MIMETYPE_OPENXML_WORDPROCESSING, 1234, "pdfBad", options, RENDITION_NAME));
 
         // Good MaxSize docx max size is 768K
-        Assert.assertTrue(transformServiceRegistry.isSupported(MIMETYPE_OPENXML_WORDPROCESSING, 768L*1024-1, MIMETYPE_PDF, options, RENDITION_NAME));
+        Assert.assertTrue(transformServiceRegistry.isSupported(MIMETYPE_OPENXML_WORDPROCESSING, 768L*1024, MIMETYPE_PDF, options, RENDITION_NAME));
 
         // -ve
         // Bad MaxSize docx max size is 768K
