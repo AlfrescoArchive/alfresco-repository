@@ -61,6 +61,7 @@ public class ContentTransformerRegistry
     
     private final TransformerSelector transformerSelector;
     private boolean enabled = true;
+    private boolean firstTime = true;
     private TransformerDebug transformerDebug;
 
     /**
@@ -198,6 +199,12 @@ public class ContentTransformerRegistry
         if (enabled)
         {
             transformers = transformerSelector.selectTransformers(sourceMimetype, sourceSize, targetMimetype, options);
+
+            if (firstTime)
+            {
+                firstTime = false;
+                transformerDebug.debug("Local legacy transformers are enabled");
+            }
         }
         else
         {

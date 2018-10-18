@@ -1389,9 +1389,8 @@ public class TransformerDebug
               ((fileName != null) ? fileName+' ' : "")+
               ((sourceSize >= 0) ? fileSize(sourceSize)+' ' : "") +
               (use != null ? "-- "+use+" -- " : "") + " RenditionService2");
-        // **a)  [50]
         debug(sourceNodeRef.toString() + ' ' +contentHashcode);
-        debug(" **a)  [50] TransformService");
+        debug(" **a)  [01] TransformService");
         pop(Call.AVAILABLE, true);
     }
 
