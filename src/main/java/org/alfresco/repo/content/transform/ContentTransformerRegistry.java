@@ -194,21 +194,21 @@ public class ContentTransformerRegistry
      */
     public List<ContentTransformer> getActiveTransformers(String sourceMimetype, long sourceSize, String targetMimetype, TransformationOptions options)
     {
+        if (firstTime)
+        {
+            firstTime = false;
+            transformerDebug.debug("Local legacy transformers are " + (enabled ? "enabled" : "disabled"));
+        }
+
         // Get the list of transformers
         List<ContentTransformer> transformers;
         if (enabled)
         {
             transformers = transformerSelector.selectTransformers(sourceMimetype, sourceSize, targetMimetype, options);
 
-            if (firstTime)
-            {
-                firstTime = false;
-                transformerDebug.debug("Local legacy transformers are enabled");
-            }
         }
         else
         {
-            transformerDebug.debug("Local legacy transformers are disabled");
             transformers = Collections.EMPTY_LIST;
         }
         if (logger.isDebugEnabled())

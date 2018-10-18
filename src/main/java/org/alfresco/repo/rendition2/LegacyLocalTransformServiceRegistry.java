@@ -81,22 +81,18 @@ public class LegacyLocalTransformServiceRegistry extends AbstractTransformServic
     @Override
     public long getMaxSize(String sourceMimetype, String targetMimetype, Map<String, String> options, String renditionName)
     {
+        // This message is not logged if placed in afterPropertiesSet
+        if (firstTime)
+        {
+            firstTime = false;
+            transformerDebug.debug("Local legacy transformers are " + (enabled ? "enabled" : "disabled"));
+        }
+
         long maxSize = 0;
         if (enabled)
         {
             TransformationOptions transformationOptions = converter.getTransformationOptions(renditionName, options);
             maxSize = contentService.getMaxSourceSizeBytes(sourceMimetype, targetMimetype, transformationOptions);
-
-            // This message is not logged if placed in afterPropertiesSet
-            if (firstTime)
-            {
-                firstTime = false;
-                transformerDebug.debug("Local legacy transformers are enabled");
-            }
-        }
-        else
-        {
-            transformerDebug.debug("Local legacy transformers are disabled");
         }
         return maxSize;
     }
