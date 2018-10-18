@@ -74,10 +74,9 @@ public class ContentTransformerRegistry
         this.allTransformers = new ArrayList<ContentTransformer>(70);
     }
 
-    public void setEnabled(String enabled)
+    public void setEnabled(boolean enabled)
     {
-        enabled = enabled == null ? null : enabled.trim().toLowerCase();
-        this.enabled = Boolean.parseBoolean(enabled);
+        this.enabled = enabled;
     }
 
     public void setTransformerDebug(TransformerDebug transformerDebug)

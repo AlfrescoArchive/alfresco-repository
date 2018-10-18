@@ -59,10 +59,9 @@ public class LegacyLocalTransformServiceRegistry extends AbstractTransformServic
         this.converter = converter;
     }
 
-    public void setEnabled(String enabled)
+    public void setEnabled(boolean enabled)
     {
-        enabled = enabled == null ? null : enabled.trim().toLowerCase();
-        this.enabled = Boolean.parseBoolean(enabled);
+        this.enabled = enabled;
     }
 
     public void setTransformerDebug(TransformerDebug transformerDebug)
@@ -76,6 +75,7 @@ public class LegacyLocalTransformServiceRegistry extends AbstractTransformServic
         PropertyCheck.mandatory(this, "contentService", contentService);
         PropertyCheck.mandatory(this, "converter", converter);
         PropertyCheck.mandatory(this, "transformerDebug", transformerDebug);
+        transformerDebug.debug("Local legacy transformers are " + (enabled ? "ENABLEED" : "DISABLED"));
     }
 
     @Override

@@ -88,12 +88,12 @@ public class LegacyLocalTransformServiceRegistryTest extends AbstractRenditionIn
         Assert.assertTrue(transformServiceRegistry.isSupported(MIMETYPE_OPENXML_WORDPROCESSING, 1234, MIMETYPE_PDF, options, RENDITION_NAME));
         try
         {
-            transformServiceRegistry.setEnabled("false");
+            transformServiceRegistry.setEnabled(false);
             Assert.assertFalse(transformServiceRegistry.isSupported(MIMETYPE_OPENXML_WORDPROCESSING, 1234, MIMETYPE_PDF, options, RENDITION_NAME));
         }
         finally
         {
-            transformServiceRegistry.setEnabled("true");
+            transformServiceRegistry.setEnabled(true);
         }
         Assert.assertTrue(transformServiceRegistry.isSupported(MIMETYPE_OPENXML_WORDPROCESSING, 1234, MIMETYPE_PDF, options, RENDITION_NAME));
     }

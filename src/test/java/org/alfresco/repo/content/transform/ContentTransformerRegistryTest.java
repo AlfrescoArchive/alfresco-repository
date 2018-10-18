@@ -133,12 +133,12 @@ public class ContentTransformerRegistryTest extends AbstractContentTransformerTe
         Assert.assertNotNull(registry.getTransformer(MIMETYPE_TEXT_PLAIN, -1, MIMETYPE_TEXT_PLAIN, options));
         try
         {
-            registry.setEnabled("false");
+            registry.setEnabled(false);
             Assert.assertNull(registry.getTransformer(MIMETYPE_TEXT_PLAIN, -1, MIMETYPE_TEXT_PLAIN, options));
         }
         finally
         {
-            registry.setEnabled("true");
+            registry.setEnabled(true);
         }
         Assert.assertNotNull(registry.getTransformer(MIMETYPE_TEXT_PLAIN, -1, MIMETYPE_TEXT_PLAIN, options));
     }
@@ -150,12 +150,12 @@ public class ContentTransformerRegistryTest extends AbstractContentTransformerTe
         Assert.assertFalse(registry.getActiveTransformers(MIMETYPE_TEXT_PLAIN, -1, MIMETYPE_TEXT_PLAIN, options).isEmpty());
         try
         {
-            registry.setEnabled("false");
+            registry.setEnabled(false);
             Assert.assertTrue(registry.getActiveTransformers(MIMETYPE_TEXT_PLAIN, -1, MIMETYPE_TEXT_PLAIN, options).isEmpty());
         }
         finally
         {
-            registry.setEnabled("true");
+            registry.setEnabled(true);
         }
         Assert.assertFalse(registry.getActiveTransformers(MIMETYPE_TEXT_PLAIN, -1, MIMETYPE_TEXT_PLAIN, options).isEmpty());
     }
