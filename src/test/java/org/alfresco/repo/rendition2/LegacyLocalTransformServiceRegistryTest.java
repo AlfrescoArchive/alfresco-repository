@@ -26,6 +26,7 @@
 package org.alfresco.repo.rendition2;
 
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -40,8 +41,22 @@ import static org.alfresco.repo.content.MimetypeMap.MIMETYPE_PDF;
  */
 public class LegacyLocalTransformServiceRegistryTest extends AbstractRenditionIntegrationTest
 {
+    private static final String RENDITION_NAME = "pdf";
+
     @Autowired
-    private LegacyLocalTransformServiceRegistry legacyLocalTransformServiceRegistry;
+    private LegacyLocalTransformServiceRegistry transformServiceRegistry;
+
+    @Autowired
+    private RenditionDefinitionRegistry2 renditionDefinitionRegistry2;
+
+    private Map<String, String> options;
+
+    @Before
+    public void setUp() throws Exception
+    {
+        RenditionDefinition2 definition2 = renditionDefinitionRegistry2.getRenditionDefinition(RENDITION_NAME);
+        options = definition2.getTransformOptions();
+    }
 
     @Test
     public void testIsSupported()
@@ -51,35 +66,35 @@ public class LegacyLocalTransformServiceRegistryTest extends AbstractRenditionIn
         Map<String, String> badValidationProps = new HashMap<>();
         badValidationProps.put("timeout", "true");
         // No props
-        Assert.assertTrue(legacyLocalTransformServiceRegistry.isSupported(MIMETYPE_OPENXML_WORDPROCESSING, -1, MIMETYPE_PDF, new HashMap<>(), null));
+        Assert.assertTrue(transformServiceRegistry.isSupported(MIMETYPE_OPENXML_WORDPROCESSING, 1234, MIMETYPE_PDF, options, RENDITION_NAME));
 
         // -ve
         // Bad Source
-        Assert.assertFalse(legacyLocalTransformServiceRegistry.isSupported("docxBad", -1, MIMETYPE_PDF, new HashMap<>(), ""));
+        Assert.assertFalse(transformServiceRegistry.isSupported("docxBad", 1234, MIMETYPE_PDF, options, ""));
         // Bad Target
-        Assert.assertFalse(legacyLocalTransformServiceRegistry.isSupported(MIMETYPE_OPENXML_WORDPROCESSING, -1, "pdfBad", new HashMap<>(), null));
+        Assert.assertFalse(transformServiceRegistry.isSupported(MIMETYPE_OPENXML_WORDPROCESSING, 1234, "pdfBad", options, RENDITION_NAME));
 
         // Good MaxSize docx max size is 768K
-        Assert.assertTrue(legacyLocalTransformServiceRegistry.isSupported(MIMETYPE_OPENXML_WORDPROCESSING, 768L*1024, MIMETYPE_PDF, new HashMap<>(), null));
+        Assert.assertTrue(transformServiceRegistry.isSupported(MIMETYPE_OPENXML_WORDPROCESSING, 768L*1024, MIMETYPE_PDF, options, RENDITION_NAME));
 
         // -ve
         // Bad MaxSize docx max size is 768K
-        Assert.assertFalse(legacyLocalTransformServiceRegistry.isSupported(MIMETYPE_OPENXML_WORDPROCESSING, 768L*1024+1, MIMETYPE_PDF, new HashMap<>(), null));
+        Assert.assertFalse(transformServiceRegistry.isSupported(MIMETYPE_OPENXML_WORDPROCESSING, 768L*1024+1, MIMETYPE_PDF, options, RENDITION_NAME));
     }
 
     @Test
     public void testEnabledDisabled()
     {
-        Assert.assertTrue(legacyLocalTransformServiceRegistry.isSupported(MIMETYPE_OPENXML_WORDPROCESSING, -1, MIMETYPE_PDF, new HashMap<>(), null));
+        Assert.assertTrue(transformServiceRegistry.isSupported(MIMETYPE_OPENXML_WORDPROCESSING, 1234, MIMETYPE_PDF, options, RENDITION_NAME));
         try
         {
-            legacyLocalTransformServiceRegistry.setEnabled("false");
-            Assert.assertFalse(legacyLocalTransformServiceRegistry.isSupported(MIMETYPE_OPENXML_WORDPROCESSING, -1, MIMETYPE_PDF, new HashMap<>(), null));
+            transformServiceRegistry.setEnabled("false");
+            Assert.assertFalse(transformServiceRegistry.isSupported(MIMETYPE_OPENXML_WORDPROCESSING, 1234, MIMETYPE_PDF, options, RENDITION_NAME));
         }
         finally
         {
-            legacyLocalTransformServiceRegistry.setEnabled("true");
+            transformServiceRegistry.setEnabled("true");
         }
-        Assert.assertTrue(legacyLocalTransformServiceRegistry.isSupported(MIMETYPE_OPENXML_WORDPROCESSING, -1, MIMETYPE_PDF, new HashMap<>(), null));
+        Assert.assertTrue(transformServiceRegistry.isSupported(MIMETYPE_OPENXML_WORDPROCESSING, 1234, MIMETYPE_PDF, options, RENDITION_NAME));
     }
 }
