@@ -75,7 +75,6 @@ public class LegacyLocalTransformServiceRegistry extends AbstractTransformServic
         PropertyCheck.mandatory(this, "contentService", contentService);
         PropertyCheck.mandatory(this, "converter", converter);
         PropertyCheck.mandatory(this, "transformerDebug", transformerDebug);
-        transformerDebug.debug("Local legacy transformers are " + (enabled ? "ENABLEED" : "DISABLED"));
     }
 
     @Override
