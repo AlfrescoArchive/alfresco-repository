@@ -633,7 +633,7 @@ public class TransformerDebug
                 if (!suppressFinish && (firstLevel || logger.isTraceEnabled()))
                 {
                     log(FINISHED_IN + ms +
-                        (frame.callType == Call.AVAILABLE ? " Transformer NOT called" : "") +
+                        (frame.callType == Call.AVAILABLE ? " Transformer NOT available" : "") +
                         (firstLevel ? "\n" : ""), 
                         firstLevel);
                 }
