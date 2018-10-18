@@ -4,13 +4,13 @@
     <parent>
         <groupId>org.alfresco</groupId>
         <artifactId>alfresco-super-pom</artifactId>
-        <version>10-SNAPSHOT</version>
+        <version>9-REPO-3918_java_11-SNAPSHOT</version>
     </parent>
 
     <artifactId>alfresco-data-model</artifactId>
     <name>Alfresco Data Model</name>
     <description>Alfresco Data Model classes</description>
-    <version>8.16-SNAPSHOT</version>
+    <version>8.16-REPO-3918_java_11-SNAPSHOT</version>
 
     <scm>
         <connection>scm:git:https://github.com/Alfresco/alfresco-data-model.git</connection>
@@ -31,7 +31,7 @@
     </distributionManagement>
 
     <properties>
-        <dependency.alfresco-core.version>7.5-SNAPSHOT</dependency.alfresco-core.version>
+        <dependency.alfresco-core.version>7.5-REPO-3918_java_11-SNAPSHOT</dependency.alfresco-core.version>
 
         <!-- Files to exclude from SonarQube analysis -->
         <sonar.exclusions>
