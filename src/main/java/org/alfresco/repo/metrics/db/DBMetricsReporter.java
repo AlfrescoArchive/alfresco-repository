@@ -23,23 +23,26 @@
  * along with Alfresco. If not, see <http://www.gnu.org/licenses/>.
  * #L%
  */
-package org.alfresco.repo.rendition2;
+package org.alfresco.repo.metrics.db;
 
-import org.alfresco.transform.client.model.config.TransformServiceRegistry;
+import org.alfresco.micrometer.MetricsReporter;
 
-import java.util.Map;
-
-/**
- * Contains common code used in TransformServiceRegistries.
- *
- * @author adavis
- */
-public abstract class AbstractTransformServiceRegistry implements TransformServiceRegistry
+public interface DBMetricsReporter extends MetricsReporter
 {
-    @Override
-    public boolean isSupported(String sourceMimetype, long size, String targetMimetype, Map<String, String> options, String renditionName)
-    {
-        long maxSize = getMaxSize(sourceMimetype, targetMimetype, options, renditionName);
-        return maxSize != 0 && (maxSize == -1L || maxSize >= size);
-    }
+    /**
+     * Report the time it took to execute a query.
+     * queryType and statementID will be used as tags for the recorded metric
+     *
+     * @param milliseconds the delta time to record in milliseconds  - must be positive
+     * @param queryTpe     mandatory, the type of query that we report for: e.g: "select", "insert", "update", "delete"
+     * @param statementID  optional. if this parameter is not provided, a metric without it will be recorded;
+     *                     this parameter is used only if "isQueryStatementsMetricsEnabled()" is true
+     */
+    void reportQueryExecutionTime(final long milliseconds, final String queryTpe, final String statementID);
+
+    boolean isEnabled();
+
+    boolean isQueryMetricsEnabled();
+
+    boolean isQueryStatementsMetricsEnabled();
 }

@@ -23,23 +23,30 @@
  * along with Alfresco. If not, see <http://www.gnu.org/licenses/>.
  * #L%
  */
-package org.alfresco.repo.rendition2;
+package org.alfresco.ibatis;
 
-import org.alfresco.transform.client.model.config.TransformServiceRegistry;
+import org.alfresco.repo.metrics.db.DBMetricsReporter;
+import org.apache.ibatis.session.Configuration;
+import org.apache.ibatis.session.SqlSessionFactory;
+import org.apache.ibatis.session.SqlSessionFactoryBuilder;
 
-import java.util.Map;
-
-/**
- * Contains common code used in TransformServiceRegistries.
- *
- * @author adavis
- */
-public abstract class AbstractTransformServiceRegistry implements TransformServiceRegistry
+public class AlfrescoSqlSessionFactoryBuilder extends SqlSessionFactoryBuilder
 {
-    @Override
-    public boolean isSupported(String sourceMimetype, long size, String targetMimetype, Map<String, String> options, String renditionName)
+    private DBMetricsReporter dbMetricsReporter;
+
+    public SqlSessionFactory build(Configuration config)
     {
-        long maxSize = getMaxSize(sourceMimetype, targetMimetype, options, renditionName);
-        return maxSize != 0 && (maxSize == -1L || maxSize >= size);
+        return new AlfrescoDefaultSqlSessionFactory(config, dbMetricsReporter);
     }
+
+    public DBMetricsReporter getDbMetricsReporter()
+    {
+        return dbMetricsReporter;
+    }
+
+    public void setDbMetricsReporter(DBMetricsReporter dbMetricsReporter)
+    {
+        this.dbMetricsReporter = dbMetricsReporter;
+    }
+
 }
