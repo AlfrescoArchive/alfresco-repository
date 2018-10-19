@@ -1,6 +1,6 @@
 /*
  * #%L
- * Alfresco Repository
+ * Alfresco Micrometer
  * %%
  * Copyright (C) 2005 - 2018 Alfresco Software Limited
  * %%
@@ -23,30 +23,9 @@
  * along with Alfresco. If not, see <http://www.gnu.org/licenses/>.
  * #L%
  */
-package org.alfresco.ibatis;
+package org.alfresco.metrics;
 
-import org.alfresco.metrics.db.DBMetricsReporter;
-import org.apache.ibatis.session.Configuration;
-import org.apache.ibatis.session.SqlSessionFactory;
-import org.apache.ibatis.session.SqlSessionFactoryBuilder;
-
-public class AlfrescoSqlSessionFactoryBuilder extends SqlSessionFactoryBuilder
+public interface MetricsReporter
 {
-    private DBMetricsReporter dbMetricsReporter;
-
-    public SqlSessionFactory build(Configuration config)
-    {
-        return new AlfrescoDefaultSqlSessionFactory(config, dbMetricsReporter);
-    }
-
-    public DBMetricsReporter getDbMetricsReporter()
-    {
-        return dbMetricsReporter;
-    }
-
-    public void setDbMetricsReporter(DBMetricsReporter dbMetricsReporter)
-    {
-        this.dbMetricsReporter = dbMetricsReporter;
-    }
-
+    boolean isEnabled();
 }

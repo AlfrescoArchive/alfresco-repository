@@ -1,8 +1,8 @@
 /*
  * #%L
- * Alfresco Repository
+ * Alfresco Remote API
  * %%
- * Copyright (C) 2005 - 2018 Alfresco Software Limited
+ * Copyright (C) 2005 - 2016 Alfresco Software Limited
  * %%
  * This file is part of the Alfresco software.
  * If the software was purchased under a paid Alfresco license, the terms of
@@ -23,30 +23,17 @@
  * along with Alfresco. If not, see <http://www.gnu.org/licenses/>.
  * #L%
  */
-package org.alfresco.ibatis;
+package org.alfresco.metrics.rest;
 
-import org.alfresco.metrics.db.DBMetricsReporter;
-import org.apache.ibatis.session.Configuration;
-import org.apache.ibatis.session.SqlSessionFactory;
-import org.apache.ibatis.session.SqlSessionFactoryBuilder;
+import org.alfresco.metrics.MetricsReporter;
 
-public class AlfrescoSqlSessionFactoryBuilder extends SqlSessionFactoryBuilder
+public interface RestMetricsReporter extends MetricsReporter
 {
-    private DBMetricsReporter dbMetricsReporter;
 
-    public SqlSessionFactory build(Configuration config)
-    {
-        return new AlfrescoDefaultSqlSessionFactory(config, dbMetricsReporter);
-    }
+    void reportRestRequestExecutionTime(final long milliseconds, final String httpMethod, final String requestServicePath);
 
-    public DBMetricsReporter getDbMetricsReporter()
-    {
-        return dbMetricsReporter;
-    }
+    boolean isEnabled();
 
-    public void setDbMetricsReporter(DBMetricsReporter dbMetricsReporter)
-    {
-        this.dbMetricsReporter = dbMetricsReporter;
-    }
+    boolean isRestServicePathMetricsEnabled();
 
 }
