@@ -148,7 +148,8 @@ import org.springframework.context.ApplicationContext;
     // Requires running transformers
     org.alfresco.repo.rendition2.RenditionService2IntegrationTest.class,
     org.alfresco.repo.rendition2.LegacyLocalTransformClientIntegrationTest.class,
-    org.alfresco.repo.rendition2.LegacyLocalTransformServiceRegistryTest.class
+    org.alfresco.repo.rendition2.LegacyLocalTransformServiceRegistryTest.class,
+    org.alfresco.repo.rendition2.RenditionTest.class
 })
 public class MiscContextTestSuite
 {
