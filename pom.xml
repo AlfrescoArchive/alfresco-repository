@@ -2,7 +2,7 @@
     <modelVersion>4.0.0</modelVersion>
     <artifactId>alfresco-repository</artifactId>
     <name>Alfresco Repository</name>
-    <version>7.21_REPO_3918_java_11-SNAPSHOT</version>
+    <version>7.22_REPO_3918_java_11-SNAPSHOT</version>
     <packaging>jar</packaging>
 
     <parent>
@@ -250,11 +250,6 @@
             <groupId>org.apache.maven</groupId>
             <artifactId>maven-artifact</artifactId>
             <version>3.2.1</version>
-        </dependency>
-        <dependency>
-            <groupId>javax.xml.bind</groupId>
-            <artifactId>jaxb-api</artifactId>
-            <version>2.3.1</version>
         </dependency>
         <dependency>
             <groupId>de.schlichtherle.truezip</groupId>
@@ -647,11 +642,6 @@
                 </exclusion>
             </exclusions>
         </dependency>
-        <dependency>
-            <groupId>org.alfresco</groupId>
-            <artifactId>alfresco-micrometer</artifactId>
-            <version>1.3</version>
-        </dependency>
         <!-- Activiti -->
         <!-- Updated commons-email to 1.5 -->
         <!-- see dependencyManagement section -->
@@ -1031,7 +1021,7 @@
         <dependency>
             <groupId>org.aspectj</groupId>
             <artifactId>aspectjrt</artifactId>
-            <version>1.9.1</version>
+            <version>1.8.7</version>
         </dependency>
         <dependency>
             <groupId>org.apache.activemq</groupId>
@@ -1203,18 +1193,12 @@
             </plugin>
 
             <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
-                <version>2.22.1</version>
                 <executions>
                     <execution>
                         <id>default-test</id>
                         <!-- There's also surefire configuration in the integration-tests profile -->
                         <configuration>
-                            <!-- allow all reflection access for third party libraries -->
-                            <argLine>
-                                --illegal-access=permit
-                            </argLine>
                             <!-- To prevent tests alfresco.log to be created in project roots and bother while synchronizing with SCM -->
                             <workingDirectory>${project.build.directory}</workingDirectory>
                             <systemPropertyVariables>
@@ -1285,11 +1269,12 @@
                 </executions>
             </plugin>
             <plugin>
-                <groupId>com.github.m50d</groupId>
+                <groupId>org.codehaus.mojo</groupId>
                 <artifactId>aspectj-maven-plugin</artifactId>
-                <version>1.11.1</version>
+                <version>1.8</version>
                 <executions>
                     <execution>
+                        <!-- phase>process-sources</phase -->
                         <goals>
                             <goal>compile</goal>
                             <goal>test-compile</goal>
