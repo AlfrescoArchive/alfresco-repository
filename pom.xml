@@ -4,7 +4,7 @@
     <parent>
         <groupId>org.alfresco</groupId>
         <artifactId>alfresco-super-pom</artifactId>
-        <version>9-REPO-3918_java_11-SNAPSHOT</version>
+        <version>10-RC2</version>
     </parent>
 
     <artifactId>alfresco-data-model</artifactId>
@@ -31,7 +31,7 @@
     </distributionManagement>
 
     <properties>
-        <dependency.alfresco-core.version>7.5-REPO-3918_java_11-SNAPSHOT</dependency.alfresco-core.version>
+        <dependency.alfresco-core.version>7.5-REPO-3918_java_11</dependency.alfresco-core.version>
 
         <!-- Files to exclude from SonarQube analysis -->
         <sonar.exclusions>
