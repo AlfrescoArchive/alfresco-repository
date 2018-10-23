@@ -247,7 +247,7 @@ public abstract class AbstractRenditionIntegrationTest extends BaseSpringTest
     // As the current user waitForRendition for a rendition to appear. Creates new transactions to do this.
     private NodeRef waitForRendition(NodeRef sourceNodeRef, String renditionName) throws InterruptedException
     {
-        long maxMillis = 10000;
+        long maxMillis = 30000;
         ChildAssociationRef assoc = null;
         for (int i = (int)(maxMillis / 1000); i >= 0; i--)
         {
