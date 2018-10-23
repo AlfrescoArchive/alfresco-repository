@@ -25,10 +25,6 @@
  */
 package org.alfresco.repo.rendition2;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.util.Collections;
-
 import junit.framework.AssertionFailedError;
 import org.alfresco.model.ContentModel;
 import org.alfresco.repo.content.MimetypeMap;
@@ -43,7 +39,6 @@ import org.alfresco.service.cmr.repository.MimetypeService;
 import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.cmr.repository.NodeService;
 import org.alfresco.service.cmr.repository.StoreRef;
-import org.alfresco.service.cmr.security.AuthenticationService;
 import org.alfresco.service.cmr.security.MutableAuthenticationService;
 import org.alfresco.service.cmr.security.PermissionService;
 import org.alfresco.service.cmr.security.PersonService;
@@ -54,10 +49,15 @@ import org.alfresco.util.BaseSpringTest;
 import org.alfresco.util.GUID;
 import org.alfresco.util.PropertyMap;
 import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.ResourceUtils;
+
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.util.Collections;
 
 import static java.lang.Thread.sleep;
 import static org.alfresco.model.ContentModel.PROP_CONTENT;
@@ -118,19 +118,33 @@ public abstract class AbstractRenditionIntegrationTest extends BaseSpringTest
         // Ensure other applications contexts are closed...
         // Multiple consumers not supported for same direct vm in different Camel contexts.
         ApplicationContextHelper.closeApplicationContext();
+
+        // Use the docker images for transforms
+        System.setProperty("alfresco-pdf-renderer.url", "http://localhost:8090/");
+        System.setProperty("img.url", "http://localhost:8091");
+        System.setProperty("jodconverter.url", "http://localhost:8092/");
+        System.setProperty("tika.url", "http://localhost:8093/");
     }
 
     @Before
     public void setUp() throws Exception
     {
         assertTrue("The RenditionService2 needs to be enabled", renditionService2.isEnabled());
-        assertTrue("A wrong type of transform client detected", transformClient instanceof LegacyLocalTransformClient);
     }
 
     @After
     public void cleanUp()
     {
         AuthenticationUtil.clearCurrentSecurityContext();
+    }
+
+    @AfterClass
+    public static void after()
+    {
+        System.clearProperty("alfresco-pdf-renderer.url");
+        System.clearProperty("img.url");
+        System.clearProperty("jodconverter.url");
+        System.clearProperty("tika.url");
     }
 
     protected void checkRendition(String testFileName, String renditionName, boolean expectedToPass)

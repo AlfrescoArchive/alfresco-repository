@@ -78,7 +78,7 @@ public class RenditionTest extends AbstractRenditionIntegrationTest
     private void assertRenditionsOkayFromSourceExtension(List<String> sourceExtensions, List<String> excludeList, List<String> expectedToFail,
                                                          int expectedRenditionCount, int expectedFailedCount) throws Exception
     {
-        int expectedSuccessCount = expectedRenditionCount - excludeList.size() - expectedFailedCount;
+        int expectedSuccessCount = expectedRenditionCount - Math.min(excludeList.size(), expectedRenditionCount) - expectedFailedCount;
         int renditionCount = 0;
         int failedCount = 0;
         int successCount = 0;
@@ -108,7 +108,7 @@ public class RenditionTest extends AbstractRenditionIntegrationTest
                     String sourceTragetRendition = sourceExtension + ' ' + targetExtension + ' ' + renditionName;
                     if (!excludeList.contains(sourceTragetRendition))
                     {
-                        String task = sourceExtension + " to " + targetExtension + " for " + renditionName;
+                        String task = sourceExtension + " " + targetExtension + " " + renditionName;
 
                         try
                         {
@@ -127,9 +127,9 @@ public class RenditionTest extends AbstractRenditionIntegrationTest
         }
         System.out.println("FAILURES:\n"+failures+"\n");
         System.out.println("SUCCESSES:\n"+successes+"\n");
-        System.out.println("renditionCount: "+renditionCount);
-        System.out.println("   failedCount: "+failedCount);
-        System.out.println("  successCount: "+successCount);
+        System.out.println("renditionCount: "+renditionCount+" expected "+expectedRenditionCount);
+        System.out.println("   failedCount: "+failedCount+" expected "+expectedFailedCount);
+        System.out.println("  successCount: "+successCount+" expected "+expectedSuccessCount);
 
         assertEquals("Rendition count has changed", expectedRenditionCount, renditionCount);
         assertEquals("Failed rendition count has changed", expectedFailedCount, failedCount);
@@ -143,6 +143,24 @@ public class RenditionTest extends AbstractRenditionIntegrationTest
     @Test
     public void testTasRestApiRenditions() throws Exception
     {
+        internalTestTasRestApiRenditions(62, 0);
+    }
+
+    @Category(DebugTests.class)
+    @Test
+    public void testAllSourceExtensions() throws Exception
+    {
+        internalTestAllSourceExtensions(196, 0);
+    }
+
+    @Test
+    public void testGifRenditions() throws Exception
+    {
+        internalTestGifRenditions(5, 0);
+    }
+
+    protected void internalTestTasRestApiRenditions(int expectedRenditionCount, int expectedFailedCount) throws Exception
+    {
         assertRenditionsOkayFromSourceExtension(Arrays.asList("doc", "xls", "ppt", "docx", "xlsx", "pptx", "msg", "pdf", "png", "gif", "jpg"),
                 Arrays.asList(new String[]{
                         "docx jpg imgpreview",
@@ -152,12 +170,10 @@ public class RenditionTest extends AbstractRenditionIntegrationTest
                         "xlsx jpg medium",
 
                 }),
-                Collections.emptyList(),62, 0);
+                Collections.emptyList(), expectedRenditionCount, expectedFailedCount);
     }
 
-    @Category(DebugTests.class)
-    @Test
-    public void testAllSourceExtensions() throws Exception
+    protected void internalTestAllSourceExtensions(int expectedRenditionCount, int expectedFailedCount) throws Exception
     {
         List<String> sourceExtensions = new ArrayList<>();
         for (String sourceMimetype : mimetypeMap.getMimetypes())
@@ -204,14 +220,12 @@ public class RenditionTest extends AbstractRenditionIntegrationTest
                         "wpd png avatar32",
                         "wpd jpg imgpreview"
                 }),
-                Collections.emptyList(),196, 0);
+                Collections.emptyList(), expectedRenditionCount, expectedFailedCount);
     }
 
-    @Test
-    public void testGifRenditions() throws Exception
+    protected void internalTestGifRenditions(int expectedRenditionCount, int expectedFailedCount) throws Exception
     {
         assertRenditionsOkayFromSourceExtension(Arrays.asList("gif"),
-                Collections.emptyList(), Collections.emptyList(), 5, 0);
+                Collections.emptyList(), Collections.emptyList(), expectedRenditionCount, expectedFailedCount);
     }
-
 }

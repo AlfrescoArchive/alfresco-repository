@@ -149,7 +149,8 @@ import org.springframework.context.ApplicationContext;
     org.alfresco.repo.rendition2.RenditionService2IntegrationTest.class,
     org.alfresco.repo.rendition2.LegacyLocalTransformClientIntegrationTest.class,
     org.alfresco.repo.rendition2.LegacyLocalTransformServiceRegistryTest.class,
-    org.alfresco.repo.rendition2.RenditionTest.class
+    org.alfresco.repo.rendition2.RenditionTest.class,
+    org.alfresco.repo.rendition2.NoLocalTransformRenditionTest.class,
 })
 public class MiscContextTestSuite
 {
