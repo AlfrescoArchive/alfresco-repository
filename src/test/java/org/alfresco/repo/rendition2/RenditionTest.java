@@ -26,36 +26,18 @@
 package org.alfresco.repo.rendition2;
 
 import junit.framework.AssertionFailedError;
-import org.alfresco.repo.content.MimetypeMap;
 import org.alfresco.repo.security.authentication.AuthenticationUtil;
 import org.alfresco.repo.thumbnail.ThumbnailDefinition;
-import org.alfresco.repo.thumbnail.ThumbnailRegistry;
-import org.alfresco.service.cmr.rendition.RenditionService;
-import org.alfresco.service.cmr.repository.ChildAssociationRef;
-import org.alfresco.service.cmr.repository.NodeRef;
-import org.alfresco.service.cmr.security.PermissionService;
-import org.alfresco.util.ApplicationContextHelper;
-import org.junit.After;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.util.ResourceUtils;
 
-import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.StringJoiner;
-
-import static java.lang.Thread.sleep;
-import static junit.framework.TestCase.assertEquals;
-import static org.alfresco.repo.content.MimetypeMap.EXTENSION_BINARY;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
 
 /**
  * Test it is possible to create renditions from the quick files.
@@ -64,152 +46,23 @@ import static org.junit.Assert.fail;
  */
 public class RenditionTest extends AbstractRenditionIntegrationTest
 {
-    @Autowired
-    private MimetypeMap mimetypeMap;
-    @Autowired
-    private RenditionService2Impl renditionService2;
-    @Autowired
-    private TransformClient transformClient;
-    @Autowired
-    private PermissionService permissionService;
-    @Autowired
-    private RenditionService renditionService;
-    @Autowired
-    private ThumbnailRegistry thumbnailRegistry;
-
-    private static final String ADMIN = "admin";
-
-    @BeforeClass
-    public static void before()
-    {
-        // Ensure other applications contexts are closed...
-        // Multiple consumers not supported for same direct vm in different Camel contexts.
-        ApplicationContextHelper.closeApplicationContext();
-    }
-
     @Before
-    public void setUp()
+    public void setUp() throws Exception
     {
-        assertTrue("The RenditionService2 needs to be enabled", renditionService2.isEnabled());
+        super.setUp();
+        AuthenticationUtil.setRunAsUser(AuthenticationUtil.getAdminUserName());
     }
 
-    @After
-    public void cleanUp()
+    private Set<String> getThumbnailNames(List<ThumbnailDefinition> thumbnailDefinitions)
     {
-        AuthenticationUtil.clearCurrentSecurityContext();
-    }
 
-    private void checkRendition(String testFileName, String renditionName, boolean expectedToPass)
-    {
-        try
+        Set<String> names = new HashSet<>();
+        for (ThumbnailDefinition thumbnailDefinition : thumbnailDefinitions)
         {
-            NodeRef sourceNodeRef = createSource(ADMIN, testFileName);
-            render(ADMIN, sourceNodeRef, renditionName);
-            waitForRendition(ADMIN, sourceNodeRef, renditionName);
-            if (!expectedToPass)
-            {
-                fail("The " + renditionName + " rendition should NOT be supported for " + testFileName);
-            }
+            String name = thumbnailDefinition.getName();
+            names.add(name);
         }
-        catch(UnsupportedOperationException e)
-        {
-            if (expectedToPass)
-            {
-                fail("The " + renditionName + " rendition SHOULD be supported for " + testFileName);
-            }
-        }
-        catch (AssertionFailedError e)
-        {
-            throw e;
-        }
-    }
-
-    // Creates a new source node as the given user in its own transaction.
-    private NodeRef createSource(String user, String testFileName)
-    {
-        return AuthenticationUtil.runAs(() ->
-                transactionService.getRetryingTransactionHelper().doInTransaction(() ->
-                        createSource(testFileName)), user);
-    }
-
-    // Creates a new source node as the current user in the current transaction.
-    private NodeRef createSource(String testFileName) throws FileNotFoundException
-    {
-        return createContentNodeFromQuickFile(testFileName);
-    }
-
-    // Requests a new rendition as the given user in its own transaction.
-    private void render(String user, NodeRef sourceNode, String renditionName)
-    {
-        AuthenticationUtil.runAs((AuthenticationUtil.RunAsWork<Void>) () ->
-                transactionService.getRetryingTransactionHelper().doInTransaction(() ->
-                {
-                    render(sourceNode, renditionName);
-                    return null;
-                }), user);
-    }
-
-    // Requests a new rendition as the current user in the current transaction.
-    private void render(NodeRef sourceNodeRef, String renditionName)
-    {
-        renditionService2.render(sourceNodeRef, renditionName);
-    }
-
-    // As a given user waitForRendition for a rendition to appear. Creates new transactions to do this.
-    private NodeRef waitForRendition(String user, NodeRef sourceNodeRef, String renditionName) throws AssertionFailedError
-    {
-        try
-        {
-            return AuthenticationUtil.runAs(() -> waitForRendition(sourceNodeRef, renditionName), user);
-        }
-        catch (RuntimeException e)
-        {
-            Throwable cause = e.getCause();
-            if (cause instanceof AssertionFailedError)
-            {
-                throw (AssertionFailedError)cause;
-            }
-            throw e;
-        }
-    }
-
-    // As the current user waitForRendition for a rendition to appear. Creates new transactions to do this.
-    private NodeRef waitForRendition(NodeRef sourceNodeRef, String renditionName) throws InterruptedException
-    {
-        long maxMillis = 2000;
-        ChildAssociationRef assoc = null;
-        for (int i = (int)(maxMillis / 500); i >= 0; i--)
-        {
-            // Must create a new transaction in order to see changes that take place after this method started.
-            assoc = transactionService.getRetryingTransactionHelper().doInTransaction(() ->
-                    renditionService2.getRenditionByName(sourceNodeRef, renditionName), true, true);
-            if (assoc != null)
-            {
-                break;
-            }
-            logger.debug("RenditionService2.getRenditionByName(...) sleep "+i);
-            sleep(500);
-        }
-        assertNotNull("Rendition " + renditionName + " failed", assoc);
-        return assoc.getChildRef();
-    }
-
-    private String getTestFileName(String sourceMimetype) throws FileNotFoundException
-    {
-        String extension = mimetypeMap.getExtension(sourceMimetype);
-        String testFileName = extension.equals(EXTENSION_BINARY) ? null : "quick."+extension;
-        if (testFileName != null)
-        {
-            try
-            {
-                ResourceUtils.getFile("classpath:quick/" + testFileName);
-            }
-            catch (FileNotFoundException e)
-            {
-                testFileName = null;
-            }
-        }
-        return testFileName;
+        return names;
     }
 
     @Test
@@ -272,14 +125,14 @@ public class RenditionTest extends AbstractRenditionIntegrationTest
             String testFileName = getTestFileName(sourceMimetype);
             if (testFileName != null)
             {
-                Set<String> renditionNamesFromSourceMimetype = renditionDefinitionRegistry2.getRenditionNamesFrom(sourceMimetype, -1);
+                Set<String> renditionNames = renditionDefinitionRegistry2.getRenditionNamesFrom(sourceMimetype, -1);
                 List<ThumbnailDefinition> thumbnailDefinitions = thumbnailRegistry.getThumbnailDefinitions(sourceMimetype, -1);
-                assertEquals("There should be the same number of renditions ("+renditionNamesFromSourceMimetype+
-                        ") as deprecated thumbnails ("+thumbnailDefinitions+")",
-                        renditionNamesFromSourceMimetype.size(), thumbnailDefinitions.size());
+                Set<String> thumbnailNames = getThumbnailNames(thumbnailDefinitions);
+                assertEquals("There should be the same number of renditions ("+renditionNames+
+                        ") as deprecated thumbnails ("+thumbnailNames+")", renditionNames, thumbnailDefinitions);
 
-                renditionCount += renditionNamesFromSourceMimetype.size();
-                for (String renditionName : renditionNamesFromSourceMimetype)
+                renditionCount += renditionNames.size();
+                for (String renditionName : renditionNames)
                 {
                     RenditionDefinition2 renditionDefinition = renditionDefinitionRegistry2.getRenditionDefinition(renditionName);
                     String targetMimetype = renditionDefinition.getTargetMimetype();
@@ -321,7 +174,7 @@ public class RenditionTest extends AbstractRenditionIntegrationTest
     public void testGifRenditions() throws Exception
     {
         assertRenditionsOkayFromSourceExtension(Arrays.asList("gif"),
-                Collections.emptyList(), Collections.emptyList(), 7, 0, 7);
+                Collections.emptyList(), Collections.emptyList(), 5, 0, 5);
     }
 
 }
