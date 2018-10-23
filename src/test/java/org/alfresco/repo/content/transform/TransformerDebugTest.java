@@ -166,7 +166,6 @@ public class TransformerDebugTest
 
         assertDebugEntriesEquals(new String[] {
         "0             pdf  txt  1.5 MB ContentService.transform(...) NO transformers\n"+
-        "0             \n"+
         "0             --a) [---] transformer1<<Component>> > 50 KB\n"+
         "0             --b) [---] transformer3<<Component>> > 50 KB\n"+
         "0             --c) [---] transformer4<<Component>> > 50 KB\n"+
