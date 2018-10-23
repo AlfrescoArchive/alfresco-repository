@@ -31,7 +31,7 @@
     </distributionManagement>
 
     <properties>
-        <dependency.alfresco-core.version>7.5-REPO-3918_java_11-SNAPSHOT</dependency.alfresco-core.version>
+        <dependency.alfresco-core.version>7.5_REPO_3918_java_11-SNAPSHOT</dependency.alfresco-core.version>
 
         <!-- Files to exclude from SonarQube analysis -->
         <sonar.exclusions>
