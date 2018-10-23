@@ -28,8 +28,10 @@ package org.alfresco.repo.rendition2;
 import junit.framework.AssertionFailedError;
 import org.alfresco.repo.security.authentication.AuthenticationUtil;
 import org.alfresco.repo.thumbnail.ThumbnailDefinition;
+import org.alfresco.util.testing.category.DebugTests;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -73,45 +75,10 @@ public class RenditionTest extends AbstractRenditionIntegrationTest
         assertEquals("Added or removed a definition (rendition-service2-contex.xml)?", 7, renditionNames.size());
     }
 
-    List<String> KNOWN_FAILURES = Arrays.asList(new String[]{
-            "docx jpg imgpreview",
-            "docx jpg medium",
-
-            "xlsx jpg imgpreview",
-            "xlsx jpg medium",
-
-            "key jpg imgpreview",
-            "key jpg medium",
-
-            "pages jpg imgpreview",
-            "pages jpg medium",
-
-            "numbers jpg imgpreview",
-            "numbers jpg medium",
-    });
-
-    @Test
-    public void testTasRestApiRenditions() throws Exception
-    {
-        assertRenditionsOkayFromSourceExtension(Arrays.asList("doc", "xls", "ppt", "docx", "xlsx", "pptx", "msg", "pdf", "png", "gif", "jpg"),
-                Collections.emptyList(), Collections.emptyList(), 77, 6, 71);
-    }
-
-    @Test
-    public void testAllSourceExtensions() throws Exception
-    {
-        List<String> sourceExtensions = new ArrayList<>();
-        for (String sourceMimetype : mimetypeMap.getMimetypes())
-        {
-            String sourceExtension = mimetypeMap.getExtension(sourceMimetype);
-            sourceExtensions.add(sourceExtension);
-        }
-        assertRenditionsOkayFromSourceExtension(sourceExtensions, KNOWN_FAILURES, Collections.emptyList(),413, 3, 400);
-    }
-
     private void assertRenditionsOkayFromSourceExtension(List<String> sourceExtensions, List<String> excludeList, List<String> expectedToFail,
-                                                         int expectedRenditionCount, int expectedFailedCount, int expectedSuccessCount) throws Exception
+                                                         int expectedRenditionCount, int expectedFailedCount) throws Exception
     {
+        int expectedSuccessCount = expectedRenditionCount - excludeList.size() - expectedFailedCount;
         int renditionCount = 0;
         int failedCount = 0;
         int successCount = 0;
@@ -128,8 +95,8 @@ public class RenditionTest extends AbstractRenditionIntegrationTest
                 Set<String> renditionNames = renditionDefinitionRegistry2.getRenditionNamesFrom(sourceMimetype, -1);
                 List<ThumbnailDefinition> thumbnailDefinitions = thumbnailRegistry.getThumbnailDefinitions(sourceMimetype, -1);
                 Set<String> thumbnailNames = getThumbnailNames(thumbnailDefinitions);
-                assertEquals("There should be the same number of renditions ("+renditionNames+
-                        ") as deprecated thumbnails ("+thumbnailNames+")", renditionNames, thumbnailDefinitions);
+                assertEquals("There should be the same renditions ("+renditionNames+") as deprecated thumbnails ("+thumbnailNames+")",
+                        renditionNames, thumbnailNames);
 
                 renditionCount += renditionNames.size();
                 for (String renditionName : renditionNames)
@@ -145,7 +112,7 @@ public class RenditionTest extends AbstractRenditionIntegrationTest
 
                         try
                         {
-                            checkRendition(testFileName, renditionName, expectedToFail.contains(sourceTragetRendition));
+                            checkRendition(testFileName, renditionName, !expectedToFail.contains(sourceTragetRendition));
                             successes.add(task);
                             successCount++;
                         }
@@ -160,21 +127,91 @@ public class RenditionTest extends AbstractRenditionIntegrationTest
         }
         System.out.println("FAILURES:\n"+failures+"\n");
         System.out.println("SUCCESSES:\n"+successes+"\n");
+        System.out.println("renditionCount: "+renditionCount);
+        System.out.println("   failedCount: "+failedCount);
+        System.out.println("  successCount: "+successCount);
 
         assertEquals("Rendition count has changed", expectedRenditionCount, renditionCount);
         assertEquals("Failed rendition count has changed", expectedFailedCount, failedCount);
         assertEquals("Successful rendition count has changed", expectedSuccessCount, successCount);
-//        if (failures.length() > 0)
-//        {
-//            fail(failures.toString());
-//        }
+        if (failures.length() > 0)
+        {
+            fail(failures.toString());
+        }
+    }
+
+    @Test
+    public void testTasRestApiRenditions() throws Exception
+    {
+        assertRenditionsOkayFromSourceExtension(Arrays.asList("doc", "xls", "ppt", "docx", "xlsx", "pptx", "msg", "pdf", "png", "gif", "jpg"),
+                Arrays.asList(new String[]{
+                        "docx jpg imgpreview",
+                        "docx jpg medium",
+
+                        "xlsx jpg imgpreview",
+                        "xlsx jpg medium",
+
+                }),
+                Collections.emptyList(),62, 0);
+    }
+
+    @Category(DebugTests.class)
+    @Test
+    public void testAllSourceExtensions() throws Exception
+    {
+        List<String> sourceExtensions = new ArrayList<>();
+        for (String sourceMimetype : mimetypeMap.getMimetypes())
+        {
+            String sourceExtension = mimetypeMap.getExtension(sourceMimetype);
+            sourceExtensions.add(sourceExtension);
+        }
+        assertRenditionsOkayFromSourceExtension(sourceExtensions,
+                Arrays.asList(new String[]{
+                        "docx jpg imgpreview",
+                        "docx jpg medium",
+
+                        "xlsx jpg imgpreview",
+                        "xlsx jpg medium",
+
+                        "key jpg imgpreview",
+                        "key jpg medium",
+                        "key png doclib",
+                        "key png avatar",
+                        "key png avatar32",
+
+                        "pages jpg imgpreview",
+                        "pages jpg medium",
+                        "pages png doclib",
+                        "pages png avatar",
+                        "pages png avatar32",
+
+                        "numbers jpg imgpreview",
+                        "numbers jpg medium",
+                        "numbers png doclib",
+                        "numbers png avatar",
+                        "numbers png avatar32",
+
+                        "tiff jpg imgpreview",
+                        "tiff jpg medium",
+                        "tiff png doclib",
+                        "tiff png avatar",
+                        "tiff png avatar32",
+
+                        "wpd pdf pdf",
+                        "wpd jpg medium",
+                        "wpd png doclib",
+                        "wpd png avatar",
+                        "wpd png avatar32",
+                        "wpd jpg imgpreview"
+                }),
+                Collections.emptyList(),196, 0);
     }
 
     @Test
     public void testGifRenditions() throws Exception
     {
         assertRenditionsOkayFromSourceExtension(Arrays.asList("gif"),
-                Collections.emptyList(), Collections.emptyList(), 5, 0, 5);
+                Collections.emptyList(), Collections.emptyList(), 5, 0);
     }
 
 }

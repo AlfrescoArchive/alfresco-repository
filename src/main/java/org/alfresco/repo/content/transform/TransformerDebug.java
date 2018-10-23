@@ -564,7 +564,11 @@ public class TransformerDebug
                 (firstLevel && use != null ? "-- "+use+" -- " : "") + message);
         if (firstLevel)
         {
-            log(getNodeRef(frame.options, firstLevel, sourceSize));
+            String nodeRef = getNodeRef(frame.options, firstLevel, sourceSize);
+            if (!nodeRef.isEmpty())
+            {
+                log(nodeRef);
+            }
         }
     }
 
@@ -633,7 +637,7 @@ public class TransformerDebug
                 if (!suppressFinish && (firstLevel || logger.isTraceEnabled()))
                 {
                     log(FINISHED_IN + ms +
-                        (frame.callType == Call.AVAILABLE ? " Transformer NOT available" : "") +
+                        (frame.callType == Call.AVAILABLE ? " Just checking if a transformer is available" : "") +
                         (firstLevel ? "\n" : ""), 
                         firstLevel);
                 }

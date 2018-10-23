@@ -123,7 +123,6 @@ public abstract class AbstractRenditionIntegrationTest extends BaseSpringTest
     @Before
     public void setUp() throws Exception
     {
-//        AuthenticationUtil.setRunAsUser(AuthenticationUtil.getAdminUserName());
         assertTrue("The RenditionService2 needs to be enabled", renditionService2.isEnabled());
         assertTrue("A wrong type of transform client detected", transformClient instanceof LegacyLocalTransformClient);
     }
