@@ -104,30 +104,38 @@ public class IdentityServiceRemoteUserMapper implements RemoteUserMapper, Activa
      */
     public String getRemoteUser(HttpServletRequest request)
     {
-        if (logger.isDebugEnabled())
-            logger.debug("Retrieving username from http request...");
-        
-        if (!this.isEnabled)
+        try
         {
             if (logger.isDebugEnabled())
-                logger.debug("TokenRemoteUserMapper is disabled, returning null.");
-            
-            return null;
+                logger.debug("Retrieving username from http request...");
+
+            if (!this.isEnabled)
+            {
+                if (logger.isDebugEnabled())
+                    logger.debug("TokenRemoteUserMapper is disabled, returning null.");
+
+                return null;
+            }
+
+            String headerUserId = extractUserFromHeader(request);
+
+            if (headerUserId != null)
+            {
+                // Normalize the user ID taking into account case sensitivity settings
+                String normalizedUserId =  normalizeUserId(headerUserId);
+
+                if (logger.isDebugEnabled())
+                    logger.debug("Returning username: " + normalizedUserId);
+
+                return normalizedUserId;
+            }
         }
-        
-        String headerUserId = extractUserFromHeader(request);
-        
-        if (headerUserId != null)
+        catch (Exception e)
         {
-            // Normalize the user ID taking into account case sensitivity settings
-            String normalizedUserId =  normalizeUserId(headerUserId);
-            
-            if (logger.isDebugEnabled())
-                logger.debug("Returning username: " + normalizedUserId);
-            
-            return normalizedUserId;
+            logger.error("Failed to authenticate user using IdentityServiceRemoteUserMapper.", e);
+
         }
-        
+
         return null;
     }
 
@@ -179,28 +187,10 @@ public class IdentityServiceRemoteUserMapper implements RemoteUserMapper, Activa
         }
         else
         {
-            // if bearer token failed, try basic auth, if enabled
-            if (this.keycloakDeployment.isEnableBasicAuth())
+            // Basic auth in IdentityServiceRemoteUserMapper was removed as part of https://issues.alfresco.com/jira/browse/REPO-3876
+            if (logger.isDebugEnabled())
             {
-                if (logger.isDebugEnabled())
-                {
-                    logger.debug("Trying basic auth...");
-                }
-                
-                BasicAuthRequestAuthenticator basicAuthenticator = 
-                            new BasicAuthRequestAuthenticator(this.keycloakDeployment);
-                AuthOutcome basicOutcome = basicAuthenticator.authenticate(facade);
-                
-                if (logger.isDebugEnabled())
-                {
-                    logger.debug("Basic auth outcome: " + basicOutcome);
-                }
-                
-                // if auth was successful, extract username and return
-                if (basicOutcome == AuthOutcome.AUTHENTICATED)
-                {
-                    userName = extractUserFromToken(basicAuthenticator.getToken());
-                }
+                logger.debug("User could not be authenticated by IdentityServiceRemoteUserMapper.");
             }
         }
         

@@ -27,9 +27,13 @@ package org.alfresco.repo.security.authentication.identityservice;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.http.client.HttpClient;
+import org.keycloak.adapters.HttpClientBuilder;
 import org.keycloak.adapters.KeycloakDeployment;
 import org.keycloak.adapters.KeycloakDeploymentBuilder;
 import org.springframework.beans.factory.FactoryBean;
+
+import java.util.concurrent.TimeUnit;
 
 /**
  * Creates an instance of a KeycloakDeployment object for communicating with the Identity Service.
@@ -51,7 +55,14 @@ public class IdentityServiceDeploymentFactoryBean implements FactoryBean<Keycloa
     public KeycloakDeployment getObject() throws Exception
     {
         KeycloakDeployment deployment = KeycloakDeploymentBuilder.build(this.identityServiceConfig);
-        
+
+        // Set client with custom timeout values. This can be removed if the future versions of Keycloak accept timeout values through the config.
+        HttpClient client = new HttpClientBuilder()
+                .establishConnectionTimeout(2, TimeUnit.SECONDS)
+                .socketTimeout(2, TimeUnit.SECONDS)
+                .build(this.identityServiceConfig);
+        deployment.setClient(client);
+
         if (logger.isInfoEnabled())
         {
             logger.info("Keycloak JWKS URL: " + deployment.getJwksUrl());
