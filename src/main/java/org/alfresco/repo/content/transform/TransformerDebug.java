@@ -1404,7 +1404,8 @@ public class TransformerDebug
     /**
      * Debugs a response to the Transform Service
      */
-    public void debugTransformServiceResponse(NodeRef sourceNodeRef, int contentHashcode, long requested, int seq, String msg)
+    public void debugTransformServiceResponse(NodeRef sourceNodeRef, int contentHashcode,
+                                              long requested, int seq, String sourceExt, String targetExt, String msg)
     {
         pushMisc();
         Frame frame = ThreadInfo.getStack().getLast();
@@ -1413,6 +1414,12 @@ public class TransformerDebug
         if (!suppressFinish)
         {
             frame.start = requested;
+// TODO Create a dummy (available == false) transformer for TransformService before we can record the TS's stats
+//            String sourceMimetype = mimetypeService.getMimetype(sourceExt);
+//            String targetMimetype = mimetypeService.getMimetype(targetExt);
+//            long ms = System.currentTimeMillis()-requested;
+//            AbstractContentTransformer2 transformer = null;
+//            transformer.recordTime(sourceMimetype, targetMimetype, ms);
         }
         debug(msg);
         debug(sourceNodeRef.toString() + ' ' +contentHashcode);
