@@ -1657,6 +1657,12 @@ public class AuthenticationTest extends TestCase
         {
 
         }
+        // we should be able to get a ticket now, because if we got past the authentication filters
+        // it means that we should be able to use the application (for external SSO case, for example)
+        String ticketRenew = pubAuthenticationService.getCurrentTicket();
+        // validate our ticket is still valid
+        pubAuthenticationService.validate(ticketRenew);
+        assertEquals(ticketRenew, authenticationService.getCurrentTicket());
     }
 
     public void testPubAuthenticationService()
