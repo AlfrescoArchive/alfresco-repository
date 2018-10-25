@@ -201,7 +201,7 @@ public abstract class AbstractMailActionExecuterTest
 
         MimeMessage message = ACTION_EXECUTER.retrieveLastTestMessage();
         Assert.assertNotNull(message);
-        Assert.assertEquals("Hello Jan 1, 1970", (String) message.getContent());
+        Assert.assertEquals("Hello 1 Jan 1970", (String) message.getContent());
     }
 
     @Test
@@ -221,7 +221,7 @@ public abstract class AbstractMailActionExecuterTest
 
         MimeMessage message = ACTION_EXECUTER.retrieveLastTestMessage();
         Assert.assertNotNull(message);
-        Assert.assertEquals("Hello Jan 1, 1970", (String) message.getContent());
+        Assert.assertEquals("Hello 1 Jan 1970", (String) message.getContent());
     }
 
     private Serializable getModel()
@@ -299,7 +299,7 @@ public abstract class AbstractMailActionExecuterTest
         MimeMessage message = sendMessage(from, recipients, subject, template);
 
         Assert.assertNotNull(message);
-        Assert.assertEquals("Hello 01-Jan-1970", (String) message.getContent());
+        Assert.assertEquals("Hello 1 Jan 1970", (String) message.getContent());
     }
 
     @Test
@@ -313,7 +313,7 @@ public abstract class AbstractMailActionExecuterTest
         MimeMessage message = sendMessage(from, to, subject, template);
 
         Assert.assertNotNull(message);
-        Assert.assertEquals("G'Day 01/01/1970", (String) message.getContent());
+        Assert.assertEquals("G'Day 1 Jan. 1970", (String) message.getContent());
     }
 
     @Test
@@ -593,7 +593,7 @@ public abstract class AbstractMailActionExecuterTest
 
             MimeMessage message = ACTION_EXECUTER.retrieveLastTestMessage();
             Assert.assertNotNull(message);
-            Assert.assertEquals("Hello Jan 1, 1970", (String) message.getContent());
+            Assert.assertEquals("Hello 1 Jan 1970", (String) message.getContent());
             Assert.assertEquals(1, message.getAllRecipients().length);
             javax.mail.internet.InternetAddress address = (InternetAddress) message.getAllRecipients()[0];
             Assert.assertEquals(USER_1_EMAIL, address.getAddress());
@@ -761,7 +761,7 @@ public abstract class AbstractMailActionExecuterTest
             }, tenantId);
 
             Assert.assertNotNull(message);
-            Assert.assertEquals("Hello 01-Jan-1970", (String) message.getContent());
+            Assert.assertEquals("Hello 1 Jan 1970", (String) message.getContent());
         }
         finally
         {
