@@ -140,24 +140,10 @@ public class RenditionTest extends AbstractRenditionIntegrationTest
         assertEquals("Added or removed a definition (rendition-service2-contex.xml)?", 7, renditionNames.size());
     }
 
-    @Category(DebugTests.class)
     @Test
     public void testTasRestApiRenditions() throws Exception
     {
-        internalTestAllSourceExtensions(62, 0);
-    }
-
-    @Category(DebugTests.class)
-    @Test
-    public void testAllSourceExtensions() throws Exception
-    {
-        internalTestAllSourceExtensions(196, 0);
-    }
-
-    @Test
-    public void testGifRenditions() throws Exception
-    {
-        internalTestGifRenditions(5, 0);
+        internalTestTasRestApiRenditions(62, 0);
     }
 
     protected void internalTestTasRestApiRenditions(int expectedRenditionCount, int expectedFailedCount) throws Exception
@@ -172,6 +158,13 @@ public class RenditionTest extends AbstractRenditionIntegrationTest
 
                 }),
                 Collections.emptyList(), expectedRenditionCount, expectedFailedCount);
+    }
+
+    @Category(DebugTests.class)
+    @Test
+    public void testAllSourceExtensions() throws Exception
+    {
+        internalTestAllSourceExtensions(196, 0);
     }
 
     protected void internalTestAllSourceExtensions(int expectedRenditionCount, int expectedFailedCount) throws Exception
@@ -222,6 +215,12 @@ public class RenditionTest extends AbstractRenditionIntegrationTest
                         "wpd jpg imgpreview"
                 }),
                 Collections.emptyList(), expectedRenditionCount, expectedFailedCount);
+    }
+
+    @Test
+    public void testGifRenditions() throws Exception
+    {
+        internalTestGifRenditions(5, 0);
     }
 
     protected void internalTestGifRenditions(int expectedRenditionCount, int expectedFailedCount) throws Exception
