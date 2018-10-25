@@ -35,7 +35,6 @@ import org.alfresco.repo.security.authentication.external.RemoteUserMapper;
 import org.alfresco.service.cmr.security.PersonService;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.keycloak.adapters.BasicAuthRequestAuthenticator;
 import org.keycloak.adapters.KeycloakDeployment;
 import org.keycloak.adapters.spi.AuthOutcome;
 import org.keycloak.representations.AccessToken;
@@ -132,8 +131,7 @@ public class IdentityServiceRemoteUserMapper implements RemoteUserMapper, Activa
         }
         catch (Exception e)
         {
-            logger.error("Failed to authenticate user using IdentityServiceRemoteUserMapper.", e);
-
+            logger.error("Failed to authenticate user using IdentityServiceRemoteUserMapper: " + e.getMessage(), e);
         }
 
         return null;
@@ -187,7 +185,6 @@ public class IdentityServiceRemoteUserMapper implements RemoteUserMapper, Activa
         }
         else
         {
-            // Basic auth in IdentityServiceRemoteUserMapper was removed as part of https://issues.alfresco.com/jira/browse/REPO-3876
             if (logger.isDebugEnabled())
             {
                 logger.debug("User could not be authenticated by IdentityServiceRemoteUserMapper.");

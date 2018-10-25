@@ -205,7 +205,13 @@ public class IdentityServiceRemoteUserMapperTest extends AbstractChainedSubsyste
         
         assertEquals("identity-service.public-key-cache-ttl", 3600, 
                     this.identityServiceConfig.getPublicKeyCacheTtl());
-        
+
+        assertEquals("identity-service.client-connection-timeout", 3000,
+                this.identityServiceConfig.getClientConnectionTimeout());
+
+        assertEquals("identity-service.client-socket-timeout", 1000,
+                this.identityServiceConfig.getClientSocketTimeout());
+
         // check boolean overrides
         assertFalse("identity-service.public-client", 
                     this.identityServiceConfig.isPublicClient());
@@ -247,8 +253,8 @@ public class IdentityServiceRemoteUserMapperTest extends AbstractChainedSubsyste
                     this.identityServiceConfig.isIgnoreOAuthQueryParameter());
         
         assertTrue("identity-service.turn-off-change-session-id-on-login", 
-                    this.identityServiceConfig.getTurnOffChangeSessionIdOnLogin());    
-        
+                    this.identityServiceConfig.getTurnOffChangeSessionIdOnLogin());
+
         // check credentials overrides
         Map<String, Object> credentials = this.identityServiceConfig.getCredentials();
         assertNotNull("Expected a credentials map", credentials);

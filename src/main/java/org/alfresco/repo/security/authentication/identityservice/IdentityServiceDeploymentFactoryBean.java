@@ -57,9 +57,11 @@ public class IdentityServiceDeploymentFactoryBean implements FactoryBean<Keycloa
         KeycloakDeployment deployment = KeycloakDeploymentBuilder.build(this.identityServiceConfig);
 
         // Set client with custom timeout values. This can be removed if the future versions of Keycloak accept timeout values through the config.
+        int connectionTimeout = identityServiceConfig.getClientConnectionTimeout();
+        int socketTimeout = identityServiceConfig.getClientSocketTimeout();
         HttpClient client = new HttpClientBuilder()
-                .establishConnectionTimeout(2, TimeUnit.SECONDS)
-                .socketTimeout(2, TimeUnit.SECONDS)
+                .establishConnectionTimeout(connectionTimeout, TimeUnit.MILLISECONDS)
+                .socketTimeout(socketTimeout, TimeUnit.MILLISECONDS)
                 .build(this.identityServiceConfig);
         deployment.setClient(client);
 
