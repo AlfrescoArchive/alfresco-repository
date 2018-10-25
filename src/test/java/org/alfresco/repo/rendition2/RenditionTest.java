@@ -142,6 +142,13 @@ public class RenditionTest extends AbstractRenditionIntegrationTest
 
     @Category(DebugTests.class)
     @Test
+    public void testTasRestApiRenditions() throws Exception
+    {
+        internalTestAllSourceExtensions(62, 0);
+    }
+
+    @Category(DebugTests.class)
+    @Test
     public void testAllSourceExtensions() throws Exception
     {
         internalTestAllSourceExtensions(196, 0);

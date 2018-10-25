@@ -54,6 +54,7 @@ public class NoLocalTransformRenditionTest extends RenditionTest
 
 
     @Test
+    @Override
     public void testTasRestApiRenditions() throws Exception
     {
         internalTestTasRestApiRenditions(0, 0);
