@@ -1680,15 +1680,6 @@ public class AuthenticationTest extends TestCase
 
         // destroy the ticket instance, but keep the current security context
         pubAuthenticationService.invalidateTicket(ticket);
-        try
-        {
-            pubAuthenticationService.validate(ticket);
-            fail("Ticket should not validate");
-        }
-        catch (AuthenticationException e)
-        {
-            // intentionally left blank
-        }
 
         // we should be able to get a ticket now, because if we got past the authentication filters, meaning
         // we have a valid security context,
@@ -1697,6 +1688,26 @@ public class AuthenticationTest extends TestCase
         // validate our ticket is still valid
         pubAuthenticationService.validate(ticketRenew);
         assertEquals(ticketRenew, authenticationService.getCurrentTicket());
+
+        pubAuthenticationService.invalidateTicket(ticketRenew);
+        try
+        {
+            pubAuthenticationService.validate(ticketRenew);
+            fail("Ticket should not validate");
+        }
+        catch (AuthenticationException e)
+        {
+            // intentionally left blank
+        }
+        try
+        {
+            String ticketRenewAfterValidate = pubAuthenticationService.getCurrentTicket();
+            fail(" Previous call to validate should have cleared the context, so no new tickets should be issued");
+        }
+        catch (Exception e)
+        {
+            // we expect this here
+        }
     }
 
     public void testPubAuthenticationService()
