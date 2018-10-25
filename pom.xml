@@ -49,7 +49,7 @@
         <dependency.truezip.version>7.7.9</dependency.truezip.version>
         <dependency.poi.version>3.17</dependency.poi.version>
         <dependency.webscripts.version>6.19</dependency.webscripts.version>
-        <dependency.opencmis.version>1.0.0</dependency.opencmis.version>
+        <dependency.opencmis.version>1.1.0</dependency.opencmis.version>
         <dependency.activiti-engine.version>5.22.0</dependency.activiti-engine.version>
         <dependency.activiti.version>5.22.0</dependency.activiti.version>
         <dependency.postgresql.version>42.2.1</dependency.postgresql.version>
