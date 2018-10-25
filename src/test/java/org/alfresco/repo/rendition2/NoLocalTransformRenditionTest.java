@@ -41,15 +41,15 @@ public class NoLocalTransformRenditionTest extends RenditionTest
     @BeforeClass
     public static void before()
     {
-        System.setProperty("local.transform.service.enabled", "false");
         AbstractRenditionIntegrationTest.before();
+        System.setProperty("local.transform.service.enabled", "false");
     }
 
     @AfterClass
     public static void after()
     {
-        System.clearProperty("local.transform.service.enabled");
         AbstractRenditionIntegrationTest.after();
+        System.clearProperty("local.transform.service.enabled");
     }
 
 
