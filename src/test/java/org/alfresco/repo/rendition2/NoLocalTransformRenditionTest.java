@@ -41,15 +41,15 @@ public class NoLocalTransformRenditionTest extends RenditionTest
     @BeforeClass
     public static void before()
     {
-        AbstractRenditionIntegrationTest.before();
         System.setProperty("local.transform.service.enabled", "false");
+        AbstractRenditionIntegrationTest.before();
     }
 
     @AfterClass
     public static void after()
     {
-        AbstractRenditionIntegrationTest.after();
         System.clearProperty("local.transform.service.enabled");
+        AbstractRenditionIntegrationTest.after();
     }
 
 
@@ -61,12 +61,14 @@ public class NoLocalTransformRenditionTest extends RenditionTest
 
     @Category(DebugTests.class)
     @Test
+    @Override
     public void testAllSourceExtensions() throws Exception
     {
         internalTestAllSourceExtensions(0, 0);
     }
 
     @Test
+    @Override
     public void testGifRenditions() throws Exception
     {
         internalTestGifRenditions(0, 0);

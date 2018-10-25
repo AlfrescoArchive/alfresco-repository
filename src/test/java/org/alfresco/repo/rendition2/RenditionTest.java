@@ -67,14 +67,6 @@ public class RenditionTest extends AbstractRenditionIntegrationTest
         return names;
     }
 
-    @Test
-    public void testExpectedNumberOfRenditions() throws Exception
-    {
-        RenditionDefinitionRegistry2 renditionDefinitionRegistry2 = renditionService2.getRenditionDefinitionRegistry2();
-        Set<String> renditionNames = renditionDefinitionRegistry2.getRenditionNames();
-        assertEquals("Added or removed a definition (rendition-service2-contex.xml)?", 7, renditionNames.size());
-    }
-
     private void assertRenditionsOkayFromSourceExtension(List<String> sourceExtensions, List<String> excludeList, List<String> expectedToFail,
                                                          int expectedRenditionCount, int expectedFailedCount) throws Exception
     {
@@ -141,9 +133,11 @@ public class RenditionTest extends AbstractRenditionIntegrationTest
     }
 
     @Test
-    public void testTasRestApiRenditions() throws Exception
+    public void testExpectedNumberOfRenditions() throws Exception
     {
-        internalTestTasRestApiRenditions(62, 0);
+        RenditionDefinitionRegistry2 renditionDefinitionRegistry21 = renditionService2.getRenditionDefinitionRegistry2();
+        Set<String> renditionNames = renditionDefinitionRegistry21.getRenditionNames();
+        assertEquals("Added or removed a definition (rendition-service2-contex.xml)?", 7, renditionNames.size());
     }
 
     @Category(DebugTests.class)
