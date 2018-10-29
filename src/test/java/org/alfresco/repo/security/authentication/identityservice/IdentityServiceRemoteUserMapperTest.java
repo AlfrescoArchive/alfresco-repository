@@ -93,9 +93,6 @@ public class IdentityServiceRemoteUserMapperTest extends AbstractChainedSubsyste
     private KeyPair keyPair;
     private IdentityServiceConfig identityServiceConfig;
 
-    /* (non-Javadoc)
-     * @see junit.framework.TestCase#setUp()
-     */
     @Override
     protected void setUp() throws Exception
     {
@@ -115,10 +112,7 @@ public class IdentityServiceRemoteUserMapperTest extends AbstractChainedSubsyste
         this.identityServiceConfig = (IdentityServiceConfig)childApplicationContextFactory.
                     getApplicationContext().getBean(CONFIG_BEAN_NAME);
     }
-    
-    /* (non-Javadoc)
-     * @see junit.framework.TestCase#tearDown()
-     */
+
     @Override
     protected void tearDown() throws Exception
     {
