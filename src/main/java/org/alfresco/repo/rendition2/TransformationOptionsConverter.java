@@ -183,12 +183,14 @@ public class TransformationOptionsConverter implements InitializingBean
         Set<String> optionNames = options.keySet();
 
         // The "pdf" rendition is special as it was incorrectly set up as an SWFTransformationOptions in 6.0
+        // It should have been simply a TransformationOptions.
         boolean isPdfRendition = "pdf".equals(renditionName);
 
         Set<String> subclassOptionNames = new HashSet<>(optionNames);
         subclassOptionNames.removeAll(LIMIT_OPTIONS);
         subclassOptionNames.remove(INCLUDE_CONTENTS);
-        if (isPdfRendition || !subclassOptionNames.isEmpty())
+        boolean hasOptions = !subclassOptionNames.isEmpty();
+        if (isPdfRendition || hasOptions)
         {
             if (isPdfRendition || FLASH_OPTIONS.containsAll(subclassOptionNames))
             {
@@ -262,12 +264,19 @@ public class TransformationOptionsConverter implements InitializingBean
                 }
             }
         }
+        else if (!hasOptions)
+        {
+            // This what the "pdf" rendition should have used in 6.0 and it is not unreasonable for a custom transformer
+            // and rendition to do the same.
+            transformationOptions = new TransformationOptions();
+        }
 
         if (transformationOptions == null)
         {
             StringJoiner sj = new StringJoiner("\n    ");
             sj.add("The RenditionDefinition2 "+renditionName +
-                    " contains options that cannot be mapped to TransformationOptions used by local transformers");
+                    " contains options that cannot be mapped to TransformationOptions used by local transformers. "+
+                    " The TransformOptionConverter may need to be sub classed to support this conversion.");
             HashSet<String> otherNames = new HashSet<>(optionNames);
             otherNames.removeAll(FLASH_OPTIONS);
             otherNames.removeAll(IMAGE_OPTIONS);
