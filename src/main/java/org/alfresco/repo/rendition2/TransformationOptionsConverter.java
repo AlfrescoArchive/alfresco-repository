@@ -112,7 +112,7 @@ public class TransformationOptionsConverter implements InitializingBean
 
     private static Set<String> PDF_OPTIONS = new HashSet<>(Arrays.asList(new String[]
             {
-                    PAGE, WIDTH, HEIGHT, ALLOW_ENLARGEMENT, MAINTAIN_ASPECT_RATIO
+                    PAGE, WIDTH, HEIGHT
             }));
 
     private static Set<String> FLASH_OPTIONS = new HashSet<>(Arrays.asList(new String[]
@@ -182,16 +182,19 @@ public class TransformationOptionsConverter implements InitializingBean
         TransformationOptions transformationOptions = null;
         Set<String> optionNames = options.keySet();
 
+        // The "pdf" rendition is special as it was incorrectly set up as an SWFTransformationOptions in 6.0
+        boolean isPdfRendition = "pdf".equals(renditionName);
+
         Set<String> subclassOptionNames = new HashSet<>(optionNames);
         subclassOptionNames.removeAll(LIMIT_OPTIONS);
         subclassOptionNames.remove(INCLUDE_CONTENTS);
-        if (!subclassOptionNames.isEmpty())
+        if (isPdfRendition || !subclassOptionNames.isEmpty())
         {
-            if (FLASH_OPTIONS.containsAll(subclassOptionNames))
+            if (isPdfRendition || FLASH_OPTIONS.containsAll(subclassOptionNames))
             {
                 SWFTransformationOptions opts = new SWFTransformationOptions();
                 transformationOptions = opts;
-                opts.setFlashVersion(options.get(FLASH_VERSION));
+                opts.setFlashVersion(isPdfRendition ? "9" : options.get(FLASH_VERSION));
             }
             else if (IMAGE_OPTIONS.containsAll(subclassOptionNames) ||  PDF_OPTIONS.containsAll(subclassOptionNames))
             {

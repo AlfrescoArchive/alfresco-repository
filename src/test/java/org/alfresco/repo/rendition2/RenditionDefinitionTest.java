@@ -26,6 +26,7 @@
 package org.alfresco.repo.rendition2;
 
 import junit.framework.TestCase;
+import org.alfresco.repo.content.transform.swf.SWFTransformationOptions;
 import org.alfresco.repo.rendition.RenditionServiceImpl;
 import org.alfresco.repo.security.authentication.AuthenticationComponent;
 import org.alfresco.repo.thumbnail.ThumbnailDefinition;
@@ -125,6 +126,13 @@ public class RenditionDefinitionTest extends TestCase
             {
                 assertEquals("The TransformationOptions used in transforms for " + renditionName + " should be the same",
                         transformationOptions.toStringAll(), transformationOptions2.toStringAll());
+            }
+            else if (renditionName.equals("pdf"))
+            {
+                assertEquals("The converted class for \"pdf\" should be the same as before",
+                        transformationOptions.getClass(), transformationOptions2.getClass());
+                assertEquals("The converted class for \"pdf\" should be SWFTransformationOptions",
+                        SWFTransformationOptions.class, transformationOptions2.getClass());
             }
         }
 
