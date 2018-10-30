@@ -264,7 +264,7 @@ public class TransformationOptionsConverter implements InitializingBean
                 }
             }
         }
-        else if (!hasOptions)
+        else
         {
             // This what the "pdf" rendition should have used in 6.0 and it is not unreasonable for a custom transformer
             // and rendition to do the same.
