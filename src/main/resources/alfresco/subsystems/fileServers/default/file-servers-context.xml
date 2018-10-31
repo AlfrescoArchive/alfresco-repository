@@ -172,70 +172,7 @@
 			   <property name="quotaManager">
 				   <ref bean="filesystemQuotaManager" />
 			   </property>
-				   
-               <!-- Desktop actions -->
-               <!-- Uses a client-side application to trigger a server-side action                         -->
-               <!--   Echo - displays a message echoed from the server                                     -->
-               <!--   URL  - launches a URL via the Windows shell                                          -->
-               <!--   CmdLine - launches the Notepad application                                           -->
-               <!--   CheckInOut - checks files in/out, drag and drop files onto the application           -->
-               <!--   JavaScript - run a server-side script                                                -->
-               <!--   JavaScriptURL - server-side script that generates a URL to the folder using a ticket -->
-               <!--                   to avoid having to logon                                             -->
-               <property name="globalDesktopActionConfig">
-                  <bean class="org.alfresco.filesys.config.GlobalDesktopActionConfigBean">
-                     <property name="path">
-                        <value>alfresco/desktop/Alfresco.exe</value>
-                     </property>
-                  </bean>
-               </property>
-               <property name="desktopActionList">
-                  <list>
-                     <bean class="org.alfresco.filesys.repo.desk.CheckInOutDesktopAction">
-                        <property name="name">
-                           <value>CheckInOut</value>
-                        </property>
-                        <property name="filename">
-                           <value>__CheckInOut.exe</value>
-                        </property>
-                     </bean>
-                     
-                     <bean class="org.alfresco.filesys.repo.desk.JavaScriptDesktopAction">
-                        <property name="name">
-                           <value>JavaScriptURL</value>
-                        </property>
-                        <property name="filename">
-                           <value>__ShowDetails.exe</value>
-                        </property>
-                        <property name="scriptName">
-                           <value>alfresco/desktop/showDetails.js</value>
-                        </property>
-                        <property name="attributeList">
-                           <value>anyFiles</value>
-                        </property>
-                        <property name="preprocess">
-                           <value>copyToTarget</value>
-                        </property>
-                     </bean>
 
-                     <!-- Other desktop actions which may be enabled -->
-                     <!--
-                        <bean class="org.alfresco.filesys.repo.desk.EchoDesktopAction"> <property name="name">
-                        <value>Echo</value> </property> <property name="filename"> <value>__AlfrescoEcho.exe</value>
-                        </property> </bean> <bean class="org.alfresco.filesys.repo.desk.URLDesktopAction"> <property
-                        name="name"> <value>URL</value> </property> <property name="filename">
-                        <value>__AlfrescoURL.exe</value> </property> </bean> <bean
-                        class="org.alfresco.filesys.repo.desk.CmdLineDesktopAction"> <property name="name">
-                        <value>CmdLine</value> </property> <property name="filename"> <value>__AlfrescoCmd.exe</value>
-                        </property> </bean> <bean class="org.alfresco.filesys.repo.desk.JavaScriptDesktopAction">
-                        <property name="name"> <value>JavaScript</value> </property> <property name="filename">
-                        <value>__AlfrescoScript.exe</value> </property> <property name="scriptName">
-                        <value>alfresco/desktop/dumpRequest.js</value> </property> <property name="attributeList">
-                        <value>anyFiles, multiplePaths, allowNoParams</value> </property> <property name="preprocess">
-                        <value>confirm, copyToTarget</value> </property> </bean>
-                     -->
-                  </list>
-               </property>
                <!-- Additional access control of the filesystem -->
                <!-- Access type of 'none' will stop the filesystem from showing up for that user/address/protocol -->
                <!--
