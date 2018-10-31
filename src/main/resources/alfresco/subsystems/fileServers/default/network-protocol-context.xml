@@ -44,16 +44,6 @@
       </property>
    </bean>
    
-   <!-- IO Handler -->
-   <bean id="contentIOHandler" class="org.alfresco.filesys.repo.ContentIOControlHandler"
-       init-method="init">
-       <property name="nodeService"><ref bean="NodeService" /></property>
-       <property name="cifsHelper"><ref bean="cifsHelper" /></property>
-       <property name="authenticationService"><ref bean="authenticationService"/></property>
-       <property name="checkOutCheckInService"><ref bean="CheckoutCheckinService"/></property>
-       <property name="transactionService"><ref bean="transactionService"/></property>
-   </bean>
-   
    <!-- Non Clustered Backing Cache,  this is where the per node locking stuff goes -->
   <bean name="lockKeeperBackingCache" class="org.alfresco.repo.cache.DefaultSimpleCache">
      <property name="cacheName">
@@ -91,7 +81,6 @@
       <property name="dictionaryService"><ref bean="dictionaryService" /></property>
       <property name="ownableService"><ref bean="ownableService" /></property>
       <property name="actionService"><ref bean="actionService" /></property>
-      <property name="ioControlHandler"><ref bean="contentIOHandler"/></property>
 	  <property name="renameCSVShufflePattern"><value>${filesystem.renameCSVShufflePattern}</value></property>
    </bean>
    
@@ -323,7 +312,6 @@
                 <value>openFile</value>
                 <value>getFileInformation</value> 
                 <value>startSearch</value>
-                <value>processIOControl</value>
             </list>
         </property>
     </bean>
@@ -367,7 +355,6 @@
       <property name="lockService"><ref bean="lockService" /></property>
       <property name="policyFilter"><ref bean="policyBehaviourFilter" /></property>
       <property name="checkOutCheckInService"><ref bean="CheckoutCheckinService"/></property>
-      <property name="ioControlHandler"><ref bean="contentIOHandler"/></property>
       <property name="contentComparator"><ref bean="contentComparator"/></property>
       <property name="nodeArchiveService" ><ref bean="nodeArchiveService"/></property>
       <property name="hiddenAspect" ><ref bean="hiddenAspect"/></property>

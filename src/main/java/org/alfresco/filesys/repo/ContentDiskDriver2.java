@@ -123,8 +123,7 @@ import org.springframework.extensions.config.ConfigElement;
 public class ContentDiskDriver2 extends  AlfrescoDiskDriver implements ExtendedDiskInterface, 
     DiskInterface, 
     DiskSizeInterface, 
-    IOCtlInterface, 
-    RepositoryDiskInterface, 
+    RepositoryDiskInterface,
     OpLockInterface, 
     FileLockingInterface
 {
@@ -176,7 +175,6 @@ public class ContentDiskDriver2 extends  AlfrescoDiskDriver implements ExtendedD
         PropertyCheck.mandatory(this, "authService", authService);
         PropertyCheck.mandatory(this, "policyBehaviourFilter", policyBehaviourFilter);
         PropertyCheck.mandatory(this, "m_nodeMonitorFactory", m_nodeMonitorFactory);
-        PropertyCheck.mandatory(this, "ioControlHandler", ioControlHandler);
         PropertyCheck.mandatory(this, "contentComparator", getContentComparator());
         PropertyCheck.mandatory(this, "nodeArchiveService", nodeArchiveService);
         PropertyCheck.mandatory(this, "hiddenAspect", hiddenAspect);
@@ -2178,56 +2176,8 @@ public class ContentDiskDriver2 extends  AlfrescoDiskDriver implements ExtendedD
         // Nothing to do
     }
     
-// Implementation of IOCtlInterface    
-    
-    /**
-     * Process a filesystem I/O control request
-     * 
-     * @param sess Server session
-     * @param tree Tree connection.
-     * @param ctrlCode I/O control code
-     * @param fid File id
-     * @param dataBuf I/O control specific input data
-     * @param isFSCtrl true if this is a filesystem control, or false for a device control
-     * @param filter if bit0 is set indicates that the control applies to the share root handle
-     * @return DataBuffer
-     * @exception IOControlNotImplementedException
-     * @exception SMBException
-     */
-    public org.alfresco.jlan.util.DataBuffer processIOControl(SrvSession sess, TreeConnection tree, int ctrlCode, int fid, DataBuffer dataBuf,
-            boolean isFSCtrl, int filter)
-        throws IOControlNotImplementedException, SMBException
-    {
-        // Validate the file id
-        if(logger.isDebugEnabled())
-        {
-            logger.debug("processIOControl ctrlCode: 0x" + Integer.toHexString(ctrlCode) + ", fid:" + fid);
-        }
-        
-        final ContentContext ctx = (ContentContext) tree.getContext();
-        try
-        {
-            org.alfresco.jlan.util.DataBuffer buff = ioControlHandler.processIOControl(sess, tree, ctrlCode, fid, dataBuf, isFSCtrl, filter, this, ctx);
-            
-            return buff;
-        }
-        catch(SMBException smbException)
-        {
-            if(logger.isDebugEnabled())
-            {
-                logger.debug("SMB Exception fid:" + fid, smbException);
-            }
-            throw smbException;
-        }
-        catch(IOControlNotImplementedException ioException)
-        {
-            if(logger.isDebugEnabled())
-            {
-                logger.debug("IO Control Not Implemented Exception fid:" + fid, ioException);
-            }
-            throw ioException;
-        }
-    }
+// Implementation of IOCtlInterface
+
         
           
     public void setCheckOutCheckInService(CheckOutCheckInService service)
