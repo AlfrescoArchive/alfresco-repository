@@ -61,6 +61,37 @@
       <property name="maxCacheSize"><value>200000</value></property>
    </bean>
 
+   <!--  LockKeeper Used to track and make/break CIFS write locks-->
+   <bean name="lockKeeper" class="org.alfresco.filesys.repo.LockKeeperImpl" init-method="init">
+      <property name="lockService"><ref bean="lockService"/></property>
+      <property name="transactionService"><ref bean="transactionService"/></property>
+      <property name="lockKeeperTransactionalCache"><ref bean="lockKeeperTransactionalCache"/></property>
+      <property name="lockEnabled"><value>${filesystem.lockKeeperEnabled}</value></property>
+      <property name="timeToExpire"><value>${filesystem.lockKeeperTimeout}</value></property>
+   </bean>
+
+   <bean id="cifsLockKeeperRefreshSchedulerAccessor" class="org.springframework.scheduling.quartz.SchedulerAccessorBean">
+      <property name="scheduler" ref="schedulerFactory"/>
+      <property name="triggers">
+         <list>
+            <bean id="cifsLockKeeperRefreshTrigger" class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">
+               <property name="cronExpression" value="${filesystem.lockKeeperRefreshCronExpression}"/>
+               <property name="startDelay" value="${system.cronJob.startDelayMilliseconds}"/>
+               <property name="jobDetail">
+                  <bean id="cifsLockKeeperRefreshJobDetail" class="org.springframework.scheduling.quartz.JobDetailFactoryBean">
+                     <property name="jobClass" value="org.alfresco.filesys.repo.LockKeeperRefreshJob"/>
+                     <property name="jobDataAsMap">
+                        <map>
+                           <entry key="alfrescoLockKeeper" value-ref="lockKeeper"/>
+                        </map>
+                     </property>
+                  </bean>
+               </property>
+            </bean>
+         </list>
+      </property>
+    </bean>
+
    <!-- Filesystem Interface -->
    <bean id="oldContentDiskDriver" class="org.alfresco.filesys.repo.ContentDiskDriver">
       <constructor-arg>
