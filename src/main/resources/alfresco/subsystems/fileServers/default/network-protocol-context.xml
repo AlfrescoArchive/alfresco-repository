@@ -43,7 +43,11 @@
          <ref bean="contentDiskDriver"/>
       </property>
    </bean>
-   
+
+    <!--  Content Comparator -->
+    <bean name="contentComparator" class="org.alfresco.filesys.repo.CIFSContentComparator" init-method="init">
+    </bean>
+
    <!-- Non Clustered Backing Cache,  this is where the per node locking stuff goes -->
   <bean name="lockKeeperBackingCache" class="org.alfresco.repo.cache.DefaultSimpleCache">
      <property name="cacheName">
