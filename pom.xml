@@ -2,7 +2,7 @@
     <modelVersion>4.0.0</modelVersion>
     <artifactId>alfresco-repository</artifactId>
     <name>Alfresco Repository</name>
-    <version>7.25-SNAPSHOT</version>
+    <version>7.26-SNAPSHOT</version>
     <packaging>jar</packaging>
 
     <parent>
@@ -38,7 +38,7 @@
         <dependency.alfresco-legacy-lucene.version>6.2</dependency.alfresco-legacy-lucene.version>
         <dependency.alfresco-core.version>7.5</dependency.alfresco-core.version>
         <dependency.alfresco-greenmail.version>6.1</dependency.alfresco-greenmail.version>
-        <dependency.alfresco-data-model.version>8.17</dependency.alfresco-data-model.version>
+        <dependency.alfresco-data-model.version>8.18</dependency.alfresco-data-model.version>
         <dependency.alfresco-jlan.version>7.1</dependency.alfresco-jlan.version>
         <dependency.alfresco-pdf-renderer.version>1.1</dependency.alfresco-pdf-renderer.version>
         <dependency.alfresco-hb-data-sender.version>1.0.9</dependency.alfresco-hb-data-sender.version>
@@ -46,7 +46,7 @@
 
         <dependency.spring.version>5.1.2.RELEASE</dependency.spring.version>
         <dependency.httpcomponents.version>4.5.6</dependency.httpcomponents.version>
-        <dependency.truezip.version>7.7.9</dependency.truezip.version>
+        <dependency.truezip.version>7.7.10</dependency.truezip.version>
         <dependency.poi.version>3.17</dependency.poi.version>
         <dependency.webscripts.version>6.19</dependency.webscripts.version>
         <dependency.opencmis.version>1.0.0</dependency.opencmis.version>
@@ -107,7 +107,7 @@
         <dependency>
             <groupId>com.sun.mail</groupId>
             <artifactId>javax.mail</artifactId>
-            <version>1.6.1</version>
+            <version>1.6.2</version>
         </dependency>
         <dependency>
             <groupId>org.alfresco</groupId>
@@ -296,7 +296,7 @@
         <dependency>
             <groupId>cglib</groupId>
             <artifactId>cglib</artifactId>
-            <version>2.2</version>
+            <version>3.2.9</version>
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>
@@ -475,7 +475,7 @@
         <dependency>
             <groupId>com.sun.xml.fastinfoset</groupId>
             <artifactId>FastInfoset</artifactId>
-            <version>1.2.13</version>
+            <version>1.2.15</version>
         </dependency>
         <dependency>
             <groupId>org.codehaus.groovy</groupId>
@@ -1037,7 +1037,7 @@
         <dependency>
             <groupId>org.aspectj</groupId>
             <artifactId>aspectjrt</artifactId>
-            <version>1.9.1</version>
+            <version>1.9.2</version>
         </dependency>
         <dependency>
             <groupId>org.apache.activemq</groupId>
