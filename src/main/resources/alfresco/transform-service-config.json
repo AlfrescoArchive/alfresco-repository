@@ -25,7 +25,14 @@
       {"value": {"required": false, "name": "targetEncoding"}}
     ],
     "supportedSourceAndTargetList": [
-      {"sourceExt": "pdf",  "maxSourceSizeBytes": 26214400, "targetExt": "txt" }
+      {"sourceExt": "pdf",  "maxSourceSizeBytes": 26214400, "targetExt": "txt" },
+      {"sourceExt": "doc",  "targetExt": "txt"},
+      {"sourceExt": "xls",  "targetExt": "txt" },
+      {"sourceExt": "ppt",  "targetExt": "txt" },
+      {"sourceExt": "docx", "targetExt": "txt"},
+      {"sourceExt": "xlsx", "targetExt": "txt" },
+      {"sourceExt": "pptx", "targetExt": "txt" },
+      {"sourceExt": "msg",  "targetExt": "txt"}
     ]
   },
   {
