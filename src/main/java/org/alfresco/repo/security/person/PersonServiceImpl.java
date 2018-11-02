@@ -523,6 +523,11 @@ public class PersonServiceImpl extends TransactionListenerAdapter implements Per
      */
     public boolean personExists(String caseSensitiveUserName)
     {
+        if(isBuiltInAuthorities(caseSensitiveUserName))
+        {
+                return true;
+        }
+        
         NodeRef person = getPersonOrNullImpl(caseSensitiveUserName); 
         if (person != null)
         {
@@ -532,6 +537,20 @@ public class PersonServiceImpl extends TransactionListenerAdapter implements Per
         return false;
     }
     
+    private boolean isBuiltInAuthorities(String caseSensitiveUserName)
+    {
+        if (EqualsHelper.nullSafeEquals(caseSensitiveUserName, AuthenticationUtil.getSystemUserName()))
+        {
+            return true;
+        }
+        else if (EqualsHelper.nullSafeEquals(caseSensitiveUserName, AuthenticationUtil.getGuestUserName()))
+        {
+            return true;
+        }
+        return false;
+
+    }
+
     private NodeRef getPersonOrNullImpl(String searchUserName)
     {
         Set<NodeRef> allRefs = getFromCache(searchUserName);
