@@ -78,7 +78,7 @@ public class ResetPasswordServiceImplTest
     public static final ApplicationContextInit APP_CONTEXT_INIT = new ApplicationContextInit();
 
     @Rule
-    public final RunAsFullyAuthenticatedRule runAsRule = new RunAsFullyAuthenticatedRule(AuthenticationUtil.getSystemUserName());
+    public final RunAsFullyAuthenticatedRule runAsRule = new RunAsFullyAuthenticatedRule(AuthenticationUtil.getAdminUserName());
 
     private static final String DEFAULT_SENDER = "noreply@test-alfresco.test";
 
