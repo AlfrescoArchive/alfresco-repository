@@ -161,7 +161,7 @@ public class ResetPasswordServiceImplTest
 
         // Make sure to run as system
         AuthenticationUtil.clearCurrentSecurityContext();
-        AuthenticationUtil.setRunAsUserSystem();
+        AuthenticationUtil.setFullyAuthenticatedUser(AuthenticationUtil.getAdminUserName());
 
         // Request password reset
         resetPasswordService.requestReset(testPerson.userName, "share");
