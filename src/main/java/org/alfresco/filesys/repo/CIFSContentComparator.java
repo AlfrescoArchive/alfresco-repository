@@ -47,7 +47,7 @@ import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.poifs.filesystem.DirectoryEntry;
 import org.apache.poi.poifs.filesystem.EntryUtils;
 import org.apache.poi.poifs.filesystem.FilteringDirectoryNode;
-import org.apache.poi.poifs.filesystem.POIFSFileSystem;
+import org.apache.poi.poifs.filesystem.NPOIFSFileSystem;
 
 /**
  * Compares content for to see if content is equal.
@@ -153,7 +153,7 @@ public class CIFSContentComparator implements ContentComparator
         }
     }
 
-    private boolean isContentIdentical(POIFSFileSystem fs1, POIFSFileSystem fs2, Collection<String> excludes) throws IOException
+    private boolean isContentIdentical(NPOIFSFileSystem fs1, NPOIFSFileSystem fs2, Collection<String> excludes) throws IOException
     {
         DirectoryEntry de1 = fs1.getRoot();
         DirectoryEntry de2 = fs2.getRoot();
@@ -207,9 +207,9 @@ public class CIFSContentComparator implements ContentComparator
                 leftIs = existingContent.getContentInputStream();
 
                 // this call guarantees that leftIs is closed.
-                POIFSFileSystem fs2 = new POIFSFileSystem(leftIs);
+                NPOIFSFileSystem fs2 = new NPOIFSFileSystem(leftIs);
                 // this call keeps an open file handle and needs closing.
-                POIFSFileSystem fs1 = new POIFSFileSystem(newFile);  
+                NPOIFSFileSystem fs1 = new NPOIFSFileSystem(newFile);  
                 try
                 {
 
@@ -322,8 +322,8 @@ public class CIFSContentComparator implements ContentComparator
                 	os2.close();
                 }
                 
-                POIFSFileSystem fs1 = new POIFSFileSystem(tpm1);
-                POIFSFileSystem fs2 = new POIFSFileSystem(tpm2);
+                NPOIFSFileSystem fs1 = new NPOIFSFileSystem(tpm1);
+                NPOIFSFileSystem fs2 = new NPOIFSFileSystem(tpm2);
                 
                 return isContentIdentical(fs1, fs2, excludes);
             }
@@ -462,8 +462,8 @@ public class CIFSContentComparator implements ContentComparator
                             }
                         }
 
-                        POIFSFileSystem fs1 = new POIFSFileSystem(tpm1);
-                        POIFSFileSystem fs2 = new POIFSFileSystem(tpm2);
+                        NPOIFSFileSystem fs1 = new NPOIFSFileSystem(tpm1);
+                        NPOIFSFileSystem fs2 = new NPOIFSFileSystem(tpm2);
 
                         return isContentIdentical(fs1, fs2, excludes);
                     }
