@@ -265,7 +265,7 @@ public class ActivitiTimerExecutionTest extends BaseSpringTest
 
          this.personManager = new TestPersonManager(authenticationService, personService, nodeService);
          
-         authenticationComponent.setSystemUserAsCurrentUser();
+         this.authenticationComponent.setCurrentUser(AuthenticationUtil.getAdminUserName());
     }
     
     private void waitForTimersToBeExecuted(String workflowInstanceId) throws Exception 
