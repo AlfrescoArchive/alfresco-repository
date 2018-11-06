@@ -34,11 +34,8 @@ import org.alfresco.jlan.ftp.FTPSrvSession;
 import org.alfresco.jlan.server.SrvSession;
 import org.alfresco.jlan.server.auth.ClientInfo;
 import org.alfresco.jlan.server.auth.PasswordEncryptor;
-import org.alfresco.repo.security.authentication.AuthenticationComponent;
 import org.alfresco.repo.security.authentication.MD4PasswordEncoder;
 import org.alfresco.repo.security.authentication.MD4PasswordEncoderImpl;
-import org.alfresco.repo.security.authentication.NTLMMode;
-import org.alfresco.repo.security.authentication.ntlm.NLTMAuthenticator;
 
 /**
  * Alfresco FTP Authenticator Class
