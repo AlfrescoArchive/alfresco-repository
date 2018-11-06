@@ -170,16 +170,10 @@ public class AlfrescoFtpAuthenticator extends FTPAuthenticatorBase {
     
     if (logger.isDebugEnabled())
     {
-        AuthenticationComponent authenticationComponent = getAuthenticationComponent();
-        logger
-                .debug("Authenticated user "
+        logger.debug("Authenticated user "
                         + client.getUserName()
                         + " sts="
-                        + authSts
-                        + " via "
-                        + (authenticationComponent instanceof NLTMAuthenticator
-                                && ((NLTMAuthenticator) authenticationComponent).getNTLMMode() == NTLMMode.MD4_PROVIDER ? "MD4"
-                                : "Passthru"));
+                        + authSts);
     }
                 
     // Return the authentication status
