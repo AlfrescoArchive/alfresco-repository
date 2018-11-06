@@ -41,7 +41,6 @@ class org.alfresco.filesys.auth.ftp.FTPAuthenticatorBase {
 #  getAuthenticationComponent()  :  AuthenticationComponent
 #  getAuthenticationService()  :  AuthenticationService
 #  getAuthorityService()  :  AuthorityService
-#  getNTLMAuthenticator()  :  NLTMAuthenticator
 #  getTransactionService()  :  TransactionService
 +  authenticateUser(c ClientInfo, c FTPSrvSession)  : boolean
 +  closeAuthenticator()  : void
