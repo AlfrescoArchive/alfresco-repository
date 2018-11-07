@@ -125,7 +125,7 @@ public abstract class BaseAlfrescoTestCase extends RetryingTransactionHelperTest
             public Object execute() throws Throwable
             {
                 // As system user
-                AuthenticationUtil.setFullyAuthenticatedUser(AuthenticationUtil.getSystemUserName());
+                AuthenticationUtil.setFullyAuthenticatedUser(AuthenticationUtil.getAdminUserName());
         
                 if (useSpacesStore() == false)
                 {
@@ -167,7 +167,7 @@ public abstract class BaseAlfrescoTestCase extends RetryingTransactionHelperTest
             public Object execute() throws Throwable
             {
                 // As system user
-                AuthenticationUtil.setFullyAuthenticatedUser(AuthenticationUtil.getSystemUserName());
+                AuthenticationUtil.setFullyAuthenticatedUser(AuthenticationUtil.getAdminUserName());
                 
                 if (useSpacesStore() == false)
                 {
