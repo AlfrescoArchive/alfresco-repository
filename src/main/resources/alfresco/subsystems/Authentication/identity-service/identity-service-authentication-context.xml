@@ -18,6 +18,9 @@
       <property name="active">
          <value>${identity-service.authentication.enabled}</value>
       </property>
+      <property name="allowGuestLogin">
+         <value>${identity-service.authentication.allowGuestLogin}</value>
+      </property>
       <property name="authenticatorAuthzClient">
          <ref bean="authenticatorAuthzClient"/>
       </property>
@@ -27,8 +30,8 @@
       <property name="identityServiceConfig">
          <ref bean="identityServiceConfig" />
       </property>
-      <property name="disabled">
-         <value>${identity-service.disable-username-password-authentication:false}</value>
+      <property name="enabled">
+         <value>${identity-service.authentication.enable-username-password-authentication:true}</value>
       </property>
    </bean>
 

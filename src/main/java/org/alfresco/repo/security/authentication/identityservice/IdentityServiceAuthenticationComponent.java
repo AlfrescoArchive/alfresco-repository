@@ -45,12 +45,20 @@ import org.keycloak.authorization.client.util.HttpResponseException;
 public class IdentityServiceAuthenticationComponent extends AbstractAuthenticationComponent implements ActivateableBean
 {
     private final Log logger = LogFactory.getLog(IdentityServiceAuthenticationComponent.class);
+    /** client used to authenticate user credentials against Keycloak **/
     private AuthzClient authzClient;
+    /** enabled flag for the identity service subsystem**/
     private boolean active;
+    private boolean allowGuestLogin;
 
     public void setAuthenticatorAuthzClient(AuthzClient authenticatorAuthzClient)
     {
         this.authzClient = authenticatorAuthzClient;
+    }
+
+    public void setAllowGuestLogin(boolean allowGuestLogin)
+    {
+        this.allowGuestLogin = allowGuestLogin;
     }
 
     public void authenticateImpl(String userName, char[] password) throws AuthenticationException
@@ -60,7 +68,7 @@ public class IdentityServiceAuthenticationComponent extends AbstractAuthenticati
         {
             if (logger.isDebugEnabled())
             {
-                logger.debug("AuthzClient was not set, possibly due to the 'identity-service.disable-username-password-authentication=true' property. ");
+                logger.debug("AuthzClient was not set, possibly due to the 'identity-service.authentication.enable-username-password-authentication=false' property. ");
             }
 
             throw new AuthenticationException("User not authenticated because AuthzClient was not set.");
@@ -99,6 +107,6 @@ public class IdentityServiceAuthenticationComponent extends AbstractAuthenticati
     @Override
     protected boolean implementationAllowsGuestLogin()
     {
-        return true;
+        return allowGuestLogin;
     }
 }

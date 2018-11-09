@@ -26,53 +26,54 @@
 package org.alfresco.repo.security.authentication.identityservice;
 
 import org.alfresco.repo.security.authentication.AuthenticationContext;
+import org.alfresco.repo.security.authentication.AuthenticationException;
 import org.alfresco.repo.security.sync.UserRegistrySynchronizer;
 import org.alfresco.service.cmr.repository.NodeService;
 import org.alfresco.service.cmr.security.PersonService;
 import org.alfresco.service.transaction.TransactionService;
-import org.alfresco.util.ApplicationContextHelper;
+import org.alfresco.util.BaseSpringTest;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.keycloak.authorization.client.AuthzClient;
 import org.keycloak.authorization.client.util.HttpResponseException;
 import org.keycloak.representations.AccessTokenResponse;
-import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
-import org.springframework.context.ApplicationContext;
-
-import static org.junit.Assert.assertEquals;
+import org.springframework.beans.factory.annotation.Autowired;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-@RunWith(MockitoJUnitRunner.class)
-public class IdentityServiceAuthenticationComponentTest
+public class IdentityServiceAuthenticationComponentTest extends BaseSpringTest
 {
-
-    ApplicationContext ctx = ApplicationContextHelper.getApplicationContext();
     private IdentityServiceAuthenticationComponent authComponent = new IdentityServiceAuthenticationComponent();
-    AuthenticationContext authenticationContext;
 
-    @Mock
-    AuthzClient mockAuthzClient;
+    @Autowired
+    private AuthenticationContext authenticationContext;
+
+    @Autowired
+    private TransactionService transactionService;
+
+    @Autowired
+    private UserRegistrySynchronizer userRegistrySynchronizer;
+
+    @Autowired
+    private NodeService nodeService;
+
+    @Autowired
+    private PersonService personService;
+
+    private AuthzClient mockAuthzClient;
 
     @Before
     public void setUp()
     {
-
-        authenticationContext = (AuthenticationContext) ctx.getBean("authenticationContext");
-        TransactionService transactionService = (TransactionService) ctx.getBean("transactionService");
-        UserRegistrySynchronizer userRegistrySynchronizer = (UserRegistrySynchronizer) ctx.getBean("userRegistrySynchronizer");
-        NodeService nodeService = (NodeService) ctx.getBean("nodeService");
-        PersonService personService = (PersonService) ctx.getBean("personService");
-
-        authComponent.setAuthenticatorAuthzClient(mockAuthzClient);
         authComponent.setAuthenticationContext(authenticationContext);
         authComponent.setTransactionService(transactionService);
         authComponent.setUserRegistrySynchronizer(userRegistrySynchronizer);
         authComponent.setNodeService(nodeService);
         authComponent.setPersonService(personService);
 
+        mockAuthzClient = mock(AuthzClient.class);
+        authComponent.setAuthenticatorAuthzClient(mockAuthzClient);
     }
 
     @After
@@ -81,7 +82,7 @@ public class IdentityServiceAuthenticationComponentTest
         authenticationContext.clearCurrentSecurityContext();
     }
 
-    @Test ( expected= org.alfresco.repo.security.authentication.AuthenticationException.class)
+    @Test ( expected=AuthenticationException.class)
     public void testAuthenticationFail()
     {
 
@@ -101,5 +102,22 @@ public class IdentityServiceAuthenticationComponentTest
 
         // Check that the authenticated user has been set
         assertEquals("User has not been set as expected.","username", authenticationContext.getCurrentUserName());
+    }
+
+    @Test ( expected= org.alfresco.repo.security.authentication.AuthenticationException.class)
+    public void testFallthroughWhenAuthzClientIsNull()
+    {
+        authComponent.setAuthenticatorAuthzClient(null);
+        authComponent.authenticateImpl("username", "password".toCharArray());
+    }
+
+    @Test
+    public void testSettingAllowGuestUser()
+    {
+        authComponent.setAllowGuestLogin(true);
+        assertTrue(authComponent.guestUserAuthenticationAllowed());
+
+        authComponent.setAllowGuestLogin(false);
+        assertFalse(authComponent.guestUserAuthenticationAllowed());
     }
 }

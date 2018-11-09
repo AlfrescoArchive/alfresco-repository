@@ -49,11 +49,11 @@ public class AuthenticatorAuthzClientFactoryBean implements FactoryBean<AuthzCli
 
     private static Log logger = LogFactory.getLog(AuthenticatorAuthzClientFactoryBean.class);
     private IdentityServiceConfig identityServiceConfig;
-    private boolean disabled;
+    private boolean enabled;
 
-    public void setDisabled(boolean disabled)
+    public void setEnabled(boolean enabled)
     {
-        this.disabled = disabled;
+        this.enabled = enabled;
     }
 
     public void setIdentityServiceConfig(IdentityServiceConfig identityServiceConfig)
@@ -66,7 +66,7 @@ public class AuthenticatorAuthzClientFactoryBean implements FactoryBean<AuthzCli
     {
         // The creation of the client can be disabled for testing or when the username/password authentication is not required,
         // for instance when Keycloak is configured for 'bearer only' authentication or Direct Access Grants are disabled.
-        if (disabled)
+        if (!enabled)
         {
             return null;
         }
