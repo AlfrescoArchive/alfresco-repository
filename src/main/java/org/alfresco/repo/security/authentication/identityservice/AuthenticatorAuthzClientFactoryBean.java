@@ -39,17 +39,22 @@ import java.util.concurrent.TimeUnit;
 
 /**
  *
- * Creates an instance of {@link AuthzClient}.
- * <br>
- * If no secret is provided through the {@link IdentityServiceConfig}, then an empty secret is added.
- * This is to allow the {@link AuthzClient} to communicate when the client referred to by the resource property is configured as public.
+ * Creates an instance of {@link AuthzClient}. <br>
+ * The creation of {@link AuthzClient} requires connection to a Keycloak server, disable this factory if Keycloak cannot be reached. <br>
+ * This factory can return a null if it is disabled.
  *
  */
-public class AuthzClientFactoryBean implements FactoryBean<AuthzClient>
+public class AuthenticatorAuthzClientFactoryBean implements FactoryBean<AuthzClient>
 {
 
-    private static Log logger = LogFactory.getLog(AuthzClientFactoryBean.class);
+    private static Log logger = LogFactory.getLog(AuthenticatorAuthzClientFactoryBean.class);
     private IdentityServiceConfig identityServiceConfig;
+    private boolean disabled;
+
+    public void setDisabled(boolean disabled)
+    {
+        this.disabled = disabled;
+    }
 
     public void setIdentityServiceConfig(IdentityServiceConfig identityServiceConfig)
     {
@@ -59,6 +64,12 @@ public class AuthzClientFactoryBean implements FactoryBean<AuthzClient>
     @Override
     public AuthzClient getObject() throws Exception
     {
+        // The creation of the client can be disabled for testing or when the username/password authentication is not required,
+        // for instance when Keycloak is configured for 'bearer only' authentication or Direct Access Grants are disabled.
+        if (disabled)
+        {
+            return null;
+        }
 
         // Build default http client using the keycloak client builder.
         int conTimeout = identityServiceConfig.getClientConnectionTimeout();
@@ -97,7 +108,7 @@ public class AuthzClientFactoryBean implements FactoryBean<AuthzClient>
     @Override
     public Class<?> getObjectType()
     {
-        return AuthzClientFactoryBean.class;
+        return AuthenticatorAuthzClientFactoryBean.class;
     }
 
     @Override

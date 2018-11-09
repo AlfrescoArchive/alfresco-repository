@@ -28,40 +28,44 @@ package org.alfresco.repo.security.authentication.identityservice;
 import org.alfresco.repo.management.subsystems.ActivateableBean;
 import org.alfresco.repo.security.authentication.AbstractAuthenticationComponent;
 import org.alfresco.repo.security.authentication.AuthenticationException;
-import org.alfresco.util.PropertyCheck;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.keycloak.authorization.client.AuthzClient;
 import org.keycloak.authorization.client.util.HttpResponseException;
-import org.springframework.beans.factory.InitializingBean;
 
 /**
  *
  * Authenticates a user against Keycloak.
  * Keycloak's {@link AuthzClient} is used to retrieve an access token for the provided user credentials,
  * user is set as the current user if the user's access token can be obtained.
+ * <br>
+ * The AuthzClient can be null in which case this authenticator will just fall through to the next one in the chain.
  *
  */
-public class IdentityServiceAuthenticationComponent extends AbstractAuthenticationComponent implements InitializingBean,
-        ActivateableBean
+public class IdentityServiceAuthenticationComponent extends AbstractAuthenticationComponent implements ActivateableBean
 {
     private final Log logger = LogFactory.getLog(IdentityServiceAuthenticationComponent.class);
     private AuthzClient authzClient;
     private boolean active;
 
-    public void setKeycloakAuthzClient(AuthzClient keycloakAuthzClient)
+    public void setAuthenticatorAuthzClient(AuthzClient authenticatorAuthzClient)
     {
-        this.authzClient = keycloakAuthzClient;
-    }
-
-    @Override
-    public void afterPropertiesSet() throws Exception
-    {
-        PropertyCheck.mandatory(this, "authzClient", authzClient);
+        this.authzClient = authenticatorAuthzClient;
     }
 
     public void authenticateImpl(String userName, char[] password) throws AuthenticationException
     {
+
+        if (authzClient == null)
+        {
+            if (logger.isDebugEnabled())
+            {
+                logger.debug("AuthzClient was not set, possibly due to the XXX property. ");
+            }
+
+            throw new AuthenticationException("User not authenticated because AuthzClient was not set.");
+        }
+
         try
         {
             // Attempt to get an access token using the user credentials

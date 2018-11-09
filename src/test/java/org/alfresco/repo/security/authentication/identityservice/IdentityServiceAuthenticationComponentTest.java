@@ -66,7 +66,7 @@ public class IdentityServiceAuthenticationComponentTest
         NodeService nodeService = (NodeService) ctx.getBean("nodeService");
         PersonService personService = (PersonService) ctx.getBean("personService");
 
-        authComponent.setKeycloakAuthzClient(mockAuthzClient);
+        authComponent.setAuthenticatorAuthzClient(mockAuthzClient);
         authComponent.setAuthenticationContext(authenticationContext);
         authComponent.setTransactionService(transactionService);
         authComponent.setUserRegistrySynchronizer(userRegistrySynchronizer);

@@ -18,14 +18,17 @@
       <property name="active">
          <value>${identity-service.authentication.enabled}</value>
       </property>
-      <property name="keycloakAuthzClient">
-         <ref bean="keycloakAuthzClient"/>
+      <property name="authenticatorAuthzClient">
+         <ref bean="authenticatorAuthzClient"/>
       </property>
    </bean>
 
-   <bean name="keycloakAuthzClient" class="org.alfresco.repo.security.authentication.identityservice.AuthzClientFactoryBean">
+   <bean name="authenticatorAuthzClient" class="org.alfresco.repo.security.authentication.identityservice.AuthenticatorAuthzClientFactoryBean">
       <property name="identityServiceConfig">
          <ref bean="identityServiceConfig" />
+      </property>
+      <property name="disabled">
+         <value>${identity-service.disable-username-password-authentication:false}</value>
       </property>
    </bean>
 
