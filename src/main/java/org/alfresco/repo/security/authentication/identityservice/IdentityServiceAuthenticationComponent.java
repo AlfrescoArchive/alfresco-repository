@@ -60,7 +60,7 @@ public class IdentityServiceAuthenticationComponent extends AbstractAuthenticati
         {
             if (logger.isDebugEnabled())
             {
-                logger.debug("AuthzClient was not set, possibly due to the XXX property. ");
+                logger.debug("AuthzClient was not set, possibly due to the 'identity-service.disable-username-password-authentication=true' property. ");
             }
 
             throw new AuthenticationException("User not authenticated because AuthzClient was not set.");
@@ -81,7 +81,7 @@ public class IdentityServiceAuthenticationComponent extends AbstractAuthenticati
                 logger.debug("Failed to authenticate user against Keycloak. Status: " + e.getStatusCode() + " Reason: "+ e.getReasonPhrase());
             }
 
-            throw new AuthenticationException("Failed to authenticate user " + userName + " against Keycloak.", e);
+            throw new AuthenticationException("Failed to authenticate user against Keycloak.", e);
         }
     }
 
