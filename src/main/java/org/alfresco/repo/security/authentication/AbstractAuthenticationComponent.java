@@ -566,8 +566,6 @@ public abstract class AbstractAuthenticationComponent implements AuthenticationC
                                 {
                                     logger.debug("Failed to import / create user \"" + AuthenticationUtil.maskUsername(userName) + '"');
                                 }
-                                // should we mask the username in this situation?
-                                // it will be quite difficult to debug the problem with only the first 2 chars and the length of the username
                                 throw new AuthenticationException(
                                     "User \"" + AuthenticationUtil.maskUsername(userName) + "\" does not exist in Alfresco");
                             }

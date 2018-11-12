@@ -215,10 +215,6 @@ public class AuthenticationServiceImpl extends AbstractAuthenticationService imp
             }
             protectedUsersCache.put(protectedUserKey, protectedUser);
         }
-        if (logger.isTraceEnabled())
-        {
-            logger.trace("Failed authentication for: " + AuthenticationUtil.maskUsername(userName));
-        }
     }
     /**
      * Creates a key by combining the service instance ID with the username. This are the type of keys maintained by protectedUsersCache map.

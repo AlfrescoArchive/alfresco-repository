@@ -185,7 +185,7 @@ public abstract class AbstractChainingAuthenticationService extends AbstractAuth
                 {
                     logger.trace(
                         "Not that important: Exception in chaining the verification of authentication enabled for user: " + AuthenticationUtil
-                            .maskUsername(userName) + " message: " + e.getMessage(), e);
+                            .maskUsername(userName) + " . Message: " + e.getMessage(), e);
                 }
             }
         }

@@ -215,11 +215,11 @@ public class DefaultRemoteUserMapper implements RemoteUserMapper, ActivateableBe
         }
     }
 
-    private void logReturnedUser(String normalizedUserId)
+    private void logReturnedUser(String userId)
     {
         if (logger.isDebugEnabled())
         {
-            logger.debug("Returning normalized user:" + normalizedUserId);
+            logger.debug("Returning user:" + AuthenticationUtil.maskUsername(userId));
         }
     }
 
@@ -315,19 +315,16 @@ public class DefaultRemoteUserMapper implements RemoteUserMapper, ActivateableBe
             }
             else
             {
-                if (logger.isTraceEnabled())
+                if (logger.isDebugEnabled())
                 {
-                    logger.trace("userId '" + AuthenticationUtil.maskUsername(userId) + "' did not match the userIdPattern '" + this.userIdPattern
+                    logger.debug("userId '" + AuthenticationUtil.maskUsername(userId) + "' did not match the userIdPattern '" + this.userIdPattern
                         + "'. Returning null.");
                 }
                 return null;                
             }
         }
         final String userIdToReturn = userId.length() == 0 ? null : userId;
-        if (logger.isTraceEnabled())
-        {
-            logger.trace("Returning userId: " + AuthenticationUtil.maskUsername(userId));
-        }
+        logReturnedUser(userIdToReturn);
         return userIdToReturn;
     }
 

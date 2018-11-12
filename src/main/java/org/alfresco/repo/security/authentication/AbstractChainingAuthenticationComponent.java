@@ -93,7 +93,7 @@ public abstract class AbstractChainingAuthenticationComponent extends AbstractAu
                 // Ignore and chain
                 if (logger.isTraceEnabled())
                 {
-                    logger.trace("This should not be very important: Exception chaining authentication: " + e.getMessage(), e);
+                    logger.trace("Not that important: Exception chaining authentication: " + e.getMessage(), e);
                 }
             }
         }
@@ -175,7 +175,7 @@ public abstract class AbstractChainingAuthenticationComponent extends AbstractAu
                 // Ignore and chain
                 if (logger.isTraceEnabled())
                 {
-                    logger.trace("This should not be very important: Exception chaining set current user: " + e.getMessage(), e);
+                    logger.trace("Not that important: Exception chaining set current user: " + e.getMessage(), e);
                 }
             }
         }
@@ -204,7 +204,7 @@ public abstract class AbstractChainingAuthenticationComponent extends AbstractAu
                 last = e;
                 if (logger.isTraceEnabled())
                 {
-                    logger.trace("This should not be very important: Exception chaining set current user: " + e.getMessage(), e);
+                    logger.trace("Not that important: Exception chaining set current user: " + e.getMessage(), e);
                 }
             }
         }
