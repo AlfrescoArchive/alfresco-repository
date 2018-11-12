@@ -93,7 +93,7 @@ public class AuthenticatorAuthzClientFactoryBean implements FactoryBean<AuthzCli
         String realm = identityServiceConfig.getRealm();
         String resource = identityServiceConfig.getResource();
         Configuration authzConfig = new Configuration(authServerUrl, realm, resource, credentials, client);
-        AuthzClient  authzClient = AuthzClient.create(authzConfig);
+        AuthzClient authzClient = AuthzClient.create(authzConfig);
 
         if (logger.isDebugEnabled())
         {

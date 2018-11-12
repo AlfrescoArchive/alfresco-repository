@@ -82,10 +82,9 @@ public class IdentityServiceAuthenticationComponentTest extends BaseSpringTest
         authenticationContext.clearCurrentSecurityContext();
     }
 
-    @Test ( expected=AuthenticationException.class)
+    @Test (expected=AuthenticationException.class)
     public void testAuthenticationFail()
     {
-
         when(mockAuthzClient.obtainAccessToken("username", "password"))
                 .thenThrow(new HttpResponseException("Unauthorized", 401, "Unauthorized", null));
 
@@ -104,7 +103,7 @@ public class IdentityServiceAuthenticationComponentTest extends BaseSpringTest
         assertEquals("User has not been set as expected.","username", authenticationContext.getCurrentUserName());
     }
 
-    @Test ( expected= org.alfresco.repo.security.authentication.AuthenticationException.class)
+    @Test (expected= AuthenticationException.class)
     public void testFallthroughWhenAuthzClientIsNull()
     {
         authComponent.setAuthenticatorAuthzClient(null);
