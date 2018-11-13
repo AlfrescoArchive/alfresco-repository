@@ -210,7 +210,7 @@ public class IdentityServiceRemoteUserMapper implements RemoteUserMapper, Activa
         
         if (logger.isTraceEnabled())
         {
-            logger.trace("Extracted username: " + userName);
+            logger.trace("Extracted username: " + AuthenticationUtil.maskUsername(userName));
         }
         
         return userName;
