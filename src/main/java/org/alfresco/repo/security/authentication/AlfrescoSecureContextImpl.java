@@ -87,7 +87,7 @@ public class AlfrescoSecureContextImpl implements AlfrescoSecureContext
     {
         if (logger.isTraceEnabled())
         {
-            logger.trace("Setting effective authentication to: " + effictiveAuthentication);
+            logger.trace("Setting effective authentication to: " + AuthenticationUtil.getMaskedUsername(effictiveAuthentication));
         }
         this.effectiveAuthentication = effictiveAuthentication;
     }
@@ -96,7 +96,7 @@ public class AlfrescoSecureContextImpl implements AlfrescoSecureContext
     {
         if (logger.isTraceEnabled())
         {
-            logger.trace("Setting real authentication to: " + realAuthentication);
+            logger.trace("Setting real authentication to: " + AuthenticationUtil.getMaskedUsername(realAuthentication));
         }
         this.realAuthentication = realAuthentication;
     }
@@ -149,7 +149,7 @@ public class AlfrescoSecureContextImpl implements AlfrescoSecureContext
         }
         else
         {
-            builder.append("Real authentication = " + realAuthentication.toString());
+            builder.append("Real authentication = " + AuthenticationUtil.getMaskedUsername(realAuthentication));
         }
         builder.append(", ");
         
@@ -159,7 +159,7 @@ public class AlfrescoSecureContextImpl implements AlfrescoSecureContext
         }
         else
         {
-            builder.append("Effective authentication = " + effectiveAuthentication.toString());
+            builder.append("Effective authentication = " +AuthenticationUtil.getMaskedUsername(effectiveAuthentication));
         }
         builder.append(", ");
         

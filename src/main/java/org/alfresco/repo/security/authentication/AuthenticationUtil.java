@@ -129,6 +129,16 @@ public class AuthenticationUtil implements InitializingBean
         return null;
     }
 
+    public static String getMaskedUsername(Authentication authentication)
+    {
+        String extractedUsername = null;
+        if (authentication != null && authentication.getPrincipal() != null)
+        {
+            extractedUsername = getUserName(authentication);
+        }
+        return maskUsername(extractedUsername);
+    }
+
     public AuthenticationUtil()
     {
         super();
@@ -258,7 +268,7 @@ public class AuthenticationUtil implements InitializingBean
         {
             if (logger.isTraceEnabled())
             {
-                logger.trace("Setting fully authenticated principal: " + maskUsername((authentication.getName())));
+                logger.trace("Setting fully authenticated principal: " + getMaskedUsername(authentication));
             }
             Context context = ContextHolder.getContext();
             AlfrescoSecureContext sc = null;
@@ -338,7 +348,7 @@ public class AuthenticationUtil implements InitializingBean
         {
             if (logger.isTraceEnabled())
             {
-                logger.trace("Setting RunAs principal: " + maskUsername(authentication.getName()));
+                logger.trace("Setting RunAs principal: " + getMaskedUsername(authentication));
             }
             Context context = ContextHolder.getContext();
             AlfrescoSecureContext sc = null;
@@ -360,8 +370,7 @@ public class AuthenticationUtil implements InitializingBean
             {
                 if (logger.isTraceEnabled())
                 {
-                    logger.trace("There is no fully authenticated principal. Setting fully authenticated principal: " + maskUsername(
-                        authentication.getName()));
+                    logger.trace("There is no fully authenticated principal. Setting fully authenticated principal: " + getMaskedUsername(authentication));
                 }
                 sc.setRealAuthentication(authentication);
             }
