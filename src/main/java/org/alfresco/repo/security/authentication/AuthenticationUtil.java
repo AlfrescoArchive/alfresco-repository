@@ -571,12 +571,16 @@ public class AuthenticationUtil implements InitializingBean
     {
         Authentication originalFullAuthentication = AuthenticationUtil.getFullAuthentication();
         Authentication originalRunAsAuthentication = AuthenticationUtil.getRunAsAuthentication();
-        
         final R result;
         try
         {
             if (originalFullAuthentication == null)
             {
+                if (uid.equals(AuthenticationUtil.getSystemUserName()))
+                {
+                    AuthenticationUtil.setFullyAuthenticatedUser(getAdminUserName());
+                }
+
                 AuthenticationUtil.setFullyAuthenticatedUser(uid);
             }
             else
