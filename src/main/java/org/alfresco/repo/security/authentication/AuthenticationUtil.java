@@ -576,9 +576,9 @@ public class AuthenticationUtil implements InitializingBean
         {
             if (originalFullAuthentication == null)
             {
-                if (uid.equals(AuthenticationUtil.getSystemUserName()))
+                if (initialized && uid.equals(AuthenticationUtil.getSystemUserName()))
                 {
-                    AuthenticationUtil.setFullyAuthenticatedUser(getAdminUserName());
+                    AuthenticationUtil.setAdminUserAsFullyAuthenticatedUser();
                 }
 
                 AuthenticationUtil.setFullyAuthenticatedUser(uid);
