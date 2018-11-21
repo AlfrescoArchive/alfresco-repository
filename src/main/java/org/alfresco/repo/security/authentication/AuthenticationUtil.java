@@ -568,23 +568,36 @@ public class AuthenticationUtil implements InitializingBean
      * @return Returns the work's return value
      */
     public static <R> R runAs(RunAsWork<R> runAsWork, String uid)
-    {
+    {    
         Authentication originalFullAuthentication = AuthenticationUtil.getFullAuthentication();
         Authentication originalRunAsAuthentication = AuthenticationUtil.getRunAsAuthentication();
+       
         final R result;
         try
         {
             if (originalFullAuthentication == null)
             {
+                // exclude authentication as System, the System user is a
+                // concept not an entity
                 if (initialized && uid.equals(AuthenticationUtil.getSystemUserName()))
                 {
                     AuthenticationUtil.setAdminUserAsFullyAuthenticatedUser();
                 }
-
-                AuthenticationUtil.setFullyAuthenticatedUser(uid);
+                else
+                {
+                    AuthenticationUtil.setFullyAuthenticatedUser(uid);
+                }
             }
             else
             {
+                String originalFullAuthUserName = getUserName(originalFullAuthentication);
+                // exclude authentication as System, the System user is a
+                // concept not an entity
+                if (initialized && originalFullAuthUserName.equals(AuthenticationUtil.getSystemUserName()))
+                {
+                    originalFullAuthentication = AuthenticationUtil.setAdminUserAsFullyAuthenticatedUser();
+                }
+
                 // TODO remove - this should be obsolete now we're using TenantContextHolder
                 /*
                 if ((originalRunAsAuthentication != null) && (isMtEnabled()))
