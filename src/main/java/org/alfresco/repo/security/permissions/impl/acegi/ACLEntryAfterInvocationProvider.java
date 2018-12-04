@@ -664,23 +664,23 @@ public class ACLEntryAfterInvocationProvider implements AfterInvocationProvider,
         {
             return returnedObject;
         }
-        else if (returnedObject.length() > maxSize.intValue())
-        {
-            for (int i = 0; i < maxSize.intValue(); i++)
-            {
-                filteringResultSet.setIncluded(i, true);
-            }
-            filteringResultSet.setResultSetMetaData(new SimpleResultSetMetaData(LimitBy.FINAL_SIZE, PermissionEvaluationMode.EAGER, returnedObject.getResultSetMetaData()
-                    .getSearchParameters()));
-        }
         else
         {
-            for (int i = 0; i < maxSize.intValue(); i++)
+            for (int i = 0; i < maxSize.intValue() && i < returnedObject.length(); i++)
             {
                 filteringResultSet.setIncluded(i, true);
             }
-            filteringResultSet.setResultSetMetaData(new SimpleResultSetMetaData(LimitBy.UNLIMITED, PermissionEvaluationMode.EAGER, returnedObject.getResultSetMetaData()
-                    .getSearchParameters()));
+
+            if (returnedObject.length() > maxSize.intValue())
+            {
+                filteringResultSet.setResultSetMetaData(new SimpleResultSetMetaData(LimitBy.FINAL_SIZE, PermissionEvaluationMode.EAGER, returnedObject.getResultSetMetaData()
+                        .getSearchParameters()));
+            }
+            else
+            {
+                filteringResultSet.setResultSetMetaData(new SimpleResultSetMetaData(LimitBy.UNLIMITED, PermissionEvaluationMode.EAGER, returnedObject.getResultSetMetaData()
+                        .getSearchParameters()));
+            }
         }
         return filteringResultSet;
     }
