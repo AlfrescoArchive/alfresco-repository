@@ -538,8 +538,7 @@ public class ACLEntryAfterInvocationProvider implements AfterInvocationProvider,
     }
 
 
-    private ResultSet decidePermissionsNew(ResultSet returnedObject){
-
+    private ResultSet decidePermissions(ResultSet returnedObject, List<ConfigAttributeDefintion> supportedDefinitions){
         if (returnedObject == null)
         {
             return null;
@@ -585,6 +584,9 @@ public class ACLEntryAfterInvocationProvider implements AfterInvocationProvider,
 
                 NodeRef nodeRef = returnedObject.getNodeRef(i);
 
+                // All permission checks must pass
+                filteringResultSet.setIncluded(i, true);
+
                 if (i >= maxChecks)
                 {
                     log.warn("maxChecks exceeded (" + maxChecks + ")", new Exception("Back Trace"));
@@ -600,9 +602,40 @@ public class ACLEntryAfterInvocationProvider implements AfterInvocationProvider,
                     break;
                 }
 
-                if (permissionService.hasReadPermission(nodeRef) != AccessStatus.DENIED)
+                // If supportedDefinitions is not passed as parameter, it uses new method to permission filtering.
+                if (supportedDefinitions == null)
                 {
-                    filteringResultSet.setIncluded(i, true);
+                    if (permissionService.hasReadPermission(nodeRef) == AccessStatus.DENIED)
+                    {
+                        filteringResultSet.setIncluded(i, false);
+                    }
+                }
+                else
+                {
+
+                    for (ConfigAttributeDefintion cad : supportedDefinitions)
+                    {
+                        NodeRef testNodeRef = null;
+                        if (cad.typeString.equals(AFTER_ACL_NODE))
+                        {
+                            testNodeRef = returnedObject.getNodeRef(i);
+                        }
+                        else if (cad.typeString.equals(AFTER_ACL_PARENT))
+                        {
+                            testNodeRef = returnedObject.getChildAssocRef(i).getParentRef();
+                        }
+
+                        if(isUnfiltered(testNodeRef))
+                        {
+                            continue;
+                        }
+
+                        if (filteringResultSet.getIncluded(i) && (testNodeRef != null) && (permissionService.hasPermission(testNodeRef, cad.required.toString()) == AccessStatus.DENIED))
+                        {
+                            filteringResultSet.setIncluded(i, false);
+                        }
+                    }
+
                 }
             }
         }
@@ -614,8 +647,8 @@ public class ACLEntryAfterInvocationProvider implements AfterInvocationProvider,
         }
 
         return filteringResultSet;
-
     }
+
 
     /**
      * Compute a (Weak)FilteringResultSet by selecting the first maxSize elements from returnedObject.
@@ -624,7 +657,8 @@ public class ACLEntryAfterInvocationProvider implements AfterInvocationProvider,
      * @param returnedObject
      * @return
      */
-    private ResultSet filterMaxCount(Integer maxSize, ResultSet returnedObject){
+    private ResultSet filterMaxCount(Integer maxSize, ResultSet returnedObject)
+    {
         WeakFilteringResultSet filteringResultSet = new WeakFilteringResultSet(returnedObject);
         if (maxSize == null)
         {
@@ -657,7 +691,8 @@ public class ACLEntryAfterInvocationProvider implements AfterInvocationProvider,
      * @param returnedObject
      * @return
      */
-    private Integer getMaxSize(ResultSet returnedObject){
+    private Integer getMaxSize(ResultSet returnedObject)
+    {
 
         Integer maxSize = null;
         if (returnedObject.getResultSetMetaData().getSearchParameters().getMaxItems() >= 0)
@@ -678,8 +713,8 @@ public class ACLEntryAfterInvocationProvider implements AfterInvocationProvider,
     }
 
 
-
-    private ResultSet decideNew(Authentication authentication, Object object, ConfigAttributeDefinition config, ResultSet returnedObject) throws AccessDeniedException {
+    private ResultSet decideNew(Authentication authentication, Object object, ConfigAttributeDefinition config, ResultSet returnedObject) throws AccessDeniedException
+    {
         if (returnedObject == null)
         {
             return null;
@@ -688,8 +723,7 @@ public class ACLEntryAfterInvocationProvider implements AfterInvocationProvider,
         Integer maxSize = getMaxSize(returnedObject);
 
         // Create result set
-        ResultSet resultSet = decidePermissionsNew(returnedObject);
-
+        ResultSet resultSet = decidePermissions(returnedObject, null);
         if (maxSize == null)
         {
             return resultSet;
@@ -708,135 +742,17 @@ public class ACLEntryAfterInvocationProvider implements AfterInvocationProvider,
             return null;
         }
 
-        FilteringResultSet filteringResultSet = new FilteringResultSet(returnedObject);
-
         List<ConfigAttributeDefintion> supportedDefinitions = extractSupportedDefinitions(config);
+        ResultSet resultSet = supportedDefinitions.size() == 0? returnedObject: decidePermissions(returnedObject, supportedDefinitions);
 
-        Integer maxSize = null;
-        if (returnedObject.getResultSetMetaData().getSearchParameters().getMaxItems() >= 0)
+        Integer maxSize = getMaxSize(returnedObject);
+        if (maxSize == null)
         {
-            maxSize = new Integer(returnedObject.getResultSetMetaData().getSearchParameters().getMaxItems());
-        }
-        if ((maxSize == null) && (returnedObject.getResultSetMetaData().getSearchParameters().getLimitBy() == LimitBy.FINAL_SIZE))
-        {
-            maxSize = new Integer(returnedObject.getResultSetMetaData().getSearchParameters().getLimit());
-        }
-        // Allow for skip
-        if ((maxSize != null) && (returnedObject.getResultSetMetaData().getSearchParameters().getSkipCount() >= 0))
-        {
-            maxSize = new Integer(maxSize + returnedObject.getResultSetMetaData().getSearchParameters().getSkipCount());
+            return resultSet;
         }
 
-        int maxChecks = maxPermissionChecks;
-        if (returnedObject.getResultSetMetaData().getSearchParameters().getMaxPermissionChecks() >= 0)
-        {
-            maxChecks = returnedObject.getResultSetMetaData().getSearchParameters().getMaxPermissionChecks();
-        }
+        return filterMaxCount(maxSize, resultSet);
 
-        long maxCheckTime = maxPermissionCheckTimeMillis;
-        if (returnedObject.getResultSetMetaData().getSearchParameters().getMaxPermissionCheckTimeMillis() >= 0)
-        {
-            maxCheckTime = returnedObject.getResultSetMetaData().getSearchParameters().getMaxPermissionCheckTimeMillis();
-        }
-
-        if (supportedDefinitions.size() == 0)
-        {
-            if (maxSize == null)
-            {
-                return returnedObject;
-            }
-            else if (returnedObject.length() > maxSize.intValue())
-            {
-                for (int i = 0; i < maxSize.intValue(); i++)
-                {
-                    filteringResultSet.setIncluded(i, true);
-                }
-                filteringResultSet.setResultSetMetaData(new SimpleResultSetMetaData(LimitBy.FINAL_SIZE, PermissionEvaluationMode.EAGER, returnedObject.getResultSetMetaData()
-                        .getSearchParameters()));
-                return filteringResultSet;
-            }
-            else
-            {
-                for (int i = 0; i < returnedObject.length(); i++)
-                {
-                    filteringResultSet.setIncluded(i, true);
-                }
-                filteringResultSet.setResultSetMetaData(new SimpleResultSetMetaData(returnedObject.getResultSetMetaData().getLimitedBy(), PermissionEvaluationMode.EAGER, returnedObject.getResultSetMetaData()
-                        .getSearchParameters()));
-                return filteringResultSet;
-            }
-            
-        }
-        if (returnedObject.length() > 0)
-        {
-            // force prefetch before starting record time
-            boolean builkFetch = returnedObject.getBulkFetch();
-            returnedObject.setBulkFetch(false);
-            returnedObject.getNodeRef(returnedObject.length() - 1);
-            returnedObject.setBulkFetch(builkFetch);
-        }
-
-        // record the start time
-        long startTimeMillis = System.currentTimeMillis();
-        // set the default, unlimited resultset type
-        filteringResultSet.setResultSetMetaData(new SimpleResultSetMetaData(returnedObject.getResultSetMetaData().getLimitedBy(), PermissionEvaluationMode.EAGER, returnedObject.getResultSetMetaData()
-                .getSearchParameters()));
-
-        for (int i = 0; i < returnedObject.length(); i++)
-        {
-            long currentTimeMillis = System.currentTimeMillis();
-            if (i >= maxChecks)
-            {
-                log.warn("maxChecks exceeded (" + maxChecks + ")", new Exception("Back Trace"));
-                filteringResultSet.setResultSetMetaData(new SimpleResultSetMetaData(LimitBy.NUMBER_OF_PERMISSION_EVALUATIONS, PermissionEvaluationMode.EAGER, returnedObject
-                        .getResultSetMetaData().getSearchParameters()));
-                break;
-            }
-            else if ((currentTimeMillis - startTimeMillis) > maxCheckTime)
-            {
-                log.warn("maxCheckTime exceeded (" + (currentTimeMillis - startTimeMillis) + " milliseconds)", new Exception("Back Trace"));
-                filteringResultSet.setResultSetMetaData(new SimpleResultSetMetaData(LimitBy.NUMBER_OF_PERMISSION_EVALUATIONS, PermissionEvaluationMode.EAGER, returnedObject
-                        .getResultSetMetaData().getSearchParameters()));
-                break;
-            }
-
-            // All permission checks must pass
-            filteringResultSet.setIncluded(i, true);
-
-            for (ConfigAttributeDefintion cad : supportedDefinitions)
-            {
-                NodeRef testNodeRef = null;
-                if (cad.typeString.equals(AFTER_ACL_NODE))
-                {
-                    testNodeRef = returnedObject.getNodeRef(i);
-                }
-                else if (cad.typeString.equals(AFTER_ACL_PARENT))
-                {
-                    testNodeRef = returnedObject.getChildAssocRef(i).getParentRef();
-                }
-
-                if(isUnfiltered(testNodeRef))
-                {
-                    continue;
-                }
-                
-                if (filteringResultSet.getIncluded(i) && (testNodeRef != null) && (permissionService.hasPermission(testNodeRef, cad.required.toString()) == AccessStatus.DENIED))
-                {
-                    filteringResultSet.setIncluded(i, false);
-                }
-            }
-
-            // Bug out if we are limiting by size
-            if ((maxSize != null) && (filteringResultSet.length() > maxSize.intValue()))
-            {
-                // Remove the last match to fix the correct size
-                filteringResultSet.setIncluded(i, false);
-                filteringResultSet.setResultSetMetaData(new SimpleResultSetMetaData(LimitBy.FINAL_SIZE, PermissionEvaluationMode.EAGER, returnedObject.getResultSetMetaData()
-                        .getSearchParameters()));
-                break;
-            }
-        }
-        return filteringResultSet;
     }
 
     private QueryEngineResults decide(Authentication authentication, Object object, ConfigAttributeDefinition config, QueryEngineResults returnedObject)
