@@ -92,10 +92,14 @@ public class AuthorityTypeBehaviour implements NodeServicePolicies.OnUpdatePrope
 
     private boolean modifyingOwnAccount(Map<QName, Serializable> before, Map<QName, Serializable> after)
     {
-        String authenticatedUser = AuthenticationUtil.getFullyAuthenticatedUser();
         String beforeUsername = findUsernameInProperties(before, USERNAME_FIELD, INVALID_USERNAME_VALUE);
         String afterUsername = findUsernameInProperties(after, USERNAME_FIELD, INVALID_USERNAME_VALUE);
-        return authenticatedUser.equals(beforeUsername) && beforeUsername.equals(afterUsername);
+        if ( afterUsername.equals(beforeUsername) ){
+            String authenticatedUser = AuthenticationUtil.getFullyAuthenticatedUser();
+            return beforeUsername.equals(authenticatedUser);
+        } else{
+            return false;
+        }
     }
 
     private String findUsernameInProperties(Map<QName, Serializable> map, String usernameField, String invalidValue)
