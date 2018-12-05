@@ -42,7 +42,7 @@ import java.util.concurrent.ConcurrentMap;
 import static org.alfresco.repo.rendition2.RenditionDefinition2.TIMEOUT;
 
 /**
- * Used by clients work out if a transformation is supported by the Transform Service.
+ * Used by clients to work out if a transformation is supported by the Transform Service.
  */
 public class TransformServiceRegistryImpl implements TransformServiceRegistry, InitializingBean
 {

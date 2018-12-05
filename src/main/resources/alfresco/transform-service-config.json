@@ -42,8 +42,8 @@
       {"value": {"required": false, "name": "page"}},
       {"value": {"required": false, "name": "width"}},
       {"value": {"required": false, "name": "height"}},
-      {"value": {"required": false, "name": "allowEnlargement"}},
-      {"value": {"required": false, "name": "maintainAspectRatio"}}
+      {"value": {"required": false, "name": "allowPdfEnlargement"}},
+      {"value": {"required": false, "name": "maintainPdfAspectRatio"}}
     ],
     "supportedSourceAndTargetList": [
       {"sourceExt": "pdf",  "targetExt": "png" }
