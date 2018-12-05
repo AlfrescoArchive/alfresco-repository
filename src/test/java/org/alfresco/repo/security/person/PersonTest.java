@@ -1742,13 +1742,7 @@ public class PersonTest extends TestCase
     {
         final String USERNAME = GUID.generate();
 
-        PropertyMap guestProps = new PropertyMap();
-        guestProps.put(ContentModel.PROP_USERNAME, USERNAME);
-        guestProps.put(ContentModel.PROP_FIRSTNAME, "myFirstName");
-        guestProps.put(ContentModel.PROP_LASTNAME, "myLastName");
-        guestProps.put(ContentModel.PROP_EMAIL, "myFirstName.myLastName@email.com");
-
-        NodeRef personRef = personService.createPerson(guestProps);
+        NodeRef personRef = personService.createPerson(createDefaultProperties(USERNAME, "Aa", "Aa", "aa@aa", "alfresco", rootNodeRef));
 
         AuthenticationUtil.setFullyAuthenticatedUser(USERNAME);
 
@@ -1762,13 +1756,7 @@ public class PersonTest extends TestCase
             final String USERNAME = GUID.generate();
             final String UPDATED_USERNAME = USERNAME + "1";
 
-            PropertyMap guestProps = new PropertyMap();
-            guestProps.put(ContentModel.PROP_USERNAME, USERNAME);
-            guestProps.put(ContentModel.PROP_FIRSTNAME, "myFirstName");
-            guestProps.put(ContentModel.PROP_LASTNAME, "myLastName");
-            guestProps.put(ContentModel.PROP_EMAIL, "myFirstName.myLastName@email.com");
-
-            NodeRef personRef = personService.createPerson(guestProps);
+            NodeRef personRef = personService.createPerson(createDefaultProperties(USERNAME, "Aa", "Aa", "aa@aa", "alfresco", rootNodeRef));
 
             AuthenticationUtil.setFullyAuthenticatedUser(USERNAME);
 

@@ -84,7 +84,7 @@ public class AuthorityTypeBehaviour implements NodeServicePolicies.OnUpdatePrope
             return;
         }
 
-        if(!(AuthenticationUtil.isRunAsUserTheSystemUser() || authorityService.hasAdminAuthority()))
+        if (!(AuthenticationUtil.isRunAsUserTheSystemUser() || authorityService.hasAdminAuthority()))
         {
             throw new AccessDeniedException("Only users with ROLE_ADMINISTRATOR are allowed to manage users.");
         }
@@ -94,10 +94,13 @@ public class AuthorityTypeBehaviour implements NodeServicePolicies.OnUpdatePrope
     {
         String beforeUsername = findUsernameInProperties(before, USERNAME_FIELD, INVALID_USERNAME_VALUE);
         String afterUsername = findUsernameInProperties(after, USERNAME_FIELD, INVALID_USERNAME_VALUE);
-        if ( afterUsername.equals(beforeUsername) ){
+        if (afterUsername.equals(beforeUsername))
+        {
             String authenticatedUser = AuthenticationUtil.getFullyAuthenticatedUser();
             return beforeUsername.equals(authenticatedUser);
-        } else{
+        }
+        else
+        {
             return false;
         }
     }
@@ -105,7 +108,8 @@ public class AuthorityTypeBehaviour implements NodeServicePolicies.OnUpdatePrope
     private String findUsernameInProperties(Map<QName, Serializable> map, String usernameField, String invalidValue)
     {
         Optional<QName> first = map.keySet().stream().filter(q -> q.getLocalName().equals(usernameField)).findFirst();
-        if ( first.isPresent() ) {
+        if (first.isPresent())
+        {
             return map.get(first.get()).toString();
         }
         return invalidValue;
