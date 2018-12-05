@@ -48,7 +48,7 @@ public class TransformServiceRegistryImpl implements TransformServiceRegistry, I
 {
     class SupportedTransform
     {
-        private TransformOptionGroup transformOptions;
+        TransformOptionGroup transformOptions;
         private long maxSourceSizeBytes;
 
         public SupportedTransform(List<TransformOption> transformOptions, long maxSourceSizeBytes)

@@ -12,7 +12,7 @@
             {"value": {"name": "startPage"}},
             {"value": {"name": "endPage"}},
             {"group": {"transformOptions": [
-              {"value": {"name": "cropGravity"}},
+              {"value": {"required": "true", "name": "cropGravity"}},
               {"value": {"name": "cropWidth"}},
               {"value": {"name": "cropHeight"}},
               {"value": {"name": "cropPercentage"}},
@@ -29,7 +29,6 @@
             ]}}
           ]}},{
         "group": {
-          "required": false,
           "transformOptions": [
             {"value": {"name": "page"}},
             {"value": {"name": "width"}},
