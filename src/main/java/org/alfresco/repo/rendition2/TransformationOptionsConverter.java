@@ -195,13 +195,16 @@ public class TransformationOptionsConverter implements InitializingBean
         boolean hasOptions = !subclassOptionNames.isEmpty();
         if (isPdfRendition || hasOptions)
         {
+            // The "pdf" rendition used the wrong TransformationOptions subclass.
             if (isPdfRendition || FLASH_OPTIONS.containsAll(subclassOptionNames))
             {
                 SWFTransformationOptions opts = new SWFTransformationOptions();
                 transformationOptions = opts;
                 opts.setFlashVersion(isPdfRendition ? "9" : options.get(FLASH_VERSION));
             }
-            if (IMAGE_OPTIONS.containsAll(subclassOptionNames) || PDF_OPTIONS.containsAll(subclassOptionNames))
+            // Even though the only standard rendition to use the pdf-renderer is "pdf" there may be custom renditions
+            // that use ImageTransformOptions to specify width, height etc.
+            else if (IMAGE_OPTIONS.containsAll(subclassOptionNames) || PDF_OPTIONS.containsAll(subclassOptionNames))
             {
                 ImageTransformationOptions opts = new ImageTransformationOptions();
                 transformationOptions = opts;
