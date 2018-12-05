@@ -61,6 +61,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.alfresco.model.ContentModel.PROP_CONTENT;
 import static org.alfresco.model.RenditionModel.PROP_RENDITION_CONTENT_URL_HASH_CODE;
@@ -209,39 +210,64 @@ public class RenditionService2Impl implements RenditionService2, InitializingBea
                 logger.debug("Request transform for rendition " + renditionName + " on " +sourceNodeRef);
             }
 
+            AtomicBoolean supported = new AtomicBoolean(true);
             ContentData contentData = (ContentData) nodeService.getProperty(sourceNodeRef, ContentModel.PROP_CONTENT);
             if (contentData != null && contentData.getContentUrl() != null)
             {
                 String contentUrl = contentData.getContentUrl();
                 String sourceMimetype = contentData.getMimetype();
                 long size = contentData.getSize();
-                transformClient.checkSupported(sourceNodeRef, renditionDefinition, sourceMimetype, size, contentUrl);
+                try
+                {
+                    transformClient.checkSupported(sourceNodeRef, renditionDefinition, sourceMimetype, size, contentUrl);
+                }
+                catch (UnsupportedOperationException e)
+                {
+                    NodeRef renditionNode = getRenditionNode(sourceNodeRef, renditionName);
+                    int renditionContentUrlHashCode = getRenditionContentUrlHashCode(renditionNode);
+                    if (renditionContentUrlHashCode == RENDITION2_DOES_NOT_EXIST)
+                    {
+                        throw e;
+                    }
+                    supported.set(false);
+                }
             }
 
             String user = AuthenticationUtil.getRunAsUser();
             RetryingTransactionHelper.RetryingTransactionCallback callback = () ->
             {
-                // Avoid doing extra transforms that have already been done.
                 int sourceContentUrlHashCode = getSourceContentUrlHashCode(sourceNodeRef);
-                NodeRef renditionNode = getRenditionNode(sourceNodeRef, renditionName);
-                int renditionContentUrlHashCode = getRenditionContentUrlHashCode(renditionNode);
-                if (renditionContentUrlHashCode == sourceContentUrlHashCode)
-                {
-                    throw new IllegalStateException("The rendition " + renditionName + " has already been created.");
-                }
-
-                // If source node has content
-                if (sourceContentUrlHashCode != SOURCE_HAS_NO_CONTENT)
-                {
-                    transformClient.transform(sourceNodeRef, renditionDefinition, user, sourceContentUrlHashCode);
-                }
-                else
+                if (!supported.get())
                 {
                     if (logger.isDebugEnabled())
                     {
-                        logger.debug("Rendition of "+renditionName+" had no content.");
+                        logger.debug("Rendition of " + renditionName + " is no longer supported. The mimetype might have changed or the content is now too big.");
                     }
                     failure(sourceNodeRef, renditionDefinition, sourceContentUrlHashCode);
+                }
+                else
+                {
+                    // Avoid doing extra transforms that have already been done.
+                    NodeRef renditionNode = getRenditionNode(sourceNodeRef, renditionName);
+                    int renditionContentUrlHashCode = getRenditionContentUrlHashCode(renditionNode);
+                    if (renditionContentUrlHashCode == sourceContentUrlHashCode)
+                    {
+                        throw new IllegalStateException("The rendition " + renditionName + " has already been created.");
+                    }
+
+                    // If source node has content
+                    if (sourceContentUrlHashCode != SOURCE_HAS_NO_CONTENT)
+                    {
+                        transformClient.transform(sourceNodeRef, renditionDefinition, user, sourceContentUrlHashCode);
+                    }
+                    else
+                    {
+                        if (logger.isDebugEnabled())
+                        {
+                            logger.debug("Rendition of " + renditionName + " had no content.");
+                        }
+                        failure(sourceNodeRef, renditionDefinition, sourceContentUrlHashCode);
+                    }
                 }
                 return null;
             };
