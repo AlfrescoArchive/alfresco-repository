@@ -265,8 +265,8 @@ public class TransformServiceRegistryImplTest
                         new TransformOptionValue(false, "page"),
                         new TransformOptionValue(false, "width"),
                         new TransformOptionValue(false, "height"),
-                        new TransformOptionValue(false, "allowEnlargement"),
-                        new TransformOptionValue(false, "maintainAspectRatio")),
+                        new TransformOptionValue(false, "allowPdfEnlargement"),
+                        new TransformOptionValue(false, "maintainPdfAspectRatio")),
                 Arrays.asList(
                         new SupportedSourceAndTarget(PDF, PNG, -1)));
 
