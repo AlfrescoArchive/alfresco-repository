@@ -66,11 +66,7 @@ import org.alfresco.service.cmr.repository.Period;
 import org.alfresco.service.cmr.repository.StoreRef;
 import org.alfresco.service.cmr.repository.datatype.DefaultTypeConverter;
 import org.alfresco.service.cmr.repository.datatype.Duration;
-import org.alfresco.service.cmr.search.QueryConsistency;
-import org.alfresco.service.cmr.search.ResultSet;
-import org.alfresco.service.cmr.search.ResultSetRow;
-import org.alfresco.service.cmr.search.SearchParameters;
-import org.alfresco.service.cmr.search.SearchService;
+import org.alfresco.service.cmr.search.*;
 import org.alfresco.service.namespace.QName;
 import org.alfresco.service.transaction.TransactionService;
 import org.alfresco.util.ApplicationContextHelper;
@@ -268,8 +264,9 @@ public class DBQueryTest  implements DictionaryListener
         I18NUtil.setLocale(Locale.UK);
         txn = transactionService.getUserTransaction();
         txn.begin();
-        this.authenticationComponent.setSystemUserAsCurrentUser();
-        
+//        this.authenticationComponent.setSystemUserAsCurrentUser();
+        this.authenticationComponent.setCurrentUser("admin");
+
         StoreRef storeRef = nodeService.createStore(StoreRef.PROTOCOL_WORKSPACE, "Test_" + System.currentTimeMillis());
         rootNodeRef = nodeService.getRootNode(storeRef);
         
@@ -899,7 +896,36 @@ public class DBQueryTest  implements DictionaryListener
         aftsQueryWithCount("=ASPECT:\"test:testSuperAspect\" AND =test:orderMLText:\""+stringValue+"\"", 1);
         
     }
+
+    @Test
+    public void testAftsPagination()
+    {
+        String query = "=TYPE:\"cm:folder\" ";
+        int numFolders = 6;
+        int count = 4;
+        ResultSet results = query(SearchService.LANGUAGE_FTS_ALFRESCO, query, count);
+        assert(results.length() == count);
+        assert(results.getNumberFound() == numFolders);
+    }
     
+    public ResultSet query(String ql, String query, Integer limit)
+    {
+        SearchParameters sp = new SearchParameters();
+        sp.setLanguage(ql);
+        sp.setQueryConsistency(QueryConsistency.TRANSACTIONAL);
+        sp.setQuery(query);
+        sp.addStore(rootNodeRef.getStoreRef());
+        ResultSet results = serviceRegistry.getSearchService().query(sp);
+
+        if (limit != null)
+        {
+            sp.setLimit(limit);
+            sp.setLimitBy(LimitBy.FINAL_SIZE);
+        }
+
+        return serviceRegistry.getSearchService().query(sp);
+    }
+
     
     public void aftsQueryWithCount(String query, int count)
     {
