@@ -224,8 +224,7 @@ public class RenditionService2Impl implements RenditionService2, InitializingBea
                 catch (UnsupportedOperationException e)
                 {
                     NodeRef renditionNode = getRenditionNode(sourceNodeRef, renditionName);
-                    int renditionContentUrlHashCode = getRenditionContentUrlHashCode(renditionNode);
-                    if (renditionContentUrlHashCode == RENDITION2_DOES_NOT_EXIST)
+                    if (renditionNode == null)
                     {
                         throw e;
                     }
@@ -374,6 +373,7 @@ public class RenditionService2Impl implements RenditionService2, InitializingBea
                                 if (content != null)
                                 {
                                     nodeService.removeProperty(renditionNode, PROP_CONTENT);
+                                    nodeService.removeProperty(renditionNode, PROP_RENDITION_CONTENT_URL_HASH_CODE);
                                 }
                             }
 
