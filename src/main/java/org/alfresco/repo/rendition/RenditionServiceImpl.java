@@ -271,7 +271,9 @@ public class RenditionServiceImpl implements
     public ChildAssociationRef render(NodeRef sourceNode, RenditionDefinition definition)
     {
         checkSourceNodeForPreventionClass(sourceNode);
-        
+
+        deleteRenditionService2Rendition(sourceNode, definition);
+
         ChildAssociationRef result = executeRenditionAction(sourceNode, definition, false);
         
         if (log.isDebugEnabled())
@@ -286,7 +288,9 @@ public class RenditionServiceImpl implements
             RenderCallback callback)
     {
         checkSourceNodeForPreventionClass(sourceNode);
-        
+
+        deleteRenditionService2Rendition(sourceNode, definition);
+
         // The asynchronous render can't return a ChildAssociationRef as it is created
         // asynchronously after this method returns.
         definition.setCallback(callback);
@@ -690,6 +694,28 @@ public class RenditionServiceImpl implements
             if (log.isDebugEnabled())
             {
                 log.debug("OnContentUpdate remove rendition for \""+sourceNodeRef+"\", \""+renditionName+"\" so we switch back to the original service, as the new service is disabled.");
+            }
+            renditionService2.deleteRendition(sourceNodeRef, renditionName);
+        }
+
+        return useRenditionService2;
+    }
+
+    // For the situation where a rendition has been created by rendition service 2 and is marked as invalid,
+    // but is about to be replaced by code from the original rendition service, delete the rendition.
+    public boolean deleteRenditionService2Rendition(NodeRef sourceNodeRef, RenditionDefinition rendDefn)
+    {
+        boolean useRenditionService2 = false;
+
+        QName renditionQName = rendDefn.getRenditionName();
+        String renditionName = renditionQName.getLocalName();
+        boolean createdByRenditionService2 = renditionService2.isCreatedByRenditionService2(sourceNodeRef, renditionName);
+
+        if (createdByRenditionService2)
+        {
+            if (log.isDebugEnabled())
+            {
+                log.debug("Remove rendition for \""+sourceNodeRef+"\", \""+renditionName+"\" and switch back to the original service.");
             }
             renditionService2.deleteRendition(sourceNodeRef, renditionName);
         }
