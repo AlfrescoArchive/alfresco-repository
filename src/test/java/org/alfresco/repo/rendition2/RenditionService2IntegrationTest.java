@@ -30,13 +30,18 @@ import org.alfresco.model.RenditionModel;
 import org.alfresco.repo.security.authentication.AuthenticationUtil;
 import org.alfresco.repo.security.permissions.AccessDeniedException;
 import org.alfresco.service.cmr.repository.ChildAssociationRef;
+import org.alfresco.service.cmr.repository.ContentData;
 import org.alfresco.service.cmr.repository.NodeRef;
+import org.alfresco.service.cmr.repository.datatype.DefaultTypeConverter;
 import org.alfresco.service.cmr.security.PermissionService;
 import org.alfresco.service.namespace.NamespaceService;
 import org.alfresco.service.namespace.QName;
 import org.junit.Test;
 
 import java.util.List;
+
+import static org.alfresco.model.ContentModel.PROP_CONTENT;
+import static org.junit.Assert.assertNotEquals;
 
 /**
  * Integration tests for {@link RenditionService2}
@@ -153,11 +158,16 @@ public class RenditionService2IntegrationTest extends AbstractRenditionIntegrati
     {
         NodeRef sourceNodeRef = createSource(ADMIN, "quick.jpg");
         render(ADMIN, sourceNodeRef, DOC_LIB);
-        waitForRendition(ADMIN, sourceNodeRef, DOC_LIB, true);
+        NodeRef rendition1 = waitForRendition(ADMIN, sourceNodeRef, DOC_LIB, true);
+        ContentData contentData1 = DefaultTypeConverter.INSTANCE.convert(ContentData.class, nodeService.getProperty(rendition1, PROP_CONTENT));
 
         updateContent(ADMIN, sourceNodeRef, "quick.png");
         render(ADMIN, sourceNodeRef, DOC_LIB);
-        waitForRendition(ADMIN, sourceNodeRef, DOC_LIB, true);
+        NodeRef rendition2 = waitForRendition(ADMIN, sourceNodeRef, DOC_LIB, true);
+        ContentData contentData2 = DefaultTypeConverter.INSTANCE.convert(ContentData.class, nodeService.getProperty(rendition2, PROP_CONTENT));
+
+        assertEquals("The rendition node should not change", rendition1, rendition2);
+        assertNotEquals("The content should have change", contentData1.toString(), contentData2.toString());
     }
 
     @Test
