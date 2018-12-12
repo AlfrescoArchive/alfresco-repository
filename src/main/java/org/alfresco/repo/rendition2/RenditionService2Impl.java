@@ -356,7 +356,7 @@ public class RenditionService2Impl implements RenditionService2, InitializingBea
                             }
                             if (logger.isDebugEnabled())
                             {
-                                logger.debug("Set rendition hashcode " + transformContentUrlHashCode);
+                                logger.debug("Set rendition hashcode " + transformContentUrlHashCode + " and ThumbnailLastModified for " + renditionName);
                             }
                             nodeService.setProperty(renditionNode, RenditionModel.PROP_RENDITION_CONTENT_URL_HASH_CODE, transformContentUrlHashCode);
                             setThumbnailLastModified(sourceNodeRef, renditionName);
@@ -388,7 +388,7 @@ public class RenditionService2Impl implements RenditionService2, InitializingBea
                                     nodeService.removeProperty(renditionNode, PROP_RENDITION_CONTENT_URL_HASH_CODE);
                                     if (logger.isDebugEnabled())
                                     {
-                                        logger.debug("Clear rendition hashcode");
+                                        logger.debug("Cleared rendition content and hashcode");
                                     }
                                 }
                             }
