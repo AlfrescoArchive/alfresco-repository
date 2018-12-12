@@ -272,7 +272,8 @@ public class RenditionServiceImpl implements
     {
         checkSourceNodeForPreventionClass(sourceNode);
 
-        deleteRenditionService2Rendition(sourceNode, definition);
+        log.debug("Original RenditionService render no callback START");
+//        deleteRenditionService2Rendition(sourceNode, definition);
 
         ChildAssociationRef result = executeRenditionAction(sourceNode, definition, false);
         
@@ -280,7 +281,8 @@ public class RenditionServiceImpl implements
         {
             log.debug("Produced rendition " + result);
         }
-        
+
+        log.debug("Original RenditionService render no callback END");
         return result;
     }
 
@@ -289,15 +291,15 @@ public class RenditionServiceImpl implements
     {
         checkSourceNodeForPreventionClass(sourceNode);
 
-        deleteRenditionService2Rendition(sourceNode, definition);
+        log.debug("Original RenditionService render    callback START");
+//        deleteRenditionService2Rendition(sourceNode, definition);
 
         // The asynchronous render can't return a ChildAssociationRef as it is created
         // asynchronously after this method returns.
         definition.setCallback(callback);
         
         executeRenditionAction(sourceNode, definition, true);
-        
-        return;
+        log.debug("Original RenditionService render   callback END");
     }
     
     /*
@@ -703,10 +705,8 @@ public class RenditionServiceImpl implements
 
     // For the situation where a rendition has been created by rendition service 2 and is marked as invalid,
     // but is about to be replaced by code from the original rendition service, delete the rendition.
-    public boolean deleteRenditionService2Rendition(NodeRef sourceNodeRef, RenditionDefinition rendDefn)
+    public void deleteRenditionService2Rendition(NodeRef sourceNodeRef, RenditionDefinition rendDefn)
     {
-        boolean useRenditionService2 = false;
-
         QName renditionQName = rendDefn.getRenditionName();
         String renditionName = renditionQName.getLocalName();
         boolean createdByRenditionService2 = renditionService2.isCreatedByRenditionService2(sourceNodeRef, renditionName);
@@ -717,10 +717,8 @@ public class RenditionServiceImpl implements
             {
                 log.debug("Remove rendition for \""+sourceNodeRef+"\", \""+renditionName+"\" and switch back to the original service.");
             }
-            renditionService2.deleteRendition(sourceNodeRef, renditionName);
+//            renditionService2.deleteRendition(sourceNodeRef, renditionName);
         }
-
-        return useRenditionService2;
     }
 
     // Finds a RenditionDefinition2 with the same name (local part) and target mimetype.

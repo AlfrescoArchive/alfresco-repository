@@ -25,8 +25,6 @@
  */
 package org.alfresco.repo.rendition2;
 
-import java.util.List;
-
 import org.alfresco.model.ContentModel;
 import org.alfresco.model.RenditionModel;
 import org.alfresco.repo.security.authentication.AuthenticationUtil;
@@ -38,7 +36,7 @@ import org.alfresco.service.namespace.NamespaceService;
 import org.alfresco.service.namespace.QName;
 import org.junit.Test;
 
-import static java.lang.Thread.sleep;
+import java.util.List;
 
 /**
  * Integration tests for {@link RenditionService2}
