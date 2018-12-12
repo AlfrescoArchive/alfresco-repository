@@ -235,7 +235,7 @@ public class RenditionService2Impl implements RenditionService2, InitializingBea
             String user = AuthenticationUtil.getRunAsUser();
             RetryingTransactionHelper.RetryingTransactionCallback callback = () ->
             {
-                int sourceContentUrlHashCode = getSourceContentUrlHashCode(sourceNodeRef);
+                int sourceContentHashCode = getSourceContentHashCode(sourceNodeRef);
                 if (!supported.get())
                 {
                     if (logger.isDebugEnabled())
@@ -243,26 +243,26 @@ public class RenditionService2Impl implements RenditionService2, InitializingBea
                         logger.debug("Rendition of " + renditionName + " is no longer supported. " +
                                 "The mimetype might have changed or the content is now too big.");
                     }
-                    failure(sourceNodeRef, renditionDefinition, sourceContentUrlHashCode);
+                    failure(sourceNodeRef, renditionDefinition, sourceContentHashCode);
                 }
                 else
                 {
                     // Avoid doing extra transforms that have already been done.
                     NodeRef renditionNode = getRenditionNode(sourceNodeRef, renditionName);
-                    int renditionContentUrlHashCode = getRenditionContentUrlHashCode(renditionNode);
+                    int renditionContentHashCode = getRenditionContentHashCode(renditionNode);
                     if (logger.isDebugEnabled())
                     {
-                        logger.debug("Render: Source " + sourceContentUrlHashCode + " rendition " + renditionContentUrlHashCode+ " hashCodes");
+                        logger.debug("Render: Source " + sourceContentHashCode + " rendition " + renditionContentHashCode+ " hashCodes");
                     }
-                    if (renditionContentUrlHashCode == sourceContentUrlHashCode)
+                    if (renditionContentHashCode == sourceContentHashCode)
                     {
                         throw new IllegalStateException("The rendition " + renditionName + " has already been created.");
                     }
 
                     // If source node has content
-                    if (sourceContentUrlHashCode != SOURCE_HAS_NO_CONTENT)
+                    if (sourceContentHashCode != SOURCE_HAS_NO_CONTENT)
                     {
-                        transformClient.transform(sourceNodeRef, renditionDefinition, user, sourceContentUrlHashCode);
+                        transformClient.transform(sourceNodeRef, renditionDefinition, user, sourceContentHashCode);
                     }
                     else
                     {
@@ -270,7 +270,7 @@ public class RenditionService2Impl implements RenditionService2, InitializingBea
                         {
                             logger.debug("Rendition of " + renditionName + " had no content.");
                         }
-                        failure(sourceNodeRef, renditionDefinition, sourceContentUrlHashCode);
+                        failure(sourceNodeRef, renditionDefinition, sourceContentHashCode);
                     }
                 }
                 return null;
@@ -284,13 +284,13 @@ public class RenditionService2Impl implements RenditionService2, InitializingBea
         }
     }
 
-    public void failure(NodeRef sourceNodeRef, RenditionDefinition2 renditionDefinition, int transformContentUrlHashCode)
+    public void failure(NodeRef sourceNodeRef, RenditionDefinition2 renditionDefinition, int transformContentHashCode)
     {
         // The original transaction may have already have failed
         AuthenticationUtil.runAsSystem((AuthenticationUtil.RunAsWork<Void>) () ->
                 transactionService.getRetryingTransactionHelper().doInTransaction(() ->
                 {
-                    consume(sourceNodeRef, null, renditionDefinition, transformContentUrlHashCode);
+                    consume(sourceNodeRef, null, renditionDefinition, transformContentHashCode);
                     return null;
                 }, false, true));
     }
@@ -301,15 +301,15 @@ public class RenditionService2Impl implements RenditionService2, InitializingBea
      *  If the transformInputStream is null, this is taken to be a transform failure.
      */
     public void consume(NodeRef sourceNodeRef, InputStream transformInputStream, RenditionDefinition2 renditionDefinition,
-                        int transformContentUrlHashCode)
+                        int transformContentHashCode)
     {
         String renditionName = renditionDefinition.getRenditionName();
-        int sourceContentUrlHashCode = getSourceContentUrlHashCode(sourceNodeRef);
+        int sourceContentHashCode = getSourceContentHashCode(sourceNodeRef);
         if (logger.isDebugEnabled())
         {
-            logger.debug("Consume: Source " + sourceContentUrlHashCode + " and transform's source " + transformContentUrlHashCode+" hashcodes");
+            logger.debug("Consume: Source " + sourceContentHashCode + " and transform's source " + transformContentHashCode+" hashcodes");
         }
-        if (transformContentUrlHashCode != sourceContentUrlHashCode)
+        if (transformContentHashCode != sourceContentHashCode)
         {
             if (logger.isDebugEnabled())
             {
@@ -356,9 +356,9 @@ public class RenditionService2Impl implements RenditionService2, InitializingBea
                             }
                             if (logger.isDebugEnabled())
                             {
-                                logger.debug("Set rendition hashcode " + transformContentUrlHashCode + " and ThumbnailLastModified for " + renditionName);
+                                logger.debug("Set rendition hashcode " + transformContentHashCode + " and ThumbnailLastModified for " + renditionName);
                             }
-                            nodeService.setProperty(renditionNode, RenditionModel.PROP_RENDITION_CONTENT_URL_HASH_CODE, transformContentUrlHashCode);
+                            nodeService.setProperty(renditionNode, RenditionModel.PROP_RENDITION_CONTENT_URL_HASH_CODE, transformContentHashCode);
                             setThumbnailLastModified(sourceNodeRef, renditionName);
 
                             if (transformInputStream != null)
@@ -487,16 +487,17 @@ public class RenditionService2Impl implements RenditionService2, InitializingBea
      * Returns the hash code of the source node's content url. As transformations may be returned in a different
      * sequences to which they were requested, this is used work out if a rendition should be replaced.
      */
-    private int getSourceContentUrlHashCode(NodeRef sourceNodeRef)
+    private int getSourceContentHashCode(NodeRef sourceNodeRef)
     {
         int hashCode = SOURCE_HAS_NO_CONTENT;
         ContentData contentData = DefaultTypeConverter.INSTANCE.convert(ContentData.class, nodeService.getProperty(sourceNodeRef, PROP_CONTENT));
         if (contentData != null)
         {
-            String contentUrl = contentData.getContentUrl();
-            if (contentUrl != null)
+            // Originally we used the contentData URL, but that is not enough if the mimetype changes.
+            String contentString = contentData.toString();
+            if (contentString != null)
             {
-                hashCode = contentUrl.hashCode();
+                hashCode = contentString.hashCode();
             }
         }
         return hashCode;
@@ -507,7 +508,7 @@ public class RenditionService2Impl implements RenditionService2, InitializingBea
      * Used work out if a rendition should be replaced. {@code -2} is returned if the rendition does not exist or was
      * not created by RenditionService2. {@code -1} is returned if there was no source content or the rendition failed.
      */
-    private int getRenditionContentUrlHashCode(NodeRef renditionNode)
+    private int getRenditionContentHashCode(NodeRef renditionNode)
     {
         if ( renditionNode == null || !nodeService.hasAspect(renditionNode, RenditionModel.ASPECT_RENDITION2))
         {
@@ -615,7 +616,7 @@ public class RenditionService2Impl implements RenditionService2, InitializingBea
 
     /**
      * Indicates if the rendition is available. Failed renditions (there was an error) don't have a contentUrl
-     * and out of date renditions or those still being created don't have a matching contentUrlHashCode.
+     * and out of date renditions or those still being created don't have a matching contentHashCode.
      */
     public boolean isRenditionAvailable(NodeRef sourceNodeRef, NodeRef renditionNode)
     {
@@ -629,13 +630,13 @@ public class RenditionService2Impl implements RenditionService2, InitializingBea
             }
             else
             {
-                int sourceContentUrlHashCode = getSourceContentUrlHashCode(sourceNodeRef);
-                int renditionContentUrlHashCode = getRenditionContentUrlHashCode(renditionNode);
+                int sourceContentHashCode = getSourceContentHashCode(sourceNodeRef);
+                int renditionContentHashCode = getRenditionContentHashCode(renditionNode);
                 if (logger.isDebugEnabled())
                 {
-                    logger.debug("isRenditionAvailable source " + sourceContentUrlHashCode + " and rendition " + renditionContentUrlHashCode+" hashcodes");
+                    logger.debug("isRenditionAvailable source " + sourceContentHashCode + " and rendition " + renditionContentHashCode+" hashcodes");
                 }
-                if (sourceContentUrlHashCode != renditionContentUrlHashCode)
+                if (sourceContentHashCode != renditionContentHashCode)
                 {
                     available = false;
                 }
