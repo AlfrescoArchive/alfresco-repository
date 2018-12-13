@@ -64,7 +64,7 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.alfresco.model.ContentModel.PROP_CONTENT;
-import static org.alfresco.model.RenditionModel.PROP_RENDITION_CONTENT_URL_HASH_CODE;
+import static org.alfresco.model.RenditionModel.PROP_RENDITION_CONTENT_HASH_CODE;
 import static org.alfresco.service.namespace.QName.createQName;
 
 /**
@@ -358,7 +358,7 @@ public class RenditionService2Impl implements RenditionService2, InitializingBea
                             {
                                 logger.debug("Set rendition hashcode " + transformContentHashCode + " and ThumbnailLastModified for " + renditionName);
                             }
-                            nodeService.setProperty(renditionNode, RenditionModel.PROP_RENDITION_CONTENT_URL_HASH_CODE, transformContentHashCode);
+                            nodeService.setProperty(renditionNode, RenditionModel.PROP_RENDITION_CONTENT_HASH_CODE, transformContentHashCode);
                             setThumbnailLastModified(sourceNodeRef, renditionName);
 
                             if (transformInputStream != null)
@@ -385,7 +385,7 @@ public class RenditionService2Impl implements RenditionService2, InitializingBea
                                 if (content != null)
                                 {
                                     nodeService.removeProperty(renditionNode, PROP_CONTENT);
-                                    nodeService.removeProperty(renditionNode, PROP_RENDITION_CONTENT_URL_HASH_CODE);
+                                    nodeService.removeProperty(renditionNode, PROP_RENDITION_CONTENT_HASH_CODE);
                                     if (logger.isDebugEnabled())
                                     {
                                         logger.debug("Cleared rendition content and hashcode");
@@ -515,7 +515,7 @@ public class RenditionService2Impl implements RenditionService2, InitializingBea
             return RENDITION2_DOES_NOT_EXIST;
         }
 
-        Serializable hashCode = nodeService.getProperty(renditionNode, PROP_RENDITION_CONTENT_URL_HASH_CODE);
+        Serializable hashCode = nodeService.getProperty(renditionNode, PROP_RENDITION_CONTENT_HASH_CODE);
         return hashCode == null
                 ? SOURCE_HAS_NO_CONTENT
                 : (int)hashCode;
