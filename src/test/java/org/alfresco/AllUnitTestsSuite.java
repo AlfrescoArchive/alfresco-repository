@@ -42,7 +42,6 @@ import org.junit.runners.Suite;
     org.alfresco.encryption.EncryptorTest.class,
     org.alfresco.encryption.KeyStoreKeyProviderTest.class,
     org.alfresco.filesys.config.ServerConfigurationBeanTest.class,
-    org.alfresco.filesys.repo.CIFSContentComparatorTest.class,
     org.alfresco.filesys.repo.rules.ShuffleTest.class,
     org.alfresco.repo.admin.Log4JHierarchyInitTest.class,
     org.alfresco.repo.attributes.PropTablesCleanupJobTest.class,
@@ -196,7 +195,6 @@ import org.junit.runners.Suite;
     org.alfresco.heartbeat.ModelUsageDataCollectorTest.class,
     org.alfresco.heartbeat.SystemUsageDataCollectorTest.class,
 
-    org.alfresco.repo.domain.DialectFactoryBeanTest.class,
     org.alfresco.util.BeanExtenderUnitTest.class,
     org.alfresco.util.bean.HierarchicalBeanLoaderTest.class,
     org.alfresco.util.resource.HierarchicalResourceLoaderTest.class,

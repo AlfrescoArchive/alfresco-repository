@@ -25,6 +25,8 @@
  */
 package org.alfresco.repo.rendition2;
 
+import org.alfresco.transform.client.model.config.TransformServiceRegistry;
+
 import java.util.Map;
 
 /**
@@ -35,9 +37,9 @@ import java.util.Map;
 public abstract class AbstractTransformServiceRegistry implements TransformServiceRegistry
 {
     @Override
-    public boolean isSupported(String sourceMimetype, long size, String targetMimetype, String renditionName, Map<String, String> options)
+    public boolean isSupported(String sourceMimetype, long size, String targetMimetype, Map<String, String> options, String renditionName)
     {
-        Long maxSize = getMaxSize(sourceMimetype, targetMimetype, renditionName, options);
-        return maxSize != null && (maxSize == -1L || maxSize > size);
+        long maxSize = getMaxSize(sourceMimetype, targetMimetype, options, renditionName);
+        return maxSize != 0 && (maxSize == -1L || maxSize >= size);
     }
 }

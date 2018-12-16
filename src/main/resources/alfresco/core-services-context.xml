@@ -1359,4 +1359,7 @@
        </property>
    </bean>
 
+    <bean id="dbMetricsReporter" class="org.alfresco.metrics.db.DBMetricsReporterProxy"/>
+
+    <bean id="restMetricsReporter" class="org.alfresco.metrics.rest.RestMetricsReporterProxy"/>
 </beans>

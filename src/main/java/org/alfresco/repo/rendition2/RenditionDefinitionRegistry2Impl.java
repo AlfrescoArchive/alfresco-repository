@@ -25,6 +25,7 @@
  */
 package org.alfresco.repo.rendition2;
 
+import org.alfresco.transform.client.model.config.TransformServiceRegistry;
 import org.alfresco.util.Pair;
 
 import java.util.Collections;
@@ -108,7 +109,7 @@ public class RenditionDefinitionRegistry2Impl implements RenditionDefinitionRegi
         for (Pair<String, Long> pair : renditionNamesWithMaxSize)
         {
             Long maxSize = pair.getSecond();
-            if (maxSize == -1L || maxSize >= size)
+            if (maxSize != 0 && (maxSize == -1L || maxSize >= size))
             {
                 String renditionName = pair.getFirst();
                 renditionNames.add(renditionName);
@@ -128,7 +129,7 @@ public class RenditionDefinitionRegistry2Impl implements RenditionDefinitionRegi
             String targetMimetype = renditionDefinition2.getTargetMimetype();
             String renditionName = renditionDefinition2.getRenditionName();
             Map<String, String> options = renditionDefinition2.getTransformOptions();
-            Long maxSize = transformServiceRegistry.getMaxSize(sourceMimetype, targetMimetype, renditionName, options);
+            Long maxSize = transformServiceRegistry.getMaxSize(sourceMimetype, targetMimetype, options, renditionName);
             if (maxSize != null)
             {
                 String renditionNameMaxSizePair = entry.getKey();

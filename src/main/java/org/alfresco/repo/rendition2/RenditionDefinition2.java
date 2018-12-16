@@ -38,6 +38,9 @@ import java.util.Map;
 @AlfrescoPublicApi
 public interface RenditionDefinition2
 {
+    public static final String TIMEOUT = "timeout";
+    public static final String MAX_SOURCE_SIZE_K_BYTES = "maxSourceSizeKBytes";
+
     // ImageMagick options
 
     public static final String START_PAGE = "startPage";
@@ -59,9 +62,6 @@ public interface RenditionDefinition2
     public static final String RESIZE_HEIGHT = "resizeHeight";
     public static final String RESIZE_PERCENTAGE = "resizePercentage";
 
-
-    // ImageMagick & PdfRenderer options
-
     /** Indicates whether scaling operations should scale up or down (true or false). */
     public static final String ALLOW_ENLARGEMENT = "allowEnlargement";
 
@@ -74,6 +74,12 @@ public interface RenditionDefinition2
     public static final String PAGE = "page";
     public static final String WIDTH = "width";
     public static final String HEIGHT = "height";
+
+    /** Indicates whether scaling operations should scale up or down (true or false). */
+    public static final String ALLOW_PDF_ENLARGEMENT = "allowPdfEnlargement";
+
+    /** Indicates whether the aspect ratio of the image should be maintained (true or false). */
+    public static final String MAINTAIN_PDF_ASPECT_RATIO = "maintainPdfAspectRatio";
 
 
     // Video options

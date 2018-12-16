@@ -38,7 +38,6 @@ import net.sf.acegisecurity.context.ContextHolder;
 import net.sf.acegisecurity.providers.UsernamePasswordAuthenticationToken;
 
 import org.alfresco.error.AlfrescoRuntimeException;
-import org.alfresco.repo.security.authentication.ntlm.NLTMAuthenticator;
 import org.alfresco.repo.tenant.TenantContextHolder;
 import org.alfresco.repo.tenant.TenantDisabledException;
 import org.alfresco.repo.tenant.TenantUtil;
@@ -49,9 +48,9 @@ import org.alfresco.util.Pair;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-public class AuthenticationComponentImpl extends AbstractAuthenticationComponent implements NLTMAuthenticator
+public class AuthenticationComponentImpl extends AbstractAuthenticationComponent
 {
-    private static Log logger = LogFactory.getLog(AuthenticationComponentImpl.class);
+    private Log logger = LogFactory.getLog(getClass());
     
     private MutableAuthenticationDao authenticationDao;
     
@@ -94,6 +93,10 @@ public class AuthenticationComponentImpl extends AbstractAuthenticationComponent
     @Override
     protected void authenticateImpl(final String userNameIn, final char[] password) throws AuthenticationException
     {
+        if (logger.isTraceEnabled())
+        {
+            logger.trace("Authentication for user: " + AuthenticationUtil.maskUsername(userNameIn));
+        }
         try
         {
             Pair<String, String> userTenant = AuthenticationUtil.getUserTenant(userNameIn);
@@ -134,7 +137,8 @@ public class AuthenticationComponentImpl extends AbstractAuthenticationComponent
                                                 AlfrescoTransactionSupport.bindListener(txListener);
                                                 if (logger.isDebugEnabled())
                                                 {
-                                                    logger.debug("New hashed password for user '" + userName + "' has been requested");
+                                                    logger.debug("New hashed password for user '" + AuthenticationUtil.maskUsername(userName)
+                                                        + "' has been requested");
                                                 }
                                             }
                                         }
@@ -223,14 +227,6 @@ public class AuthenticationComponentImpl extends AbstractAuthenticationComponent
         throw new AlfrescoRuntimeException("Authentication via token not supported");
     }
     
-    /**
-     * This implementation supported MD4 password hashes.
-     */
-    public NTLMMode getNTLMMode()
-    {
-        return NTLMMode.MD4_PROVIDER;
-    }
-
     @Override
     protected boolean implementationAllowsGuestLogin()
     {
