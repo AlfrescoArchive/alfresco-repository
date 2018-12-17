@@ -40,6 +40,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.StringJoiner;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
 
 /**
  * Tests that the replacement {@link RenditionDefinition2} generates the same {@link TransformationOptions} as the
@@ -58,7 +61,7 @@ public class RenditionDefinitionTest extends BaseSpringTest
 
     private AuthenticationComponent authenticationComponent;
 
-    @Override
+    @Before
     protected void setUp() throws Exception
     {
         authenticationComponent = (AuthenticationComponent) applicationContext.getBean("AuthenticationComponent");
@@ -68,7 +71,7 @@ public class RenditionDefinitionTest extends BaseSpringTest
         authenticationComponent.setSystemUserAsCurrentUser();
     }
 
-    @Override
+    @After
     protected void tearDown() throws Exception
     {
         try
@@ -94,6 +97,7 @@ public class RenditionDefinitionTest extends BaseSpringTest
         return null;
     }
 
+    @Test
     public void testGetRenderingEngineDefinition() throws Exception
     {
         ThumbnailRenditionConvertor converter = new ThumbnailRenditionConvertor();
