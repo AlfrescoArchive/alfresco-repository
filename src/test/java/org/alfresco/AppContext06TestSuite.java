@@ -37,7 +37,7 @@ import org.junit.runners.Suite;
  * Tests marked as DBTests are automatically excluded and are run as part of {@link AllDBTestsTestSuite}.
  *
  * <p>
- *    All fo the tests are using Spring annotations to load full application context, see BaseSpringTest
+ *    All of the tests are using Spring annotations to load full application context, see BaseSpringTest
  *    Any new tests included in this test suite must follow the same pattern
  * </p>
  */
