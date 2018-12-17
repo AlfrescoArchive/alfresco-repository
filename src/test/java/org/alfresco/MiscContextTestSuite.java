@@ -58,7 +58,7 @@ import org.springframework.context.ApplicationContext;
     org.alfresco.repo.content.transform.EMLTransformerTest.class,
     org.alfresco.repo.content.transform.MediaWikiContentTransformerTest.class,
     org.alfresco.repo.content.transform.OpenOfficeContentTransformerTest.class,
-    // org.alfresco.repo.content.transform.PdfBoxContentTransformerTest.class,
+    org.alfresco.repo.content.transform.PdfBoxContentTransformerTest.class,
     org.alfresco.repo.content.transform.PoiContentTransformerTest.class,
     org.alfresco.repo.content.transform.PoiHssfContentTransformerTest.class,
     org.alfresco.repo.content.transform.PoiOOXMLContentTransformerTest.class,
