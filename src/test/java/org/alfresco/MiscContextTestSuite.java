@@ -138,22 +138,7 @@ import org.springframework.context.ApplicationContext;
     org.alfresco.repo.rendition.RenditionServicePermissionsTest.class,
 
     // [ibatis/hierarchy-test/hierarchy-test-context.xml]
-    org.alfresco.ibatis.HierarchicalSqlSessionFactoryBeanTest.class,
-    // [classpath:/test-messaging-context.xml]
-    // TODO enable in REPO-3811
-    //org.alfresco.messaging.camel.CamelRoutesTest.class,
-    // Requires a running ActiveMQ
-    org.alfresco.repo.rawevents.EventBehaviourTest.class,
-    org.alfresco.repo.rawevents.TransactionAwareEventProducerTest.class,
-    // Requires running transformers
-    org.alfresco.repo.rendition2.RenditionService2IntegrationTest.class,
-    org.alfresco.repo.rendition2.LegacyLocalTransformClientIntegrationTest.class,
-    org.alfresco.repo.rendition2.LegacyLocalTransformServiceRegistryTest.class,
-
-    // Due to problems reloading the context (bits of it remain), NoLocalTransformRenditionTest has been commented out.
-    // It works on its own.
-    org.alfresco.repo.rendition2.RenditionTest.class,
-//   org.alfresco.repo.rendition2.NoLocalTransformRenditionTest.class,
+    org.alfresco.ibatis.HierarchicalSqlSessionFactoryBeanTest.class
 })
 public class MiscContextTestSuite
 {
