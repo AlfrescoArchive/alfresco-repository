@@ -25,7 +25,6 @@
  */
 package org.alfresco.repo.rendition2;
 
-import junit.framework.TestCase;
 import org.alfresco.repo.content.transform.swf.SWFTransformationOptions;
 import org.alfresco.repo.rendition.RenditionServiceImpl;
 import org.alfresco.repo.security.authentication.AuthenticationComponent;
@@ -34,8 +33,7 @@ import org.alfresco.repo.thumbnail.ThumbnailRenditionConvertor;
 import org.alfresco.service.cmr.rendition.RenditionDefinition;
 import org.alfresco.service.cmr.rendition.RenditionService;
 import org.alfresco.service.cmr.repository.TransformationOptions;
-import org.alfresco.util.ApplicationContextHelper;
-import org.springframework.context.ApplicationContext;
+import org.alfresco.util.BaseSpringTest;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -52,23 +50,21 @@ import java.util.StringJoiner;
  * @author adavis
  */
 @Deprecated
-public class RenditionDefinitionTest extends TestCase
+public class RenditionDefinitionTest extends BaseSpringTest
 {
     private RenditionServiceImpl renditionService;
     private RenditionDefinitionRegistry2 renditionDefinitionRegistry2;
     private TransformationOptionsConverter transformationOptionsConverter;
-
-    private static ApplicationContext ctx = ApplicationContextHelper.getApplicationContext();
 
     private AuthenticationComponent authenticationComponent;
 
     @Override
     protected void setUp() throws Exception
     {
-        authenticationComponent = (AuthenticationComponent) ctx.getBean("AuthenticationComponent");
-        renditionService = (RenditionServiceImpl) ctx.getBean("renditionService");
-        renditionDefinitionRegistry2 = (RenditionDefinitionRegistry2) ctx.getBean("renditionDefinitionRegistry2");
-        transformationOptionsConverter = (TransformationOptionsConverter) ctx.getBean("transformOptionsConverter");
+        authenticationComponent = (AuthenticationComponent) applicationContext.getBean("AuthenticationComponent");
+        renditionService = (RenditionServiceImpl) applicationContext.getBean("renditionService");
+        renditionDefinitionRegistry2 = (RenditionDefinitionRegistry2) applicationContext.getBean("renditionDefinitionRegistry2");
+        transformationOptionsConverter = (TransformationOptionsConverter) applicationContext.getBean("transformOptionsConverter");
         authenticationComponent.setSystemUserAsCurrentUser();
     }
 
