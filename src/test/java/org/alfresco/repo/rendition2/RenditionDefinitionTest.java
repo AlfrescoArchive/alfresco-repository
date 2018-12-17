@@ -62,7 +62,7 @@ public class RenditionDefinitionTest extends BaseSpringTest
     private AuthenticationComponent authenticationComponent;
 
     @Before
-    protected void setUp() throws Exception
+    public void setUp() throws Exception
     {
         authenticationComponent = (AuthenticationComponent) applicationContext.getBean("AuthenticationComponent");
         renditionService = (RenditionServiceImpl) applicationContext.getBean("renditionService");
@@ -72,7 +72,7 @@ public class RenditionDefinitionTest extends BaseSpringTest
     }
 
     @After
-    protected void tearDown() throws Exception
+    public void tearDown() throws Exception
     {
         try
         {
