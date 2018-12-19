@@ -34,6 +34,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.alfresco.error.ExceptionStackUtil;
+import org.alfresco.repo.domain.dialect.Dialect;
+import org.alfresco.repo.domain.dialect.MySQLInnoDBDialect;
 import org.alfresco.repo.domain.mimetype.MimetypeDAO;
 import org.alfresco.repo.domain.query.CannedQueryDAO.ResultHandler;
 import org.alfresco.repo.transaction.RetryingTransactionHelper;
@@ -66,6 +68,7 @@ public class CannedQueryDAOTest
     private static final String QUERY_SELECT_MIMETYPE_COUNT = "select_CountMimetypes";
     private static final String QUERY_SELECT_MIMETYPES = "select_Mimetypes";
     public static final String IBATIS_TEST_CONTEXT = "classpath*:alfresco/ibatis/ibatis-test-context.xml";
+    private static final String QUERY_SELECT_PEOPLE_BY_USERNAME = "select_GetPeopleTest_CannedQuery";
     
     // Rule to initialise the default Alfresco spring configuration
     public static ApplicationContextInit APP_CONTEXT_INIT = ApplicationContextInit.createStandardContextWithOverrides(IBATIS_TEST_CONTEXT);
@@ -80,6 +83,7 @@ public class CannedQueryDAOTest
     private static MimetypeDAO mimetypeDAO;
     
     private static String mimetypePrefix;
+    private static Dialect dialect;
     
     @BeforeClass public static void setup() throws Exception
     {
@@ -91,6 +95,7 @@ public class CannedQueryDAOTest
         cannedQueryDAO = (CannedQueryDAO) APP_CONTEXT_INIT.getApplicationContext().getBean("cannedQueryDAO");
         cannedQueryDAOForTesting = (CannedQueryDAO) APP_CONTEXT_INIT.getApplicationContext().getBean("cannedQueryDAOForTesting");
         mimetypeDAO = (MimetypeDAO) APP_CONTEXT_INIT.getApplicationContext().getBean("mimetypeDAO");
+        dialect = (Dialect) APP_CONTEXT_INIT.getApplicationContext().getBean("dialect");
 
         RetryingTransactionCallback<String> createMimetypeCallback = new RetryingTransactionCallback<String>()
         {
@@ -143,6 +148,56 @@ public class CannedQueryDAOTest
             this.forceFail = forceFail;
         }
     }
+    
+    public static class TestUserNamePattern
+    {
+        private final String userNamePattern;
+        private final String domainPattern;
+        private final boolean exact;
+        private boolean forceFail; // Trigger a SQL exception
+
+        public TestUserNamePattern(String userNamePattern, String domainPattern, boolean exact)
+        {
+            this.userNamePattern = userNamePattern;
+            this.domainPattern = domainPattern;
+            this.exact = exact;
+            this.forceFail = false;
+        }
+
+        @Override
+        public String toString()
+        {
+            return "TestUserNamePattern [TestUserNamePattern=" + userNamePattern + ", exact=" + exact + "]";
+        }
+
+        public String getUserNamePattern()
+        {
+            return userNamePattern;
+        }
+
+        public boolean isExact()
+        {
+            return exact;
+        }
+
+        public boolean isForceFail()
+        {
+            return forceFail;
+        }
+
+        public void setForceFail(boolean forceFail)
+        {
+            this.forceFail = forceFail;
+        }
+
+        public String getDomainPattern()
+        {
+            return domainPattern;
+        }
+
+    }
+
+    
 
     /**
      * Force a failure and ensure that the connection is not tarnished
@@ -356,5 +411,33 @@ public class CannedQueryDAOTest
         };
         txnHelper.doInTransaction(selectCallback, true);
         assertEquals("ResultHandler did not terminate early", 1, results.size());
+    }
+    
+    @Test
+    public void testExecute_select_withEscape_GetPeople()
+    {
+        if (dialect.getClass().equals(MySQLInnoDBDialect.class))
+        {
+            RetryingTransactionCallback<Void> selectCallback = new RetryingTransactionCallback<Void>()
+            {
+                @Override
+                public Void execute() throws Throwable
+                {
+                    try
+                    {
+                        TestUserNamePattern params = new TestUserNamePattern("test", "test", true);
+                        cannedQueryDAOForTesting.executeCountQuery(QUERY_NS, QUERY_SELECT_PEOPLE_BY_USERNAME, params);
+                        fail("Expected TypeException");
+                    }
+                    catch (Exception e)
+                    {
+                        // Expected
+                    }
+
+                    return null;
+                }
+            };
+            txnHelper.doInTransaction(selectCallback, true);
+        }
     }
 }

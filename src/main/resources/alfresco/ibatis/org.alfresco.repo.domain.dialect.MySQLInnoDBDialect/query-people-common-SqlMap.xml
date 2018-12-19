@@ -41,7 +41,7 @@
               prop3.string_value, ' ',  
             </if>
               <if test="prop1qnameId != null or prop2qnameId != null or prop3qnameId != null ">  
-              ' ')) like lower(#{item}) <include refid="alfresco.util.escape"/>
+              ' ')) like lower(#{item})
             </if>
             </foreach>
             <if test="includeAspectIds != null">

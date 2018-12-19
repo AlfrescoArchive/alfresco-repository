@@ -96,5 +96,19 @@
         order by
             ca.child_node_id
     </select>
+    
+     <select id="select_GetPeopleTest_CannedQuery" parameterType="org.alfresco.repo.domain.query.CannedQueryDAOTest$TestUserNamePattern" resultType="Long">
+    	select
+         	childNode.uuid as uuid, lower(userName.string_value) as userName
+        from
+        alf_child_assoc assoc
+        join alf_node childNode on (childNode.id = assoc.child_node_id)
+        left join alf_node_properties userName on (userName.node_id = childNode.id)
+        where
+        assoc.parent_node_id not null
+        and (lower(userName.string_value) like lower(#{userNamePattern})  <include refid="alfresco.util.escape"/>
+        and lower(userName.username) like lower(#{domainPattern}) <include refid="alfresco.util.escape"/>)
+      
+    </select>
 
 </mapper>
