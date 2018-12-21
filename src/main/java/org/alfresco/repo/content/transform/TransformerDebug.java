@@ -43,7 +43,7 @@ import java.util.TreeSet;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Pattern;
 
-import org.alfresco.api.AlfrescoPublicApi;  
+import org.alfresco.api.AlfrescoPublicApi;
 import org.alfresco.error.AlfrescoRuntimeException;
 import org.alfresco.model.ContentModel;
 import org.alfresco.repo.content.filestore.FileContentReader;
@@ -79,11 +79,7 @@ import org.apache.commons.logging.LogFactory;
  * transformers) and {@link #popAvailable} are called.<p>
  * 
  * @author Alan Davis
- *
- * @deprecated The transformations code is being moved out of the codebase and replaced by the new async RenditionService2 or other external libraries.
  */
-@Deprecated
-@AlfrescoPublicApi
 public class TransformerDebug
 {
     private static final String FINISHED_IN = "Finished in ";
@@ -163,7 +159,8 @@ public class TransformerDebug
         private final String fromUrl;
         private final String sourceMimetype;
         private final String targetMimetype;
-        private final TransformationOptions options;
+        private final NodeRef sourceNodeRef;
+        private final String use;
         private final boolean origDebugOutput;
         private long start;
 
@@ -176,7 +173,7 @@ public class TransformerDebug
         private String transformerName;
         
         private Frame(Frame parent, String transformerName, String fromUrl, String sourceMimetype, String targetMimetype,
-                long sourceSize, TransformationOptions options, Call pushCall, boolean origDebugOutput)
+                      long sourceSize, String use, NodeRef sourceNodeRef, Call pushCall, boolean origDebugOutput)
         {
             this.id = -1;
             this.parent = parent;
@@ -185,7 +182,8 @@ public class TransformerDebug
             this.sourceMimetype = sourceMimetype;
             this.targetMimetype = targetMimetype;
             this.sourceSize = sourceSize;
-            this.options = options;
+            this.use = use;
+            this.sourceNodeRef = sourceNodeRef;
             this.callType = pushCall;
             this.origDebugOutput = origDebugOutput;
             start = System.currentTimeMillis();
@@ -310,15 +308,24 @@ public class TransformerDebug
         this.contentService = contentService;
     }
 
+    @Deprecated
+    public void pushAvailable(String fromUrl, String sourceMimetype, String targetMimetype,
+                              TransformationOptions options)
+    {
+        String use = options == null ? null : options.getUse();
+        NodeRef sourceNodeRef = options == null ? null : options.getSourceNodeRef();
+        pushAvailable(fromUrl, sourceMimetype, targetMimetype, use, sourceNodeRef);
+    }
+
     /**
      * Called prior to working out what transformers are available.
      */
     public void pushAvailable(String fromUrl, String sourceMimetype, String targetMimetype,
-            TransformationOptions options)
+                              String use, NodeRef sourceNodeRef)
     {
         if (isEnabled())
         {
-            push(null, fromUrl, sourceMimetype, targetMimetype, -1, options, Call.AVAILABLE);
+            push(null, fromUrl, sourceMimetype, targetMimetype, -1, use, sourceNodeRef, Call.AVAILABLE);
         }
     }
 
@@ -330,20 +337,29 @@ public class TransformerDebug
     {
         log("Blacklist "+getName(transformer)+" "+getMimetypeExt(sourceMimetype)+getMimetypeExt(targetMimetype));
     }
-    
+
+    @Deprecated
+    public void pushTransform(ContentTransformer transformer, String fromUrl, String sourceMimetype,
+            String targetMimetype, long sourceSize, TransformationOptions options)
+    {
+        String use = options == null ? null : options.getUse();
+        NodeRef sourceNodeRef = options == null ? null : options.getSourceNodeRef();
+        pushTransform(transformer, fromUrl, sourceMimetype, targetMimetype, sourceSize, use, sourceNodeRef);
+    }
+
     /**
      * Called prior to performing a transform.
      */
     public void pushTransform(ContentTransformer transformer, String fromUrl, String sourceMimetype,
-            String targetMimetype, long sourceSize, TransformationOptions options)
+                              String targetMimetype, long sourceSize, String use, NodeRef sourceNodeRef)
     {
         if (isEnabled())
         {
             push(getName(transformer), fromUrl, sourceMimetype, targetMimetype, sourceSize,
-                    options, Call.TRANSFORM);
+                    use, sourceNodeRef, Call.TRANSFORM);
         }
     }
-    
+
     /**
      * Adds a new level to the stack to get a new request number or nesting number.
      * Called prior to working out what transformers are active
@@ -353,7 +369,7 @@ public class TransformerDebug
     {
         if (isEnabled())
         {
-            push(null, null, null, null, -1, null, Call.AVAILABLE);
+            push(null, null, null, null, -1, null, null, Call.AVAILABLE);
         }
     }
     
@@ -369,7 +385,7 @@ public class TransformerDebug
     }
     
     private void push(String transformerName, String fromUrl, String sourceMimetype, String targetMimetype,
-            long sourceSize, TransformationOptions options, Call callType)
+                      long sourceSize, String use, NodeRef sourceNodeRef, Call callType)
     {
         Deque<Frame> ourStack = ThreadInfo.getStack();
         Frame frame = ourStack.peek();
@@ -383,13 +399,13 @@ public class TransformerDebug
 
         // Create a new frame. Logging level is set to trace if the file size is 0
         boolean origDebugOutput = ThreadInfo.setDebugOutput(ThreadInfo.getDebugOutput() && sourceSize != 0);
-        frame = new Frame(frame, transformerName, fromUrl, sourceMimetype, targetMimetype, sourceSize, options, callType, origDebugOutput);
+        frame = new Frame(frame, transformerName, fromUrl, sourceMimetype, targetMimetype, sourceSize, use, sourceNodeRef, callType, origDebugOutput);
         ourStack.push(frame);
             
         if (callType == Call.TRANSFORM)
         {
             // Log the basic info about this transformation
-            logBasicDetails(frame, sourceSize, options.getUse(), transformerName, (ourStack.size() == 1));
+            logBasicDetails(frame, sourceSize, use, transformerName, (ourStack.size() == 1));
         }
     }
     
@@ -421,11 +437,20 @@ public class TransformerDebug
         }
     }
 
+    @Deprecated
+    public void availableTransformers(List<ContentTransformer> transformers, long sourceSize,
+                                      TransformationOptions options, String calledFrom)
+    {
+        String use = options == null ? null : options.getUse();
+        NodeRef sourceNodeRef = options == null ? null : options.getSourceNodeRef();
+        availableTransformers(transformers, sourceSize, use, sourceNodeRef, calledFrom);
+    }
+
     /**
      * Called once all available transformers have been identified.
      */
     public void availableTransformers(List<ContentTransformer> transformers, long sourceSize, 
-            TransformationOptions options, String calledFrom)
+            String use, NodeRef sourceNodeRef, String calledFrom)
     {
         if (isEnabled())
         {
@@ -447,7 +472,7 @@ public class TransformerDebug
             frame.setSourceSize(sourceSize);
             
             // Log the basic info about this transformation
-            logBasicDetails(frame, sourceSize, options.getUse(),
+            logBasicDetails(frame, sourceSize, use,
                     calledFrom + ((transformers.size() == 0) ? " NO transformers" : ""), firstLevel);
 
             // Report available and unavailable transformers
@@ -457,7 +482,11 @@ public class TransformerDebug
             {
                 String name = getName(trans);
                 int padName = longestNameLength - name.length() + 1;
-                long maxSourceSizeKBytes = trans.getMaxSourceSizeKBytes(frame.sourceMimetype, frame.targetMimetype, frame.options);
+                // TODO replace with call to RenditionService2 or leave as a deprecated method using ContentService.
+                TransformationOptions options = new TransformationOptions();
+                options.setUse(frame.use);
+                options.setSourceNodeRef(frame.sourceNodeRef);
+                long maxSourceSizeKBytes = trans.getMaxSourceSizeKBytes(frame.sourceMimetype, frame.targetMimetype, options);
                 String size = maxSourceSizeKBytes > 0 ? "< "+fileSize(maxSourceSizeKBytes*1024) : "";
                 int padSize = 10 - size.length();
                 String priority = gePriority(trans, frame.sourceMimetype, frame.targetMimetype);
@@ -557,14 +586,14 @@ public class TransformerDebug
         }
         log(frame.sourceMimetype+' '+frame.targetMimetype, false);
         
-        String fileName = getFileName(frame.options, firstLevel, sourceSize);
+        String fileName = getFileName(frame.sourceNodeRef, firstLevel, sourceSize);
         log(getMimetypeExt(frame.sourceMimetype)+getMimetypeExt(frame.targetMimetype) +
                 ((fileName != null) ? fileName+' ' : "")+
                 ((sourceSize >= 0) ? fileSize(sourceSize)+' ' : "") +
                 (firstLevel && use != null ? "-- "+use+" -- " : "") + message);
         if (firstLevel)
         {
-            String nodeRef = getNodeRef(frame.options, firstLevel, sourceSize);
+            String nodeRef = getNodeRef(frame.sourceNodeRef, firstLevel, sourceSize);
             if (!nodeRef.isEmpty())
             {
                 log(nodeRef);
@@ -659,7 +688,7 @@ public class TransformerDebug
             boolean firstLevel = size == 1;
             String sourceExt = getMimetypeExt(frame.sourceMimetype);
             String targetExt = getMimetypeExt(frame.targetMimetype);
-            String fileName = getFileName(frame.options, firstLevel, frame.sourceSize);
+            String fileName = getFileName(frame.sourceNodeRef, firstLevel, frame.sourceSize);
             long sourceSize = frame.getSourceSize();
             String transformerName = frame.getTransformerName();
             String level = null;
@@ -1248,24 +1277,30 @@ public class TransformerDebug
         return !transformerRegistry.getTransformers().contains(transformer);
     }
 
+    @Deprecated
     public String getFileName(TransformationOptions options, boolean firstLevel, long sourceSize)
     {
-        return getFileNameOrNodeRef(options, firstLevel, sourceSize, true);
+        NodeRef sourceNodeRef = options == null ? null : options.getSourceNodeRef();
+        return getFileName(sourceNodeRef, firstLevel, sourceSize);
     }
-    
-    private String getNodeRef(TransformationOptions options, boolean firstLevel, long sourceSize)
+
+    public String getFileName(NodeRef sourceNodeRef, boolean firstLevel, long sourceSize)
     {
-        return getFileNameOrNodeRef(options, firstLevel, sourceSize, false);
+        return getFileNameOrNodeRef(sourceNodeRef, firstLevel, sourceSize, true);
+    }
+
+    private String getNodeRef(NodeRef sourceNodeRef, boolean firstLevel, long sourceSize)
+    {
+        return getFileNameOrNodeRef(sourceNodeRef, firstLevel, sourceSize, false);
     }
     
-    private String getFileNameOrNodeRef(TransformationOptions options, boolean firstLevel, long sourceSize, boolean getName)
+    private String getFileNameOrNodeRef(NodeRef sourceNodeRef, boolean firstLevel, long sourceSize, boolean getName)
     {
         String result = getName ? null : "";
-        if (options != null)
+        if (sourceNodeRef != null)
         {
             try
             {
-                NodeRef sourceNodeRef = options.getSourceNodeRef();
                 result = getName
                         ? (String)nodeService.getProperty(sourceNodeRef, ContentModel.PROP_NAME)
                         : sourceNodeRef.toString()+" ";

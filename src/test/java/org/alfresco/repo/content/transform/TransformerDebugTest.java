@@ -52,7 +52,6 @@ import static org.mockito.Mockito.when;
  *
  * @deprecated The transformations code is being moved out of the codebase and replaced by the new async RenditionService2 or other external libraries.
  */
-@Deprecated
 public class TransformerDebugTest
 {
     @Mock
@@ -66,9 +65,6 @@ public class TransformerDebugTest
 
     @Mock
     private TransformerConfig transformerConfig;
-
-    @Mock
-    private TransformationOptions options;
 
     @Mock
     private AbstractContentTransformerLimits transformer1;
@@ -151,7 +147,7 @@ public class TransformerDebugTest
     {
         long sourceSize = 1024*1024*3/2;
 
-        transformerDebug.pushAvailable("sourceUrl", "application/pdf", "text/plain", options);
+        transformerDebug.pushAvailable("sourceUrl", "application/pdf", "text/plain", null, null);
 
         transformerDebug.unavailableTransformer(transformer1, "application/pdf", "text/plain", 50);
         transformerDebug.unavailableTransformer(transformer2, "application/pdf", "text/plain", 0);
@@ -160,7 +156,7 @@ public class TransformerDebugTest
 
         List<ContentTransformer> transformers = Arrays.asList(new ContentTransformer[] {});
 
-        transformerDebug.availableTransformers(transformers, sourceSize, options, "ContentService.transform(...)");
+        transformerDebug.availableTransformers(transformers, sourceSize, null, null, "ContentService.transform(...)");
 
         transformerDebug.popAvailable();
 
