@@ -81,7 +81,8 @@ import org.junit.runners.Suite;
     // Moved at the bottom of the suite because DbNodeServiceImplTest.testNodeCleanupRegistry() takes a long time on a clean DB.
     org.alfresco.repo.node.db.DbNodeServiceImplTest.class,
 
-    org.alfresco.repo.node.cleanup.TransactionCleanupTest.class
+    org.alfresco.repo.node.cleanup.TransactionCleanupTest.class,
+    org.alfresco.repo.security.person.GetPeopleCannedQueryTest.class
 })
 public class AllDBTestsTestSuite
 {
