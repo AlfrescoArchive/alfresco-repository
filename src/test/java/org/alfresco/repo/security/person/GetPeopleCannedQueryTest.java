@@ -432,7 +432,7 @@ public class GetPeopleCannedQueryTest extends BaseSpringTest
         assertEquals(p6, results.get(0));
         assertEquals(new Pair<>(7, 7), ppr.getTotalResultCount());
 
-// TODO these tests fail on Oracle, see
+// TODO these tests fail on Oracle, see REPO-4138
 
 //        // sort by email
 //        sort = new ArrayList<>(1);
