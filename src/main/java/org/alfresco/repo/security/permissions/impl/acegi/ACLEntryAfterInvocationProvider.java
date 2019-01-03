@@ -529,16 +529,14 @@ public class ACLEntryAfterInvocationProvider implements AfterInvocationProvider,
     
 	private ResultSet decide(Authentication authentication, Object object, ConfigAttributeDefinition config, ResultSet returnedObject) throws AccessDeniedException
     {
-
-
         ResultSet rs = optimisePermissionsCheck ? decideNew(authentication, object, config, returnedObject) :
                 decideOld(authentication, object, config, returnedObject);
         return rs;
-
     }
 
 
-    private ResultSet decidePermissions(ResultSet returnedObject, List<ConfigAttributeDefintion> supportedDefinitions){
+    private ResultSet decidePermissions(ResultSet returnedObject, List<ConfigAttributeDefintion> supportedDefinitions)
+    {
         if (returnedObject == null)
         {
             return null;
@@ -612,7 +610,6 @@ public class ACLEntryAfterInvocationProvider implements AfterInvocationProvider,
                 }
                 else
                 {
-
                     for (ConfigAttributeDefintion cad : supportedDefinitions)
                     {
                         NodeRef testNodeRef = null;
@@ -635,7 +632,6 @@ public class ACLEntryAfterInvocationProvider implements AfterInvocationProvider,
                             filteringResultSet.setIncluded(i, false);
                         }
                     }
-
                 }
             }
         }
@@ -648,7 +644,6 @@ public class ACLEntryAfterInvocationProvider implements AfterInvocationProvider,
 
         return filteringResultSet;
     }
-
 
     /**
      * Compute a (Weak)FilteringResultSet by selecting the first maxSize elements from returnedObject.
@@ -685,7 +680,6 @@ public class ACLEntryAfterInvocationProvider implements AfterInvocationProvider,
         return filteringResultSet;
     }
 
-
     /**
      * Get the mac size from a resultSet.
      * @param returnedObject
@@ -693,7 +687,6 @@ public class ACLEntryAfterInvocationProvider implements AfterInvocationProvider,
      */
     private Integer getMaxSize(ResultSet returnedObject)
     {
-
         Integer maxSize = null;
         if (returnedObject.getResultSetMetaData().getSearchParameters().getMaxItems() >= 0)
         {
@@ -711,7 +704,6 @@ public class ACLEntryAfterInvocationProvider implements AfterInvocationProvider,
 
         return maxSize;
     }
-
 
     private ResultSet decideNew(Authentication authentication, Object object, ConfigAttributeDefinition config, ResultSet returnedObject) throws AccessDeniedException
     {
@@ -732,10 +724,7 @@ public class ACLEntryAfterInvocationProvider implements AfterInvocationProvider,
         return filterMaxCount(maxSize, resultSet);
     }
 
-
-
     private ResultSet decideOld(Authentication authentication, Object object, ConfigAttributeDefinition config, ResultSet returnedObject) throws AccessDeniedException
-
     {
         if (returnedObject == null)
         {
@@ -746,13 +735,13 @@ public class ACLEntryAfterInvocationProvider implements AfterInvocationProvider,
         ResultSet resultSet = supportedDefinitions.size() == 0? returnedObject: decidePermissions(returnedObject, supportedDefinitions);
 
         Integer maxSize = getMaxSize(returnedObject);
+
         if (maxSize == null)
         {
             return resultSet;
         }
 
         return filterMaxCount(maxSize, resultSet);
-
     }
 
     private QueryEngineResults decide(Authentication authentication, Object object, ConfigAttributeDefinition config, QueryEngineResults returnedObject)
