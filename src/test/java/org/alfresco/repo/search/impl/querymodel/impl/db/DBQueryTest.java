@@ -269,8 +269,7 @@ public class DBQueryTest  implements DictionaryListener
         I18NUtil.setLocale(Locale.UK);
         txn = transactionService.getUserTransaction();
         txn.begin();
-//        this.authenticationComponent.setSystemUserAsCurrentUser();
-        this.authenticationComponent.setCurrentUser("admin");
+        this.authenticationComponent.setSystemUserAsCurrentUser();
 
         StoreRef storeRef = nodeService.createStore(StoreRef.PROTOCOL_WORKSPACE, "Test_" + System.currentTimeMillis());
         rootNodeRef = nodeService.getRootNode(storeRef);
