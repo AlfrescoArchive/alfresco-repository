@@ -352,9 +352,7 @@
       <constructor-arg>
          <ref bean="transformerDebugLog" />
       </constructor-arg>
-      <property name="contentService">
-         <ref bean="contentService" />
-      </property>
+      <property name="transformClient" ref="transformClient" />
    </bean>
 
    <!-- Import the transformer configuration from the transformers subsystem -->

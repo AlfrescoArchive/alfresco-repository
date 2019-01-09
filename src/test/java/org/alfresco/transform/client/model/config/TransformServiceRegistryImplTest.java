@@ -203,6 +203,17 @@ public class TransformServiceRegistryImplTest
         assertTrue(registry.isSupported(DOC_MIMETYPE, 1024001, TXT_MIMETYPE, null, null));
     }
 
+    private void assertTransformerName(String sourceExt, long sourceSizeInBytes, String targetExt,
+                                       Map<String, String> actualOptions, String expectedTransformerName,
+                                       Transformer... transformers)
+    {
+        buildAndPopulateRegistry(transformers);
+        String sourceMimetype = extensionMap.toMimetype(sourceExt);
+        String targetMimetype = extensionMap.toMimetype(targetExt);
+        String transformerName = registry.getTransformerName(sourceMimetype, sourceSizeInBytes, targetMimetype, actualOptions, null);
+        assertEquals(sourceExt+" to "+targetExt+" should have returned "+expectedTransformerName, expectedTransformerName, transformerName);
+    }
+
     private void assertSupported(String sourceExt, long sourceSizeInBytes, String targetExt,
                                  Map<String, String> actualOptions, String unsupportedMsg)
     {
@@ -213,12 +224,17 @@ public class TransformServiceRegistryImplTest
                                  Map<String, String> actualOptions, String unsupportedMsg,
                                  Transformer... transformers)
     {
+        buildAndPopulateRegistry(transformers);
+        assertSupported(sourceExt, sourceSizeInBytes, targetExt, actualOptions, null, unsupportedMsg);
+    }
+
+    private void buildAndPopulateRegistry(Transformer[] transformers)
+    {
         registry = buildTransformServiceRegistryImpl();
         for (Transformer transformer : transformers)
         {
             registry.register(transformer);
         }
-        assertSupported(sourceExt, sourceSizeInBytes, targetExt, actualOptions, null, unsupportedMsg);
     }
 
     private void assertSupported(String sourceExt, long sourceSizeInBytes, String targetExt,
@@ -382,10 +398,10 @@ public class TransformServiceRegistryImplTest
 
             // Check the count of transforms supported
             assertEquals("The number of UNIQUE source to target mimetypes transforms has changed. Config change?",
-                    63, countSupportedTransforms(true));
+                    60, countSupportedTransforms(true));
             assertEquals("The number of source to target mimetypes transforms has changed. " +
                             "There may be multiple transformers for the same combination. Config change?",
-                    63, countSupportedTransforms(false));
+                    60, countSupportedTransforms(false));
 
             // Check a supported transform for each transformer.
             assertSupported(DOC, 1234, PDF, null, null, ""); // libreoffice
@@ -671,8 +687,40 @@ public class TransformServiceRegistryImplTest
         assertEquals(-1L, registry.getMaxSize(MSG_MIMETYPE, GIF_MIMETYPE, null, "doclib"));
 
         // Change the cached value and try and check we are now using the cached value.
-        registry.cachedMaxSizes.get("doclib").put(DOC_MIMETYPE, 1234L);
+        List<TransformServiceRegistryImpl.SupportedTransform> supportedTransforms = registry.cachedSupportedTransformList.get("doclib").get(DOC_MIMETYPE);
+        supportedTransforms.get(0).maxSourceSizeBytes = 1234L;
         assertEquals(1234L, registry.getMaxSize(DOC_MIMETYPE, GIF_MIMETYPE, null, "doclib"));
+    }
+
+    @Test
+    public void testGetTransformerName()
+    {
+        Transformer t1 = new Transformer("transformer1", "1", null,
+                Arrays.asList(new SupportedSourceAndTarget(MSG, GIF, 100, 50)));
+        Transformer t2 = new Transformer("transformer2", "1", null,
+                Arrays.asList(new SupportedSourceAndTarget(MSG, GIF, 200, 60)));
+        Transformer t3 = new Transformer("transformer3", "1", null,
+                Arrays.asList(new SupportedSourceAndTarget(MSG, GIF, 200, 40)));
+        Transformer t4 = new Transformer("transformer4", "1", null,
+                Arrays.asList(new SupportedSourceAndTarget(MSG, GIF, -1, 100)));
+        Transformer t5 = new Transformer("transformer5", "1", null,
+                Arrays.asList(new SupportedSourceAndTarget(MSG, GIF, -1, 80)));
+
+        Map<String, String> actualOptions = null;
+
+        // Select on size - priority is ignored
+        assertTransformerName(MSG, 100, GIF, actualOptions, "transformer1", t1, t2);
+        assertTransformerName(MSG, 150, GIF, actualOptions, "transformer2", t1, t2);
+        assertTransformerName(MSG, 250, GIF, actualOptions, null, t1, t2);
+        // Select on priority - t1, t2 and t4 are discarded.
+        //                      t3 is a higher priority and has a larger size than t1 and t2.
+        //                      Similar story fo t4 with t5.
+        assertTransformerName(MSG, 100, GIF, actualOptions, "transformer3", t1, t2, t3, t4, t5);
+        assertTransformerName(MSG, 200, GIF, actualOptions, "transformer3", t1, t2, t3, t4, t5);
+        // Select on size and priority, t1 and t2 discarded
+        assertTransformerName(MSG, 200, GIF, actualOptions, "transformer3", t1, t2, t3, t4);
+        assertTransformerName(MSG, 300, GIF, actualOptions, "transformer4", t1, t2, t3, t4);
+        assertTransformerName(MSG, 300, GIF, actualOptions, "transformer5", t1, t2, t3, t4, t5);
     }
 
     @Test

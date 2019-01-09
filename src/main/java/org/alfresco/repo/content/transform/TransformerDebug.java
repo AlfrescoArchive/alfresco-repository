@@ -36,6 +36,7 @@ import java.util.Comparator;
 import java.util.Deque;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
@@ -48,6 +49,10 @@ import org.alfresco.error.AlfrescoRuntimeException;
 import org.alfresco.model.ContentModel;
 import org.alfresco.repo.content.filestore.FileContentReader;
 import org.alfresco.repo.content.filestore.FileContentWriter;
+import org.alfresco.repo.rendition2.RenditionDefinition2;
+import org.alfresco.repo.rendition2.RenditionDefinition2Impl;
+import org.alfresco.repo.rendition2.RenditionDefinitionRegistry2Impl;
+import org.alfresco.repo.rendition2.TransformClient;
 import org.alfresco.service.cmr.repository.ContentReader;
 import org.alfresco.service.cmr.repository.ContentService;
 import org.alfresco.service.cmr.repository.ContentWriter;
@@ -285,8 +290,8 @@ public class TransformerDebug
     private final MimetypeService mimetypeService;
     private final ContentTransformerRegistry transformerRegistry;
     private final TransformerConfig transformerConfig;
-    private ContentService contentService;
-    
+    private TransformClient transformClient;
+
     /**
      * Constructor
      */
@@ -303,9 +308,9 @@ public class TransformerDebug
         info = new LogTee(LogFactory.getLog(TransformerLog.class), transformerLog);
     }
 
-    public void setContentService(ContentService contentService)
+    public void setTransformClient(TransformClient transformClient)
     {
-        this.contentService = contentService;
+        this.transformClient = transformClient;
     }
 
     @Deprecated
@@ -1463,23 +1468,33 @@ public class TransformerDebug
 
     public String testTransform(String sourceExtension, String targetExtension, String use)
     {
+        // TODO
+        return null;
         return new TestTransform()
         {
-            protected void transform(ContentReader reader, ContentWriter writer, TransformationOptions options)
+            protected void transform(ContentReader reader, ContentWriter writer, String use)
             {
-                contentService.transform(reader, writer, options);
+                String targetMimetype = writer.getMimetype();
+                RenditionDefinition2 renditionDefinition2 = new RenditionDefinition2Impl(null,
+                        targetMimetype, Collections.emptyMap(), null);
+                transformClient.transform(sourceNodeRef, renditionDefinition2, "none", -1234);
             }
         }.run(sourceExtension, targetExtension, use);
     }
-    
+
     public String testTransform(final String transformerName, String sourceExtension,
             String targetExtension, String use)
     {
+        // TODO
+        return null;
         final ContentTransformer transformer = transformerRegistry.getTransformer(transformerName);
         return new TestTransform()
         {
-            protected String isTransformable(String sourceMimetype, long sourceSize, String targetMimetype, TransformationOptions options)
+            protected String isTransformable(String sourceMimetype, long sourceSize, String targetMimetype, String use)
             {
+//                checkSupported(NodeRef sourceNodeRef, RenditionDefinition2 renditionDefinition, String sourceMimetype, long size, String contentUrl);
+
+
                 return transformer.isTransformable(sourceMimetype, sourceSize, targetMimetype, options)
                     ? null
                     : transformerName+" does not support this transformation.";
@@ -1573,17 +1588,14 @@ public class TransformerDebug
             writer.setMimetype(targetMimetype);
 
             long sourceSize = reader.getSize();
-            TransformationOptions options = new TransformationOptions();
-            options.setUse(use);
-
-            debug = isTransformable(sourceMimetype, sourceSize, targetMimetype, options);
+            debug = isTransformable(sourceMimetype, sourceSize, targetMimetype, use);
             if (debug == null)
             {
                 StringBuilder sb = new StringBuilder();
                 try
                 {
                     setStringBuilder(sb);
-                    transform(reader, writer, options);
+                    transform(reader, writer, use);
                 }
                 catch (AlfrescoRuntimeException e)
                 {
@@ -1616,11 +1628,11 @@ public class TransformerDebug
             return mimetype;
         }
 
-        protected String isTransformable(String sourceMimetype, long sourceSize, String targetMimetype, TransformationOptions options)
+        protected String isTransformable(String sourceMimetype, long sourceSize, String targetMimetype, String use)
         {
             return null;
         }
         
-        protected abstract void transform(ContentReader reader, ContentWriter writer, TransformationOptions options);
+        protected abstract void transform(ContentReader reader, ContentWriter writer, String use);
     }
 }

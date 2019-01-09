@@ -2,7 +2,7 @@
  * #%L
  * Alfresco Repository
  * %%
- * Copyright (C) 2005 - 2018 Alfresco Software Limited
+ * Copyright (C) 2005 - 2019 Alfresco Software Limited
  * %%
  * This file is part of the Alfresco software.
  * If the software was purchased under a paid Alfresco license, the terms of
@@ -34,6 +34,7 @@ public class SupportedSourceAndTarget
     private String sourceExt;
     private long maxSourceSizeBytes = -1;
     private String targetExt;
+    private int priority = 50;
 
     public SupportedSourceAndTarget()
     {
@@ -41,9 +42,15 @@ public class SupportedSourceAndTarget
 
     public SupportedSourceAndTarget(String sourceExt, String targetExt, long maxSourceSizeBytes)
     {
+        this(sourceExt, targetExt, maxSourceSizeBytes, 50);
+    }
+
+    public SupportedSourceAndTarget(String sourceExt, String targetExt, long maxSourceSizeBytes, int priority)
+    {
         setSourceExt(sourceExt);
         setMaxSourceSizeBytes(maxSourceSizeBytes);
         setTargetExt(targetExt);
+        setPriority(priority);
     }
 
     public String getSourceExt()
@@ -74,5 +81,15 @@ public class SupportedSourceAndTarget
     public void setTargetExt(String targetExt)
     {
         this.targetExt = targetExt;
+    }
+
+    public int getPriority()
+    {
+        return priority;
+    }
+
+    public void setPriority(int priority)
+    {
+        this.priority = priority;
     }
 }

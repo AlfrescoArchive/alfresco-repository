@@ -49,14 +49,18 @@ public class TransformServiceRegistryImpl implements TransformServiceRegistry, I
     class SupportedTransform
     {
         TransformOptionGroup transformOptions;
-        private long maxSourceSizeBytes;
+        long maxSourceSizeBytes;
+        private String name;
+        private int priority;
 
-        public SupportedTransform(List<TransformOption> transformOptions, long maxSourceSizeBytes)
+        public SupportedTransform(String name, List<TransformOption> transformOptions, long maxSourceSizeBytes, int priority)
         {
             // Logically the top level TransformOptionGroup is required, so that child options are optional or required
             // based on their own setting.
             this.transformOptions = new TransformOptionGroup(true, transformOptions);
             this.maxSourceSizeBytes = maxSourceSizeBytes;
+            this.name = name;
+            this.priority = priority;
         }
     }
 
@@ -64,7 +68,7 @@ public class TransformServiceRegistryImpl implements TransformServiceRegistry, I
     private ExtensionMap extensionMap;
 
     ConcurrentMap<String, ConcurrentMap<String, List<SupportedTransform>>> transformers = new ConcurrentHashMap<>();
-    ConcurrentMap<String, ConcurrentMap<String, Long>> cachedMaxSizes = new ConcurrentHashMap<>();
+    ConcurrentMap<String, ConcurrentMap<String, List<SupportedTransform>>> cachedSupportedTransformList = new ConcurrentHashMap<>();
 
     public void setJsonObjectMapper(ObjectMapper jsonObjectMapper)
     {
@@ -106,7 +110,8 @@ public class TransformServiceRegistryImpl implements TransformServiceRegistry, I
             e -> transformers.computeIfAbsent(toMimetype(e.getSourceExt()),
                 k -> new ConcurrentHashMap<>()).computeIfAbsent(toMimetype(e.getTargetExt()),
                 k -> new ArrayList<>()).add(
-                    new SupportedTransform(transformer.getTransformOptions(), e.getMaxSourceSizeBytes())));
+                    new SupportedTransform(transformer.getName(),
+                            transformer.getTransformOptions(), e.getMaxSourceSizeBytes(), e.getPriority())));
     }
 
     public void register(Reader reader) throws IOException
@@ -123,9 +128,45 @@ public class TransformServiceRegistryImpl implements TransformServiceRegistry, I
         return maxSize != 0 && (maxSize == -1L || maxSize >= sourceSizeInBytes);
     }
 
+    /**
+     * Works out the name of the transformer (might not map to an actual transformer) that will be used to transform
+     * content of a given source mimetype and size into a target mimetype given a list of actual transform option names
+     * and values (Strings) plus the data contained in the {@Transform} objects registered with this class.
+     * @param sourceMimetype the mimetype of the source content
+     * @param sourceSizeInBytes the size in bytes of the source content. Ignored if negative.
+     * @param targetMimetype the mimetype of the target
+     * @param actualOptions the actual name value pairs available that could be passed to the Transform Service.
+     * @param transformName (optional) name for the set of options and target mimetype. If supplied is used to cache
+     *                      results to avoid having to work out if a given transformation is supported a second time.
+     *                      The sourceMimetype and sourceSizeInBytes may still change. In the case of ACS this is the
+     *                      rendition name.
+     */
+    protected String getTransformerName(String sourceMimetype, long sourceSizeInBytes, String targetMimetype, Map<String, String> actualOptions, String transformName)
+    {
+        List<SupportedTransform> supportedTransforms = getTransformListBySize(sourceMimetype, targetMimetype, actualOptions, transformName);
+        for (SupportedTransform supportedTransform : supportedTransforms)
+        {
+            if (supportedTransform.maxSourceSizeBytes == -1 || supportedTransform.maxSourceSizeBytes >= sourceSizeInBytes)
+            {
+                return supportedTransform.name;
+            }
+        }
+
+        return null;
+    }
+
     @Override
     public long getMaxSize(String sourceMimetype, String targetMimetype,
                            Map<String, String> actualOptions, String transformName)
+    {
+        List<SupportedTransform> supportedTransforms = getTransformListBySize(sourceMimetype, targetMimetype, actualOptions, transformName);
+        return supportedTransforms.isEmpty() ? 0 : supportedTransforms.get(supportedTransforms.size()-1).maxSourceSizeBytes;
+    }
+
+    // Returns transformers in increasing supported size order, where lower priority transformers for the same size have
+    // been discarded.
+    private List<SupportedTransform> getTransformListBySize(String sourceMimetype, String targetMimetype,
+                                                            Map<String, String> actualOptions, String transformName)
     {
         if (actualOptions == null)
         {
@@ -136,10 +177,11 @@ public class TransformServiceRegistryImpl implements TransformServiceRegistry, I
             transformName = null;
         }
 
-        Long maxSize = transformName == null ? null : cachedMaxSizes.computeIfAbsent(transformName, k -> new ConcurrentHashMap<>()).get(sourceMimetype);
-        if (maxSize != null)
+        List<SupportedTransform> transformListBySize = transformName == null ? null
+                : cachedSupportedTransformList.computeIfAbsent(transformName, k -> new ConcurrentHashMap<>()).get(sourceMimetype);
+        if (transformListBySize != null)
         {
-            return maxSize.longValue();
+            return transformListBySize;
         }
 
         // Remove the "timeout" property from the actualOptions as it is not used to select a transformer.
@@ -149,7 +191,7 @@ public class TransformServiceRegistryImpl implements TransformServiceRegistry, I
             actualOptions.remove(TIMEOUT);
         }
 
-        long calculatedMaxSize = 0;
+        transformListBySize = new ArrayList<>();
         ConcurrentMap<String, List<SupportedTransform>> targetMap = transformers.get(sourceMimetype);
         if (targetMap !=  null)
         {
@@ -163,13 +205,7 @@ public class TransformServiceRegistryImpl implements TransformServiceRegistry, I
                     addToPossibleTransformOptions(possibleTransformOptions, transformOptions, true, actualOptions);
                     if (isSupported(possibleTransformOptions, actualOptions))
                     {
-                        if (supportedTransform.maxSourceSizeBytes < 0)
-                        {
-                            calculatedMaxSize = -1;
-                            break;
-                        }
-
-                        calculatedMaxSize = Math.max(calculatedMaxSize, supportedTransform.maxSourceSizeBytes);
+                        addToSupportedTransformList(transformListBySize, supportedTransform);
                     }
                 }
             }
@@ -177,10 +213,58 @@ public class TransformServiceRegistryImpl implements TransformServiceRegistry, I
 
         if (transformName != null)
         {
-            cachedMaxSizes.get(transformName).put(sourceMimetype, calculatedMaxSize);
+            cachedSupportedTransformList.get(transformName).put(sourceMimetype, transformListBySize);
         }
 
-        return calculatedMaxSize;
+        return transformListBySize;
+    }
+
+    // Add newTransform to the transformListBySize in increasing size order and discards lower priority (numerically
+    // higher) transforms with a smaller or equal size.
+    private void addToSupportedTransformList(List<SupportedTransform> transformListBySize, SupportedTransform newTransform)
+    {
+        for (int i=0; i < transformListBySize.size(); i++)
+        {
+            SupportedTransform existingTransform = transformListBySize.get(i);
+            int added = -1;
+            int compare = compare(newTransform.maxSourceSizeBytes, existingTransform.maxSourceSizeBytes);
+            if (compare < 0)
+            {
+                transformListBySize.add(i, newTransform);
+                added = i;
+            }
+            else if (compare == 0)
+            {
+                if (newTransform.priority < existingTransform.priority)
+                {
+                    transformListBySize.set(i, newTransform);
+                    added = i;
+                }
+            }
+            if (added == i)
+            {
+                for (i--; i >= 0; i--)
+                {
+                    existingTransform = transformListBySize.get(i);
+                    if (newTransform.priority <= existingTransform.priority)
+                    {
+                        transformListBySize.remove(i);
+                    }
+                }
+                return;
+            }
+        }
+        transformListBySize.add(newTransform);
+    }
+
+    // compare where -1 is unlimited.
+    private int compare(long a, long b)
+    {
+        return a == -1
+                ? b == -1 ? 0 : 1
+                : b == -1 ? -1
+                : a == b ? 0
+                : a > b ? 1 : -1;
     }
 
     /**
