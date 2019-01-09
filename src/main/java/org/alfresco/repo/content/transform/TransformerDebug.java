@@ -1470,16 +1470,16 @@ public class TransformerDebug
     {
         // TODO
         return null;
-        return new TestTransform()
-        {
-            protected void transform(ContentReader reader, ContentWriter writer, String use)
-            {
-                String targetMimetype = writer.getMimetype();
-                RenditionDefinition2 renditionDefinition2 = new RenditionDefinition2Impl(null,
-                        targetMimetype, Collections.emptyMap(), null);
-                transformClient.transform(sourceNodeRef, renditionDefinition2, "none", -1234);
-            }
-        }.run(sourceExtension, targetExtension, use);
+//        return new TestTransform()
+//        {
+//            protected void transform(ContentReader reader, ContentWriter writer, String use)
+//            {
+//                String targetMimetype = writer.getMimetype();
+//                RenditionDefinition2 renditionDefinition2 = new RenditionDefinition2Impl(null,
+//                        targetMimetype, Collections.emptyMap(), null);
+//                transformClient.transform(sourceNodeRef, renditionDefinition2, "none", -1234);
+//            }
+//        }.run(sourceExtension, targetExtension, use);
     }
 
     public String testTransform(final String transformerName, String sourceExtension,
@@ -1487,24 +1487,24 @@ public class TransformerDebug
     {
         // TODO
         return null;
-        final ContentTransformer transformer = transformerRegistry.getTransformer(transformerName);
-        return new TestTransform()
-        {
-            protected String isTransformable(String sourceMimetype, long sourceSize, String targetMimetype, String use)
-            {
-//                checkSupported(NodeRef sourceNodeRef, RenditionDefinition2 renditionDefinition, String sourceMimetype, long size, String contentUrl);
-
-
-                return transformer.isTransformable(sourceMimetype, sourceSize, targetMimetype, options)
-                    ? null
-                    : transformerName+" does not support this transformation.";
-            }
-
-            protected void transform(ContentReader reader, ContentWriter writer, TransformationOptions options)
-            {
-                transformer.transform(reader, writer, options);
-            }
-        }.run(sourceExtension, targetExtension, use);
+//        final ContentTransformer transformer = transformerRegistry.getTransformer(transformerName);
+//        return new TestTransform()
+//        {
+//            protected String isTransformable(String sourceMimetype, long sourceSize, String targetMimetype, String use)
+//            {
+////                checkSupported(NodeRef sourceNodeRef, RenditionDefinition2 renditionDefinition, String sourceMimetype, long size, String contentUrl);
+//
+//
+//                return transformer.isTransformable(sourceMimetype, sourceSize, targetMimetype, options)
+//                    ? null
+//                    : transformerName+" does not support this transformation.";
+//            }
+//
+//            protected void transform(ContentReader reader, ContentWriter writer, TransformationOptions options)
+//            {
+//                transformer.transform(reader, writer, options);
+//            }
+//        }.run(sourceExtension, targetExtension, use);
     }
     
     public String[] getTestFileExtensionsAndMimetypes()
