@@ -208,7 +208,7 @@ public class SolrSQLHttpClient extends AbstractSolrQueryHTTPClient implements So
             }
             body.put("filterQueries", filterQueries);
 
-            return (ResultSet) postSolrQuery(httpClient, url.toString(), body, json ->
+            return postSolrQuery(httpClient, url.toString(), body, json ->
             {
                 return new SolrSQLJSONResultSet(json, searchParameters);
             });
@@ -224,7 +224,7 @@ public class SolrSQLHttpClient extends AbstractSolrQueryHTTPClient implements So
         
     }
 
-    protected JSONResult postSolrQuery(HttpClient httpClient, String url, JSONObject body, 
+    protected ResultSet postSolrQuery(HttpClient httpClient, String url, JSONObject body,
             SolrJsonProcessor<?> jsonProcessor)
             throws UnsupportedEncodingException, IOException, HttpException, URIException,
             JSONException
@@ -237,7 +237,7 @@ public class SolrSQLHttpClient extends AbstractSolrQueryHTTPClient implements So
             logger.debug("with: " + body.toString());
             logger.debug("Got: " + results.getNumberFound() + " in " + results.getQueryTime() + " ms");
         }
-        return results;
+        return (ResultSet) results;
     }
     
     
