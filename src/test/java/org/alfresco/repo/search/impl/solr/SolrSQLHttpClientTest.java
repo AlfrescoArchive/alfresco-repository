@@ -138,7 +138,7 @@ public class SolrSQLHttpClientTest
         when(mockRepositoryState.isBootstrapping()).thenReturn(true);
 
         // Call the method under test.
-        ResultSet resultSet = solrSQLHttpClient.executeQuery(mockSearchParameters, LANGUAGE);
+        solrSQLHttpClient.executeQuery(mockSearchParameters, LANGUAGE);
     }
 
     /** Check that an exception is thrown if an empty query is executed. */
@@ -149,7 +149,7 @@ public class SolrSQLHttpClientTest
         when(mockSearchParameters.getQuery()).thenReturn(null);
 
         // Call the method under test.
-        ResultSet resultSet = solrSQLHttpClient.executeQuery(mockSearchParameters, LANGUAGE);
+        solrSQLHttpClient.executeQuery(mockSearchParameters, LANGUAGE);
     }
 
     /** Check executing a minimal query makes a HTTP call and returns the result. */
