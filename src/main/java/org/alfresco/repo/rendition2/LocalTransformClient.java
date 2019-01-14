@@ -32,12 +32,11 @@ import org.alfresco.service.cmr.repository.ContentReader;
 import org.alfresco.service.cmr.repository.ContentService;
 import org.alfresco.service.cmr.repository.ContentWriter;
 import org.alfresco.service.cmr.repository.NodeRef;
-import org.alfresco.service.cmr.repository.NodeService;
 import org.alfresco.service.transaction.TransactionService;
-import org.alfresco.transform.client.model.config.TransformServiceRegistry;
 import org.alfresco.util.PropertyCheck;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.beans.factory.InitializingBean;
 
 import java.io.InputStream;
 import java.util.Map;
@@ -52,7 +51,7 @@ import java.util.concurrent.Executors;
  *
  * @author adavis
  */
-public class LocalTransformClient extends AbstractTransformClient implements TransformClient
+public class LocalTransformClient implements TransformClient, InitializingBean
 {
     private static Log logger = LogFactory.getLog(LegacyLocalTransformClient.class);
 
@@ -60,7 +59,6 @@ public class LocalTransformClient extends AbstractTransformClient implements Tra
     private TransactionService transactionService;
     private ContentService contentService;
     private RenditionService2Impl renditionService2;
-    private NodeService nodeService;
 
     private ExecutorService executorService;
 
@@ -84,12 +82,6 @@ public class LocalTransformClient extends AbstractTransformClient implements Tra
         this.renditionService2 = renditionService2;
     }
 
-    @Override
-    public void setNodeService(NodeService nodeService)
-    {
-        this.nodeService = nodeService;
-    }
-
     public void setExecutorService(ExecutorService executorService)
     {
         this.executorService = executorService;
@@ -98,12 +90,10 @@ public class LocalTransformClient extends AbstractTransformClient implements Tra
     @Override
     public void afterPropertiesSet() throws Exception
     {
-        super.afterPropertiesSet();
         PropertyCheck.mandatory(this, "localTransformServiceRegistry", localTransformServiceRegistry);
         PropertyCheck.mandatory(this, "transactionService", transactionService);
         PropertyCheck.mandatory(this, "contentService", contentService);
         PropertyCheck.mandatory(this, "renditionService2", renditionService2);
-        PropertyCheck.mandatory(this, "nodeService", nodeService);
         if (executorService == null)
         {
             executorService = Executors.newCachedThreadPool();

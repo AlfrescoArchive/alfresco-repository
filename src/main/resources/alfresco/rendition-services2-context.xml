@@ -77,11 +77,9 @@
     </bean>
 
     <bean id="localTransformClientImpl" class="org.alfresco.repo.rendition2.LocalTransformClient">
-        <property name="transformServiceRegistry" ref="localTransformServiceRegistryImpl" />
+        <property name="localTransformServiceRegistry" ref="localTransformServiceRegistryImpl" />
         <property name="transactionService" ref="transactionService" />
         <property name="contentService" ref="ContentService" />
-        <property name="nodeService" ref="NodeService" />
-        <property name="nodeService" ref="NodeService" />
         <property name="renditionService2" ref="renditionService2" />
     </bean>
 

@@ -37,6 +37,7 @@ import org.alfresco.service.transaction.TransactionService;
 import org.alfresco.util.PropertyCheck;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.beans.factory.InitializingBean;
 
 import java.io.InputStream;
 import java.util.Map;
@@ -52,7 +53,7 @@ import java.util.concurrent.Executors;
  * @author adavis
  */
 @Deprecated
-public class LegacyLocalTransformClient extends AbstractTransformClient implements TransformClient
+public class LegacyLocalTransformClient implements TransformClient, InitializingBean
 {
     private static Log logger = LogFactory.getLog(LegacyLocalTransformClient.class);
 
@@ -94,7 +95,6 @@ public class LegacyLocalTransformClient extends AbstractTransformClient implemen
     @Override
     public void afterPropertiesSet() throws Exception
     {
-        super.afterPropertiesSet();
         PropertyCheck.mandatory(this, "transactionService", transactionService);
         PropertyCheck.mandatory(this, "contentService", contentService);
         PropertyCheck.mandatory(this, "renditionService2", renditionService2);

@@ -25,8 +25,36 @@
  */
 package org.alfresco.repo.content.transform;
 
+import org.alfresco.api.AlfrescoPublicApi;
+import org.alfresco.model.ContentModel;
+import org.alfresco.repo.content.filestore.FileContentWriter;
+import org.alfresco.repo.model.Repository;
+import org.alfresco.repo.rendition2.RenditionDefinition2;
+import org.alfresco.repo.rendition2.RenditionDefinition2Impl;
+import org.alfresco.repo.rendition2.RenditionDefinitionRegistry2Impl;
+import org.alfresco.repo.rendition2.TransformClient;
+import org.alfresco.repo.transaction.RetryingTransactionHelper;
+import org.alfresco.service.cmr.repository.ContentData;
+import org.alfresco.service.cmr.repository.ContentService;
+import org.alfresco.service.cmr.repository.ContentWriter;
+import org.alfresco.service.cmr.repository.MimetypeService;
+import org.alfresco.service.cmr.repository.NodeRef;
+import org.alfresco.service.cmr.repository.NodeService;
+import org.alfresco.service.cmr.repository.TransformationOptions;
+import org.alfresco.service.namespace.NamespaceService;
+import org.alfresco.service.namespace.QName;
+import org.alfresco.service.transaction.TransactionService;
+import org.alfresco.util.EqualsHelper;
+import org.alfresco.util.LogTee;
+import org.alfresco.util.PropertyCheck;
+import org.alfresco.util.TempFileProvider;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.springframework.beans.factory.InitializingBean;
+
 import java.io.File;
-import java.io.IOException;
+import java.io.Serializable;
+import java.net.URI;
 import java.net.URL;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -34,7 +62,9 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Deque;
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -44,28 +74,7 @@ import java.util.TreeSet;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Pattern;
 
-import org.alfresco.api.AlfrescoPublicApi;
-import org.alfresco.error.AlfrescoRuntimeException;
-import org.alfresco.model.ContentModel;
-import org.alfresco.repo.content.filestore.FileContentReader;
-import org.alfresco.repo.content.filestore.FileContentWriter;
-import org.alfresco.repo.rendition2.RenditionDefinition2;
-import org.alfresco.repo.rendition2.RenditionDefinition2Impl;
-import org.alfresco.repo.rendition2.RenditionDefinitionRegistry2Impl;
-import org.alfresco.repo.rendition2.TransformClient;
-import org.alfresco.service.cmr.repository.ContentReader;
-import org.alfresco.service.cmr.repository.ContentService;
-import org.alfresco.service.cmr.repository.ContentWriter;
-import org.alfresco.service.cmr.repository.MimetypeService;
-import org.alfresco.service.cmr.repository.NodeRef;
-import org.alfresco.service.cmr.repository.NodeService;
-import org.alfresco.service.cmr.repository.TransformationOptions;
-import org.alfresco.util.EqualsHelper;
-import org.alfresco.util.LogTee;
-import org.alfresco.util.TempFileProvider;
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import static org.alfresco.repo.rendition2.RenditionService2Impl.SOURCE_HAS_NO_CONTENT;
 
 /**
  * Debugs transformers selection and activity.<p>
@@ -90,11 +99,18 @@ public class TransformerDebug
     private static final String FINISHED_IN = "Finished in ";
     private static final String NO_TRANSFORMERS = "No transformers";
 
-    private final Log logger;
-    private final Log info;
+    private Log info;
+    private Log logger;
+    private NodeService nodeService;
+    private MimetypeService mimetypeService;
+    private ContentTransformerRegistry transformerRegistry;
+    private TransformerConfig transformerConfig;
+    private ContentService contentService;
+    private TransformClient transformClient;
+    private Repository repositoryHelper;
+    private TransactionService transactionService;
+    private RenditionDefinitionRegistry2Impl renditionDefinitionRegistry2;
 
-    @Deprecated
-    @AlfrescoPublicApi 
     private enum Call
     {
         AVAILABLE,
@@ -102,8 +118,6 @@ public class TransformerDebug
         AVAILABLE_AND_TRANSFORM
     };
 
-    @Deprecated
-    @AlfrescoPublicApi
     private static class ThreadInfo
     {
         private static final ThreadLocal<ThreadInfo> threadInfo = new ThreadLocal<ThreadInfo>()
@@ -154,8 +168,6 @@ public class TransformerDebug
         }
     }
 
-    @Deprecated
-    @AlfrescoPublicApi
     private static class Frame
     {
         private static final AtomicInteger uniqueId = new AtomicInteger(0);
@@ -235,7 +247,6 @@ public class TransformerDebug
     }
 
     @Deprecated
-    @AlfrescoPublicApi
     private class UnavailableTransformer implements Comparable<UnavailableTransformer>
     {
         private final String name;
@@ -285,32 +296,75 @@ public class TransformerDebug
             return name.compareTo(o.name);
         }
     }
-    
-    private final NodeService nodeService;
-    private final MimetypeService mimetypeService;
-    private final ContentTransformerRegistry transformerRegistry;
-    private final TransformerConfig transformerConfig;
-    private TransformClient transformClient;
 
-    /**
-     * Constructor
-     */
-    public TransformerDebug(NodeService nodeService, MimetypeService mimetypeService, 
-            ContentTransformerRegistry transformerRegistry, TransformerConfig transformerConfig,
-            Log transformerLog, Log transformerDebugLog)
+    public void setTransformerLog(Log transformerLog)
+    {
+        info = new LogTee(LogFactory.getLog(TransformerLog.class), transformerLog);
+    }
+
+    public void setTransformerDebugLog(Log transformerDebugLog)
+    {
+        logger = new LogTee(LogFactory.getLog(TransformerDebug.class), transformerDebugLog);
+    }
+
+    public void setNodeService(NodeService nodeService)
     {
         this.nodeService = nodeService;
+    }
+
+    public void setMimetypeService(MimetypeService mimetypeService)
+    {
         this.mimetypeService = mimetypeService;
+    }
+
+    public void setTransformerRegistry(ContentTransformerRegistry transformerRegistry)
+    {
         this.transformerRegistry = transformerRegistry;
+    }
+
+    public void setTransformerConfig(TransformerConfig transformerConfig)
+    {
         this.transformerConfig = transformerConfig;
-        
-        logger = new LogTee(LogFactory.getLog(TransformerDebug.class), transformerDebugLog);
-        info = new LogTee(LogFactory.getLog(TransformerLog.class), transformerLog);
     }
 
     public void setTransformClient(TransformClient transformClient)
     {
         this.transformClient = transformClient;
+    }
+
+    public void setRepositoryHelper(Repository repositoryHelper)
+    {
+        this.repositoryHelper = repositoryHelper;
+    }
+
+    public void setContentService(ContentService contentService)
+    {
+        this.contentService = contentService;
+    }
+
+    public void setTransactionService(TransactionService transactionService)
+    {
+        this.transactionService = transactionService;
+    }
+
+    public void setRenditionDefinitionRegistry2(RenditionDefinitionRegistry2Impl renditionDefinitionRegistry2)
+    {
+        this.renditionDefinitionRegistry2 = renditionDefinitionRegistry2;
+    }
+
+    public void afterPropertiesSet() throws Exception
+    {
+        PropertyCheck.mandatory(this, "transformerLog", info);
+        PropertyCheck.mandatory(this, "transformerDebugLog", logger);
+        PropertyCheck.mandatory(this, "nodeService", nodeService);
+        PropertyCheck.mandatory(this, "mimetypeService", mimetypeService);
+        PropertyCheck.mandatory(this, "transformerRegistry", transformerRegistry);
+        PropertyCheck.mandatory(this, "transformerConfig", transformerConfig);
+//        PropertyCheck.mandatory(this, "contentService", contentService);
+//        PropertyCheck.mandatory(this, "transformClient", transformClient);
+        PropertyCheck.mandatory(this, "repositoryHelper", repositoryHelper);
+        PropertyCheck.mandatory(this, "transactionService", transactionService);
+        PropertyCheck.mandatory(this, "renditionDefinitionRegistry2", renditionDefinitionRegistry2);
     }
 
     @Deprecated
@@ -325,6 +379,7 @@ public class TransformerDebug
     /**
      * Called prior to working out what transformers are available.
      */
+    @Deprecated
     public void pushAvailable(String fromUrl, String sourceMimetype, String targetMimetype,
                               String use, NodeRef sourceNodeRef)
     {
@@ -337,6 +392,7 @@ public class TransformerDebug
     /**
      * Called when a transformer has been ignored because of a blacklist entry.
      */
+    @Deprecated
     public void blacklistTransform(ContentTransformer transformer, String sourceMimetype,
             String targetMimetype, TransformationOptions options)
     {
@@ -355,6 +411,7 @@ public class TransformerDebug
     /**
      * Called prior to performing a transform.
      */
+    @Deprecated
     public void pushTransform(ContentTransformer transformer, String fromUrl, String sourceMimetype,
                               String targetMimetype, long sourceSize, String use, NodeRef sourceNodeRef)
     {
@@ -381,6 +438,7 @@ public class TransformerDebug
     /**
      * Called prior to calling a nested isTransformable.
      */
+    @Deprecated
     public void pushIsTransformableSize(ContentTransformer transformer)
     {
         if (isEnabled())
@@ -418,6 +476,7 @@ public class TransformerDebug
      * Called to identify a transformer that cannot be used during working out
      * available transformers.
      */
+    @Deprecated
     public void unavailableTransformer(ContentTransformer transformer, String sourceMimetype, String targetMimetype, long maxSourceSizeKBytes)
     {
         if (isEnabled())
@@ -454,6 +513,7 @@ public class TransformerDebug
     /**
      * Called once all available transformers have been identified.
      */
+    @Deprecated
     public void availableTransformers(List<ContentTransformer> transformers, long sourceSize, 
             String use, NodeRef sourceNodeRef, String calledFrom)
     {
@@ -525,11 +585,13 @@ public class TransformerDebug
         return priority;
     }
 
+    @Deprecated
     public void inactiveTransformer(ContentTransformer transformer)
     {
         log(getName(transformer)+' '+ms(transformer.getTransformationTime(null, null))+" INACTIVE");
     }
 
+    @Deprecated
     public void activeTransformer(int mimetypePairCount, ContentTransformer transformer, String sourceMimetype,
             String targetMimetype, long maxSourceSizeKBytes, boolean firstMimetypePair)
     {
@@ -544,8 +606,9 @@ public class TransformerDebug
                 ' '+fileSize((maxSourceSizeKBytes > 0) ? maxSourceSizeKBytes*1024 : maxSourceSizeKBytes)+
                 (maxSourceSizeKBytes == 0 ? " disabled" : ""));
     }
-    
-    public void activeTransformer(String sourceMimetype, String targetMimetype, 
+
+    @Deprecated
+    public void activeTransformer(String sourceMimetype, String targetMimetype,
             int transformerCount, ContentTransformer transformer, long maxSourceSizeKBytes,
             boolean firstTransformer)
     {
@@ -928,7 +991,9 @@ public class TransformerDebug
      * @param format42 indicates the old 4.1.4 format should be used which did not order the transformers
      *        and only included top level transformers.
      * @param use to which the transformation will be put (such as "Index", "Preview", null).
+     * @deprecated The transformations code is being moved out of the codebase and replaced by the new async RenditionService2 or other external libraries.
      */
+    @Deprecated
     public String transformationsByTransformer(String transformerName, boolean toString, boolean format42, String use)
     {
         // Do not generate this type of debug if already generating other debug to a StringBuilder
@@ -1012,7 +1077,9 @@ public class TransformerDebug
      * @param onlyNonDeterministic if true only report transformations where there is more than
      *        one transformer available with the same priority.
      * @param use to which the transformation will be put (such as "Index", "Preview", null).
+     * @deprecated The transformations code is being moved out of the codebase and replaced by the new async RenditionService2 or other external libraries.
      */
+    @Deprecated
     public String transformationsByExtension(String sourceExtension, String targetExtension, boolean toString,
             boolean format42, boolean onlyNonDeterministic, String use)
     {
@@ -1408,7 +1475,9 @@ public class TransformerDebug
      * @param transformerName to restrict the collection to one entry
      * @return a new Collection of sorted transformers
      * @throws IllegalArgumentException if transformerName is not found.
+     * @deprecated The transformations code is being moved out of the codebase and replaced by the new async RenditionService2 or other external libraries.
      */
+    @Deprecated
     public Collection<ContentTransformer> sortTransformersByName(String transformerName)
     {
         Collection<ContentTransformer> transformers = (transformerName != null)
@@ -1468,43 +1537,17 @@ public class TransformerDebug
 
     public String testTransform(String sourceExtension, String targetExtension, String use)
     {
-        // TODO
-        return null;
-//        return new TestTransform()
-//        {
-//            protected void transform(ContentReader reader, ContentWriter writer, String use)
-//            {
-//                String targetMimetype = writer.getMimetype();
-//                RenditionDefinition2 renditionDefinition2 = new RenditionDefinition2Impl(null,
-//                        targetMimetype, Collections.emptyMap(), null);
-//                transformClient.transform(sourceNodeRef, renditionDefinition2, "none", -1234);
-//            }
-//        }.run(sourceExtension, targetExtension, use);
+        return new TestTransform().run(sourceExtension, targetExtension, use);
     }
 
+    /**
+     * @deprecated The transformations code is being moved out of the codebase and replaced by the new async RenditionService2 or other external libraries.
+     */
+    @Deprecated
     public String testTransform(final String transformerName, String sourceExtension,
             String targetExtension, String use)
     {
-        // TODO
-        return null;
-//        final ContentTransformer transformer = transformerRegistry.getTransformer(transformerName);
-//        return new TestTransform()
-//        {
-//            protected String isTransformable(String sourceMimetype, long sourceSize, String targetMimetype, String use)
-//            {
-////                checkSupported(NodeRef sourceNodeRef, RenditionDefinition2 renditionDefinition, String sourceMimetype, long size, String contentUrl);
-//
-//
-//                return transformer.isTransformable(sourceMimetype, sourceSize, targetMimetype, options)
-//                    ? null
-//                    : transformerName+" does not support this transformation.";
-//            }
-//
-//            protected void transform(ContentReader reader, ContentWriter writer, TransformationOptions options)
-//            {
-//                transformer.transform(reader, writer, options);
-//            }
-//        }.run(sourceExtension, targetExtension, use);
+        return "The testTransform operation for a specific transformer is no longer supported.";
     }
     
     public String[] getTestFileExtensionsAndMimetypes()
@@ -1549,65 +1592,57 @@ public class TransformerDebug
     }
 
     @Deprecated
-    @AlfrescoPublicApi
-    private abstract class TestTransform
+    private class TestTransform
     {
+        protected LinkedList<NodeRef> nodesToDeleteAfterTest = new LinkedList<NodeRef>();
+
         String run(String sourceExtension, String targetExtension, String use)
         {
             String debug;
             
             String targetMimetype = getMimetype(targetExtension, false);
             String sourceMimetype = getMimetype(sourceExtension, true);
-            URL sourceURL = loadQuickTestFile(sourceExtension);
-            if (sourceURL == null)
-            {
-                throw new IllegalArgumentException("There is no test file with a "+sourceExtension+" extension.");
-            }
-            
-            // This URL may point to a file on the filesystem or to an entry in a jar.
-            // To use the transform method below, we need the content to be accessible from a ContentReader.
-            // This is possible for a File but not a (non-file) URL.
-            //
-            // Therefore, we'll always copy the URL content to a temporary local file.
-            final File sourceFile = TempFileProvider.createTempFile(TransformerDebug.class.getSimpleName() + "-tmp-", "");
-            
-            try   { FileUtils.copyURLToFile(sourceURL, sourceFile); }
-            catch (IOException shouldNeverHappen)
-            {
-                // The sourceURL should always be readable as we're reading data that Alfresco is distributing.
-                // But just in case...
-                throw new IllegalArgumentException("Cannot read content of test file with a " +
-                                                   sourceExtension + " extension.", shouldNeverHappen);
-            }
-            
-            ContentReader reader = new FileContentReader(sourceFile);
-            reader.setMimetype(sourceMimetype);
             File tempFile = TempFileProvider.createTempFile(
                     "TestTransform_" + sourceExtension + "_", "." + targetExtension);
             ContentWriter writer = new FileContentWriter(tempFile);
             writer.setMimetype(targetMimetype);
 
-            long sourceSize = reader.getSize();
-            debug = isTransformable(sourceMimetype, sourceSize, targetMimetype, use);
-            if (debug == null)
+            String renditionName = "testTransform"+System.currentTimeMillis();
+            NodeRef sourceNodeRef = null;
+            StringBuilder sb = new StringBuilder();
+            try
             {
-                StringBuilder sb = new StringBuilder();
-                try
+                setStringBuilder(sb);
+                RenditionDefinition2 renditionDefinition = new RenditionDefinition2Impl(renditionName, targetMimetype,
+                        Collections.emptyMap(), renditionDefinitionRegistry2);
+
+                sourceNodeRef = createSourceNode(sourceExtension, sourceMimetype);
+                ContentData contentData = (ContentData) nodeService.getProperty(sourceNodeRef, ContentModel.PROP_CONTENT);
+                if (contentData != null)
                 {
-                    setStringBuilder(sb);
-                    transform(reader, writer, use);
+                    String contentUrl = contentData.getContentUrl();
+                    if (contentUrl != null)
+                    {
+                        long size = contentData.getSize();
+                        int sourceContentHashCode = SOURCE_HAS_NO_CONTENT;
+                        String contentString = contentData.getContentUrl()+contentData.getMimetype();
+                        if (contentString != null)
+                        {
+                            sourceContentHashCode = contentString.hashCode();
+                        }
+
+                        transformClient.checkSupported(sourceNodeRef, renditionDefinition, sourceMimetype, size, contentUrl);
+                        transformClient.transform(sourceNodeRef, renditionDefinition, "testTransform", sourceContentHashCode);
+                    }
                 }
-                catch (AlfrescoRuntimeException e)
-                {
-                    sb.append(e.getMessage());
-                }
-                finally
-                {
-                    setStringBuilder(null);
-                }
-                debug = sb.toString();
             }
-            return debug;
+            finally
+            {
+                setStringBuilder(null);
+                renditionDefinitionRegistry2.unregister(renditionName);
+                deleteSourceNode(sourceNodeRef);
+            }
+            return sb.toString();
         }
         
         private String getMimetype(String extension, boolean isSource)
@@ -1628,11 +1663,57 @@ public class TransformerDebug
             return mimetype;
         }
 
-        protected String isTransformable(String sourceMimetype, long sourceSize, String targetMimetype, String use)
+        public NodeRef createSourceNode(String extension, String sourceMimetype)
         {
-            return null;
+            // Create a content node which will serve as test data for our transformations.
+            RetryingTransactionHelper.RetryingTransactionCallback<NodeRef> makeNodeCallback = new RetryingTransactionHelper.RetryingTransactionCallback<NodeRef>()
+            {
+                public NodeRef execute() throws Throwable
+                {
+                    // Create a source node loaded with a quick file.
+                    URL url = loadQuickTestFile(extension);
+                    URI uri = url.toURI();
+                    File sourceFile = new File(uri);
+
+                    final NodeRef companyHome = repositoryHelper.getCompanyHome();
+
+                    Map<QName, Serializable> props = new HashMap<QName, Serializable>();
+                    String localName = "TestTransform." + extension;
+                    props.put(ContentModel.PROP_NAME, localName);
+                    NodeRef node = nodeService.createNode(
+                            companyHome,
+                            ContentModel.ASSOC_CONTAINS,
+                            QName.createQName(NamespaceService.CONTENT_MODEL_1_0_URI, localName),
+                            ContentModel.TYPE_CONTENT,
+                            props).getChildRef();
+
+                    ContentWriter writer = contentService.getWriter(node, ContentModel.PROP_CONTENT, true);
+                    writer.setMimetype(sourceMimetype);
+                    writer.setEncoding("UTF-8");
+                    writer.putContent(sourceFile);
+
+                    return node;
+                }
+            };
+            NodeRef contentNodeRef = transactionService.getRetryingTransactionHelper().doInTransaction(makeNodeCallback);
+            this.nodesToDeleteAfterTest.add(contentNodeRef);
+            return contentNodeRef;
         }
-        
-        protected abstract void transform(ContentReader reader, ContentWriter writer, String use);
+
+        public void deleteSourceNode(NodeRef sourceNodeRef)
+        {
+            if (sourceNodeRef != null)
+            {
+                transactionService.getRetryingTransactionHelper().doInTransaction(
+                        (RetryingTransactionHelper.RetryingTransactionCallback<Void>) () ->
+                        {
+                            if (nodeService.exists(sourceNodeRef))
+                            {
+                                nodeService.deleteNode(sourceNodeRef);
+                            }
+                            return null;
+                        });
+            }
+        }
     }
 }

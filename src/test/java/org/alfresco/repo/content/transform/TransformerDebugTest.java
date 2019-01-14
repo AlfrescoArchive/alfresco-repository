@@ -108,7 +108,13 @@ public class TransformerDebugTest
         when(transformer3.getName()).thenReturn("transformer3");
         when(transformer4.getName()).thenReturn("transformer4");
 
-        transformerDebug = new TransformerDebug(nodeService, mimetypeService, transformerRegistry, transformerConfig, log, debug);
+        transformerDebug = new TransformerDebug();
+        transformerDebug.setNodeService(nodeService);
+        transformerDebug.setMimetypeService(mimetypeService);
+        transformerDebug.setTransformerRegistry(transformerRegistry);
+        transformerDebug.setTransformerConfig(transformerConfig);
+        transformerDebug.setTransformerLog(log);
+        transformerDebug.setTransformerDebugLog(debug);
         transformerDebug.setTransformClient(transformClient);
 
         log.setTransformerDebug(transformerDebug);
