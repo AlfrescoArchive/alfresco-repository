@@ -362,9 +362,9 @@ public class TransformerDebug
         PropertyCheck.mandatory(this, "transformerConfig", transformerConfig);
 //        PropertyCheck.mandatory(this, "contentService", contentService);
 //        PropertyCheck.mandatory(this, "transformClient", transformClient);
-        PropertyCheck.mandatory(this, "repositoryHelper", repositoryHelper);
-        PropertyCheck.mandatory(this, "transactionService", transactionService);
-        PropertyCheck.mandatory(this, "renditionDefinitionRegistry2", renditionDefinitionRegistry2);
+//        PropertyCheck.mandatory(this, "repositoryHelper", repositoryHelper);
+//        PropertyCheck.mandatory(this, "transactionService", transactionService);
+//        PropertyCheck.mandatory(this, "renditionDefinitionRegistry2", renditionDefinitionRegistry2);
     }
 
     @Deprecated
