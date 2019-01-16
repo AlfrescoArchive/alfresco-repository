@@ -493,6 +493,11 @@ public class PersonServiceImpl extends TransactionListenerAdapter implements Per
         {
             return null;
         }
+        if (EqualsHelper.nullSafeEquals(userName, AuthenticationUtil.getSystemUserName()))
+        {
+            return null;
+        }
+        
         final NodeRef personNode = getPersonOrNullImpl(userName);
         if (personNode == null)
         {
