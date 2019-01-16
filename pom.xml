@@ -2,7 +2,7 @@
     <modelVersion>4.0.0</modelVersion>
     <artifactId>alfresco-repository</artifactId>
     <name>Alfresco Repository</name>
-    <version>7.43-SNAPSHOT</version>
+    <version>7.45-SNAPSHOT</version>
     <packaging>jar</packaging>
 
     <parent>
@@ -56,10 +56,10 @@
         <dependency.mysql.version>5.1.47</dependency.mysql.version>
         <dependency.mariadb.version>2.2.5</dependency.mariadb.version>
         <dependency.antlr.version>3.5.2</dependency.antlr.version>
-        <dependency.keycloak.version>4.5.0.Final</dependency.keycloak.version>
+        <dependency.keycloak.version>4.6.0.Final</dependency.keycloak.version>
         <dependency.jboss.logging.version>3.3.2.Final</dependency.jboss.logging.version>
-        <dependency.camel.version>2.22.1</dependency.camel.version>
-        <dependency.activemq.version>5.15.7</dependency.activemq.version>
+        <dependency.camel.version>2.22.2</dependency.camel.version>
+        <dependency.activemq.version>5.15.8</dependency.activemq.version>
     </properties>
 
     <dependencyManagement>
@@ -127,7 +127,7 @@
         <dependency>
             <groupId>commons-fileupload</groupId>
             <artifactId>commons-fileupload</artifactId>
-            <version>1.3.3</version>
+            <version>1.4</version>
         </dependency>
         <dependency>
             <groupId>org.apache.commons</groupId>
@@ -296,7 +296,7 @@
         <dependency>
             <groupId>cglib</groupId>
             <artifactId>cglib</artifactId>
-            <version>3.2.9</version>
+            <version>3.2.10</version>
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>
@@ -634,7 +634,7 @@
         <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
-            <version>24.0-jre</version>
+            <version>27.0.1-jre</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.security</groupId>
