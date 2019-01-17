@@ -495,6 +495,10 @@ public class PersonServiceImpl extends TransactionListenerAdapter implements Per
         }
         if (EqualsHelper.nullSafeEquals(userName, AuthenticationUtil.getSystemUserName()))
         {
+            if (exceptionOrNull)
+            {
+                throw new NoSuchPersonException(userName);
+            }
             return null;
         }
         

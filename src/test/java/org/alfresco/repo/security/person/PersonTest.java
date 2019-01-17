@@ -1798,11 +1798,18 @@ public class PersonTest extends TestCase
             @Override
             public Void doWork()
             {
-                personService.getPerson(AuthenticationUtil.SYSTEM_USER_NAME);
-
+                try
+                {
+                    NodeRef person = personService.getPerson(AuthenticationUtil.SYSTEM_USER_NAME);
+                    fail("A NoSuchPersonException should have been thrown for " + AuthenticationUtil.SYSTEM_USER_NAME +
+                            " but " + person + " was returned");
+                }
+                catch(NoSuchPersonException ignore)
+                {
+                    // This is expected for system.;
+                }
                 return null;
             }
         });
-
     }
 }
