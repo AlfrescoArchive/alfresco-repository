@@ -973,6 +973,11 @@ public class PersonServiceImpl extends TransactionListenerAdapter implements Per
         {
             throw new IllegalArgumentException("No username specified when creating the person.");
         }
+        
+        if (EqualsHelper.nullSafeEquals(userName, AuthenticationUtil.getSystemUserName()))
+        {
+            throw new AlfrescoRuntimeException("Person" + AuthenticationUtil.getSystemUserName()  + "can not be created is a built-in authority");
+        }
 
         AuthorityType authorityType = AuthorityType.getAuthorityType(userName);
         if (authorityType != AuthorityType.USER)
