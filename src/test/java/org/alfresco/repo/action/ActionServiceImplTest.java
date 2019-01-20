@@ -827,9 +827,16 @@ public class ActionServiceImplTest extends BaseAlfrescoSpringTest
         Action action1 = this.actionService.createAction(ScriptActionExecuter.NAME);
         action1.setParameterValue(ScriptActionExecuter.PARAM_SCRIPTREF, script);
         
-        // Execute the action
-        this.actionService.executeAction(action1, this.nodeRef);
-        
+        // Execute the action as Administrator. The ScriptAction has to run as a full user (instead of as System) so
+        // that we can setup the Person object in the ScriptNode
+        AuthenticationUtil.runAs(new AuthenticationUtil.RunAsWork<Void>( ) {
+            @Override
+            public Void doWork() throws Exception {
+                ActionServiceImplTest.this.actionService.executeAction(action1, ActionServiceImplTest.this.nodeRef);
+                return null;
+            }
+        }, AuthenticationUtil.getAdminUserName());
+
         // Get the result
         String result = (String)action1.getParameterValue(ActionExecuter.PARAM_RESULT);
         assertNotNull(result);
