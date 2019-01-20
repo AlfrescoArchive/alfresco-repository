@@ -495,6 +495,7 @@ public class PersonServiceImpl extends TransactionListenerAdapter implements Per
         }
         if (EqualsHelper.nullSafeEquals(userName, AuthenticationUtil.getSystemUserName()))
         {
+            // The built-in authority SYSTEM is a user, but not a Person (i.e. it does not have a profile).
             if (exceptionOrNull)
             {
                 throw new NoSuchPersonException(userName);
@@ -976,7 +977,7 @@ public class PersonServiceImpl extends TransactionListenerAdapter implements Per
         
         if (EqualsHelper.nullSafeEquals(userName, AuthenticationUtil.getSystemUserName()))
         {
-            throw new AlfrescoRuntimeException("Person" + AuthenticationUtil.getSystemUserName()  + "can't be created as it is a built-in authority");
+            throw new AlfrescoRuntimeException("The built-in authority '" + AuthenticationUtil.getSystemUserName()  + "' is a user, but not a Person (i.e. it does not have a profile).");
         }
 
         AuthorityType authorityType = AuthorityType.getAuthorityType(userName);
