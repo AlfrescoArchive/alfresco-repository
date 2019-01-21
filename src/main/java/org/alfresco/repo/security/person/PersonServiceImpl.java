@@ -2189,7 +2189,7 @@ public class PersonServiceImpl extends TransactionListenerAdapter implements Per
 
     private boolean isSystemUserName(String userName)
     {
-        return EqualsHelper.nullSafeEquals(userName.toLowerCase(), AuthenticationUtil.getSystemUserName().toLowerCase());
+        return EqualsHelper.nullSafeEquals(userName, AuthenticationUtil.getSystemUserName(), true);
     }
 
 }
