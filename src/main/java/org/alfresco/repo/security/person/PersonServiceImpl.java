@@ -493,7 +493,7 @@ public class PersonServiceImpl extends TransactionListenerAdapter implements Per
         {
             return null;
         }
-        if (EqualsHelper.nullSafeEquals(userName, AuthenticationUtil.getSystemUserName()))
+        if (isSystemUserName(userName))
         {
             // The built-in authority SYSTEM is a user, but not a Person (i.e. it does not have a profile).
             if (exceptionOrNull)
@@ -533,6 +533,11 @@ public class PersonServiceImpl extends TransactionListenerAdapter implements Per
      */
     public boolean personExists(String caseSensitiveUserName)
     {
+        if (isSystemUserName(caseSensitiveUserName))
+        {
+            return false;
+        }
+        
         NodeRef person = getPersonOrNullImpl(caseSensitiveUserName); 
         if (person != null)
         {
@@ -2177,10 +2182,14 @@ public class PersonServiceImpl extends TransactionListenerAdapter implements Per
         return true;
     }
 
-	public void setEventPublisher(EventPublisher eventPublisher) 
-	{
-		this.eventPublisher = eventPublisher;
-	}
-    
-    
+    public void setEventPublisher(EventPublisher eventPublisher)
+    {
+        this.eventPublisher = eventPublisher;
+    }
+
+    private boolean isSystemUserName(String userName)
+    {
+        return EqualsHelper.nullSafeEquals(userName.toLowerCase(), AuthenticationUtil.getSystemUserName().toLowerCase());
+    }
+
 }
