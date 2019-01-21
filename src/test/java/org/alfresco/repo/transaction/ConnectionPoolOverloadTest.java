@@ -41,6 +41,7 @@ import org.apache.commons.lang.mutable.MutableInt;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.context.ApplicationContext;
 
@@ -95,6 +96,7 @@ public class ConnectionPoolOverloadTest
     }
     
     @Test
+    @Ignore
     public void testOverload() throws Exception
     {
         List<Thread> threads = new LinkedList<Thread>();
