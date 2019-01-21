@@ -96,7 +96,6 @@ public class ConnectionPoolOverloadTest
     }
     
     @Test
-    @Ignore
     public void testOverload() throws Exception
     {
         List<Thread> threads = new LinkedList<Thread>();

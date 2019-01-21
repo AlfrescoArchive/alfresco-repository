@@ -66,7 +66,7 @@ import org.junit.runners.Suite;
     org.alfresco.repo.search.SearchServiceTest.class,
     org.alfresco.repo.tagging.UpdateTagScopesActionExecuterTest.class,
     org.alfresco.repo.thumbnail.conditions.NodeEligibleForRethumbnailingEvaluatorTest.class,
-    org.alfresco.repo.transaction.ConnectionPoolOverloadTest.class,
+    //org.alfresco.repo.transaction.ConnectionPoolOverloadTest.class,
     org.alfresco.repo.action.scheduled.CronScheduledQueryBasedTemplateActionDefinitionTest.class,
     org.alfresco.repo.node.integrity.IncompleteNodeTaggerTest.class,
     org.alfresco.repo.node.integrity.IntegrityTest.class,
