@@ -171,8 +171,22 @@ public class ImapServiceImplTest extends TestCase
 
         // downgrade integrity
         IntegrityChecker.setWarnInTransaction();
+        
+        anotherUserName = "user" + System.currentTimeMillis();
 
-        createImapUser();
+        PropertyMap testUser = new PropertyMap();
+        testUser.put(ContentModel.PROP_USERNAME, anotherUserName);
+        testUser.put(ContentModel.PROP_FIRSTNAME, anotherUserName);
+        testUser.put(ContentModel.PROP_LASTNAME, anotherUserName);
+        testUser.put(ContentModel.PROP_EMAIL, anotherUserName + "@alfresco.com");
+        testUser.put(ContentModel.PROP_JOBTITLE, "jobTitle");
+
+        personService.createPerson(testUser);
+
+        // create the ACEGI Authentication instance for the new user
+        authenticationService.createAuthentication(anotherUserName, anotherUserName.toCharArray());
+
+        user = new AlfrescoImapUser(anotherUserName + "@alfresco.com", anotherUserName, anotherUserName);
 
         NodeRef companyHomeNodeRef = findCompanyHomeNodeRef();
 
@@ -284,34 +298,6 @@ public class ImapServiceImplTest extends TestCase
                 return null;
             }
         });
-    }
-    
-    private void createImapUser()
-    {
-        transactionService.getRetryingTransactionHelper().doInTransaction(new RetryingTransactionCallback<Object>()
-        {
-            public Object execute()
-            {
-                anotherUserName = "user" + System.currentTimeMillis();
-
-                PropertyMap testUser = new PropertyMap();
-                testUser.put(ContentModel.PROP_USERNAME, anotherUserName);
-                testUser.put(ContentModel.PROP_FIRSTNAME, anotherUserName);
-                testUser.put(ContentModel.PROP_LASTNAME, anotherUserName);
-                testUser.put(ContentModel.PROP_EMAIL, anotherUserName + "@alfresco.com");
-                testUser.put(ContentModel.PROP_JOBTITLE, "jobTitle");
-
-                personService.createPerson(testUser);
-
-                // create the ACEGI Authentication instance for the new user
-                authenticationService.createAuthentication(anotherUserName, anotherUserName.toCharArray());
-
-                user = new AlfrescoImapUser(anotherUserName + "@alfresco.com", anotherUserName, anotherUserName);
-                return null;
-
-            }
-        }, false, true);
-
     }
 
     public void testGetFolder() throws Exception

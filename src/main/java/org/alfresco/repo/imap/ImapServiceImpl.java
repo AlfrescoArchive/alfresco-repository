@@ -1392,28 +1392,10 @@ public class ImapServiceImpl implements ImapService, OnRestoreNodePolicy, OnCrea
 
         NodeRef userRef = null;
 
-        userRef = serviceRegistry.getTransactionService().getRetryingTransactionHelper().doInTransaction(new RetryingTransactionCallback<NodeRef>()
+        if (personService.personExists(userName))
         {
-            @Override
-            public NodeRef execute() throws Throwable
-            {
-
-                try
-                {
-                    return personService.getPerson(userName);
-                }
-
-                catch (NoSuchPersonException ex)
-                {
-                    if (logger.isDebugEnabled())
-                    {
-                        logger.trace("The user " + userName + " doesn't exists");
-                    }
-                }
-
-                return null;
-            }
-        }, true, true);
+            userRef = personService.getPerson(userName);
+        }
 
         if (userRef != null)
         {
