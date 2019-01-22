@@ -98,6 +98,7 @@ import org.alfresco.service.cmr.repository.NodeService;
 import org.alfresco.service.cmr.repository.StoreRef;
 import org.alfresco.service.cmr.search.SearchService;
 import org.alfresco.service.cmr.security.AccessStatus;
+import org.alfresco.service.cmr.security.NoSuchPersonException;
 import org.alfresco.service.cmr.security.PermissionService;
 import org.alfresco.service.cmr.security.PersonService;
 import org.alfresco.service.cmr.site.SiteInfo;
@@ -1388,13 +1389,41 @@ public class ImapServiceImpl implements ImapService, OnRestoreNodePolicy, OnCrea
     {
         Set<NodeRef> result = new HashSet<NodeRef>();
         PersonService personService = serviceRegistry.getPersonService();
-        NodeRef userRef = personService.getPerson(userName);
-        List<AssociationRef> unsubscribedFodlers = nodeService.getTargetAssocs(userRef, ImapModel.ASSOC_IMAP_UNSUBSCRIBED);
-        for (AssociationRef asocRef : unsubscribedFodlers)
+
+        NodeRef userRef = null;
+
+        userRef = serviceRegistry.getTransactionService().getRetryingTransactionHelper().doInTransaction(new RetryingTransactionCallback<NodeRef>()
         {
-            result.add(asocRef.getTargetRef());
+            @Override
+            public NodeRef execute() throws Throwable
+            {
+
+                try
+                {
+                    return personService.getPerson(userName);
+                }
+
+                catch (NoSuchPersonException ex)
+                {
+                    if (logger.isDebugEnabled())
+                    {
+                        logger.trace("The user " + userName + " doesn't exists");
+                    }
+                }
+
+                return null;
+            }
+        }, false, true);
+
+        if (userRef != null)
+        {
+            List<AssociationRef> unsubscribedFodlers = nodeService.getTargetAssocs(userRef, ImapModel.ASSOC_IMAP_UNSUBSCRIBED);
+            for (AssociationRef asocRef : unsubscribedFodlers)
+            {
+                result.add(asocRef.getTargetRef());
+            }
         }
-    
+
         return result;
     }
     
