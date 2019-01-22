@@ -1413,7 +1413,7 @@ public class ImapServiceImpl implements ImapService, OnRestoreNodePolicy, OnCrea
 
                 return null;
             }
-        }, false, true);
+        }, true, true);
 
         if (userRef != null)
         {
