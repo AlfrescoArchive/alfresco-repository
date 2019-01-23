@@ -1447,7 +1447,6 @@ public class ImapServiceImpl implements ImapService, OnRestoreNodePolicy, OnCrea
             
             if (personService.personExists(userName))
             {
-
                 PreferenceService preferenceService = (PreferenceService) serviceRegistry.getService(ServiceRegistry.PREFERENCE_SERVICE);
                 Map<String, Serializable> prefs = preferenceService.getPreferences(userName, AlfrescoImapConst.PREF_IMAP_FAVOURITE_SITES);
 
@@ -1456,9 +1455,7 @@ public class ImapServiceImpl implements ImapService, OnRestoreNodePolicy, OnCrea
                     Boolean isImapFavourite = (Boolean) prefs.get(key);
                     if (isImapFavourite != null && isImapFavourite)
                     {
-                        String siteName = key.substring(AlfrescoImapConst.PREF_IMAP_FAVOURITE_SITES.length() + 1); // count
-                                                                                                                   // the
-                                                                                                                   // dot
+                        String siteName = key.substring(AlfrescoImapConst.PREF_IMAP_FAVOURITE_SITES.length() + 1); // count the dot
                         boolean isMember = false;
                         try
                         {
@@ -1467,8 +1464,7 @@ public class ImapServiceImpl implements ImapService, OnRestoreNodePolicy, OnCrea
                         catch (SiteDoesNotExistException sdne)
                         {
                             // Ignore, see MNT-13579
-                            // The site might be archived. In this case it will
-                            // still be in user's preferences.
+                            // The site might be archived. In this case it will still be in user's preferences.
                         }
 
                         if (isMember)
