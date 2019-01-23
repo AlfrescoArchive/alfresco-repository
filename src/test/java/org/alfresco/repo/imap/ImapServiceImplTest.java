@@ -137,6 +137,7 @@ public class ImapServiceImplTest extends TestCase
 
     private NodeRef testImapFolderNodeRef;
     private Flags flags;
+    private ImapServiceImpl imapServiceImpl;
     
     String anotherUserName;
 
@@ -192,7 +193,7 @@ public class ImapServiceImplTest extends TestCase
 
         ChildApplicationContextFactory imap = (ChildApplicationContextFactory) ctx.getBean("imap");
         ApplicationContext imapCtx = imap.getApplicationContext();
-        ImapServiceImpl imapServiceImpl = (ImapServiceImpl)imapCtx.getBean("imapService");
+        imapServiceImpl = (ImapServiceImpl)imapCtx.getBean("imapService");
 
         // Creating IMAP test folder for IMAP root
         LinkedList<String> folders = new LinkedList<String>();
@@ -1006,6 +1007,12 @@ public class ImapServiceImplTest extends TestCase
         assertTrue("New node should have original node aspects", nodeService.hasAspect(copiedNode.getNodeRef(), ContentModel.ASPECT_TAGGABLE));
     }
     
+    public void testListMailboxOnStartup()
+    {
+        authenticationService.clearCurrentSecurityContext();
+        // Starting IMAP
+        imapServiceImpl.startupInTxn(true);
+    }    
     
     /**
      * @param mailbox - {@link AlfrescoImapFolder} instance which should be checked
