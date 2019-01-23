@@ -2,7 +2,7 @@
     <modelVersion>4.0.0</modelVersion>
     <artifactId>alfresco-repository</artifactId>
     <name>Alfresco Repository</name>
-    <version>7.45-SNAPSHOT</version>
+    <version>7.46-SNAPSHOT</version>
     <packaging>jar</packaging>
 
     <parent>
@@ -36,7 +36,7 @@
         <img.exe>convert</img.exe>
 
         <dependency.alfresco-legacy-lucene.version>6.2</dependency.alfresco-legacy-lucene.version>
-        <dependency.alfresco-core.version>7.5</dependency.alfresco-core.version>
+        <dependency.alfresco-core.version>7.9</dependency.alfresco-core.version>
         <dependency.alfresco-greenmail.version>6.1</dependency.alfresco-greenmail.version>
         <dependency.alfresco-data-model.version>8.27</dependency.alfresco-data-model.version>
         <dependency.alfresco-jlan.version>7.1</dependency.alfresco-jlan.version>
@@ -58,7 +58,7 @@
         <dependency.antlr.version>3.5.2</dependency.antlr.version>
         <dependency.keycloak.version>4.5.0.Final</dependency.keycloak.version>
         <dependency.jboss.logging.version>3.3.2.Final</dependency.jboss.logging.version>
-        <dependency.camel.version>2.23.0</dependency.camel.version>
+        <dependency.camel.version>2.23.1</dependency.camel.version>
         <dependency.activemq.version>5.15.8</dependency.activemq.version>
     </properties>
 
@@ -503,6 +503,11 @@
             <artifactId>htmlparser</artifactId>
             <version>2.1</version>
         </dependency>
+        <dependency>
+            <groupId>joda-time</groupId>
+            <artifactId>joda-time</artifactId>
+            <version>2.10.1</version>
+        </dependency>
         <!-- Apache POI -->
         <dependency>
             <groupId>org.apache.poi</groupId>
@@ -541,7 +546,13 @@
             <version>3.0.1</version>
             <scope>provided</scope>
         </dependency>
-        
+
+        <dependency>
+            <groupId>javax.transaction</groupId>
+            <artifactId>jta</artifactId>
+            <version>1.1</version>
+        </dependency>
+
         <!-- Spring Surf -->
         <dependency>
             <groupId>org.alfresco.surf</groupId>
