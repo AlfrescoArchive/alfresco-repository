@@ -2,7 +2,7 @@
  * #%L
  * Alfresco Repository
  * %%
- * Copyright (C) 2005 - 2016 Alfresco Software Limited
+ * Copyright (C) 2005 - 2019 Alfresco Software Limited
  * %%
  * This file is part of the Alfresco software.
  * If the software was purchased under a paid Alfresco license, the terms of
@@ -29,6 +29,12 @@ import org.alfresco.service.cmr.search.ResultSet;
 
 import java.util.BitSet;
 
+/**
+ * WeakFilteringResultSet allows to add a filter to results without hiding the numberOfFound before filter is applied.
+ *
+ * @author eliaporciani
+ *
+ */
 public class WeakFilteringResultSet extends FilteringResultSet {
     public WeakFilteringResultSet(ResultSet unfiltered) {
         super(unfiltered);
@@ -38,6 +44,9 @@ public class WeakFilteringResultSet extends FilteringResultSet {
         super(unfiltered, inclusionMask);
     }
 
+    /**
+     * returns the total number of results found before the filter is applied.
+     */
     @Override
     public long getNumberFound()
     {
