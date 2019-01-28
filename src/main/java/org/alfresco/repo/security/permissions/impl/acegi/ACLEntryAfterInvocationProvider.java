@@ -726,16 +726,11 @@ public class ACLEntryAfterInvocationProvider implements AfterInvocationProvider,
         Integer maxSize = null;
         if (searchParameters.getMaxItems() >= 0)
         {
-            maxSize = searchParameters.getMaxItems();
+            maxSize = searchParameters.getMaxItems() + searchParameters.getSkipCount();
         }
         else if (searchParameters.getLimitBy() == LimitBy.FINAL_SIZE)
         {
-            maxSize = searchParameters.getLimit();
-        }
-        // Allow for skip
-        if ((maxSize != null) && (searchParameters.getSkipCount() >= 0))
-        {
-            maxSize = maxSize + searchParameters.getSkipCount();
+            maxSize = searchParameters.getLimit() + searchParameters.getSkipCount();
         }
 
         return maxSize;
