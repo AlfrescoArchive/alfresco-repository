@@ -50,7 +50,10 @@ import org.alfresco.util.PropertyCheck;
 import org.alfresco.util.TempFileProvider;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
 
 import java.io.File;
 import java.io.Serializable;
@@ -94,7 +97,7 @@ import static org.alfresco.repo.rendition2.RenditionService2Impl.SOURCE_HAS_NO_C
  * 
  * @author Alan Davis
  */
-public class TransformerDebug
+public class TransformerDebug implements ApplicationContextAware
 {
     private static final String FINISHED_IN = "Finished in ";
     private static final String NO_TRANSFORMERS = "No transformers";
@@ -105,6 +108,8 @@ public class TransformerDebug
     private MimetypeService mimetypeService;
     private ContentTransformerRegistry transformerRegistry;
     private TransformerConfig transformerConfig;
+
+    private ApplicationContext applicationContext;
     private ContentService contentService;
     private TransformClient transformClient;
     private Repository repositoryHelper;
@@ -327,14 +332,19 @@ public class TransformerDebug
         this.transformerConfig = transformerConfig;
     }
 
-    public void setTransformClient(TransformClient transformClient)
+    @Override
+    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException
     {
-        this.transformClient = transformClient;
+        this.applicationContext = applicationContext;
     }
 
-    public void setRepositoryHelper(Repository repositoryHelper)
+    private ContentService getContentService()
     {
-        this.repositoryHelper = repositoryHelper;
+        if (contentService == null)
+        {
+            contentService = (ContentService) applicationContext.getBean("contentService");
+        }
+        return contentService;
     }
 
     public void setContentService(ContentService contentService)
@@ -342,9 +352,55 @@ public class TransformerDebug
         this.contentService = contentService;
     }
 
+    private TransformClient getTransformClient()
+    {
+        if (transformClient == null)
+        {
+            transformClient = (TransformClient) applicationContext.getBean("transformClient");
+        }
+        return transformClient;
+    }
+
+    public void setTransformClient(TransformClient transformClient)
+    {
+        this.transformClient = transformClient;
+    }
+
+    public Repository getRepositoryHelper()
+    {
+        if (repositoryHelper == null)
+        {
+            repositoryHelper = (Repository) applicationContext.getBean("repositoryHelper");
+        }
+        return repositoryHelper;
+    }
+
+    public void setRepositoryHelper(Repository repositoryHelper)
+    {
+        this.repositoryHelper = repositoryHelper;
+    }
+
+    public TransactionService getTransactionService()
+    {
+        if (transactionService == null)
+        {
+            transactionService = (TransactionService) applicationContext.getBean("transactionService");
+        }
+        return transactionService;
+    }
+
     public void setTransactionService(TransactionService transactionService)
     {
         this.transactionService = transactionService;
+    }
+
+    public RenditionDefinitionRegistry2Impl getRenditionDefinitionRegistry2Impl()
+    {
+        if (renditionDefinitionRegistry2 == null)
+        {
+            renditionDefinitionRegistry2 = (RenditionDefinitionRegistry2Impl) applicationContext.getBean("renditionDefinitionRegistry2");
+        }
+        return renditionDefinitionRegistry2;
     }
 
     public void setRenditionDefinitionRegistry2(RenditionDefinitionRegistry2Impl renditionDefinitionRegistry2)
@@ -360,11 +416,7 @@ public class TransformerDebug
         PropertyCheck.mandatory(this, "mimetypeService", mimetypeService);
         PropertyCheck.mandatory(this, "transformerRegistry", transformerRegistry);
         PropertyCheck.mandatory(this, "transformerConfig", transformerConfig);
-//        PropertyCheck.mandatory(this, "contentService", contentService);
-//        PropertyCheck.mandatory(this, "transformClient", transformClient);
-//        PropertyCheck.mandatory(this, "repositoryHelper", repositoryHelper);
-//        PropertyCheck.mandatory(this, "transactionService", transactionService);
-//        PropertyCheck.mandatory(this, "renditionDefinitionRegistry2", renditionDefinitionRegistry2);
+        PropertyCheck.mandatory(this, "contentService", contentService);
     }
 
     @Deprecated
@@ -1598,8 +1650,8 @@ public class TransformerDebug
 
         String run(String sourceExtension, String targetExtension, String use)
         {
-            String debug;
-            
+            RenditionDefinitionRegistry2Impl renditionDefinitionRegistry2 = getRenditionDefinitionRegistry2Impl();
+
             String targetMimetype = getMimetype(targetExtension, false);
             String sourceMimetype = getMimetype(sourceExtension, true);
             File tempFile = TempFileProvider.createTempFile(
@@ -1631,6 +1683,7 @@ public class TransformerDebug
                             sourceContentHashCode = contentString.hashCode();
                         }
 
+                        TransformClient transformClient = getTransformClient();
                         transformClient.checkSupported(sourceNodeRef, renditionDefinition, sourceMimetype, size, contentUrl);
                         transformClient.transform(sourceNodeRef, renditionDefinition, "testTransform", sourceContentHashCode);
                     }
@@ -1675,7 +1728,7 @@ public class TransformerDebug
                     URI uri = url.toURI();
                     File sourceFile = new File(uri);
 
-                    final NodeRef companyHome = repositoryHelper.getCompanyHome();
+                    final NodeRef companyHome = getRepositoryHelper().getCompanyHome();
 
                     Map<QName, Serializable> props = new HashMap<QName, Serializable>();
                     String localName = "TestTransform." + extension;
@@ -1687,7 +1740,7 @@ public class TransformerDebug
                             ContentModel.TYPE_CONTENT,
                             props).getChildRef();
 
-                    ContentWriter writer = contentService.getWriter(node, ContentModel.PROP_CONTENT, true);
+                    ContentWriter writer = getContentService().getWriter(node, ContentModel.PROP_CONTENT, true);
                     writer.setMimetype(sourceMimetype);
                     writer.setEncoding("UTF-8");
                     writer.putContent(sourceFile);
@@ -1695,7 +1748,7 @@ public class TransformerDebug
                     return node;
                 }
             };
-            NodeRef contentNodeRef = transactionService.getRetryingTransactionHelper().doInTransaction(makeNodeCallback);
+            NodeRef contentNodeRef = getTransactionService().getRetryingTransactionHelper().doInTransaction(makeNodeCallback);
             this.nodesToDeleteAfterTest.add(contentNodeRef);
             return contentNodeRef;
         }
@@ -1704,7 +1757,7 @@ public class TransformerDebug
         {
             if (sourceNodeRef != null)
             {
-                transactionService.getRetryingTransactionHelper().doInTransaction(
+                getTransactionService().getRetryingTransactionHelper().doInTransaction(
                         (RetryingTransactionHelper.RetryingTransactionCallback<Void>) () ->
                         {
                             if (nodeService.exists(sourceNodeRef))
