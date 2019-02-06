@@ -25,7 +25,6 @@
  */
 package org.alfresco.repo.content.transform;
 
-import org.alfresco.api.AlfrescoPublicApi;
 import org.alfresco.model.ContentModel;
 import org.alfresco.repo.content.filestore.FileContentWriter;
 import org.alfresco.repo.model.Repository;
@@ -51,7 +50,6 @@ import org.alfresco.util.TempFileProvider;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.BeansException;
-import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 
@@ -416,7 +414,6 @@ public class TransformerDebug implements ApplicationContextAware
         PropertyCheck.mandatory(this, "mimetypeService", mimetypeService);
         PropertyCheck.mandatory(this, "transformerRegistry", transformerRegistry);
         PropertyCheck.mandatory(this, "transformerConfig", transformerConfig);
-        PropertyCheck.mandatory(this, "contentService", contentService);
     }
 
     @Deprecated
