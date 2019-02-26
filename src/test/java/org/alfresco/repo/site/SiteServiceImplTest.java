@@ -39,6 +39,7 @@ import java.util.UUID;
 
 import org.alfresco.error.AlfrescoRuntimeException;
 import org.alfresco.model.ContentModel;
+import org.alfresco.model.ForumModel;
 import org.alfresco.query.PagingRequest;
 import org.alfresco.query.PagingResults;
 import org.alfresco.repo.admin.SysAdminParams;
@@ -1800,6 +1801,15 @@ public class SiteServiceImplTest extends BaseAlfrescoSpringTest
         assertEquals(ContentModel.TYPE_FOLDER, nodeService.getType(container6));
         NodeRef container7 = this.siteService.getContainer(siteInfo.getShortName(), "folder.component3");
         assertNotNull(container7);
+        container7 = this.siteService.createContainer(siteInfo.getShortName(), "folder.component3", ForumModel.TYPE_FORUM, null);
+        assertNotNull(container7);
+        assertTrue(container5.equals(container7));
+        assertEquals(ContentModel.TYPE_FOLDER, nodeService.getType(container7));
+        NodeRef container8 = this.siteService.getContainer(siteInfo.getShortName(), "folder.component4");
+        assertNull(container8);
+        container8 = this.siteService.createContainer(siteInfo.getShortName(), "folder.component4", ForumModel.TYPE_FORUM, null);
+        assertNotNull(container8);
+        assertEquals(ForumModel.TYPE_FORUM, nodeService.getType(container8));
 
         try
         {

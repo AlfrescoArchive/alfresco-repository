@@ -38,6 +38,7 @@ import java.util.Set;
 
 import org.alfresco.error.AlfrescoRuntimeException;
 import org.alfresco.model.ContentModel;
+import org.alfresco.model.ForumModel;
 import org.alfresco.repo.policy.PolicyScope;
 import org.alfresco.repo.security.authentication.AuthenticationUtil;
 import org.alfresco.repo.version.VersionRevertCallback.RevertAspectAction;
@@ -1055,6 +1056,21 @@ public class Version2ServiceImpl extends VersionServiceImpl implements VersionSe
             // The frozen (which will become new) values
             // Get the node that represents the frozen state
             NodeRef versionNodeRef = version.getFrozenStateNodeRef();
+                boolean needToRestoreDiscussion = !this.nodeService.hasAspect(versionNodeRef, ForumModel.ASPECT_DISCUSSABLE) 
+                        && this.nodeService.hasAspect(nodeRef, ForumModel.ASPECT_DISCUSSABLE);
+    
+                Map<QName, Serializable> forumProps = null;
+                
+                // always collect forum properties
+                Map<QName, Serializable> currentVersionProp = this.nodeService.getProperties(nodeRef);
+                forumProps = new HashMap<QName, Serializable>();
+                for (QName key : currentVersionProp.keySet())
+                {
+                    if (key.getNamespaceURI().equals(NamespaceService.FORUMS_MODEL_1_0_URI))
+                    {
+                        forumProps.put(key, currentVersionProp.get(key));
+                    }
+                }
                     
             Map<QName, Serializable> newProps = this.nodeService.getProperties(versionNodeRef);
             VersionUtil.convertFrozenToOriginalProps(newProps);
@@ -1118,9 +1134,12 @@ public class Version2ServiceImpl extends VersionServiceImpl implements VersionSe
             }
             
             this.nodeService.setProperties(nodeRef, newProps);
+                
+                //Restore forum properties
+                this.nodeService.addProperties(nodeRef, forumProps);
 
-            // Restore the type
-            this.nodeService.setType(nodeRef, newNodeTypeQName);
+                // Restore the type
+                this.nodeService.setType(nodeRef, newNodeTypeQName);
 
             Set<QName> aspectsToRemove = new HashSet<QName>(oldAspectQNames);
             aspectsToRemove.removeAll(newAspectQNames);
@@ -1135,6 +1154,19 @@ public class Version2ServiceImpl extends VersionServiceImpl implements VersionSe
                 {
                     this.nodeService.addAspect(nodeRef, aspect, null);
                 }
+                }
+                // Don't remove forum aspects
+                if (needToRestoreDiscussion)
+                {
+                    Set<QName> ignoredAspects = new HashSet<QName>();
+                    for (QName aspectForCheck : aspectsToRemove)
+                    {
+                        if (aspectForCheck.getNamespaceURI().equals(NamespaceService.FORUMS_MODEL_1_0_URI))
+                        {
+                            ignoredAspects.add(aspectForCheck);
+                        }
+                    }
+                    aspectsToRemove.removeAll(ignoredAspects);
             }
             
             // remove aspects that are not on the frozen node
@@ -1231,6 +1263,19 @@ public class Version2ServiceImpl extends VersionServiceImpl implements VersionSe
                     children.remove(versionedChild);
                 } 
             }
+                // Don't remove forum children
+                if (needToRestoreDiscussion)
+                {
+                    List<ChildAssociationRef> ignoredChildren = new ArrayList<ChildAssociationRef>();
+                    for (ChildAssociationRef childForCheck : children)
+                    {
+                        if (childForCheck.getTypeQName().getNamespaceURI().equals(NamespaceService.FORUMS_MODEL_1_0_URI))
+                        {
+                            ignoredChildren.add(childForCheck);
+                        }
+                    }
+                    children.removeAll(ignoredChildren);
+                }
             for (ChildAssociationRef ref : children)
             {
                 if (!assocsToLeaveAlone.contains(ref.getTypeQName()))

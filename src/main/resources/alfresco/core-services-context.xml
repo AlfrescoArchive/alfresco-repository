@@ -674,6 +674,7 @@
                 <!-- Content models -->
                 <value>alfresco/model/contentModel.xml</value>
                 <value>alfresco/model/bpmModel.xml</value>
+                <value>alfresco/model/forumModel.xml</value>
                 <value>alfresco/model/imapModel.xml</value>
                 <value>alfresco/model/transferModel.xml</value>
                 <value>alfresco/model/solrFacetModel.xml</value>
@@ -726,6 +727,7 @@
                 <value>alfresco/messages/content-model</value>
                 <value>alfresco/messages/bpm-messages</value>
                 <value>alfresco/messages/application-model</value>
+                <value>alfresco/messages/forum-model</value>
                 <value>alfresco/messages/email-server-model</value>
                 <value>alfresco/messages/transfer-model</value>
                 <value>alfresco/messages/site-model</value>

@@ -45,6 +45,7 @@ import junit.framework.TestCase;
 import org.alfresco.email.server.handler.FolderEmailMessageHandler;
 import org.alfresco.email.server.impl.subetha.SubethaEmailMessage;
 import org.alfresco.model.ContentModel;
+import org.alfresco.model.ForumModel;
 import org.alfresco.repo.management.subsystems.ChildApplicationContextFactory;
 import org.alfresco.repo.security.authentication.AuthenticationUtil;
 import org.alfresco.repo.transfer.TransferModel;
@@ -64,6 +65,7 @@ import org.alfresco.service.namespace.QName;
 import org.alfresco.service.namespace.RegexQNamePattern;
 import org.alfresco.test_category.OwnJVMTestsCategory;
 import org.alfresco.util.ApplicationContextHelper;
+import org.alfresco.util.testing.category.LuceneTests;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -1003,7 +1005,7 @@ public class EmailServiceImplTest extends TestCase
 
       emailService.importMessage(delivery, m);
       
-//      assertTrue(nodeService.hasAspect(testDocNodeRef, ForumModel.ASPECT_DISCUSSABLE));
+      assertTrue(nodeService.hasAspect(testDocNodeRef, ForumModel.ASPECT_DISCUSSABLE));
       
  
    

@@ -114,6 +114,7 @@
       		<!-- Workaround to prevent rules running on cm:rating nodes (which happened for 'liked' folders ALF-8308 & ALF-8382) -->
       		<value>{http://www.alfresco.org/model/content/1.0}rating</value>
       		<value>{http://www.alfresco.org/model/content/1.0}systemfolder</value>
+      		<value>{http://www.alfresco.org/model/forum/1.0}post</value>	
       	 </list>
       </property>
    </bean>

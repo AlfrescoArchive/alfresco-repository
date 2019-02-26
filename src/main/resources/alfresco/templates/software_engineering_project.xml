@@ -45,6 +45,11 @@
 		</cm:folder>
 		<cm:folder>
      		<app:uifacets/>
+			<cm:name>${templates.space.discussions}</cm:name>
+		    <app:icon>space-icon-default</app:icon>
+		</cm:folder>
+		<cm:folder>
+     		<app:uifacets/>
 			<cm:name>${templates.space.ui_design}</cm:name>
 		    <app:icon>space-icon-default</app:icon>
 		</cm:folder>

@@ -43,6 +43,7 @@ import junit.framework.AssertionFailedError;
 
 import org.alfresco.model.ApplicationModel;
 import org.alfresco.model.ContentModel;
+import org.alfresco.model.ForumModel;
 import org.alfresco.repo.content.MimetypeMap;
 import org.alfresco.repo.jscript.ScriptNode;
 import org.alfresco.repo.policy.JavaBehaviour;
@@ -162,7 +163,156 @@ public class VersionServiceImplTest extends BaseVersionStoreTest
     {
         // NOOP
     }
+    
+    /**
+     * MNT-6400 : Issue with versioning and comments
+     * 
+     * Test scenarios:
+     * 1) Create three versions with comments. Then revert to v1. All comments must be exist.
+     * 2) Create three versions. Add comment to the latest two versions (v2 and v3). Then revert to v1. Comments must be exist.
+     */
+    @Test
+    public void testDiscussableAspect()
+    {
+    	final String V1_COMMENT = "<p>Comment for version 1</p>";
+    	final String V2_COMMENT = "<p>Comment for version 2</p>";
+    	final String V3_COMMENT = "Comment for third version";
+        NodeRef versionableNode = createNewVersionableNode();
+        
+        // Test scenario 1
+        Version v1 = createVersion(versionableNode);
+        addComment(versionableNode, V1_COMMENT, false);
+        Version v2 = createVersion(versionableNode);
+        VersionHistory vh = this.versionService.getVersionHistory(versionableNode);
+        assertEquals(2, vh.getAllVersions().size());
+        addComment(versionableNode, V2_COMMENT, false);
+        
+        Set<QName> aspects = nodeService.getAspects(versionableNode);
+        assertTrue(aspects.contains(ForumModel.ASPECT_DISCUSSABLE));
+        assertTrue(isCommentExist(versionableNode, V2_COMMENT));
+        
+        Version v3 = createVersion(versionableNode);
+        vh = this.versionService.getVersionHistory(versionableNode);
+        assertEquals(3, vh.getAllVersions().size());
+        addComment(versionableNode, V3_COMMENT, false);
+        assertTrue(isCommentExist(versionableNode, V3_COMMENT));
+        
+        this.versionService.revert(versionableNode, v1);
+        assertTrue(isCommentExist(versionableNode, V3_COMMENT));
+        assertTrue(isCommentExist(versionableNode, V2_COMMENT));
+        assertTrue(isCommentExist(versionableNode, V1_COMMENT));
+        
+        // Test scenario 2
+        versionableNode = createNewVersionableNode();
+        v1 = createVersion(versionableNode);
+        vh = this.versionService.getVersionHistory(versionableNode);
+        assertEquals(1, vh.getAllVersions().size());
+        
+        v2 = createVersion(versionableNode);
+        vh = this.versionService.getVersionHistory(versionableNode);
+        assertEquals(2, vh.getAllVersions().size());
+        addComment(versionableNode, V2_COMMENT, false);
+        assertTrue(isCommentExist(versionableNode, V2_COMMENT));
+        
+        v3 = createVersion(versionableNode);
+        vh = this.versionService.getVersionHistory(versionableNode);
+        assertEquals(3, vh.getAllVersions().size());
+        addComment(versionableNode, V3_COMMENT, false);
+        assertTrue(isCommentExist(versionableNode, V3_COMMENT));
+        
+        this.versionService.revert(versionableNode, v1);
+        assertTrue(isCommentExist(versionableNode, V3_COMMENT));
+        assertTrue(isCommentExist(versionableNode, V2_COMMENT));
+        
+        assertFalse(isCommentExist(versionableNode, V1_COMMENT));
+    }
+    
+    private NodeRef addComment(NodeRef nr, String comment, boolean suppressRollups)
+    {
+        // There is no CommentService, so we have to create the node structure by hand.
+        // This is what happens within e.g. comment.put.json.js when comments are submitted via the REST API.
+        if (!nodeService.hasAspect(nr, ForumModel.ASPECT_DISCUSSABLE))
+        {
+            nodeService.addAspect(nr, ForumModel.ASPECT_DISCUSSABLE, null);
+        }
+        if (!nodeService.hasAspect(nr, ForumModel.ASPECT_COMMENTS_ROLLUP) && !suppressRollups)
+        {
+            nodeService.addAspect(nr, ForumModel.ASPECT_COMMENTS_ROLLUP, null);
+        }
+        // Forum node is created automatically by DiscussableAspect behaviour.
+        NodeRef forumNode = nodeService.getChildAssocs(nr, ForumModel.ASSOC_DISCUSSION, QName.createQName(NamespaceService.FORUMS_MODEL_1_0_URI, "discussion")).get(0).getChildRef();
+        
+        final List<ChildAssociationRef> existingTopics = nodeService.getChildAssocs(forumNode, ContentModel.ASSOC_CONTAINS, QName.createQName(NamespaceService.CONTENT_MODEL_1_0_URI, "Comments"));
+        NodeRef topicNode = null;
+        if (existingTopics.isEmpty())
+        {
+            topicNode = nodeService.createNode(forumNode, ContentModel.ASSOC_CONTAINS, QName.createQName(NamespaceService.CONTENT_MODEL_1_0_URI, "Comments"), ForumModel.TYPE_TOPIC).getChildRef();
+        }
+        else
+        {
+            topicNode = existingTopics.get(0).getChildRef();
+        }
 
+        NodeRef postNode = nodeService.createNode(topicNode, ContentModel.ASSOC_CONTAINS, QName.createQName("comment" + System.currentTimeMillis()), ForumModel.TYPE_POST).getChildRef();
+        nodeService.setProperty(postNode, ContentModel.PROP_CONTENT, new ContentData(null, MimetypeMap.MIMETYPE_TEXT_PLAIN, 0L, null));
+        ContentWriter writer = contentService.getWriter(postNode, ContentModel.PROP_CONTENT, true);
+        writer.setMimetype(MimetypeMap.MIMETYPE_TEXT_PLAIN);
+        writer.setEncoding("UTF-8");
+        writer.putContent(comment);
+        
+        return postNode;
+    }
+    
+    private boolean isCommentExist(NodeRef nr, String commentForCheck)
+    {
+    	if (!nodeService.hasAspect(nr, ForumModel.ASPECT_DISCUSSABLE))
+        {
+            return false;
+        }
+    	
+    	NodeRef forumNode = nodeService.getChildAssocs(nr, ForumModel.ASSOC_DISCUSSION, QName.createQName(NamespaceService.FORUMS_MODEL_1_0_URI, "discussion")).get(0).getChildRef();
+    	final List<ChildAssociationRef> existingTopics = nodeService.getChildAssocs(forumNode, ContentModel.ASSOC_CONTAINS, QName.createQName(NamespaceService.CONTENT_MODEL_1_0_URI, "Comments"));
+    	if (existingTopics.isEmpty())
+        {
+    		return false;
+        }
+    	NodeRef topicNode = existingTopics.get(0).getChildRef();
+    	Collection<ChildAssociationRef> comments = nodeService.getChildAssocsWithoutParentAssocsOfType(topicNode, ContentModel.ASSOC_CONTAINS);
+    	for (ChildAssociationRef comment : comments)
+    	{
+    		NodeRef commentRef = comment.getChildRef();
+    		ContentReader reader = contentService.getReader(commentRef, ContentModel.PROP_CONTENT);
+    		if (reader == null)
+    		{
+    			continue;
+    		}
+    		String contentString = reader.getContentString();
+    		if (commentForCheck.equals(contentString))
+    		{
+    			return true;
+    		}
+    	}
+    	
+    	return false;
+    }
+    
+    // MNT-13647, MNT-13719 check for comment count in node property
+    @Test
+    public void testCommentsCountProperty() {
+    	final String COMMENT = "<p>Comment</p>";
+    	
+        NodeRef versionableNode = createNewVersionableNode();
+        addComment(versionableNode, COMMENT, false);
+        
+        // Test scenario 1
+        Version v1 = createVersion(versionableNode);
+        addComment(versionableNode, COMMENT, false);
+        Version v2 = createVersion(versionableNode);
+        this.versionService.revert(versionableNode, v1);
+
+        assertEquals("Incorrect comments count:", 2, nodeService.getProperty(versionableNode, ForumModel.PROP_COMMENT_COUNT));
+	}
+    
     /**
      * Tests the creation of the initial version of a versionable node
      */
@@ -659,7 +809,92 @@ public class VersionServiceImplTest extends BaseVersionStoreTest
        // TODO Shouldn't the node now be at 0.1 not 0.2?
        //assertEquals("0.1", nodeService.getProperty(versionableNode, ContentModel.PROP_VERSION_LABEL));
     }
+    
+    
+    /**
+     * Test reverting a node that has comments, see ALF-13129
+     */
+    @Test
+    public void testRevertWithComments()
+    {
+        NodeRef versionableNode = createNewVersionableNode();
 
+    	this.dbNodeService.setProperty(versionableNode, PROP_1, "I am before version");
+    	Version version1 = createVersion(versionableNode);
+    	this.dbNodeService.setProperty(versionableNode, PROP_1, "I am after version 1");
+      
+        VersionHistory vh = this.versionService.getVersionHistory(versionableNode);
+        assertNotNull(vh);
+        assertEquals(1, vh.getAllVersions().size());
+        
+    	// Create a new version
+    	Version version2 = createVersion(versionableNode);
+    	
+    	//Test a revert with no comments
+    	this.versionService.revert(versionableNode, version1);
+        assertEquals("I am before version", this.dbNodeService.getProperty(versionableNode, PROP_1));
+    	
+        createComment(versionableNode, "my comment", "Do great work", false);
+        assertTrue(nodeService.hasAspect(versionableNode, ForumModel.ASPECT_DISCUSSABLE));
+        assertTrue("fm:discussion association must exist", nodeService.getChildAssocs(versionableNode, ForumModel.ASSOC_DISCUSSION, RegexQNamePattern.MATCH_ALL).size() > 0);
+        assertEquals(1, this.dbNodeService.getProperty(versionableNode,  ForumModel.PROP_COMMENT_COUNT));
+    	
+    	// Create a new version
+    	this.dbNodeService.setProperty(versionableNode, PROP_1, "I am version 3");
+    	Version version3 = createVersion(versionableNode);
+    	this.dbNodeService.setProperty(versionableNode, PROP_1, "I am after version 3");
+    	
+        createComment(versionableNode, "v3", "Great version", false);
+        assertEquals(2, this.dbNodeService.getProperty(versionableNode,  ForumModel.PROP_COMMENT_COUNT));
+    	
+    	//Revert to a version that has comments.
+    	this.versionService.revert(versionableNode, version3);
+        assertTrue(nodeService.hasAspect(versionableNode, ForumModel.ASPECT_DISCUSSABLE));
+        assertTrue("fm:discussion association must exist", nodeService.getChildAssocs(versionableNode, ForumModel.ASSOC_DISCUSSION, RegexQNamePattern.MATCH_ALL).size() > 0);
+        assertEquals("I am version 3", this.dbNodeService.getProperty(versionableNode, PROP_1));
+        
+        //Test reverting from version without comments to version that has comments
+        
+        //Revert to a version that has no comments.
+        this.versionService.revert(versionableNode, version1);
+        assertEquals("I am before version", this.dbNodeService.getProperty(versionableNode, PROP_1));  
+        assertTrue(nodeService.hasAspect(versionableNode, ForumModel.ASPECT_DISCUSSABLE));
+       
+        //Revert to a version that has comments.
+        this.versionService.revert(versionableNode, version3);
+        assertTrue(nodeService.hasAspect(versionableNode, ForumModel.ASPECT_DISCUSSABLE));
+        assertTrue("fm:discussion association must exist", nodeService.getChildAssocs(versionableNode, ForumModel.ASSOC_DISCUSSION, RegexQNamePattern.MATCH_ALL).size() > 0);
+        assertEquals("I am version 3", this.dbNodeService.getProperty(versionableNode, PROP_1));
+
+       
+       
+        //Test reverting from version with comments to another version with comments, but with another 'forum' node
+       
+        NodeRef clearNode = createNewVersionableNode();
+       
+        //Create version without comments
+        Version clearVersion1 = createVersion(clearNode);
+       
+        //Create version with comments       
+        createComment(clearNode, "my comment", "Do great work", false);
+        assertTrue(nodeService.hasAspect(clearNode, ForumModel.ASPECT_DISCUSSABLE));
+        Version clearVersion2 = createVersion(clearNode);
+       
+        //Revert to version without comments
+        this.versionService.revert(clearNode, clearVersion1);
+        assertTrue(nodeService.hasAspect(clearNode, ForumModel.ASPECT_DISCUSSABLE));
+       
+        //Create new version with comments
+        createComment(clearNode, "my comment", "Do great work", false);
+        Version clearVersion3 = createVersion(clearNode);
+
+        //Revert from version with comments, to version with another comments
+        this.versionService.revert(clearNode, clearVersion2);
+        assertTrue(nodeService.hasAspect(versionableNode, ForumModel.ASPECT_DISCUSSABLE));
+        assertTrue("fm:discussion association must exist", nodeService.getChildAssocs(clearNode, ForumModel.ASSOC_DISCUSSION, RegexQNamePattern.MATCH_ALL).size() > 0);  
+
+    }
+    
     /**
      * Test that secondary association is present after revert, see MNT-11756
      */
@@ -701,6 +936,55 @@ public class VersionServiceImplTest extends BaseVersionStoreTest
         childAssocs = nodeService.getChildAssocs(orderNodeRef, TEST_ATS_RELATED_CHILDREN_QNAME, RegexQNamePattern.MATCH_ALL);
         assertTrue("Order-Product association must exist after revert", childAssocs.size() > 0);
         assertTrue("Order-Product association should remain the same", childAssocs.contains(childAssoc));
+    }
+    
+    /**
+     * This method was taken from the CommmentServiceImpl on the cloud branch
+     * 
+     * TODO: When this is merged to HEAD, please remove this method and use the one in CommmentServiceImpl
+     */
+    private NodeRef createComment(final NodeRef discussableNode, String title, String comment, boolean suppressRollups)
+    {
+    	if(comment == null)
+    	{
+    		throw new IllegalArgumentException("Must provide a non-null comment");
+    	}
+
+        // There is no CommentService, so we have to create the node structure by hand.
+        // This is what happens within e.g. comment.put.json.js when comments are submitted via the REST API.
+        if (!nodeService.hasAspect(discussableNode, ForumModel.ASPECT_DISCUSSABLE))
+        {
+            nodeService.addAspect(discussableNode, ForumModel.ASPECT_DISCUSSABLE, null);
+        }
+        if (!nodeService.hasAspect(discussableNode, ForumModel.ASPECT_COMMENTS_ROLLUP) && !suppressRollups)
+        {
+            nodeService.addAspect(discussableNode, ForumModel.ASPECT_COMMENTS_ROLLUP, null);
+        }
+        // Forum node is created automatically by DiscussableAspect behaviour.
+        NodeRef forumNode = nodeService.getChildAssocs(discussableNode, ForumModel.ASSOC_DISCUSSION, QName.createQName(NamespaceService.FORUMS_MODEL_1_0_URI, "discussion")).get(0).getChildRef();
+        
+        final List<ChildAssociationRef> existingTopics = nodeService.getChildAssocs(forumNode, ContentModel.ASSOC_CONTAINS, QName.createQName(NamespaceService.CONTENT_MODEL_1_0_URI, "Comments"));
+        NodeRef topicNode = null;
+        if (existingTopics.isEmpty())
+        {
+            Map<QName, Serializable> props = new HashMap<QName, Serializable>(1, 1.0f);
+            props.put(ContentModel.PROP_NAME, "Comments");
+            topicNode = nodeService.createNode(forumNode, ContentModel.ASSOC_CONTAINS, QName.createQName(NamespaceService.CONTENT_MODEL_1_0_URI, "Comments"), ForumModel.TYPE_TOPIC, props).getChildRef();
+        }
+        else
+        {
+            topicNode = existingTopics.get(0).getChildRef();
+        }
+
+        NodeRef postNode = nodeService.createNode(topicNode, ContentModel.ASSOC_CONTAINS, ContentModel.ASSOC_CONTAINS, ForumModel.TYPE_POST).getChildRef();
+        nodeService.setProperty(postNode, ContentModel.PROP_CONTENT, new ContentData(null, MimetypeMap.MIMETYPE_TEXT_PLAIN, 0L, null));
+        nodeService.setProperty(postNode, ContentModel.PROP_TITLE, title);
+        ContentWriter writer = contentService.getWriter(postNode, ContentModel.PROP_CONTENT, true);
+        writer.setMimetype(MimetypeMap.MIMETYPE_HTML);
+        writer.setEncoding("UTF-8");
+        writer.putContent(comment);
+
+        return postNode;
     }
     
     /**
@@ -866,7 +1150,8 @@ public class VersionServiceImplTest extends BaseVersionStoreTest
         
         // Create a versionable node
         NodeRef versionableNode = createNewVersionableNode();
-
+        createComment(versionableNode, "my comment", "Do great work", false);
+        
         // It isn't currently versionable
         assertEquals(null, versionService.getVersionHistory(versionableNode));
         

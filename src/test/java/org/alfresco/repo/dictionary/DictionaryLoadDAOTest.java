@@ -31,6 +31,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
+import org.alfresco.repo.cache.MemoryCache;
 import org.alfresco.repo.security.authentication.AuthenticationUtil;
 import org.alfresco.repo.tenant.MultiTServiceImpl;
 import org.alfresco.repo.tenant.TenantService;
@@ -89,6 +90,7 @@ public class DictionaryLoadDAOTest
         bootstrapModels.add("org/alfresco/repo/security/authentication/userModel.xml");
         bootstrapModels.add("alfresco/model/bpmModel.xml");
         bootstrapModels.add("alfresco/model/wcmModel.xml");
+        bootstrapModels.add("alfresco/model/forumModel.xml");
         bootstrapModels.add("alfresco/model/imapModel.xml");
         bootstrapModels.add("alfresco/model/transferModel.xml");
         bootstrapModels.add("alfresco/model/applicationModel.xml");
