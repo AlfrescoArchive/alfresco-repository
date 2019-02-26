@@ -74,21 +74,6 @@
 				<entry key="cm:folder">
 					<ref bean="folderEmailMessageHandler"></ref>
 				</entry>
-				<entry key="cm:content">
-					<ref bean="documentEmailMessageHandler"></ref>
-				</entry>
-				<entry key="fm:forum">
-					<ref bean="forumEmailMessageHandler"></ref>
-				</entry>
-				<entry key="fm:discussion">
-					<ref bean="forumEmailMessageHandler"></ref>
-				</entry>
-				<entry key="fm:topic">
-					<ref bean="topicEmailMessageHandler"></ref>
-				</entry>
-				<entry key="fm:post">
-					<ref bean="topicEmailMessageHandler"></ref>
-				</entry>
 			</map>
 		</property>
 		<property name="namespaceService">
@@ -137,18 +122,5 @@
 		    <value>${email.handler.folder.overwriteDuplicates}</value>            
         </property>
     </bean>
-
-	<bean id="forumEmailMessageHandler"
-		parent="emailMessageHandlerBase"
-		class="org.alfresco.email.server.handler.ForumEmailMessageHandler" />
-
-	<bean id="documentEmailMessageHandler"
-		parent="emailMessageHandlerBase"
-		class="org.alfresco.email.server.handler.DocumentEmailMessageHandler" />
-
-	<bean id="topicEmailMessageHandler"
-		parent="emailMessageHandlerBase"
-		class="org.alfresco.email.server.handler.TopicEmailMessageHandler" />
-
 
 </beans>

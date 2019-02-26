@@ -69,6 +69,7 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
  * 
  * @author Derek Hulley
  */
+//TODO add test to suite
 public class XmlMetadataExtracterTest extends TestCase
 {
     private static final String FILE_ALFRESCO_MODEL = "xml-metadata/alfresco-model-sample.xml";

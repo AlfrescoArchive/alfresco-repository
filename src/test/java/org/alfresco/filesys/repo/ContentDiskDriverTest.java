@@ -64,7 +64,6 @@ import org.alfresco.jlan.server.filesys.PermissionDeniedException;
 import org.alfresco.jlan.server.filesys.SearchContext;
 import org.alfresco.jlan.server.filesys.TreeConnection;
 import org.alfresco.model.ContentModel;
-import org.alfresco.model.ForumModel;
 import org.alfresco.repo.action.evaluator.NoConditionEvaluator;
 import org.alfresco.repo.content.MimetypeMap;
 import org.alfresco.repo.management.subsystems.ApplicationContextFactory;
@@ -2755,16 +2754,12 @@ public class ContentDiskDriverTest extends TestCase
                 NodeRef companyHome = repositoryHelper.getCompanyHome();
                 NodeRef parentNode = nodeService.createNode(companyHome, ContentModel.ASSOC_CONTAINS, QName.createQName(NamespaceService.CONTENT_MODEL_1_0_URI, FOLDER_NAME), ContentModel.TYPE_FOLDER).getChildRef();
                 nodeService.setProperty(parentNode, ContentModel.PROP_NAME, FOLDER_NAME);
-                
-                NodeRef hiddenNode = nodeService.createNode(parentNode, ContentModel.ASSOC_CONTAINS, QName.createQName(NamespaceService.CONTENT_MODEL_1_0_URI, HIDDEN_FOLDER_NAME), ForumModel.TYPE_FORUM).getChildRef();
-                nodeService.setProperty(hiddenNode, ContentModel.PROP_NAME, HIDDEN_FOLDER_NAME);
                 return parentNode;
             }
         };
         final NodeRef parentFolder = tran.doInTransaction(createNodesCB);
-        
+
         List<String> excludedTypes = new ArrayList<String>();
-        excludedTypes.add(ForumModel.TYPE_FORUM.toString());
         cifsHelper.setExcludedTypes(excludedTypes);
         SearchContext result = driver.startSearch(testSession, testConnection, "\\"+FOLDER_NAME + "\\*", 0);
         while(result.hasMoreFiles())

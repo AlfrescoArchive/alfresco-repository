@@ -182,10 +182,7 @@ function testContainer()
     test.assertEquals("{http://www.alfresco.org/model/content/1.0}folder", container3.type);
     var container4 = site.getContainer("folder.component3");
     test.assertNull(container4);
-    container4 = site.createContainer("folder.component3", "fm:forum");
-    test.assertNotNull(container4);
-    test.assertEquals("{http://www.alfresco.org/model/forum/1.0}forum", container4.type);
-    
+
     var perms = Array();
     perms["GROUP_EVERYONE"] = "SiteCollaborator";
     var containerWithPerms = site.createContainer("folder.component4", null, perms);

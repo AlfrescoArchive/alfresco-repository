@@ -45,7 +45,6 @@ import junit.framework.TestCase;
 
 import org.alfresco.error.AlfrescoRuntimeException;
 import org.alfresco.model.ContentModel;
-import org.alfresco.model.ForumModel;
 import org.alfresco.query.PagingRequest;
 import org.alfresco.query.PagingResults;
 import org.alfresco.repo.content.MimetypeMap;
@@ -479,35 +478,6 @@ public class FileFolderServiceImplTest extends TestCase
         {
             // expected
         }
-    }
-    
-    public void testRenameDiscussionALF5569() throws Exception
-    {
-        FileInfo fileInfo = getByName(NAME_L0_FILE_A, false);
-        assertNotNull(fileInfo);
-        
-        // create a discussion for the file, this happens in a behaviour
-        // when adding the discussable aspect
-        nodeService.addAspect(fileInfo.getNodeRef(), ForumModel.ASPECT_DISCUSSABLE, null);
-        List<ChildAssociationRef> destChildren = nodeService.getChildAssocs(
-              fileInfo.getNodeRef(),
-              ForumModel.ASSOC_DISCUSSION,
-              RegexQNamePattern.MATCH_ALL);
-        assertEquals(1, destChildren.size());
-        
-        // get the first child
-        NodeRef discussionNodeRef = destChildren.get(0).getChildRef();
-        
-        // check the current name
-        String currentName = (String)nodeService.getProperty(discussionNodeRef, ContentModel.PROP_NAME);
-        assertFalse(NAME_DISCUSSION_FOLDER.equals(currentName));
-        
-        // rename the discussion node
-        FileInfo newFileInfo = fileFolderService.rename(discussionNodeRef, NAME_DISCUSSION_FOLDER);
-        
-        // get the name now
-        String newName = (String)nodeService.getProperty(newFileInfo.getNodeRef(), ContentModel.PROP_NAME);
-        assertEquals(NAME_DISCUSSION_FOLDER, newName);
     }
 
     public void testMove() throws Exception

@@ -414,11 +414,6 @@
       <property name="hiddenAspect"><ref bean="hiddenAspect"/></property>
       <property name="lockService"><ref bean="lockService"/></property>
       <property name="retryingTransactionHelper"><ref bean="retryingTransactionHelper"/></property>
-      <property name="excludedTypes">
-          <list>
-              <value>{http://www.alfresco.org/model/forum/1.0}forum</value>
-          </list>
-      </property>
    </bean>
 
 </beans>

@@ -26,7 +26,6 @@
 package org.alfresco.repo.rule.ruletrigger;
 
 import org.alfresco.model.ContentModel;
-import org.alfresco.model.ForumModel;
 import org.alfresco.repo.content.MimetypeMap;
 import org.alfresco.repo.security.authentication.AuthenticationUtil;
 import org.alfresco.service.ServiceRegistry;
@@ -104,23 +103,6 @@ public class RuleTriggerTest extends BaseSpringTest
         
         // Check to see if the rule type has been triggered
         assertTrue(ruleType.rulesTriggered);
-    }
-
-    @Test
-    public void testOnCreateIgnoredTypesTrigger()
-    {
-        TestRuleType ruleType = createTestRuleType(ON_CREATE_NODE_TRIGGER);
-        assertFalse(ruleType.rulesTriggered);
-
-        //Try and trigger the type
-        this.nodeService.createNode(
-                this.rootNodeRef, 
-                ForumModel.ASSOC_DISCUSSION,
-                ForumModel.ASSOC_DISCUSSION, 
-                ForumModel.TYPE_POST);
-        
-        //Check to see if the rule type has been triggered
-        assertFalse(ruleType.rulesTriggered);
     }
  
     @Test

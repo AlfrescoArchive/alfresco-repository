@@ -48,7 +48,6 @@ import org.junit.runners.Suite;
     org.alfresco.repo.dictionary.CustomModelServiceImplTest.class,
     org.alfresco.repo.dictionary.ValueDataTypeValidatorImplTest.class,
     org.alfresco.repo.download.DownloadServiceIntegrationTest.class,
-    org.alfresco.repo.forum.CommentsTest.class,
     org.alfresco.repo.jscript.ScriptNodeTest.class,
     org.alfresco.repo.preference.PreferenceServiceImplTest.class,
     org.alfresco.repo.rule.MiscellaneousRulesTest.class,
