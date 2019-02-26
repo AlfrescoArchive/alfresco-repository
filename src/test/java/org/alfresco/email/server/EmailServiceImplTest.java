@@ -904,7 +904,7 @@ public class EmailServiceImplTest extends TestCase
        assocs = nodeService.getChildAssocs(testUserHomeFolder, ContentModel.ASSOC_CONTAINS, safeQName);
        assertEquals(1, assocs.size());
    }
-
+  
    /**
     * The Email contributors authority controls who can add email.
     * 
