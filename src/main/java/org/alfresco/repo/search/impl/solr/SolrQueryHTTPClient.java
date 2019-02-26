@@ -1180,10 +1180,6 @@ public class SolrQueryHTTPClient extends AbstractSolrQueryHTTPClient implements 
         return sortBuffer;
     }
 
-   
-
-
-
     /* (non-Javadoc)
      * @see org.springframework.beans.factory.BeanFactoryAware#setBeanFactory(org.springframework.beans.factory.BeanFactory)
      */
