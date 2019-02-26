@@ -115,8 +115,6 @@ public class SolrQueryHTTPClient extends AbstractSolrQueryHTTPClient implements 
     private DictionaryService dictionaryService;
 
     private NodeService nodeService;
-
-    private PermissionService permissionService;
     
     private NodeDAO nodeDAO;
     
@@ -149,6 +147,8 @@ public class SolrQueryHTTPClient extends AbstractSolrQueryHTTPClient implements 
     private int defaultShardedFacetLimit = 20;
 
     private NamespaceDAO namespaceDAO;
+
+    protected PermissionService permissionService;
 
     public SolrQueryHTTPClient()
     {
