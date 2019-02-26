@@ -115,11 +115,11 @@ public class SolrQueryHTTPClient extends AbstractSolrQueryHTTPClient implements 
     private DictionaryService dictionaryService;
 
     private NodeService nodeService;
-    
+
     private NodeDAO nodeDAO;
-    
+
     private TenantService tenantService;
-    
+
     private ShardRegistry shardRegistry;
 
     private Map<String, String> languageMappings;
@@ -148,7 +148,7 @@ public class SolrQueryHTTPClient extends AbstractSolrQueryHTTPClient implements 
 
     private NamespaceDAO namespaceDAO;
 
-    protected PermissionService permissionService;
+    private PermissionService permissionService;
 
     public SolrQueryHTTPClient()
     {
@@ -1341,5 +1341,78 @@ public class SolrQueryHTTPClient extends AbstractSolrQueryHTTPClient implements 
     }
 
 
+    public TenantService getTenantService()
+    {
+        return tenantService;
+    }
 
+    public DictionaryService getDictionaryService()
+    {
+        return dictionaryService;
+    }
+
+    public NodeService getNodeService()
+    {
+        return nodeService;
+    }
+
+    public ShardRegistry getShardRegistry()
+    {
+        return shardRegistry;
+    }
+
+    public RepositoryState getRepositoryState()
+    {
+        return repositoryState;
+    }
+
+    public boolean isUseDynamicShardRegistration()
+    {
+        return useDynamicShardRegistration;
+    }
+
+    public int getDefaultUnshardedFacetLimit()
+    {
+        return defaultUnshardedFacetLimit;
+    }
+
+    public int getDefaultShardedFacetLimit()
+    {
+        return defaultShardedFacetLimit;
+    }
+
+    public NamespaceDAO getNamespaceDAO()
+    {
+        return namespaceDAO;
+    }
+
+    public PermissionService getPermissionService()
+    {
+        return permissionService;
+    }
+
+    public Map<String, String> getLanguageMappings()
+    {
+        return languageMappings;
+    }
+
+    public boolean isAnyDenyDenies()
+    {
+        return anyDenyDenies;
+    }
+
+    public String getAlternativeDictionary()
+    {
+        return alternativeDictionary;
+    }
+
+    public boolean isIncludeGroupsForRoleAdmin()
+    {
+        return includeGroupsForRoleAdmin;
+    }
+
+    public int getMaximumResultsFromUnlimitedQuery()
+    {
+        return maximumResultsFromUnlimitedQuery;
+    }
 }
