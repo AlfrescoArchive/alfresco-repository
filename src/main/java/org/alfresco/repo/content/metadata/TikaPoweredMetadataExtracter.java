@@ -103,7 +103,6 @@ public abstract class TikaPoweredMetadataExtracter
     protected static final String KEY_SUBJECT = "subject";
     protected static final String KEY_CREATED = "created";
     protected static final String KEY_DESCRIPTION = "description";
-    protected static final String KEY_COMMENTS = "comments";
     protected static final String KEY_TAGS = "dc:subject";
 
     private DateTimeFormatter tikaUTCDateFormater;
@@ -412,7 +411,6 @@ public abstract class TikaPoweredMetadataExtracter
             // The simple ones
             putRawValue(KEY_AUTHOR, getMetadataValue(metadata, Metadata.AUTHOR), rawProperties);
             putRawValue(KEY_TITLE, getMetadataValue(metadata, Metadata.TITLE), rawProperties);
-            putRawValue(KEY_COMMENTS, getMetadataValue(metadata, Metadata.COMMENTS), rawProperties);
 
             // Tags
             putRawValue(KEY_TAGS, getMetadataValues(metadata, KEY_TAGS), rawProperties);
