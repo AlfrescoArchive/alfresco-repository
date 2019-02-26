@@ -560,6 +560,8 @@
                 <value>cm:likesRatingSchemeCount</value>
                 <value>cm:fiveStarRatingSchemeCount</value>
                 <value>cm:fiveStarRatingSchemeTotal</value>
+                <!-- ALF-12205 - do not version on comments -->
+                <value>fm:commentCount</value>
                 <value>cm:expiryDate</value>
                 <!-- MNT-181 -->
                 <value>sys:clientVisibilityMask</value>
@@ -568,6 +570,8 @@
                 <value>cm:likesRatingSchemeCount</value>
                 <value>cm:fiveStarRatingSchemeCount</value>
                 <value>cm:fiveStarRatingSchemeTotal</value>
+                <!-- ALF-12205 - do not version on comments -->
+                <value>fm:commentCount</value>
                 <!-- MNT-9688 -->
                 <value>cm:storeName</value>
                 <value>cm:content</value>
