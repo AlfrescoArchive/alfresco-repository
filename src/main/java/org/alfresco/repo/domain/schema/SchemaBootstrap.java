@@ -52,7 +52,6 @@ import java.sql.SQLXML;
 import java.sql.Savepoint;
 import java.sql.Statement;
 import java.sql.Struct;
-import java.sql.Types;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -1749,8 +1748,12 @@ public class SchemaBootstrap extends AbstractLifecycleBean
                 {
                     // Remove the flag indicating a running bootstrap
                     setBootstrapCompleted(connection);
+
+                    // Validate the schema, post-upgrade
+                    validateSchema("Alfresco-{0}-Validation-Post-Upgrade-{1}-", null);
+                    // 4.0+ schema dump
+                    dumpSchema("post-upgrade");
                 }
-                reportNormalizedDumps();
             }
             else
             {
@@ -1801,17 +1804,6 @@ public class SchemaBootstrap extends AbstractLifecycleBean
             {
                 logger.warn("Error closing DB connection: " + e.getMessage());
             }
-        }
-    }
-
-    private void reportNormalizedDumps()
-    {
-        if (executedStatementsThreadLocal.get() != null)
-        {
-            // Validate the schema, post-upgrade
-            validateSchema("Alfresco-{0}-Validation-Post-Upgrade-{1}-", null);
-            // 4.0+ schema dump
-            dumpSchema("post-upgrade");
         }
     }
 

@@ -25,9 +25,12 @@
  */
 package org.alfresco.util.schemacomp;
 
+import java.io.IOException;
+import java.io.LineNumberReader;
 import java.lang.reflect.Field;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Map;
@@ -51,6 +54,10 @@ import org.alfresco.util.schemacomp.model.Table;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.context.ApplicationContext;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.support.EncodedResource;
+import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
+import org.springframework.core.io.support.ResourcePatternResolver;
 
 
 /**
@@ -60,6 +67,11 @@ import org.springframework.context.ApplicationContext;
  */
 public class ExportDb
 {
+    /** The placeholder for the configured <code>Dialect</code> class name: <b>${db.script.dialect}</b> */
+    private static final String PLACEHOLDER_DIALECT = "\\$\\{db\\.script\\.dialect\\}";
+    private static final String SCHEMA_REFERENCE_SEQUENCES_SQL_FILE = "classpath:alfresco/dbscripts/create/${db.script.dialect}/Schema-Reference-SequencesWorkaround.sql";
+    private static final String DEFAULT_SCRIPT_COMMENT_PREFIX = "--";
+
     /** Reverse map from database types to JDBC types (loaded from a Hibernate dialect). */
     private final Map<String, Integer> reverseTypeMap = new TreeMap<String, Integer>();
 
@@ -85,8 +97,9 @@ public class ExportDb
     private String dbSchemaName;
 
     private final static Log log = LogFactory.getLog(ExportDb.class);
-    
-    
+
+    private ResourcePatternResolver rpr = new PathMatchingResourcePatternResolver(this.getClass().getClassLoader());
+
     public ExportDb(ApplicationContext context)
     {
         this((DataSource) context.getBean("dataSource"),
@@ -224,23 +237,40 @@ public class ExportDb
             extractSchema(dbmd, schemaName, filter);
         }
     }
-
+    
     
     private void extractSchema(DatabaseMetaData dbmd, String schemaName, String prefixFilter)
-                throws SQLException, IllegalArgumentException, IllegalAccessException
+                throws SQLException, IllegalArgumentException, IllegalAccessException, IOException
     {
         if (log.isDebugEnabled())
         {
             log.debug("Retrieving tables: schemaName=[" + schemaName + "], prefixFilter=[" + prefixFilter + "]");
         }
-        
-        
-        final ResultSet tables = dbmd.getTables(null, schemaName, prefixFilter, new String[]
+
+        final String[] tableTypes;
+        Resource sequencesRefResource = getSequencesReferenceResource();
+        if (sequencesRefResource != null && sequencesRefResource.exists())
         {
-            "TABLE", "VIEW", "SEQUENCE"
-        });
+            tableTypes = new String[] {"TABLE", "VIEW"};
+
+            retrieveAndProcessSequences(dbmd, sequencesRefResource, schemaName, prefixFilter);
+        } else {
+            tableTypes = new String[] {"TABLE", "VIEW", "SEQUENCE"};
+        }
         
-        
+        final ResultSet tables = dbmd.getTables(null, schemaName, prefixFilter, tableTypes);
+
+        processTables(dbmd, tables);
+    }
+
+    private void processTables(DatabaseMetaData dbmd, ResultSet tables) 
+                throws SQLException, IllegalArgumentException, IllegalAccessException
+    {    
+        if (tables == null)
+        {
+            return;
+        }
+
         while (tables.next())
         {
             final String tableName = tables.getString("TABLE_NAME");
@@ -511,5 +541,231 @@ public class ExportDb
     public void setDbSchemaName(String dbSchemaName)
     {
         this.dbSchemaName = dbSchemaName;
+    }
+
+    /**
+     * Attempts to find the schema reference sequences sql file. If not found, the
+     * dialect hierarchy will be walked until a compatible resource is found. This
+     * makes it possible to have resources that are generic to all dialects.
+     *
+     * @return The Resource, otherwise null
+     */
+    private Resource getSequencesReferenceResource()
+    {
+        return getDialectResource(dialect.getClass(), SCHEMA_REFERENCE_SEQUENCES_SQL_FILE);
+    }
+
+    /**
+     * Replaces the dialect placeholder in the resource URL and attempts to find a
+     * file for it. If not found, the dialect hierarchy will be walked until a
+     * compatible resource is found. This makes it possible to have resources that
+     * are generic to all dialects.
+     *
+     * @param dialectClass
+     *            the class dialect
+     * @param resourceUrl
+     *            the resource URL
+     * 
+     * @return The Resource, otherwise null
+     */
+    private Resource getDialectResource(Class<?> dialectClass, String resourceUrl)
+    {
+        // replace the dialect placeholder
+        String dialectResourceUrl = resolveDialectUrl(dialectClass, resourceUrl);
+        // get a handle on the resource
+        Resource resource = rpr.getResource(dialectResourceUrl);
+        if (!resource.exists())
+        {
+            // it wasn't found. Get the superclass of the dialect and try again
+            Class<?> superClass = dialectClass.getSuperclass();
+            if (Dialect.class.isAssignableFrom(superClass))
+            {
+                // we still have a Dialect - try again
+                return getDialectResource(superClass, resourceUrl);
+            }
+            else
+            {
+                // we have exhausted all options
+                return null;
+            }
+        }
+        else
+        {
+            // we have a handle to it
+            return resource;
+        }
+    }
+
+    /**
+     * Takes resource URL containing the {@link ExportDb#PLACEHOLDER_DIALECT dialect placeholder text}
+     * and substitutes the placeholder with the name of the given dialect's class.
+     * <p/>
+     * For example:
+     * <pre>
+     *   resolveDialectUrl(MySQLInnoDBDialect.class, "classpath:alfresco/db/${db.script.dialect}/myfile.xml")
+     * </pre>
+     * would give the following String:
+     * <pre>
+     *   classpath:alfresco/db/org.hibernate.dialect.MySQLInnoDBDialect/myfile.xml
+     * </pre>
+     */
+    private String resolveDialectUrl(Class<?> dialectClass, String resourceUrl)
+    {
+        return resourceUrl.replaceAll(PLACEHOLDER_DIALECT, dialectClass.getName());
+    }
+
+    /**
+     * Read a script from the provided EncodedResource and build a String containing
+     * the lines.
+     *
+     * @param resource
+     *            the resource (potentially associated with a specific encoding) to
+     *            load the SQL script from
+     * @return a String containing the script lines
+     */
+    private String readScript(EncodedResource resource) throws IOException
+    {
+        return readScript(resource, DEFAULT_SCRIPT_COMMENT_PREFIX);
+    }
+
+    /**
+     * Read a script from the provided EncodedResource, using the supplied line
+     * comment prefix, and build a String containing the lines.
+     *
+     * @param resource
+     *            the resource (potentially associated with a specific encoding) to
+     *            load the SQL script from
+     * @param lineCommentPrefix
+     *            the prefix that identifies comments in the SQL script (typically
+     *            "--")
+     * @return a String containing the script lines
+     */
+    private String readScript(EncodedResource resource, String lineCommentPrefix) throws IOException
+    {
+        LineNumberReader lineNumberReader = new LineNumberReader(resource.getReader());
+        try
+        {
+            return readScript(lineNumberReader, lineCommentPrefix);
+        }
+        finally
+        {
+            lineNumberReader.close();
+        }
+    }
+
+    /**
+     * Read a script from the provided LineNumberReader, using the supplied line
+     * comment prefix, and build a String containing the lines.
+     * 
+     * @param lineNumberReader
+     *            the LineNumberReader containing the script to be processed
+     * @param lineCommentPrefix
+     *            the prefix that identifies comments in the SQL script (typically
+     *            "--")
+     * @return a String containing the script lines
+     */
+    private String readScript(LineNumberReader lineNumberReader, String lineCommentPrefix) throws IOException
+    {
+        String statement = lineNumberReader.readLine();
+        StringBuilder scriptBuilder = new StringBuilder();
+        while (statement != null)
+        {
+            if (lineCommentPrefix != null && !statement.startsWith(lineCommentPrefix))
+            {
+                if (scriptBuilder.length() > 0)
+                {
+                    scriptBuilder.append('\n');
+                }
+                scriptBuilder.append(statement);
+            }
+            statement = lineNumberReader.readLine();
+        }
+        
+        return scriptBuilder.toString();
+    }
+
+    /**
+     * Retrieves and process DB sequences for the schema validation check.
+     * 
+     * @param dbmd
+     *            the database meta data
+     * @param resource
+     *            the resource to load the SQL script from
+     * @param schemaName
+     *            the DB schema name
+     * @param prefixFilter
+     *            the DB tables prefix filter
+     */
+    private void retrieveAndProcessSequences(DatabaseMetaData dbmd, Resource resource, String schemaName, String prefixFilter)
+            throws SQLException, IllegalArgumentException, IllegalAccessException, IOException
+    {
+        final String script = readScript(new EncodedResource(resource));
+
+        if (!script.isEmpty())
+        {
+            retrieveAndProcessSequences(dbmd, script, schemaName, prefixFilter);
+        }
+    }
+
+    /**
+     * Retrieves and process DB sequences for the schema validation check.
+     * 
+     * @param dbmd
+     *            the database meta data
+     * @param script
+     *            the SQL script
+     * @param schemaName
+     *            the DB schema name
+     * @param prefixFilter
+     *            the DB tables prefix filter
+     */
+    private void retrieveAndProcessSequences(DatabaseMetaData dbmd, String script, String schemaName, String prefixFilter)
+            throws SQLException, IllegalArgumentException, IllegalAccessException
+    {
+        if (log.isDebugEnabled())
+        {
+            log.debug("Retrieving DB sequences...");
+        }
+
+        PreparedStatement stmt = null;
+        try
+        {
+            stmt = dbmd.getConnection().prepareStatement(script);
+            stmt.setString(1, schemaName);
+            stmt.setString(2, prefixFilter);
+
+            boolean haveResults = stmt.execute();
+
+            if (haveResults)
+            {
+                ResultSet sequences = stmt.getResultSet();
+
+                if (log.isDebugEnabled())
+                {
+                    log.debug("Sequences processing started...");
+                }
+
+                processTables(dbmd, sequences);
+
+                if (log.isDebugEnabled())
+                {
+                    log.debug("Sequences processing completed.");
+                }
+            }
+        }
+        finally
+        {
+            if (stmt != null)
+            {
+                try
+                {
+                    stmt.close();
+                }
+                catch (Throwable e)
+                {
+                    // Little can be done at this stage.
+                }
+            }
+        }
     }
 }
