@@ -569,7 +569,7 @@ public class ExportDb
     private void retrieveAndProcessSequences(DatabaseMetaData dbmd, Resource resource, String schemaName, String prefixFilter)
             throws SQLException, IllegalArgumentException, IllegalAccessException, IOException
     {
-        final String script = DBScriptUtil.readScript(new EncodedResource(resource));
+        final String script = DBScriptUtil.readScript(new EncodedResource(resource, "UTF-8"));
 
         if (!script.isEmpty())
         {
