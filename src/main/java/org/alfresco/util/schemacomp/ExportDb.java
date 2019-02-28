@@ -44,7 +44,7 @@ import org.alfresco.service.descriptor.DescriptorService;
 import org.alfresco.util.DatabaseMetaDataHelper;
 import org.alfresco.util.DialectUtil;
 import org.alfresco.util.PropertyCheck;
-import org.alfresco.util.ScriptUtil;
+import org.alfresco.util.DBScriptUtil;
 import org.alfresco.util.schemacomp.model.Column;
 import org.alfresco.util.schemacomp.model.ForeignKey;
 import org.alfresco.util.schemacomp.model.Index;
@@ -569,7 +569,7 @@ public class ExportDb
     private void retrieveAndProcessSequences(DatabaseMetaData dbmd, Resource resource, String schemaName, String prefixFilter)
             throws SQLException, IllegalArgumentException, IllegalAccessException, IOException
     {
-        final String script = ScriptUtil.readScript(new EncodedResource(resource));
+        final String script = DBScriptUtil.readScript(new EncodedResource(resource));
 
         if (!script.isEmpty())
         {

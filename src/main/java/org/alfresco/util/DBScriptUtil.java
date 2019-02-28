@@ -30,7 +30,7 @@ import java.io.LineNumberReader;
 
 import org.springframework.core.io.support.EncodedResource;
 
-public abstract class ScriptUtil
+public abstract class DBScriptUtil
 {
     private static final String DEFAULT_SCRIPT_COMMENT_PREFIX = "--";
 
