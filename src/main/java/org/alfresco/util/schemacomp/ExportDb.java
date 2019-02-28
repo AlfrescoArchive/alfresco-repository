@@ -26,7 +26,6 @@
 package org.alfresco.util.schemacomp;
 
 import java.io.IOException;
-import java.io.LineNumberReader;
 import java.lang.reflect.Field;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
@@ -43,7 +42,9 @@ import org.alfresco.repo.domain.dialect.TypeNames;
 import org.alfresco.service.descriptor.Descriptor;
 import org.alfresco.service.descriptor.DescriptorService;
 import org.alfresco.util.DatabaseMetaDataHelper;
+import org.alfresco.util.DialectUtil;
 import org.alfresco.util.PropertyCheck;
+import org.alfresco.util.ScriptUtil;
 import org.alfresco.util.schemacomp.model.Column;
 import org.alfresco.util.schemacomp.model.ForeignKey;
 import org.alfresco.util.schemacomp.model.Index;
@@ -59,7 +60,6 @@ import org.springframework.core.io.support.EncodedResource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.core.io.support.ResourcePatternResolver;
 
-
 /**
  * Exports a database schema to an in-memory {@link Schema} object.
  * 
@@ -67,10 +67,7 @@ import org.springframework.core.io.support.ResourcePatternResolver;
  */
 public class ExportDb
 {
-    /** The placeholder for the configured <code>Dialect</code> class name: <b>${db.script.dialect}</b> */
-    private static final String PLACEHOLDER_DIALECT = "\\$\\{db\\.script\\.dialect\\}";
-    private static final String SCHEMA_REFERENCE_SEQUENCES_SQL_FILE = "classpath:alfresco/dbscripts/create/${db.script.dialect}/Schema-Reference-SequencesWorkaround.sql";
-    private static final String DEFAULT_SCRIPT_COMMENT_PREFIX = "--";
+    private static final String SCHEMA_REFERENCE_SEQUENCES_SQL_FILE = "classpath:alfresco/dbscripts/create/${db.script.dialect}/Schema-Reference-Sequences.sql";
 
     /** Reverse map from database types to JDBC types (loaded from a Hibernate dialect). */
     private final Map<String, Integer> reverseTypeMap = new TreeMap<String, Integer>();
@@ -254,8 +251,10 @@ public class ExportDb
             tableTypes = new String[] {"TABLE", "VIEW"};
 
             retrieveAndProcessSequences(dbmd, sequencesRefResource, schemaName, prefixFilter);
-        } else {
-            tableTypes = new String[] {"TABLE", "VIEW", "SEQUENCE"};
+        }
+        else
+        {
+            tableTypes = new String[] { "TABLE", "VIEW", "SEQUENCE" };
         }
         
         final ResultSet tables = dbmd.getTables(null, schemaName, prefixFilter, tableTypes);
@@ -552,136 +551,7 @@ public class ExportDb
      */
     private Resource getSequencesReferenceResource()
     {
-        return getDialectResource(dialect.getClass(), SCHEMA_REFERENCE_SEQUENCES_SQL_FILE);
-    }
-
-    /**
-     * Replaces the dialect placeholder in the resource URL and attempts to find a
-     * file for it. If not found, the dialect hierarchy will be walked until a
-     * compatible resource is found. This makes it possible to have resources that
-     * are generic to all dialects.
-     *
-     * @param dialectClass
-     *            the class dialect
-     * @param resourceUrl
-     *            the resource URL
-     * 
-     * @return The Resource, otherwise null
-     */
-    private Resource getDialectResource(Class<?> dialectClass, String resourceUrl)
-    {
-        // replace the dialect placeholder
-        String dialectResourceUrl = resolveDialectUrl(dialectClass, resourceUrl);
-        // get a handle on the resource
-        Resource resource = rpr.getResource(dialectResourceUrl);
-        if (!resource.exists())
-        {
-            // it wasn't found. Get the superclass of the dialect and try again
-            Class<?> superClass = dialectClass.getSuperclass();
-            if (Dialect.class.isAssignableFrom(superClass))
-            {
-                // we still have a Dialect - try again
-                return getDialectResource(superClass, resourceUrl);
-            }
-            else
-            {
-                // we have exhausted all options
-                return null;
-            }
-        }
-        else
-        {
-            // we have a handle to it
-            return resource;
-        }
-    }
-
-    /**
-     * Takes resource URL containing the {@link ExportDb#PLACEHOLDER_DIALECT dialect placeholder text}
-     * and substitutes the placeholder with the name of the given dialect's class.
-     * <p/>
-     * For example:
-     * <pre>
-     *   resolveDialectUrl(MySQLInnoDBDialect.class, "classpath:alfresco/db/${db.script.dialect}/myfile.xml")
-     * </pre>
-     * would give the following String:
-     * <pre>
-     *   classpath:alfresco/db/org.hibernate.dialect.MySQLInnoDBDialect/myfile.xml
-     * </pre>
-     */
-    private String resolveDialectUrl(Class<?> dialectClass, String resourceUrl)
-    {
-        return resourceUrl.replaceAll(PLACEHOLDER_DIALECT, dialectClass.getName());
-    }
-
-    /**
-     * Read a script from the provided EncodedResource and build a String containing
-     * the lines.
-     *
-     * @param resource
-     *            the resource (potentially associated with a specific encoding) to
-     *            load the SQL script from
-     * @return a String containing the script lines
-     */
-    private String readScript(EncodedResource resource) throws IOException
-    {
-        return readScript(resource, DEFAULT_SCRIPT_COMMENT_PREFIX);
-    }
-
-    /**
-     * Read a script from the provided EncodedResource, using the supplied line
-     * comment prefix, and build a String containing the lines.
-     *
-     * @param resource
-     *            the resource (potentially associated with a specific encoding) to
-     *            load the SQL script from
-     * @param lineCommentPrefix
-     *            the prefix that identifies comments in the SQL script (typically
-     *            "--")
-     * @return a String containing the script lines
-     */
-    private String readScript(EncodedResource resource, String lineCommentPrefix) throws IOException
-    {
-        LineNumberReader lineNumberReader = new LineNumberReader(resource.getReader());
-        try
-        {
-            return readScript(lineNumberReader, lineCommentPrefix);
-        }
-        finally
-        {
-            lineNumberReader.close();
-        }
-    }
-
-    /**
-     * Read a script from the provided LineNumberReader, using the supplied line
-     * comment prefix, and build a String containing the lines.
-     * 
-     * @param lineNumberReader
-     *            the LineNumberReader containing the script to be processed
-     * @param lineCommentPrefix
-     *            the prefix that identifies comments in the SQL script (typically
-     *            "--")
-     * @return a String containing the script lines
-     */
-    private String readScript(LineNumberReader lineNumberReader, String lineCommentPrefix) throws IOException
-    {
-        String statement = lineNumberReader.readLine();
-        StringBuilder scriptBuilder = new StringBuilder();
-        while (statement != null)
-        {
-            if (lineCommentPrefix != null && !statement.startsWith(lineCommentPrefix))
-            {
-                if (scriptBuilder.length() > 0)
-                {
-                    scriptBuilder.append('\n');
-                }
-                scriptBuilder.append(statement);
-            }
-            statement = lineNumberReader.readLine();
-        }
-        
-        return scriptBuilder.toString();
+        return DialectUtil.getDialectResource(rpr, dialect.getClass(), SCHEMA_REFERENCE_SEQUENCES_SQL_FILE);
     }
 
     /**
@@ -699,7 +569,7 @@ public class ExportDb
     private void retrieveAndProcessSequences(DatabaseMetaData dbmd, Resource resource, String schemaName, String prefixFilter)
             throws SQLException, IllegalArgumentException, IllegalAccessException, IOException
     {
-        final String script = readScript(new EncodedResource(resource));
+        final String script = ScriptUtil.readScript(new EncodedResource(resource));
 
         if (!script.isEmpty())
         {
