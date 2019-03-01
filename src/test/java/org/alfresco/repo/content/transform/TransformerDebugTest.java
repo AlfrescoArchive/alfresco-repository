@@ -28,7 +28,6 @@ package org.alfresco.repo.content.transform;
 import org.alfresco.repo.rendition2.TransformClient;
 import org.alfresco.service.cmr.repository.MimetypeService;
 import org.alfresco.service.cmr.repository.NodeService;
-import org.alfresco.service.cmr.repository.TransformationOptions;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -50,8 +49,6 @@ import static org.mockito.Mockito.when;
  * Test class for TransformerDebug.
  *
  * @author Alan Davis
- *
- * @deprecated The transformations code is being moved out of the codebase and replaced by the new async RenditionService2 or other external libraries.
  */
 public class TransformerDebugTest
 {
