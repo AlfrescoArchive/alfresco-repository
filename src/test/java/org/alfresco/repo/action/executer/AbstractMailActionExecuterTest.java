@@ -263,7 +263,8 @@ public abstract class AbstractMailActionExecuterTest
 
         Assert.assertNotNull(message);
         Assert.assertEquals(text, (String) message.getContent());
-        Assert.assertEquals("text/plain", message.getContentType());
+        Assert.assertEquals("text/plain", // Ignore charset 
+                            message.getDataHandler().getContentType().substring(0, 10));
 
         // HTML opening tag
         text = "<html><body>HTML emails are great</body></html>";
@@ -271,7 +272,8 @@ public abstract class AbstractMailActionExecuterTest
 
         Assert.assertNotNull(message);
         Assert.assertEquals(text, (String) message.getContent());
-        Assert.assertEquals("text/html", message.getContentType());
+        Assert.assertEquals("text/html", // Ignore charset 
+                            message.getDataHandler().getContentType().substring(0, 9));
 
         // HTML Doctype
         text = "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Strict//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd\">\n<html xmlns=\"http://www.w3.org/1999/xhtml\">\n<body>More complex HTML</body></html>";
@@ -279,7 +281,8 @@ public abstract class AbstractMailActionExecuterTest
 
         Assert.assertNotNull(message);
         Assert.assertEquals(text, (String) message.getContent());
-        Assert.assertEquals("text/html", message.getContentType());
+        Assert.assertEquals("text/html", // Ignore charset 
+                            message.getDataHandler().getContentType().substring(0, 9));
     }
 
     protected MimeMessage sendMessage(String from, Serializable recipients, String subject, String template)
