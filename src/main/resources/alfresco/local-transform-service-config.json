@@ -1,2 +1,61 @@
 [
+  {
+    "name": "alfresco-pdf-renderer",
+    "version": "1",
+    "transformOptions": [
+      {"value": {"name": "page"}},
+      {"value": {"name": "width"}},
+      {"value": {"name": "height"}},
+      {"value": {"name": "allowPdfEnlargement"}},
+      {"value": {"name": "maintainPdfAspectRatio"}}
+    ],
+    "supportedSourceAndTargetList": [
+      {"sourceExt": "pdf",  "targetExt": "png" }
+    ]
+  },
+  {
+    "name": "img",
+    "version": "1",
+    "transformOptions": [
+      {"value": {"name": "alphaRemove"}},
+      {"value": {"name": "autoOrient"}},
+      {"value": {"name": "startPage"}},
+      {"value": {"name": "endPage"}},
+      {"group": {"transformOptions": [
+        {"value": {"name": "cropGravity"}},
+        {"value": {"name": "cropWidth"}},
+        {"value": {"name": "cropHeight"}},
+        {"value": {"name": "cropPercentage"}},
+        {"value": {"name": "cropXOffset"}},
+        {"value": {"name": "cropYOffset"}}
+      ]}},
+      {"group": {"transformOptions": [
+        {"value": {"name": "thumbnail"}},
+        {"value": {"name": "resizeHeight"}},
+        {"value": {"name": "resizeWidth"}},
+        {"value": {"name": "resizePercentage"}},
+        {"value": {"name": "allowEnlargement"}},
+        {"value": {"name": "maintainAspectRatio"}}
+      ]}}
+    ],
+    "supportedSourceAndTargetList": [
+      {"sourceExt": "gif",  "targetExt": "gif" },
+      {"sourceExt": "gif",  "targetExt": "jpeg"},
+      {"sourceExt": "gif",  "targetExt": "png" },
+      {"sourceExt": "gif",  "targetExt": "tiff"},
+
+      {"sourceExt": "jpeg", "targetExt": "gif" },
+      {"sourceExt": "jpeg", "targetExt": "jpeg"},
+      {"sourceExt": "jpeg", "targetExt": "png" },
+      {"sourceExt": "jpeg", "targetExt": "tiff"},
+
+      {"sourceExt": "png",  "targetExt": "gif" },
+      {"sourceExt": "png",  "targetExt": "jpeg"},
+      {"sourceExt": "png",  "targetExt": "png" },
+      {"sourceExt": "png",  "targetExt": "tiff"},
+
+      {"sourceExt": "tiff", "targetExt": "gif" },
+      {"sourceExt": "tiff", "targetExt": "tiff"}
+    ]
+  }
 ]

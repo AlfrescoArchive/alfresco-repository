@@ -29,10 +29,14 @@ import org.alfresco.repo.content.transform.TransformerDebug;
 import org.alfresco.service.cmr.repository.ContentReader;
 import org.alfresco.service.cmr.repository.ContentWriter;
 import org.alfresco.service.cmr.repository.MimetypeService;
+import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.transform.client.model.config.ExtensionMap;
 import org.alfresco.transform.client.model.config.TransformServiceRegistry;
 import org.alfresco.transform.client.model.config.TransformServiceRegistryImpl;
+import org.alfresco.transform.client.model.config.Transformer;
 import org.alfresco.util.PropertyCheck;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.InitializingBean;
 
 import java.io.BufferedReader;
@@ -40,6 +44,7 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Properties;
 
 /**
  * Implements {@link TransformServiceRegistry} providing a mechanism of validating if a local transformation
@@ -49,10 +54,13 @@ import java.util.Map;
  */
 public class LocalTransformServiceRegistry extends TransformServiceRegistryImpl implements InitializingBean
 {
+    private static final Log log = LogFactory.getLog(LocalTransformerImpl.class);
+
     private MimetypeService mimetypeService;
     private String transformServiceConfigFile;
     private boolean enabled = true;
     private boolean firstTime = true;
+    private Properties properties;
     private TransformerDebug transformerDebug;
 
     private Map<String, LocalTransformer> transformers = new HashMap<>();
@@ -72,6 +80,14 @@ public class LocalTransformServiceRegistry extends TransformServiceRegistryImpl 
         this.enabled = enabled;
     }
 
+    /**
+     * The Alfresco global properties.
+     */
+    public void setProperties(Properties properties)
+    {
+        this.properties = properties;
+    }
+
     public void setTransformerDebug(TransformerDebug transformerDebug)
     {
         this.transformerDebug = transformerDebug;
@@ -82,6 +98,7 @@ public class LocalTransformServiceRegistry extends TransformServiceRegistryImpl 
     {
         PropertyCheck.mandatory(this, "mimetypeService", mimetypeService);
         PropertyCheck.mandatory(this, "transformServiceConfigFile", transformServiceConfigFile);
+        PropertyCheck.mandatory(this, "properties", properties);
         PropertyCheck.mandatory(this, "transformerDebug", transformerDebug);
 
         setExtensionMap(new ExtensionMap() {
@@ -100,14 +117,58 @@ public class LocalTransformServiceRegistry extends TransformServiceRegistryImpl 
         }
     }
 
-    public void register(String name, LocalTransformer transformer)
+    @Override
+    public void register(Transformer transformer)
     {
-        transformers.put(name, transformer);
+        super.register(transformer);
+
+        // TODO handle a pipeline
+
+        try
+        {
+            String name = transformer.getName();
+            String baseUrl = getBaseUrl(name);
+            int startupRetryPeriodSeconds = getStartupRetryPeriodSeconds(name);
+            LocalTransformerImpl localTransformer =
+                    new LocalTransformerImpl(name, baseUrl, startupRetryPeriodSeconds,
+                            mimetypeService, transformerDebug);
+            transformers.put(name, localTransformer);
+        }
+        catch (IllegalArgumentException ignore)
+        {
+            // We will have logged an error already and there is not much else we can do.
+        }
     }
 
-    private LocalTransformer getLocalTransformer(String name)
+    private String getBaseUrl(String name)
     {
-        return transformers.get(name);
+        String baseUrlName = name.toLowerCase() + ".url";
+        String baseUrl = properties.getProperty(baseUrlName);
+        if (baseUrl == null)
+        {
+            String msg = "Local transformer property " + baseUrlName + " was not set";
+            log.error(msg);
+            throw new IllegalArgumentException(msg);
+        }
+        return baseUrl;
+    }
+
+    private int getStartupRetryPeriodSeconds(String name)
+    {
+        String startupRetryPeriodSecondsName = name.toLowerCase() + ".startupRetryPeriodSeconds";
+        String property = properties.getProperty(startupRetryPeriodSecondsName, "0");
+        int startupRetryPeriodSeconds;
+        try
+        {
+            startupRetryPeriodSeconds = Integer.parseInt(property);
+        }
+        catch (NumberFormatException e)
+        {
+            String msg = "Local transformer property " + startupRetryPeriodSecondsName + " should be an integer";
+            log.error(msg);
+            throw new IllegalArgumentException(msg);
+        }
+        return startupRetryPeriodSeconds;
     }
 
     @Override
@@ -117,7 +178,7 @@ public class LocalTransformServiceRegistry extends TransformServiceRegistryImpl 
         if (firstTime)
         {
             firstTime = false;
-            transformerDebug.debug("Local transform Server is " + (enabled ? "enabled" : "disabled"));
+            transformerDebug.debug("Local transforms are " + (enabled ? "enabled" : "disabled"));
         }
 
         return enabled
@@ -125,14 +186,16 @@ public class LocalTransformServiceRegistry extends TransformServiceRegistryImpl 
                 : 0;
     }
 
-    public void transform(ContentReader reader, ContentWriter writer, Map<String, String> actualOptions, String renditionName)
+    public void transform(ContentReader reader, ContentWriter writer, Map<String, String> actualOptions,
+                          String renditionName, NodeRef sourceNodeRef) throws Exception
     {
 
         String sourceMimetype = reader.getMimetype();
         String targetMimetype = writer.getMimetype();
         long sourceSizeInBytes = reader.getSize();
-        String transformerName = getTransformerName(sourceMimetype, sourceSizeInBytes, targetMimetype, actualOptions, renditionName);
+        String name = getTransformerName(sourceMimetype, sourceSizeInBytes, targetMimetype, actualOptions, renditionName);
 
-        // TODO
+        LocalTransformer localTransformer = transformers.get(name);
+        localTransformer.transform(reader, writer, actualOptions, renditionName, sourceNodeRef);
     }
 }

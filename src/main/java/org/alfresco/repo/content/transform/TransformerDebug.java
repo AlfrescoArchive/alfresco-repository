@@ -180,7 +180,7 @@ public class TransformerDebug implements ApplicationContextAware
         private final String sourceMimetype;
         private final String targetMimetype;
         private final NodeRef sourceNodeRef;
-        private final String use;
+        private final String renditionName;
         private final boolean origDebugOutput;
         private long start;
 
@@ -193,7 +193,7 @@ public class TransformerDebug implements ApplicationContextAware
         private String transformerName;
         
         private Frame(Frame parent, String transformerName, String fromUrl, String sourceMimetype, String targetMimetype,
-                      long sourceSize, String use, NodeRef sourceNodeRef, Call pushCall, boolean origDebugOutput)
+                      long sourceSize, String renditionName, NodeRef sourceNodeRef, Call pushCall, boolean origDebugOutput)
         {
             this.id = -1;
             this.parent = parent;
@@ -202,7 +202,7 @@ public class TransformerDebug implements ApplicationContextAware
             this.sourceMimetype = sourceMimetype;
             this.targetMimetype = targetMimetype;
             this.sourceSize = sourceSize;
-            this.use = use;
+            this.renditionName = renditionName;
             this.sourceNodeRef = sourceNodeRef;
             this.callType = pushCall;
             this.origDebugOutput = origDebugOutput;
@@ -420,9 +420,9 @@ public class TransformerDebug implements ApplicationContextAware
     public void pushAvailable(String fromUrl, String sourceMimetype, String targetMimetype,
                               TransformationOptions options)
     {
-        String use = options == null ? null : options.getUse();
+        String renditionName = options == null ? null : options.getUse();
         NodeRef sourceNodeRef = options == null ? null : options.getSourceNodeRef();
-        pushAvailable(fromUrl, sourceMimetype, targetMimetype, use, sourceNodeRef);
+        pushAvailable(fromUrl, sourceMimetype, targetMimetype, renditionName, sourceNodeRef);
     }
 
     /**
@@ -430,11 +430,12 @@ public class TransformerDebug implements ApplicationContextAware
      */
     @Deprecated
     public void pushAvailable(String fromUrl, String sourceMimetype, String targetMimetype,
-                              String use, NodeRef sourceNodeRef)
+                              String renditionName, NodeRef sourceNodeRef)
     {
         if (isEnabled())
         {
-            push(null, fromUrl, sourceMimetype, targetMimetype, -1, use, sourceNodeRef, Call.AVAILABLE);
+            push(null, fromUrl, sourceMimetype, targetMimetype, -1, renditionName,
+                    sourceNodeRef, Call.AVAILABLE);
         }
     }
 
@@ -452,9 +453,9 @@ public class TransformerDebug implements ApplicationContextAware
     public void pushTransform(ContentTransformer transformer, String fromUrl, String sourceMimetype,
             String targetMimetype, long sourceSize, TransformationOptions options)
     {
-        String use = options == null ? null : options.getUse();
+        String renditionName = options == null ? null : options.getUse();
         NodeRef sourceNodeRef = options == null ? null : options.getSourceNodeRef();
-        pushTransform(transformer, fromUrl, sourceMimetype, targetMimetype, sourceSize, use, sourceNodeRef);
+        pushTransform(transformer, fromUrl, sourceMimetype, targetMimetype, sourceSize, renditionName, sourceNodeRef);
     }
 
     /**
@@ -462,12 +463,22 @@ public class TransformerDebug implements ApplicationContextAware
      */
     @Deprecated
     public void pushTransform(ContentTransformer transformer, String fromUrl, String sourceMimetype,
-                              String targetMimetype, long sourceSize, String use, NodeRef sourceNodeRef)
+                              String targetMimetype, long sourceSize, String renditionName, NodeRef sourceNodeRef)
     {
         if (isEnabled())
         {
             push(getName(transformer), fromUrl, sourceMimetype, targetMimetype, sourceSize,
-                    use, sourceNodeRef, Call.TRANSFORM);
+                    renditionName, sourceNodeRef, Call.TRANSFORM);
+        }
+    }
+
+    public void pushTransform(String transformerName, String fromUrl, String sourceMimetype,
+                              String targetMimetype, long sourceSize, String renditionName, NodeRef sourceNodeRef)
+    {
+        if (isEnabled())
+        {
+            push(transformerName, fromUrl, sourceMimetype, targetMimetype, sourceSize,
+                    renditionName, sourceNodeRef, Call.TRANSFORM);
         }
     }
 
@@ -497,7 +508,7 @@ public class TransformerDebug implements ApplicationContextAware
     }
     
     private void push(String transformerName, String fromUrl, String sourceMimetype, String targetMimetype,
-                      long sourceSize, String use, NodeRef sourceNodeRef, Call callType)
+                      long sourceSize, String renditionName, NodeRef sourceNodeRef, Call callType)
     {
         Deque<Frame> ourStack = ThreadInfo.getStack();
         Frame frame = ourStack.peek();
@@ -511,13 +522,14 @@ public class TransformerDebug implements ApplicationContextAware
 
         // Create a new frame. Logging level is set to trace if the file size is 0
         boolean origDebugOutput = ThreadInfo.setDebugOutput(ThreadInfo.getDebugOutput() && sourceSize != 0);
-        frame = new Frame(frame, transformerName, fromUrl, sourceMimetype, targetMimetype, sourceSize, use, sourceNodeRef, callType, origDebugOutput);
+        frame = new Frame(frame, transformerName, fromUrl, sourceMimetype, targetMimetype, sourceSize, renditionName,
+                sourceNodeRef, callType, origDebugOutput);
         ourStack.push(frame);
             
         if (callType == Call.TRANSFORM)
         {
             // Log the basic info about this transformation
-            logBasicDetails(frame, sourceSize, use, transformerName, (ourStack.size() == 1));
+            logBasicDetails(frame, sourceSize, renditionName, transformerName, (ourStack.size() == 1));
         }
     }
     
@@ -554,9 +566,9 @@ public class TransformerDebug implements ApplicationContextAware
     public void availableTransformers(List<ContentTransformer> transformers, long sourceSize,
                                       TransformationOptions options, String calledFrom)
     {
-        String use = options == null ? null : options.getUse();
+        String renditionName = options == null ? null : options.getUse();
         NodeRef sourceNodeRef = options == null ? null : options.getSourceNodeRef();
-        availableTransformers(transformers, sourceSize, use, sourceNodeRef, calledFrom);
+        availableTransformers(transformers, sourceSize, renditionName, sourceNodeRef, calledFrom);
     }
 
     /**
@@ -564,7 +576,7 @@ public class TransformerDebug implements ApplicationContextAware
      */
     @Deprecated
     public void availableTransformers(List<ContentTransformer> transformers, long sourceSize, 
-            String use, NodeRef sourceNodeRef, String calledFrom)
+            String renditionName, NodeRef sourceNodeRef, String calledFrom)
     {
         if (isEnabled())
         {
@@ -586,7 +598,7 @@ public class TransformerDebug implements ApplicationContextAware
             frame.setSourceSize(sourceSize);
             
             // Log the basic info about this transformation
-            logBasicDetails(frame, sourceSize, use,
+            logBasicDetails(frame, sourceSize, renditionName,
                     calledFrom + ((transformers.size() == 0) ? " NO transformers" : ""), firstLevel);
 
             // Report available and unavailable transformers
@@ -598,7 +610,7 @@ public class TransformerDebug implements ApplicationContextAware
                 int padName = longestNameLength - name.length() + 1;
                 // TODO replace with call to RenditionService2 or leave as a deprecated method using ContentService.
                 TransformationOptions options = new TransformationOptions();
-                options.setUse(frame.use);
+                options.setUse(frame.renditionName);
                 options.setSourceNodeRef(frame.sourceNodeRef);
                 long maxSourceSizeKBytes = trans.getMaxSourceSizeKBytes(frame.sourceMimetype, frame.targetMimetype, options);
                 String size = maxSourceSizeKBytes > 0 ? "< "+fileSize(maxSourceSizeKBytes*1024) : "";
@@ -694,7 +706,7 @@ public class TransformerDebug implements ApplicationContextAware
         return longestNameLength;
     }
     
-    private void logBasicDetails(Frame frame, long sourceSize, String use, String message, boolean firstLevel)
+    private void logBasicDetails(Frame frame, long sourceSize, String renditionName, String message, boolean firstLevel)
     {
         // Log the source URL, but there is no point if the parent has logged it
         if (frame.fromUrl != null && (firstLevel || frame.id != 1))
@@ -707,7 +719,7 @@ public class TransformerDebug implements ApplicationContextAware
         log(getMimetypeExt(frame.sourceMimetype)+getMimetypeExt(frame.targetMimetype) +
                 ((fileName != null) ? fileName+' ' : "")+
                 ((sourceSize >= 0) ? fileSize(sourceSize)+' ' : "") +
-                (firstLevel && use != null ? "-- "+use+" -- " : "") + message);
+                (firstLevel && renditionName != null ? "-- "+renditionName+" -- " : "") + message);
         if (firstLevel)
         {
             String nodeRef = getNodeRef(frame.sourceNodeRef, firstLevel, sourceSize);
@@ -1039,11 +1051,11 @@ public class TransformerDebug implements ApplicationContextAware
      * @param toString indicates that a String value should be returned in addition to any debug.
      * @param format42 indicates the old 4.1.4 format should be used which did not order the transformers
      *        and only included top level transformers.
-     * @param use to which the transformation will be put (such as "Index", "Preview", null).
+     * @param renditionName to which the transformation will be put (such as "Index", "Preview", null).
      * @deprecated The transformations code is being moved out of the codebase and replaced by the new async RenditionService2 or other external libraries.
      */
     @Deprecated
-    public String transformationsByTransformer(String transformerName, boolean toString, boolean format42, String use)
+    public String transformationsByTransformer(String transformerName, boolean toString, boolean format42, String renditionName)
     {
         // Do not generate this type of debug if already generating other debug to a StringBuilder
         // (for example a test transform). 
@@ -1063,7 +1075,7 @@ public class TransformerDebug implements ApplicationContextAware
                 : mimetypeService.getMimetypes();
         
         TransformationOptions options = new TransformationOptions();
-        options.setUse(use);
+        options.setUse(renditionName);
         StringBuilder sb = null;
         try
         {
@@ -1125,12 +1137,12 @@ public class TransformerDebug implements ApplicationContextAware
      *        level transformers.
      * @param onlyNonDeterministic if true only report transformations where there is more than
      *        one transformer available with the same priority.
-     * @param use to which the transformation will be put (such as "Index", "Preview", null).
+     * @param renditionName to which the transformation will be put (such as "Index", "Preview", null).
      * @deprecated The transformations code is being moved out of the codebase and replaced by the new async RenditionService2 or other external libraries.
      */
     @Deprecated
     public String transformationsByExtension(String sourceExtension, String targetExtension, boolean toString,
-            boolean format42, boolean onlyNonDeterministic, String use)
+            boolean format42, boolean onlyNonDeterministic, String renditionName)
     {
         // Do not generate this type of debug if already generating other debug to a StringBuilder
         // (for example a test transform). 
@@ -1150,7 +1162,7 @@ public class TransformerDebug implements ApplicationContextAware
                 : mimetypeService.getMimetypes();
 
         TransformationOptions options = new TransformationOptions();
-        options.setUse(use);
+        options.setUse(renditionName);
         StringBuilder sb = null;
         try
         {
@@ -1547,13 +1559,14 @@ public class TransformerDebug implements ApplicationContextAware
      * Debugs a request to the Transform Service
      */
     public int debugTransformServiceRequest(String sourceMimetype, long sourceSize, NodeRef sourceNodeRef,
-                                             int contentHashcode, String fileName, String targetMimetype, String use)
+                                             int contentHashcode, String fileName, String targetMimetype,
+                                            String renditionName)
     {
         pushMisc();
         debug(getMimetypeExt(sourceMimetype)+getMimetypeExt(targetMimetype) +
               ((fileName != null) ? fileName+' ' : "")+
               ((sourceSize >= 0) ? fileSize(sourceSize)+' ' : "") +
-              (use != null ? "-- "+use+" -- " : "") + " RenditionService2");
+              (renditionName != null ? "-- "+renditionName+" -- " : "") + " RenditionService2");
         debug(sourceNodeRef.toString() + ' ' +contentHashcode);
         debug(" **a)  [01] TransformService");
         return pop(Call.AVAILABLE, true, false);
@@ -1584,9 +1597,9 @@ public class TransformerDebug implements ApplicationContextAware
         pop(Call.AVAILABLE, suppressFinish, true);
     }
 
-    public String testTransform(String sourceExtension, String targetExtension, String use)
+    public String testTransform(String sourceExtension, String targetExtension, String renditionName)
     {
-        return new TestTransform().run(sourceExtension, targetExtension, use);
+        return new TestTransform().run(sourceExtension, targetExtension, renditionName);
     }
 
     /**
@@ -1594,7 +1607,7 @@ public class TransformerDebug implements ApplicationContextAware
      */
     @Deprecated
     public String testTransform(final String transformerName, String sourceExtension,
-            String targetExtension, String use)
+            String targetExtension, String renditionName)
     {
         return "The testTransform operation for a specific transformer is no longer supported.";
     }
@@ -1645,7 +1658,7 @@ public class TransformerDebug implements ApplicationContextAware
     {
         protected LinkedList<NodeRef> nodesToDeleteAfterTest = new LinkedList<NodeRef>();
 
-        String run(String sourceExtension, String targetExtension, String use)
+        String run(String sourceExtension, String targetExtension, String renditionName)
         {
             RenditionDefinitionRegistry2Impl renditionDefinitionRegistry2 = getRenditionDefinitionRegistry2Impl();
 
@@ -1656,13 +1669,13 @@ public class TransformerDebug implements ApplicationContextAware
             ContentWriter writer = new FileContentWriter(tempFile);
             writer.setMimetype(targetMimetype);
 
-            String renditionName = "testTransform"+System.currentTimeMillis();
+            String testRenditionName = "testTransform"+System.currentTimeMillis();
             NodeRef sourceNodeRef = null;
             StringBuilder sb = new StringBuilder();
             try
             {
                 setStringBuilder(sb);
-                RenditionDefinition2 renditionDefinition = new RenditionDefinition2Impl(renditionName, targetMimetype,
+                RenditionDefinition2 renditionDefinition = new RenditionDefinition2Impl(testRenditionName, targetMimetype,
                         Collections.emptyMap(), renditionDefinitionRegistry2);
 
                 sourceNodeRef = createSourceNode(sourceExtension, sourceMimetype);
@@ -1689,7 +1702,7 @@ public class TransformerDebug implements ApplicationContextAware
             finally
             {
                 setStringBuilder(null);
-                renditionDefinitionRegistry2.unregister(renditionName);
+                renditionDefinitionRegistry2.unregister(testRenditionName);
                 deleteSourceNode(sourceNodeRef);
             }
             return sb.toString();

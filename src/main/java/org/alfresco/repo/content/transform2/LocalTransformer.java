@@ -27,16 +27,18 @@ package org.alfresco.repo.content.transform2;
 
 import org.alfresco.service.cmr.repository.ContentReader;
 import org.alfresco.service.cmr.repository.ContentWriter;
+import org.alfresco.service.cmr.repository.NodeRef;
 
 import java.util.Map;
 
 /**
  * Interface of a local transformer using flat transform options. The configuration of what is supported is defined
- * in {@code local-transform-service-config.json}. Each transformer must be registered with the
+ * in {@code local-transform-service-config.json}. Each transformer is automatically registered with the
  * {@link LocalTransformServiceRegistry}.
  */
 public interface LocalTransformer
 {
-    void transform(ContentReader reader, ContentWriter writer, Map<String, String> transformOptions)
+    void transform(ContentReader reader, ContentWriter writer, Map<String, String> transformOptions,
+                   String renditionName, NodeRef sourceNodeRef)
             throws Exception;
 }

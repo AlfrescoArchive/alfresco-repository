@@ -53,7 +53,7 @@ import java.util.concurrent.Executors;
  */
 public class LocalTransformClient implements TransformClient, InitializingBean
 {
-    private static Log logger = LogFactory.getLog(LegacyLocalTransformClient.class);
+    private static Log logger = LogFactory.getLog(LocalTransformClient.class);
 
     private LocalTransformServiceRegistry localTransformServiceRegistry;
     private TransactionService transactionService;
@@ -116,7 +116,7 @@ public class LocalTransformClient implements TransformClient, InitializingBean
 
         if (logger.isDebugEnabled())
         {
-            logger.debug("Rendition of " + renditionName + " from " + sourceMimetype + " will use Transform Server");
+            logger.debug("Rendition of " + renditionName + " from " + sourceMimetype + " will use local transforms");
         }
     }
 
@@ -142,7 +142,7 @@ public class LocalTransformClient implements TransformClient, InitializingBean
 
                             ContentWriter writer = contentService.getTempWriter();
                             writer.setMimetype(targetMimetype);
-                            localTransformServiceRegistry.transform(reader, writer, options, renditionName);
+                            localTransformServiceRegistry.transform(reader, writer, options, renditionName, sourceNodeRef);
 
                             InputStream inputStream = writer.getReader().getContentInputStream();
                             renditionService2.consume(sourceNodeRef, inputStream, renditionDefinition, sourceContentHashCode);

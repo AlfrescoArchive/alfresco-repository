@@ -112,6 +112,7 @@
         <property name="mimetypeService" ref="MimetypeService" />
         <property name="transformServiceConfigFile" value="alfresco/local-transform-service-config.json" />
         <property name="enabled" value="${local.transform.service.enabled}" />
+        <property name="properties" ref="global-properties" />
         <property name="transformerDebug" ref="transformerDebug" />
     </bean>
 
@@ -120,7 +121,7 @@
     <bean id="legacyLocalTransformServiceRegistry" class="org.alfresco.repo.rendition2.LegacyLocalTransformServiceRegistry" >
         <property name="contentService" ref="contentService" />
         <property name="converter" ref="transformOptionsConverter" />
-        <property name="enabled" value="${local.transform.service.enabled}" />
+        <property name="enabled" value="${legacy.local.transform.service.enabled}" />
         <property name="transformerDebug" ref="transformerDebug" />
     </bean>
 
