@@ -246,6 +246,42 @@ public abstract class AbstractMailActionExecuterTest
         Assert.assertEquals("Bonjour 1 janv. 1970", (String) message.getContent());
     }
 
+    @Test
+    public void testHTMLDetection() throws IOException, MessagingException
+    {
+        String from = "some.body@example.com";
+        Serializable recipients = (Serializable) Arrays.asList(FRENCH_USER.getUsername());
+        String subject = "";
+
+        Action mailAction = ACTION_SERVICE.createAction(MailActionExecuter.NAME);
+        mailAction.setParameterValue(MailActionExecuter.PARAM_TO_MANY, recipients);
+
+        // First with plain text
+        String text = "This is plain text\nOnly\nBut it mentions HTML and <html>";
+
+        MimeMessage message = sendMessage(from, subject, null, text, mailAction);
+
+        Assert.assertNotNull(message);
+        Assert.assertEquals(text, (String) message.getContent());
+        Assert.assertEquals("text/plain", message.getContentType());
+
+        // HTML opening tag
+        text = "<html><body>HTML emails are great</body></html>";
+        message = sendMessage(from, subject, null, text, mailAction);
+
+        Assert.assertNotNull(message);
+        Assert.assertEquals(text, (String) message.getContent());
+        Assert.assertEquals("text/html", message.getContentType());
+
+        // HTML Doctype
+        text = "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Strict//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd\">\n<html xmlns=\"http://www.w3.org/1999/xhtml\">\n<body>More complex HTML</body></html>";
+        message = sendMessage(from, subject, null, text, mailAction);
+
+        Assert.assertNotNull(message);
+        Assert.assertEquals(text, (String) message.getContent());
+        Assert.assertEquals("text/html", message.getContentType());
+    }
+
     protected MimeMessage sendMessage(String from, Serializable recipients, String subject, String template)
     {
         Action mailAction = ACTION_SERVICE.createAction(MailActionExecuter.NAME);
