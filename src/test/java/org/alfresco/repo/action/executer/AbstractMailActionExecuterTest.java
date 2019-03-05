@@ -256,13 +256,24 @@ public abstract class AbstractMailActionExecuterTest
 
     protected MimeMessage sendMessage(String from, String subject, String template, final Action mailAction)
     {
+        return sendMessage(from, subject, template, null, mailAction);
+    }
+    protected MimeMessage sendMessage(String from, String subject, String template, String bodyText, final Action mailAction)
+    {
         if (from != null)
         {
             mailAction.setParameterValue(MailActionExecuter.PARAM_FROM, from);
         }
         mailAction.setParameterValue(MailActionExecuter.PARAM_SUBJECT, subject);
-        mailAction.setParameterValue(MailActionExecuter.PARAM_TEMPLATE, template);
-        mailAction.setParameterValue(MailActionExecuter.PARAM_TEMPLATE_MODEL, getModel());
+        if (template != null)
+        {
+            mailAction.setParameterValue(MailActionExecuter.PARAM_TEMPLATE, template);
+            mailAction.setParameterValue(MailActionExecuter.PARAM_TEMPLATE_MODEL, getModel());
+        }
+        else
+        {
+            mailAction.setParameterValue(MailActionExecuter.PARAM_TEXT, bodyText);
+        }
 
         RetryingTransactionHelper txHelper = APP_CONTEXT_INIT.getApplicationContext().getBean("retryingTransactionHelper", RetryingTransactionHelper.class);
 
