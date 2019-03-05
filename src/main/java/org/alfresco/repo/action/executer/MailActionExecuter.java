@@ -1634,11 +1634,18 @@ public class MailActionExecuter extends ActionExecuterAbstractBase
     {
         boolean result = false;
 
-        // Note: only simplistic match here - expects <html tag at the start of the text
+        // Note: only simplistic matching here - start of the text
+        // must be one of <html or <!DOCTYPE
         String htmlPrefix = "<html";
+        String dtPrefix = "<!DOCTYPE";
         String trimmedText = value.trim();
         if (trimmedText.length() >= htmlPrefix.length() &&
                 trimmedText.substring(0, htmlPrefix.length()).equalsIgnoreCase(htmlPrefix))
+        {
+            result = true;
+        }
+        else if (trimmedText.length() >= dtPrefix.length() &&
+                trimmedText.substring(0, dtPrefix.length()).equalsIgnoreCase(dtPrefix))
         {
             result = true;
         }
