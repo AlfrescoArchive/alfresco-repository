@@ -2,7 +2,7 @@
     <modelVersion>4.0.0</modelVersion>
     <artifactId>alfresco-repository</artifactId>
     <name>Alfresco Repository</name>
-    <version>7.54-SNAPSHOT</version>
+    <version>zap-7.54-test</version>
     <packaging>jar</packaging>
 
     <parent>
@@ -15,7 +15,7 @@
         <connection>scm:git:git@github.com:Alfresco/alfresco-repository.git</connection>
         <developerConnection>scm:git:git@github.com:Alfresco/alfresco-repository.git</developerConnection>
         <url>https://github.com/Alfresco/alfresco-repository</url>
-        <tag>HEAD</tag>
+        <tag>alfresco-repository-zap-7.54-test</tag>
     </scm>
 
     <distributionManagement>
