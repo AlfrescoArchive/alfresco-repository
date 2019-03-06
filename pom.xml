@@ -135,6 +135,11 @@
             <version>1.18</version>
         </dependency>
         <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+            <version>3.8.1</version>
+        </dependency>
+        <dependency>
             <groupId>commons-codec</groupId>
             <artifactId>commons-codec</artifactId>
             <version>1.12</version>
@@ -683,6 +688,10 @@
                 <exclusion>
                     <groupId>javax.mail</groupId>
                     <artifactId>mail</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>commons-lang</groupId>
+                    <artifactId>commons-lang3</artifactId>
                 </exclusion>
             </exclusions>
         </dependency>
