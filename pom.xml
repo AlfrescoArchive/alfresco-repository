@@ -130,6 +130,11 @@
             <version>1.4</version>
         </dependency>
         <dependency>
+            <groupId>org.apache.camel</groupId>
+            <artifactId>camel-jackson</artifactId>
+            <version>2.23.1</version>
+        </dependency>
+        <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-compress</artifactId>
             <version>1.18</version>
@@ -834,6 +839,10 @@
                 <exclusion>
                     <groupId>org.apache.camel</groupId>
                     <artifactId>camel-core</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.apache.camel</groupId>
+                    <artifactId>camel-jackson</artifactId>
                 </exclusion>
             </exclusions>
         </dependency>
