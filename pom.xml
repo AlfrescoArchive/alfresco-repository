@@ -10,13 +10,13 @@
     <artifactId>alfresco-data-model</artifactId>
     <name>Alfresco Data Model</name>
     <description>Alfresco Data Model classes</description>
-    <version>8.28-SNAPSHOT</version>
+    <version>zap-8.28-test</version>
 
     <scm>
         <connection>scm:git:https://github.com/Alfresco/alfresco-data-model.git</connection>
         <developerConnection>scm:git:https://github.com/Alfresco/alfresco-data-model.git</developerConnection>
         <url>https://github.com/Alfresco/alfresco-data-model</url>
-        <tag>HEAD</tag>
+        <tag>zap-8.28-test</tag>
     </scm>
 
     <distributionManagement>
