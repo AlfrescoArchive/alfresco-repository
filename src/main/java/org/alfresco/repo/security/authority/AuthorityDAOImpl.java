@@ -48,7 +48,6 @@ import org.alfresco.query.CannedQueryFactory;
 import org.alfresco.query.CannedQueryResults;
 import org.alfresco.query.PagingRequest;
 import org.alfresco.query.PagingResults;
-import org.alfresco.repo.cache.AsynchronouslyRefreshedCache;
 import org.alfresco.util.cache.RefreshableCacheEvent;
 import org.alfresco.util.cache.RefreshableCacheListener;
 import org.alfresco.repo.cache.SimpleCache;
@@ -59,7 +58,6 @@ import org.alfresco.repo.domain.query.CannedQueryDAO;
 import org.alfresco.repo.node.NodeServicePolicies;
 import org.alfresco.repo.policy.JavaBehaviour;
 import org.alfresco.repo.policy.PolicyComponent;
-import org.alfresco.repo.search.impl.lucene.AbstractLuceneQueryParser;
 import org.alfresco.repo.security.authentication.AuthenticationUtil;
 import org.alfresco.repo.security.authentication.AuthenticationUtil.RunAsWork;
 import org.alfresco.repo.security.person.PersonServiceImpl;
@@ -127,6 +125,7 @@ public class AuthorityDAOImpl implements AuthorityDAO, NodeServicePolicies.Befor
     private SimpleCache<Pair<String, String>, NodeRef> authorityLookupCache;
     private SimpleCache<String, Set<String>> userAuthorityCache;
     private SimpleCache<Pair<String, String>, List<ChildAssociationRef>> zoneAuthorityCache;
+    private SimpleCache<NodeRef, Collection<ChildAssociationRef>> rootAuthoritiesCache;
     private SimpleCache<NodeRef, Pair<Map<NodeRef,String>, List<NodeRef>>> childAuthorityCache;
     private AuthorityBridgeTableAsynchronouslyRefreshedCache authorityBridgeTableCache;
     private SimpleCache<String, Object> singletonCache; // eg. for system container nodeRefs (authorityContainer and zoneContainer)
@@ -208,6 +207,11 @@ public class AuthorityDAOImpl implements AuthorityDAO, NodeServicePolicies.Befor
     public void setZoneAuthorityCache(SimpleCache<Pair<String, String>, List<ChildAssociationRef>> zoneAuthorityCache)
     {
         this.zoneAuthorityCache = zoneAuthorityCache;
+    }
+
+    public void setRootAuthoritiesCache(SimpleCache rootAuthoritiesCache)
+    {
+        this.rootAuthoritiesCache = rootAuthoritiesCache;
     }
 
     public void setChildAuthorityCache(SimpleCache<NodeRef, Pair<Map<NodeRef,String>, List<NodeRef>>> childAuthorityCache)
@@ -396,8 +400,10 @@ public class AuthorityDAOImpl implements AuthorityDAO, NodeServicePolicies.Befor
             String currentUserDomain = tenantService.getCurrentUserDomain();
             for (String authorityZone : authorityZones)
             {
-                zoneRefs.add(getOrCreateZone(authorityZone));
+                NodeRef zoneRef = getOrCreateZone(authorityZone);
+                zoneRefs.add(zoneRef);
                 zoneAuthorityCache.remove(new Pair<String, String>(currentUserDomain, authorityZone));
+                rootAuthoritiesCache.remove(zoneRef);
             }
             zoneAuthorityCache.remove(new Pair<String, String>(currentUserDomain, null));
             nodeService.addChild(zoneRefs, childRef, ContentModel.ASSOC_IN_ZONE, QName.createQName("cm", name, namespacePrefixResolver));
@@ -428,6 +434,7 @@ public class AuthorityDAOImpl implements AuthorityDAO, NodeServicePolicies.Befor
         for (String authorityZone : getAuthorityZones(name))
         {
             zoneAuthorityCache.remove(new Pair<String, String>(currentUserDomain, authorityZone));
+            rootAuthoritiesCache.remove(getZone(authorityZone));
         }
         zoneAuthorityCache.remove(new Pair<String, String>(currentUserDomain, null));
         removeParentsFromChildAuthorityCache(nodeRef, false);
@@ -1566,12 +1573,25 @@ public class AuthorityDAOImpl implements AuthorityDAO, NodeServicePolicies.Befor
         {
             return Collections.<String> emptySet();
         }
-        Collection<ChildAssociationRef> childRefs = nodeService.getChildAssocsWithoutParentAssocsOfType(container, ContentModel.ASSOC_MEMBER);
-        Set<String> authorities = new TreeSet<String>();
+
+        Collection<ChildAssociationRef> cachedRootAuthorities = rootAuthoritiesCache.get(container);
+        Collection<ChildAssociationRef> childRefs;
+        if (cachedRootAuthorities == null)
+        {
+            childRefs = nodeService.getChildAssocsWithoutParentAssocsOfType(container, ContentModel.ASSOC_MEMBER);
+            rootAuthoritiesCache.put(container, Collections.unmodifiableCollection(childRefs));
+        }
+        else
+        {
+            childRefs = cachedRootAuthorities;
+        }
+
+        Set<String> authorities = new TreeSet<>();
         for (ChildAssociationRef childRef : childRefs)
         {
             addAuthorityNameIfMatches(authorities, childRef.getQName().getLocalName(), type);
         }
+
         return authorities;
     }
     
@@ -1804,6 +1824,7 @@ public class AuthorityDAOImpl implements AuthorityDAO, NodeServicePolicies.Befor
         PropertyCheck.mandatory(this, "tenantService", tenantService);
         PropertyCheck.mandatory(this, "userAuthorityCache", userAuthorityCache);
         PropertyCheck.mandatory(this, "zoneAuthorityCache", zoneAuthorityCache);
+        PropertyCheck.mandatory(this, "rootAuthoritiesCache", rootAuthoritiesCache);
         PropertyCheck.mandatory(this, "storeRef", storeRef);
         PropertyCheck.mandatory(this, "storeRef", storeRef);
         authorityBridgeTableCache.register(this);

@@ -346,8 +346,22 @@
       <property name="cacheStats" ref="cacheStatistics"/>
       <property name="cacheStatsEnabled" value="${cache.zoneToAuthoritySharedCache.tx.statsEnabled}"/>
    </bean>
-   
-   
+
+    <!-- The transactional cache for authority containers -->
+
+    <bean name="rootAuthoritiesCache" class="org.alfresco.repo.cache.TransactionalCache">
+        <property name="sharedCache">
+            <ref bean="rootAuthoritiesSharedCache" />
+        </property>
+        <property name="name">
+            <value>org.alfresco.rootAuthoritiesTransactionalCache</value>
+        </property>
+        <property name="maxCacheSize" value="${cache.rootAuthoritiesSharedCache.tx.maxItems}" />
+        <property name="mutable" value="true" />
+        <property name="disableSharedCache" value="${system.cache.disableMutableSharedCaches}" />
+        <property name="cacheStats" ref="cacheStatistics"/>
+        <property name="cacheStatsEnabled" value="${cache.rootAuthoritiesSharedCache.tx.statsEnabled}"/>
+    </bean>
    
    <!-- The transactional cache for Permissions -->
    

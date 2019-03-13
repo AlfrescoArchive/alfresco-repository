@@ -92,6 +92,9 @@
         <property name="zoneAuthorityCache">
             <ref bean="zoneToAuthorityCache" />
         </property>
+        <property name="rootAuthoritiesCache">
+            <ref bean="rootAuthoritiesCache" />
+        </property>
         <property name="singletonCache">
             <ref bean="immutableSingletonCache" />
         </property>
