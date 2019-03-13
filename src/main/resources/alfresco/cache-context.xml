@@ -211,16 +211,26 @@
    </bean>
    
    <!-- ================================================ -->
-   <!-- Zone lookup to ChildAssociationRefs              -->
+   <!-- Root authorities lookup in zones or containers              -->
    <!-- ================================================ -->
 
-   <!-- The cross-transaction shared cache for authority containers -->
+   <!-- The cross-transaction shared cache for root authorities in zones or containers -->
    
-   <bean name="zoneToAuthoritySharedCache" factory-bean="cacheFactory" factory-method="createCache">
-      <constructor-arg value="cache.zoneToAuthoritySharedCache"/>
+   <bean name="rootAuthoritiesSharedCache" factory-bean="cacheFactory" factory-method="createCache">
+      <constructor-arg value="cache.rootAuthoritiesSharedCache"/>
    </bean>
 
-   <!-- ===================================== -->
+    <!-- ================================================ -->
+    <!-- Zone lookup to ChildAssociationRefs              -->
+    <!-- ================================================ -->
+
+    <!-- The cross-transaction shared cache for authority containers -->
+
+    <bean name="zoneToAuthoritySharedCache" factory-bean="cacheFactory" factory-method="createCache">
+        <constructor-arg value="cache.zoneToAuthoritySharedCache"/>
+    </bean>
+
+    <!-- ===================================== -->
    <!-- Permissions access cache              -->
    <!-- ===================================== -->
 
