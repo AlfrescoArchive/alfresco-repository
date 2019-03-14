@@ -125,7 +125,7 @@ public class AuthorityDAOImpl implements AuthorityDAO, NodeServicePolicies.Befor
     private SimpleCache<Pair<String, String>, NodeRef> authorityLookupCache;
     private SimpleCache<String, Set<String>> userAuthorityCache;
     private SimpleCache<Pair<String, String>, List<ChildAssociationRef>> zoneAuthorityCache;
-    private SimpleCache<NodeRef, Collection<ChildAssociationRef>> rootAuthoritiesCache;
+    private SimpleCache<Pair<NodeRef, AuthorityType>, Set<String>> rootAuthoritiesCache;
     private SimpleCache<NodeRef, Pair<Map<NodeRef,String>, List<NodeRef>>> childAuthorityCache;
     private AuthorityBridgeTableAsynchronouslyRefreshedCache authorityBridgeTableCache;
     private SimpleCache<String, Object> singletonCache; // eg. for system container nodeRefs (authorityContainer and zoneContainer)
@@ -380,6 +380,10 @@ public class AuthorityDAOImpl implements AuthorityDAO, NodeServicePolicies.Befor
         {
             userAuthorityCache.clear();
             authorityBridgeTableCache.refresh();
+            if (isRootAuthority(childName, null))
+            {
+                rootAuthoritiesCache.remove(new Pair<>(getAuthorityContainer(), AuthorityType.getAuthorityType(childName)));
+            }
         }
     }
 
@@ -403,11 +407,13 @@ public class AuthorityDAOImpl implements AuthorityDAO, NodeServicePolicies.Befor
                 NodeRef zoneRef = getOrCreateZone(authorityZone);
                 zoneRefs.add(zoneRef);
                 zoneAuthorityCache.remove(new Pair<String, String>(currentUserDomain, authorityZone));
-                rootAuthoritiesCache.remove(zoneRef);
+                rootAuthoritiesCache.remove(new Pair<>(zoneRef, AuthorityType.getAuthorityType(name)));
             }
             zoneAuthorityCache.remove(new Pair<String, String>(currentUserDomain, null));
             nodeService.addChild(zoneRefs, childRef, ContentModel.ASSOC_IN_ZONE, QName.createQName("cm", name, namespacePrefixResolver));
         }
+        Pair<NodeRef, AuthorityType> key = new Pair<>(authorityContainerRef, AuthorityType.getAuthorityType(name));
+        rootAuthoritiesCache.remove(key);
         authorityLookupCache.put(cacheKey(name), childRef);
     }
     
@@ -434,9 +440,19 @@ public class AuthorityDAOImpl implements AuthorityDAO, NodeServicePolicies.Befor
         for (String authorityZone : getAuthorityZones(name))
         {
             zoneAuthorityCache.remove(new Pair<String, String>(currentUserDomain, authorityZone));
-            rootAuthoritiesCache.remove(getZone(authorityZone));
+            NodeRef zoneRef = getZone(authorityZone);
+            if (isRootAuthority(name, authorityZone))
+            {
+                Pair<NodeRef, AuthorityType> key = new Pair<>(zoneRef, AuthorityType.getAuthorityType(name));
+                rootAuthoritiesCache.remove(key);
+            }
         }
         zoneAuthorityCache.remove(new Pair<String, String>(currentUserDomain, null));
+        if (isRootAuthority(name, null))
+        {
+            Pair<NodeRef, AuthorityType> key = new Pair<>(getAuthorityContainer(), AuthorityType.getAuthorityType(name));
+            rootAuthoritiesCache.remove(key);
+        }
         removeParentsFromChildAuthorityCache(nodeRef, false);
         
         nodeService.deleteNode(nodeRef);
@@ -597,6 +613,31 @@ public class AuthorityDAOImpl implements AuthorityDAO, NodeServicePolicies.Befor
         }
         
         return getRootAuthoritiesUnderContainer(container, type);
+    }
+
+    /**
+     * @return true if authority was found in the cache for particular zone or root container
+     */
+    private boolean isRootAuthority(String authorityName, String zoneName)
+    {
+        NodeRef container = (zoneName == null ? getAuthorityContainer() : getZone(zoneName));
+        if (container == null)
+        {
+            // The zone doesn't even exist so there are no root authorities
+            return false;
+        }
+
+        NodeRef authorityRef = getAuthorityOrNull(authorityName);
+        if (authorityRef == null)
+        {
+            return false;
+        }
+
+        AuthorityType authorityType = AuthorityType.getAuthorityType(authorityName);
+
+        Pair<NodeRef, AuthorityType> key = new Pair<>(container, authorityType);
+
+        return rootAuthoritiesCache.get(key) != null && rootAuthoritiesCache.get(key).contains(authorityName);
     }
     
     public Set<String> findAuthorities(AuthorityType type, String parentAuthority, boolean immediate,
@@ -1571,25 +1612,26 @@ public class AuthorityDAOImpl implements AuthorityDAO, NodeServicePolicies.Befor
     {
         if (type != null && type.equals(AuthorityType.USER))
         {
-            return Collections.<String> emptySet();
+            return Collections.emptySet();
         }
 
-        Collection<ChildAssociationRef> cachedRootAuthorities = rootAuthoritiesCache.get(container);
-        Collection<ChildAssociationRef> childRefs;
+        Set<String> cachedRootAuthorities = rootAuthoritiesCache.get(new Pair<>(container, type));
+        Set<String> authorities = new TreeSet<>();
+
         if (cachedRootAuthorities == null)
         {
+            Collection<ChildAssociationRef> childRefs;
             childRefs = nodeService.getChildAssocsWithoutParentAssocsOfType(container, ContentModel.ASSOC_MEMBER);
-            rootAuthoritiesCache.put(container, Collections.unmodifiableCollection(childRefs));
+
+            for (ChildAssociationRef childRef : childRefs)
+            {
+                addAuthorityNameIfMatches(authorities, childRef.getQName().getLocalName(), type);
+            }
+            rootAuthoritiesCache.put(new Pair<>(container, type), Collections.unmodifiableSet(authorities));
         }
         else
         {
-            childRefs = cachedRootAuthorities;
-        }
-
-        Set<String> authorities = new TreeSet<>();
-        for (ChildAssociationRef childRef : childRefs)
-        {
-            addAuthorityNameIfMatches(authorities, childRef.getQName().getLocalName(), type);
+            authorities = cachedRootAuthorities;
         }
 
         return authorities;
@@ -1656,6 +1698,14 @@ public class AuthorityDAOImpl implements AuthorityDAO, NodeServicePolicies.Befor
                                     newAssocQName);
                         }
                     }
+
+                    if (isRootAuthority(authBefore, null))
+                    {
+                        Pair<NodeRef, AuthorityType> key = new Pair<>(getAuthorityContainer(),
+                                AuthorityType.getAuthorityType(authBefore));
+                        rootAuthoritiesCache.remove(key);
+                    }
+
                     authorityLookupCache.clear();
                     authorityBridgeTableCache.refresh();
                     
