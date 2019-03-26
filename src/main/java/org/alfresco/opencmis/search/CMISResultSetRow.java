@@ -120,7 +120,7 @@ public class CMISResultSetRow implements ResultSetRow
         }
         return overall;
     }
-    
+
     /*
      * (non-Javadoc)
      * 
@@ -303,5 +303,5 @@ public class CMISResultSetRow implements ResultSetRow
     {
         throw new UnsupportedOperationException();
     }
-    
+
 }
