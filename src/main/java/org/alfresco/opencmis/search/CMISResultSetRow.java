@@ -60,7 +60,7 @@ public class CMISResultSetRow implements ResultSetRow
     private int index;
 
     private Map<String, Float> scores;
-    
+
     private NodeService nodeService;
 
     private Map<String, NodeRef> nodeRefs;
