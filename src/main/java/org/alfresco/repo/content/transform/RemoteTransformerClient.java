@@ -53,7 +53,10 @@ import java.util.StringJoiner;
  * saved in a ContentWriter. In the event of an error an Exception is thrown.
  *
  * @since 6.0
+ *
+ * @deprecated The transformations code is being moved out of the codebase and replaced by the new async RenditionService2 or other external libraries.
  */
+@Deprecated
 public class RemoteTransformerClient
 {
     private final String name;
@@ -112,6 +115,7 @@ public class RemoteTransformerClient
             if (args[i+1] != null)
             {
                 builder.addTextBody(args[i], args[i + 1]);
+
                 sj.add(args[i] + '=' + args[i + 1]);
             }
         }

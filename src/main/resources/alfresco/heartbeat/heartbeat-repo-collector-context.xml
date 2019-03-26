@@ -7,11 +7,12 @@
     <!-- HeartBeat repository info data collector -->
     <bean id="infoDataCollector" class="org.alfresco.heartbeat.InfoDataCollector" parent="hbBaseDataCollector" >
         <constructor-arg name="collectorId"         value="acs.repository.info"/> <!-- Collector ID -->
-        <constructor-arg name="collectorVersion"    value="1.0"/> <!-- Collector version -->
+        <constructor-arg name="collectorVersion"    value="1.1"/> <!-- Collector version -->
         <constructor-arg name="cronExpression"      value="0 0 0 ? * SUN"/> <!-- Weekly -->
         <property name="currentRepoDescriptorDAO"   ref="currentRepoDescriptorDAO"/>
         <property name="serverDescriptorDAO"        ref="serverDescriptorDAO"/>
         <property name="deploymentMethodProvider"   ref="deploymentMethodProvider"/>
+        <property name="dataSource"                 ref="dataSource" />
     </bean>
 
     <!-- HeartBeat repository usage model data collector -->
@@ -27,9 +28,10 @@
     <!-- HeartBeat repository usage system data collector -->
     <bean id="systemUsageDataCollector" class="org.alfresco.heartbeat.SystemUsageDataCollector" parent="hbBaseDataCollector" >
         <constructor-arg name="collectorId"         value="acs.repository.usage.system"/>  <!-- Collector ID -->
-        <constructor-arg name="collectorVersion"    value="1.0"/> <!-- Collector version -->
+        <constructor-arg name="collectorVersion"    value="1.2"/> <!-- Collector version -->
         <constructor-arg name="cronExpression"      value="0 0 0 ? * *"/> <!-- Daily -->
         <property name="currentRepoDescriptorDAO"   ref="currentRepoDescriptorDAO"/>
+        <property name="dataSource"                 ref="dataSource"/>
         <property name="hbJobScheduler"             ref="hbNonLockingJobScheduler"/> <!--Schedule a non locking job for this collector -->
     </bean>
 
@@ -45,10 +47,33 @@
     <!-- HeartBeat configuration data collector-->
     <bean id="configurationDataCollector" class="org.alfresco.heartbeat.ConfigurationDataCollector" parent="hbBaseDataCollector" >
         <constructor-arg name="collectorId"         value="acs.repository.configuration"/>  <!-- Collector ID -->
-        <constructor-arg name="collectorVersion"    value="1.0"/>  <!-- Collector version -->
+        <constructor-arg name="collectorVersion"    value="1.1"/>  <!-- Collector version -->
         <constructor-arg name="cronExpression"      value="0 0 0 ? * SUN"/> <!-- Weekly -->
         <property name="currentRepoDescriptorDAO"   ref="currentRepoDescriptorDAO"/>
         <property name="smartFoldersBundle"         ref="smartFoldersBundle"/>
+        <property name="serverModeProvider"         ref="serverMode"/>
+        <property name="repoUsageComponent"         ref="repoUsageComponent"/>
+        <property name="moduleService"              ref="moduleService"/>
+        <property name="auditService"               ref="auditService"/>
+        <property name="transactionService"         ref="transactionService"/>
+        <property name="dataSource"                 ref="dataSource"/>
+        <property name="thumbnailService"           ref="thumbnailService"/>
+        <property name="webdavService"              ref="webdavService"/>
+        <property name="workflowAdminService"       ref="workflowAdminService"/>
+        <property name="replicationSubsystem"       ref="Replication"/>
+        <property name="imapSubsystem"              ref="imap"/>
+        <property name="inboundSMTPSubsystem"       ref="InboundSMTP"/>
+        <property name="activitiesFeedSubsystem"    ref="ActivitiesFeed"/>
+        <property name="fileServersSubsystem"       ref="fileServers"/>
+        <property name="authenticationSubsystem"    ref="Authentication"/>
     </bean>
 
+    <!-- HeartBeat sessions usage data collector -->
+    <bean id="sessionsUsageDataCollector" class="org.alfresco.heartbeat.SessionsUsageDataCollector" parent="hbBaseDataCollector" >
+        <constructor-arg name="collectorId"         value="acs.repository.usage.sessions"/>  <!-- Collector ID -->
+        <constructor-arg name="collectorVersion"    value="1.0"/>  <!-- Collector version -->
+        <constructor-arg name="cronExpression"      value="0 0 0/1 * * ?"/> <!-- Hourly -->
+        <property name="currentRepoDescriptorDAO"   ref="currentRepoDescriptorDAO"/>
+        <property name="repoServerMgmt"             ref="RepoServerMgmt"/>
+    </bean>
 </beans>

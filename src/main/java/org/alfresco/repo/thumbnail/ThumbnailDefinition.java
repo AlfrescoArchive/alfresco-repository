@@ -30,11 +30,16 @@ import org.apache.commons.logging.LogFactory;
 
 import org.alfresco.service.cmr.repository.TransformationOptions;
 
+import java.util.Objects;
+
 /**
  * This class provides the thumbnail details to the thumbnail service.
  * 
  * @author Roy Wetherall
+ *
+ * @deprecated The thumbnails code is being moved out of the codebase and replaced by the new async RenditionService2 or other external libraries.
  */
+@Deprecated
 public class ThumbnailDefinition
 {
 
@@ -278,5 +283,26 @@ public class ThumbnailDefinition
             return;
         }
         thumbnailRegistry.addThumbnailDefinition(this);
+    }
+
+    @Override
+    public boolean equals(Object o)
+    {
+        if (this == o)
+        {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass())
+        {
+            return false;
+        }
+        ThumbnailDefinition that = (ThumbnailDefinition) o;
+        return Objects.equals(name, that.name);
+    }
+
+    @Override
+    public int hashCode()
+    {
+        return Objects.hash(name);
     }
 }

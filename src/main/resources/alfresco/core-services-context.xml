@@ -978,7 +978,7 @@
    <bean id="repositoryState" class="org.alfresco.repo.admin.RepositoryState" />
 
    <!-- Alfresco Events Publisher -->
-   <bean id="eventPublisher" class="org.alfresco.repo.events.DelegatingEventPublisher" />
+   <bean id="eventPublisher" class="org.alfresco.sync.repo.events.DelegatingEventPublisher" />
 
    <!-- index subsystem proxies -->
 
@@ -1359,4 +1359,7 @@
        </property>
    </bean>
 
+    <bean id="dbMetricsReporter" class="org.alfresco.metrics.db.DBMetricsReporterProxy"/>
+
+    <bean id="restMetricsReporter" class="org.alfresco.metrics.rest.RestMetricsReporterProxy"/>
 </beans>

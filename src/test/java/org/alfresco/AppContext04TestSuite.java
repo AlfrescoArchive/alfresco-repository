@@ -56,7 +56,6 @@ import org.junit.runners.Suite;
     // This test opens, closes and again opens the alfresco application context.
     org.alfresco.repo.dictionary.CustomModelRepoRestartTest.class,
 
-    org.alfresco.repo.rendition.StandardRenditionLocationResolverTest.class,
     org.alfresco.repo.rendition.executer.HTMLRenderingEngineTest.class,
     org.alfresco.repo.rendition.executer.XSLTFunctionsTest.class,
     org.alfresco.repo.rendition.executer.XSLTRenderingEngineTest.class,
@@ -76,7 +75,6 @@ import org.junit.runners.Suite;
     org.alfresco.repo.imap.ImapServiceImplCacheTest.class,
     org.alfresco.repo.imap.ImapServiceImplTest.class,
     org.alfresco.repo.bulkimport.impl.BulkImportTest.class,
-    org.alfresco.repo.discussion.DiscussionServiceImplTest.class,
     org.alfresco.repo.transfer.NodeCrawlerTest.class,
     org.alfresco.repo.transfer.TransferServiceCallbackTest.class,
     org.alfresco.repo.transfer.TransferServiceImplTest.class,
@@ -88,7 +86,6 @@ import org.junit.runners.Suite;
     org.alfresco.util.schemacomp.SchemaReferenceFileTest.class,
     org.alfresco.repo.module.ModuleComponentHelperTest.class,
     org.alfresco.repo.node.getchildren.GetChildrenCannedQueryTest.class,
-    org.alfresco.filesys.auth.cifs.CifsAuthenticatorPassthruTest.class,
 
     // the following test fails locally - on windows
     org.alfresco.repo.content.transform.DifferrentMimeTypeTest.class,

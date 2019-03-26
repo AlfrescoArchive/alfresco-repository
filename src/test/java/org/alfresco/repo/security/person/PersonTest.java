@@ -47,6 +47,7 @@ import org.alfresco.query.PagingRequest;
 import org.alfresco.query.PagingResults;
 import org.alfresco.repo.policy.BehaviourFilter;
 import org.alfresco.repo.security.authentication.AuthenticationUtil;
+import org.alfresco.repo.security.authentication.AuthenticationUtil.RunAsWork;
 import org.alfresco.repo.security.authentication.MutableAuthenticationDao;
 import org.alfresco.repo.transaction.AlfrescoTransactionSupport;
 import org.alfresco.repo.transaction.AlfrescoTransactionSupport.TxnReadState;
@@ -98,7 +99,7 @@ public class PersonTest extends TestCase
     @SuppressWarnings("deprecation")
     public void setUp() throws Exception
     {
-        AuthenticationUtil.setFullyAuthenticatedUser(AuthenticationUtil.getSystemUserName());
+        AuthenticationUtil.setFullyAuthenticatedUser(AuthenticationUtil.getAdminUserName());
         
         if (AlfrescoTransactionSupport.getTransactionReadState() != TxnReadState.TXN_NONE)
         {
@@ -1696,4 +1697,119 @@ public class PersonTest extends TestCase
             }
         }, false, true);
     }    
+    
+    public void testPreventCreationOfBuiltInAuthorities()
+    {
+        try
+        {
+            PropertyMap systemProps = new PropertyMap();
+            systemProps.put(ContentModel.PROP_USERNAME, AuthenticationUtil.getSystemUserName());
+            systemProps.put(ContentModel.PROP_FIRSTNAME, "myFirstName");
+            systemProps.put(ContentModel.PROP_LASTNAME, "myLastName");
+            systemProps.put(ContentModel.PROP_EMAIL, "myFirstName.myLastName@email.com");
+            systemProps.put(ContentModel.PROP_JOBTITLE, "myJobTitle");
+            systemProps.put(ContentModel.PROP_ORGANIZATION, "myOrganisation");
+
+            personService.createPerson(systemProps);
+            fail("case fail creating SystemUserName: " + AuthenticationUtil.getSystemUserName());
+
+        }
+        catch (AlfrescoRuntimeException e)
+        {
+            // expect to go here
+        }
+
+        try
+        {
+
+            PropertyMap guestProps = new PropertyMap();
+            guestProps.put(ContentModel.PROP_USERNAME, AuthenticationUtil.getGuestUserName());
+            guestProps.put(ContentModel.PROP_FIRSTNAME, "myFirstName");
+            guestProps.put(ContentModel.PROP_LASTNAME, "myLastName");
+            guestProps.put(ContentModel.PROP_EMAIL, "myFirstName.myLastName@email.com");
+            guestProps.put(ContentModel.PROP_JOBTITLE, "myJobTitle");
+            guestProps.put(ContentModel.PROP_ORGANIZATION, "myOrganisation");
+
+            personService.createPerson(guestProps);
+            fail("case fail creating GuestUserName: " + AuthenticationUtil.getGuestUserName());
+        }
+        catch (AlfrescoRuntimeException e)
+        {
+            // expect to go here
+        }
+    }
+
+    public void testUserShouldBeAbleToUpdateTheProfile()
+    {
+        final String USERNAME = GUID.generate();
+
+        NodeRef personRef = personService.createPerson(createDefaultProperties(USERNAME, "Aa", "Aa", "aa@aa", "alfresco", rootNodeRef));
+
+        AuthenticationUtil.setFullyAuthenticatedUser(USERNAME);
+
+        nodeService.setProperty(personRef, ContentModel.PROP_FIRSTNAME, "myUpdatedFirstName");
+    }
+
+    public void testPreventChangesToUsernameWithoutHavingAdminRights()
+    {
+        try
+        {
+            final String USERNAME = GUID.generate();
+            final String UPDATED_USERNAME = USERNAME + "1";
+
+            NodeRef personRef = personService.createPerson(createDefaultProperties(USERNAME, "Aa", "Aa", "aa@aa", "alfresco", rootNodeRef));
+
+            AuthenticationUtil.setFullyAuthenticatedUser(USERNAME);
+
+            nodeService.setProperty(personRef, ContentModel.PROP_USERNAME, UPDATED_USERNAME);
+        }
+        catch (RuntimeException e)
+        {
+            // expect to go here
+        }
+    }
+
+    public void testPreventChangesToOtherUsersPropertiesWithoutHavingAdminRights()
+    {
+        try
+        {
+            final String USERNAME = GUID.generate();
+            final String USERNAME_1 = USERNAME + "1";
+            final String USERNAME_2 = USERNAME + "2";
+
+            personService.createPerson(createDefaultProperties(USERNAME_1, "Aa", "Aa", "aa@aa", "alfresco", rootNodeRef));
+            NodeRef user2 = personService.createPerson(createDefaultProperties(USERNAME_2, "Bb", "Bb", "bb@bb", "alfresco", rootNodeRef));
+
+            AuthenticationUtil.setFullyAuthenticatedUser(USERNAME_1);
+
+            nodeService.setProperty(user2, ContentModel.PROP_FIRSTNAME, "Cc");
+        }
+        catch (RuntimeException e)
+        {
+            //  expect to go here
+        }
+    }
+    
+    public void testBuitInSystemUser()
+    {
+
+        AuthenticationUtil.runAsSystem(new RunAsWork<Void>()
+        {
+            @Override
+            public Void doWork()
+            {
+                try
+                {
+                    NodeRef person = personService.getPerson(AuthenticationUtil.SYSTEM_USER_NAME);
+                    fail("A NoSuchPersonException should have been thrown for " + AuthenticationUtil.SYSTEM_USER_NAME +
+                            " but " + person + " was returned");
+                }
+                catch(NoSuchPersonException ignore)
+                {
+                    // This is expected for system.;
+                }
+                return null;
+            }
+        });
+    }
 }

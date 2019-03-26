@@ -26,7 +26,11 @@
 package org.alfresco.repo.content.transform;
 
 import org.alfresco.repo.content.MimetypeMap;
+import org.alfresco.service.cmr.repository.ContentReader;
+import org.alfresco.service.cmr.repository.ContentWriter;
 import org.alfresco.service.cmr.repository.TransformationOptions;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.apache.tika.metadata.Metadata;
 import org.apache.tika.parser.ParseContext;
 import org.apache.tika.parser.Parser;
@@ -40,10 +44,18 @@ import org.apache.tika.parser.pdf.PDFParserConfig;
  * 
  * @author Nick Burch
  * @author Derek Hulley
+ *
+ * @deprecated The transformations code is being moved out of the codebase and replaced by the new async RenditionService2 or other external libraries.
  */
+@Deprecated
 public class PdfBoxContentTransformer extends TikaPoweredContentTransformer
 {
+    /**
+     * The logger
+     */
+    private static Log logger = LogFactory.getLog(PdfBoxContentTransformer.class);
     protected PDFParserConfig pdfParserConfig;
+    private boolean extractBookmarksText = true;
     
     public PdfBoxContentTransformer() {
        super(new String[] {
@@ -66,6 +78,12 @@ public class PdfBoxContentTransformer extends TikaPoweredContentTransformer
     {
         this.pdfParserConfig = pdfParserConfig;
     }
+    
+    public void setExtractBookmarksText(boolean extractBookmarksText)
+    {
+        this.extractBookmarksText = extractBookmarksText;
+    }
+
 
     @Override
     protected ParseContext buildParseContext(Metadata metadata, String targetMimeType, TransformationOptions options)
@@ -73,6 +91,7 @@ public class PdfBoxContentTransformer extends TikaPoweredContentTransformer
         ParseContext context = super.buildParseContext(metadata, targetMimeType, options);
         if (pdfParserConfig != null)
         {
+            pdfParserConfig.setExtractBookmarksText(extractBookmarksText);
             context.set(PDFParserConfig.class, pdfParserConfig);
         }
         // TODO: Possibly extend TransformationOptions to allow for per-transform PDFParserConfig?
@@ -83,5 +102,31 @@ public class PdfBoxContentTransformer extends TikaPoweredContentTransformer
     protected String getTransform()
     {
         return "PdfBox";
+    }
+    
+    
+    @Override
+    protected void transformRemote(RemoteTransformerClient remoteTransformerClient, ContentReader reader,
+                                   ContentWriter writer, TransformationOptions options,
+                                   String sourceMimetype, String targetMimetype,
+                                   String sourceExtension, String targetExtension,
+                                   String targetEncoding) throws Exception
+    {
+
+        String transform = getTransform();
+        long timeoutMs = options.getTimeoutMs();
+        String notExtractBookmarksText = null;
+
+        if (!extractBookmarksText)
+        {
+            notExtractBookmarksText = Boolean.TRUE.toString();
+        }
+
+        remoteTransformerClient.request(reader, writer, sourceMimetype, sourceExtension, targetExtension,
+                timeoutMs, logger, 
+                "transform", transform,
+                "notExtractBookmarksText", notExtractBookmarksText,
+                "targetMimetype", targetMimetype, 
+                "targetEncoding", targetEncoding);
     }
 }

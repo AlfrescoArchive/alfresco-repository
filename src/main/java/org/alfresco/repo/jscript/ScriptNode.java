@@ -63,6 +63,9 @@ import org.alfresco.repo.content.transform.UnsupportedTransformationException;
 import org.alfresco.repo.content.transform.magick.ImageTransformationOptions;
 import org.alfresco.repo.model.filefolder.FileFolderServiceImpl.InvalidTypeException;
 import org.alfresco.repo.node.getchildren.GetChildrenCannedQuery;
+import org.alfresco.repo.rendition2.RenditionDefinition2;
+import org.alfresco.repo.rendition2.RenditionDefinitionRegistry2;
+import org.alfresco.repo.rendition2.RenditionService2;
 import org.alfresco.repo.search.QueryParameterDefImpl;
 import org.alfresco.repo.security.authentication.AuthenticationUtil;
 import org.alfresco.repo.security.authentication.AuthenticationUtil.RunAsWork;
@@ -148,7 +151,7 @@ import org.springframework.extensions.surf.util.URLEncoder;
 public class ScriptNode implements Scopeable, NamespacePrefixResolverProvider
 {
     private static final long serialVersionUID = -3378946227712939601L;
-    
+
     private static Log logger = LogFactory.getLog(ScriptNode.class);
     
     private final static String NAMESPACE_BEGIN = "" + QName.NAMESPACE_BEGIN;
@@ -203,6 +206,8 @@ public class ScriptNode implements Scopeable, NamespacePrefixResolverProvider
     protected ServiceRegistry services = null;
     private NodeService nodeService = null;
     private FileFolderService fileFolderService = null;
+    private RenditionService2 renditionService2;
+    private RenditionDefinitionRegistry2 renditionDefinitionRegistry2;
     private RetryingTransactionHelper retryingTransactionHelper = null;
     private Boolean isDocument = null;
     private Boolean isContainer = null;
@@ -216,7 +221,7 @@ public class ScriptNode implements Scopeable, NamespacePrefixResolverProvider
     private ChildAssociationRef primaryParentAssoc = null;
     private ScriptableQNameMap<String, Object> parentAssocs = null;
     // NOTE: see the reset() method when adding new cached members!
-    
+
     
     // ------------------------------------------------------------------------------
     // Construction
@@ -272,6 +277,8 @@ public class ScriptNode implements Scopeable, NamespacePrefixResolverProvider
         this.fileFolderService = services.getFileFolderService();
         this.retryingTransactionHelper = services.getTransactionService().getRetryingTransactionHelper();
         this.scope = scope;
+        renditionService2 = services.getRenditionService2();
+        renditionDefinitionRegistry2 = renditionService2.getRenditionDefinitionRegistry2();
     }
     
     @Override
@@ -2725,7 +2732,7 @@ public class ScriptNode implements Scopeable, NamespacePrefixResolverProvider
     {
         return transformDocument(mimetype, destination.getNodeRef());
     }
-    
+
     private ScriptNode transformDocument(String mimetype, NodeRef destination)
     {
         ParameterCheck.mandatoryString("Mimetype", mimetype);
@@ -2848,7 +2855,7 @@ public class ScriptNode implements Scopeable, NamespacePrefixResolverProvider
         ParameterCheck.mandatory("Destination Node", destination);
         return transformImage(mimetype, options, destination.getNodeRef());
     }
-    
+
     private ScriptNode transformImage(String mimetype, final String options, NodeRef destination)
     {
         ParameterCheck.mandatoryString("Mimetype", mimetype);
@@ -3017,7 +3024,11 @@ public class ScriptNode implements Scopeable, NamespacePrefixResolverProvider
      * @param  thumbnailName    the name of the thumbnail
      * @param  async            indicates whether the thumbnail is create asynchronously or not
      * @return ScriptThumbnail  the newly create thumbnail node or null if async creation occures
+     *
+     * @deprecated The async flag in the method signature will not be applicable as all of
+     * the future transformations will be asynchronous
      */
+    @Deprecated
     public ScriptThumbnail createThumbnail(String thumbnailName, boolean async)
     {
         return createThumbnail(thumbnailName, async, false);
@@ -3038,7 +3049,11 @@ public class ScriptNode implements Scopeable, NamespacePrefixResolverProvider
      * @param  async            indicates whether the thumbnail is create asynchronously or not
      * @param  force            ignore system.thumbnail.generate=false
      * @return ScriptThumbnail  the newly create thumbnail node or null if async creation occures
+     *
+     * @deprecated The async flag in the method signature will not be applicable as all of
+     * the future transformations will be asynchronous
      */
+    @Deprecated
     public ScriptThumbnail createThumbnail(String thumbnailName, boolean async, boolean force)
     {
         final ThumbnailService thumbnailService = services.getThumbnailService();
@@ -3105,10 +3120,18 @@ public class ScriptNode implements Scopeable, NamespacePrefixResolverProvider
             }
             else
             {
-                Action action = ThumbnailHelper.createCreateThumbnailAction(details, services);
-                
-                // Queue async creation of thumbnail
-                this.services.getActionService().executeAction(action, this.nodeRef, true, true);
+                RenditionDefinition2 renditionDefinition = renditionDefinitionRegistry2.getRenditionDefinition(thumbnailName);
+                if (renditionDefinition != null)
+                {
+                    renditionService2.render(nodeRef, thumbnailName);
+                }
+                else
+                {
+                    Action action = ThumbnailHelper.createCreateThumbnailAction(details, services);
+
+                    // Queue async creation of thumbnail
+                    this.services.getActionService().executeAction(action, this.nodeRef, true, true);
+                }
             }
         }
         return result;
@@ -3189,7 +3212,7 @@ public class ScriptNode implements Scopeable, NamespacePrefixResolverProvider
     }
     /**
      * This version of the method name spelling is retained (for now) for backwards compatibility
-     * @see #getThumbnailDefinitions() 
+     * @see #getThumbnailDefinitions()
      */
     @Deprecated
     public String[] getThumbnailDefintions()
@@ -4123,7 +4146,7 @@ public class ScriptNode implements Scopeable, NamespacePrefixResolverProvider
         private QName property;
         private boolean isDirty;
     }
-    
+
     /**
      * Interface contract for simple anonymous classes that implement document transformations
      */
@@ -4142,7 +4165,7 @@ public class ScriptNode implements Scopeable, NamespacePrefixResolverProvider
         ScriptNode transform(ContentService contentService, NodeRef noderef,
             ContentReader reader, ContentWriter writer);
     }
-    
+
     private abstract class AbstractTransformer implements Transformer
     {
         public ScriptNode transform(ContentService contentService, NodeRef nodeRef,

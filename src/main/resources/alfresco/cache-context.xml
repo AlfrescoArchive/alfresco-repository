@@ -470,11 +470,6 @@
       <constructor-arg value="cache.samlTrustEngineSharedCache"/>
    </bean>
    
-   <!--  Temp Deleted Pseudo File Cache With TTL -->
-   <bean name="deletePseudoFileCache" factory-bean="cacheFactory" factory-method="createCache">
-      <constructor-arg value="cache.deletePseudoFileCache"/>
-   </bean>
-
    <!-- The cross-transaction shared cache for solr Facets NodeRefs -->
    
    <bean name="solrFacetNodeRefSharedCache" factory-bean="cacheFactory" factory-method="createCache">
@@ -497,4 +492,9 @@
       <constructor-arg value="cache.protectedUsersCache"/>
    </bean>
 
+    <!-- The cross-transaction shared cache for heartbeat data on cluster usage -->
+
+   <bean name="hbClusterUsageCache" factory-bean="cacheFactory" factory-method="createCache">
+      <constructor-arg value="cache.hbClusterUsageCache"/>
+   </bean>
 </beans>

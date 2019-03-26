@@ -25,13 +25,12 @@
  */
 package org.alfresco.repo.thumbnail;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import org.alfresco.repo.content.transform.ContentTransformer;
 import org.alfresco.repo.content.transform.TransformerDebug;
+import org.alfresco.repo.lock.JobLockService;
+import org.alfresco.repo.lock.LockAcquisitionException;
+import org.alfresco.repo.rendition2.RenditionDefinition2;
+import org.alfresco.repo.rendition2.RenditionDefinitionRegistry2;
 import org.alfresco.repo.security.authentication.AuthenticationUtil;
 import org.alfresco.repo.security.authentication.AuthenticationUtil.RunAsWork;
 import org.alfresco.repo.tenant.Tenant;
@@ -43,7 +42,10 @@ import org.alfresco.service.cmr.repository.ContentService;
 import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.cmr.repository.TransformationOptions;
 import org.alfresco.service.cmr.thumbnail.ThumbnailException;
+import org.alfresco.service.namespace.NamespaceService;
+import org.alfresco.service.namespace.QName;
 import org.alfresco.service.transaction.TransactionService;
+import org.alfresco.transform.client.model.config.TransformServiceRegistry;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.BeansException;
@@ -54,14 +56,25 @@ import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ApplicationContextEvent;
 import org.springframework.extensions.surf.util.AbstractLifecycleBean;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 /**
  * Registry of all the thumbnail details available
  * 
  * @author Roy Wetherall
  * @author Neil McErlean
+ *
+ * @deprecated The thumbnails code is being moved out of the codebase and replaced by the new async RenditionService2 or other external libraries.
  */
+@Deprecated
 public class ThumbnailRegistry implements ApplicationContextAware, ApplicationListener<ApplicationContextEvent>
 {
+    private static final QName LOCK_QNAME = QName.createQName(NamespaceService.SYSTEM_MODEL_1_0_URI, "org.alfresco.repo.thumbnail.ThumbnailRegistry");
+    private static final long LOCK_TTL = 60000;
+
     /** Logger */
     private static Log logger = LogFactory.getLog(ThumbnailRegistry.class);
     
@@ -75,7 +88,13 @@ public class ThumbnailRegistry implements ApplicationContextAware, ApplicationLi
     protected RenditionService renditionService;
     
     protected TenantAdminService tenantAdminService;
-    
+
+    private JobLockService jobLockService;
+
+    private TransformServiceRegistry transformServiceRegistry;
+
+    private RenditionDefinitionRegistry2 renditionDefinitionRegistry2;
+
     private boolean redeployStaticDefsOnStartup;
     
     /** Map of thumbnail definition */
@@ -138,7 +157,22 @@ public class ThumbnailRegistry implements ApplicationContextAware, ApplicationLi
     {
         this.redeployStaticDefsOnStartup = redeployStaticDefsOnStartup;
     }
-    
+
+    public void setJobLockService(JobLockService jobLockService)
+    {
+        this.jobLockService = jobLockService;
+    }
+
+    public void setTransformServiceRegistry(TransformServiceRegistry transformServiceRegistry)
+    {
+        this.transformServiceRegistry = transformServiceRegistry;
+    }
+
+    public void setRenditionDefinitionRegistry2(RenditionDefinitionRegistry2 renditionDefinitionRegistry2)
+    {
+        this.renditionDefinitionRegistry2 = renditionDefinitionRegistry2;
+    }
+
     /**
      * This method is used to inject the thumbnail definitions.
      */
@@ -158,8 +192,41 @@ public class ThumbnailRegistry implements ApplicationContextAware, ApplicationLi
     
     // Otherwise we should go ahead and persist the thumbnail definitions.
     // This is done during system startup. It needs to be done as the system user (see callers) to ensure the thumbnail definitions get saved
-    // and also needs to be done within a transaction in order to support concurrent startup. See ALF-6271 for details.
+    // and also needs to be done within a transaction in order to support concurrent startup. See c for details.
+    // MNT-19986 executing initialisation with a db lock for not creating duplicates in a cluster
     public void initThumbnailDefinitions()
+    {
+        String lockToken = null;
+        try
+        {
+            // Get a lock
+            lockToken = jobLockService.getLock(LOCK_QNAME, LOCK_TTL);
+            initThumbnailDefinitionsTransaction();
+        }
+        catch (LockAcquisitionException e)
+        {
+            if (logger.isDebugEnabled())
+            {
+                logger.debug("Skipping initialisation from thumbnail definitions (could not get lock): " + e.getMessage());
+            }
+        }
+        finally
+        {
+            if (lockToken != null)
+            {
+                try
+                {
+                    jobLockService.releaseLock(lockToken, LOCK_QNAME);
+                }
+                catch (LockAcquisitionException e)
+                {
+                    // Ignore
+                }
+            }
+        }
+    }
+
+    private void initThumbnailDefinitionsTransaction()
     {
         RetryingTransactionHelper transactionHelper = transactionService.getRetryingTransactionHelper();
         transactionHelper.doInTransaction(new RetryingTransactionHelper.RetryingTransactionCallback<Void>()
@@ -170,11 +237,11 @@ public class ThumbnailRegistry implements ApplicationContextAware, ApplicationLi
                 for (String thumbnailDefName : thumbnailDefinitions.keySet())
                 {
                     final ThumbnailDefinition thumbnailDefinition = thumbnailDefinitions.get(thumbnailDefName);
-                    
+
                     // Built-in thumbnailDefinitions do not provide any non-standard values
                     // for the ThumbnailParentAssociationDetails object. Hence the null
                     RenditionDefinition renditionDef = thumbnailRenditionConvertor.convert(thumbnailDefinition, null);
-                    
+
                     // Thumbnail definitions are saved into the repository as actions
                     renditionService.saveRenditionDefinition(renditionDef);
                 }
@@ -182,6 +249,7 @@ public class ThumbnailRegistry implements ApplicationContextAware, ApplicationLi
             }
         });
     }
+
     
     /**
      * Get a list of all the thumbnail definitions
@@ -326,25 +394,34 @@ public class ThumbnailRegistry implements ApplicationContextAware, ApplicationLi
      */
     public boolean isThumbnailDefinitionAvailable(String sourceUrl, String sourceMimetype, long sourceSize, NodeRef sourceNodeRef, ThumbnailDefinition thumbnailDefinition)
     {
-        // Copy the thumbnail's TransformationOptions and set the sourceNodeRef, for use by transformers and debug. 
-        TransformationOptions options = thumbnailDefinition.getTransformationOptions().deepCopy();
-        options.setSourceNodeRef(sourceNodeRef);
-
-        // Log the following getTransform() as trace so we can see the wood for the trees
-        boolean orig = TransformerDebug.setDebugOutput(false);
-        try
+        // Use RenditionService2 if it knows about the definition, otherwise use contentService as before. Needed as
+        // disabling local transforms should not disable thumbnails if they can be done remotely.
+        boolean supported = false;
+        String targetMimetype = thumbnailDefinition.getMimetype();
+        RenditionDefinition2 renditionDefinition = getEquivalentRenditionDefinition2(thumbnailDefinition);
+        if (renditionDefinition != null)
         {
-            return this.contentService.getTransformer(
-                    sourceUrl, 
-                    sourceMimetype,
-                    sourceSize, 
-                    thumbnailDefinition.getMimetype(), options
-              ) != null;
+            Map<String, String> options = renditionDefinition.getTransformOptions();
+            String renditionName = renditionDefinition.getRenditionName();
+            supported = transformServiceRegistry.isSupported(sourceMimetype, sourceSize, targetMimetype, options, renditionName);
         }
-        finally
+        else
         {
-            TransformerDebug.setDebugOutput(orig);
+            boolean orig = TransformerDebug.setDebugOutput(false);
+            try
+            {
+                // Copy the thumbnail's TransformationOptions and set the sourceNodeRef, for use by debug.
+                TransformationOptions options = thumbnailDefinition.getTransformationOptions().deepCopy();
+                options.setSourceNodeRef(sourceNodeRef);
+                supported = contentService.getTransformer(sourceUrl, sourceMimetype, sourceSize,
+                        targetMimetype, options) != null;
+            }
+            finally
+            {
+                TransformerDebug.setDebugOutput(orig);
+            }
         }
+        return supported;
     }
     
     /**
@@ -358,21 +435,7 @@ public class ThumbnailRegistry implements ApplicationContextAware, ApplicationLi
      */
     public boolean isThumbnailDefinitionAvailable(String sourceUrl, String sourceMimeType, long sourceSize, ThumbnailDefinition thumbnailDefinition)
     {
-        // Log the following getTransform() as trace so we can see the wood for the trees
-        boolean orig = TransformerDebug.setDebugOutput(false);
-        try
-        {
-            return this.contentService.getTransformer(
-                    sourceUrl, 
-                    sourceMimeType,
-                    sourceSize, 
-                    thumbnailDefinition.getMimetype(), thumbnailDefinition.getTransformationOptions()
-              ) != null;
-        }
-        finally
-        {
-            TransformerDebug.setDebugOutput(orig);
-        }
+        return isThumbnailDefinitionAvailable(sourceUrl, sourceMimeType, sourceSize, null, thumbnailDefinition);
     }
 
     /**
@@ -384,19 +447,49 @@ public class ThumbnailRegistry implements ApplicationContextAware, ApplicationLi
      */
     public long getMaxSourceSizeBytes(String sourceMimetype, ThumbnailDefinition thumbnailDefinition)
     {
-        // Log the following getTransform() as trace so we can see the wood for the trees
-        boolean orig = TransformerDebug.setDebugOutput(false);
-        try
+        // Use RenditionService2 if it knows about the definition, otherwise use contentService as before. Needed as
+        // disabling local transforms should not disable thumbnails if they can be done remotely.
+        long maxSize = 0;
+        String targetMimetype = thumbnailDefinition.getMimetype();
+        RenditionDefinition2 renditionDefinition = getEquivalentRenditionDefinition2(thumbnailDefinition);
+        if (renditionDefinition != null)
         {
-            return contentService.getMaxSourceSizeBytes(sourceMimetype,
-                    thumbnailDefinition.getMimetype(), thumbnailDefinition.getTransformationOptions());
+            Map<String, String> options = renditionDefinition.getTransformOptions();
+            String renditionName = renditionDefinition.getRenditionName();
+            maxSize = transformServiceRegistry.getMaxSize(sourceMimetype, targetMimetype, options, renditionName);
         }
-        finally
+        else
         {
-            TransformerDebug.setDebugOutput(orig);
+            boolean orig = TransformerDebug.setDebugOutput(false);
+            try
+            {
+                TransformationOptions options = thumbnailDefinition.getTransformationOptions();
+                maxSize = contentService.getMaxSourceSizeBytes(sourceMimetype, targetMimetype, options);
+            }
+            finally
+            {
+                TransformerDebug.setDebugOutput(orig);
+            }
         }
+        return maxSize;
     }
-    
+
+    private RenditionDefinition2 getEquivalentRenditionDefinition2(ThumbnailDefinition thumbnailDefinition)
+    {
+        String renditionName = thumbnailDefinition.getName();
+        RenditionDefinition2 renditionDefinition = renditionDefinitionRegistry2.getRenditionDefinition(renditionName);
+        if (renditionDefinition != null)
+        {
+            String thumbnailTargetMimetype = thumbnailDefinition.getMimetype();
+            String renditionTargetMimetype = renditionDefinition.getTargetMimetype();
+            if (!renditionTargetMimetype.equals(thumbnailTargetMimetype))
+            {
+                renditionDefinition = null;
+            }
+        }
+        return renditionDefinition;
+    }
+
     /**
      * Add a thumbnail details
      * 

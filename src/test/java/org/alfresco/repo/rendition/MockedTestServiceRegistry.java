@@ -38,6 +38,7 @@ import org.alfresco.repo.imap.ImapService;
 import org.alfresco.repo.lock.JobLockService;
 import org.alfresco.repo.nodelocator.NodeLocatorService;
 import org.alfresco.repo.policy.PolicyComponent;
+import org.alfresco.repo.rendition2.RenditionService2;
 import org.alfresco.repo.search.impl.solr.facet.SolrFacetHelper;
 import org.alfresco.repo.search.impl.solr.facet.handler.FacetLabelDisplayHandlerRegistry;
 import org.alfresco.repo.transaction.RetryingTransactionHelper;
@@ -89,6 +90,11 @@ import org.alfresco.service.namespace.NamespaceService;
 import org.alfresco.service.namespace.QName;
 import org.alfresco.service.transaction.TransactionService;
 
+/**
+ *
+ * @deprecated We are introducing the new async RenditionService2.
+ */
+@Deprecated
 public class MockedTestServiceRegistry implements ServiceRegistry
 {
     private final ActionService actionService = mock(ActionService.class);
@@ -512,6 +518,13 @@ public class MockedTestServiceRegistry implements ServiceRegistry
     
     @Override
     public PolicyComponent getPolicyComponent()
+    {
+        // A mock response
+        return null;
+    }
+
+    @Override
+    public RenditionService2 getRenditionService2()
     {
         // A mock response
         return null;

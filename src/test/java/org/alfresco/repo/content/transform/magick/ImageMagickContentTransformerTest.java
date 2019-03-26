@@ -44,10 +44,13 @@ import org.alfresco.service.cmr.repository.TransformationSourceOptions;
 import org.alfresco.util.TempFileProvider;
 
 /**
- * @see org.alfresco.repo.content.transform.magick.JMagickContentTransformer
+ * @see org.alfresco.repo.content.transform.magick.ImageMagickContentTransformerWorker
  * 
  * @author Derek Hulley
+ *
+ * @deprecated The transformations code is being moved out of the codebase and replaced by the new async RenditionService2 or other external libraries.
  */
+@Deprecated
 public class ImageMagickContentTransformerTest extends AbstractContentTransformerTest
 {
     private ProxyContentTransformer transformer;
@@ -89,8 +92,9 @@ public class ImageMagickContentTransformerTest extends AbstractContentTransforme
         assertEquals("Mimetype should be supported", true, reliability);
     }
     
-    protected void transform(String sourceMimetype, String targetMimetype, TransformationOptions options) throws IOException
+    protected long transform(String sourceMimetype, String targetMimetype, TransformationOptions options) throws IOException
     {
+        long size = -1;
         String[] quickFiles = getQuickFilenames(sourceMimetype);
         for (String quickFile : quickFiles)
         {
@@ -116,8 +120,10 @@ public class ImageMagickContentTransformerTest extends AbstractContentTransforme
             targetWriter.setMimetype(targetMimetype);
             transformer.transform(sourceReader.getReader(), targetWriter, options);
             ContentReader targetReader = targetWriter.getReader();
-            assertTrue(targetReader.getSize() > 0);
+            size = targetReader.getSize();
+            assertTrue(size > 0);
         }
+        return size;
     }
     
     public void testGifToPng() throws Exception
@@ -125,14 +131,30 @@ public class ImageMagickContentTransformerTest extends AbstractContentTransforme
         ImageTransformationOptions options = new ImageTransformationOptions();
         transform(MimetypeMap.MIMETYPE_IMAGE_GIF, MimetypeMap.MIMETYPE_IMAGE_PNG, options);
     }
-        
+
     public void testJpegToPng() throws Exception
     {
         ImageTransformationOptions options = new ImageTransformationOptions();
         transform(MimetypeMap.MIMETYPE_IMAGE_JPEG, MimetypeMap.MIMETYPE_IMAGE_PNG, options);
     }
 
-    public void testPageSourceOptions() throws Exception
+    public void testDeprecatedCommandOptions() throws Exception
+    {
+        // The commandOption should be removed, but is currently needed for custom renditions.
+        // This test uses it to resize the file. This happens to be one of the standard options.
+        ImageTransformationOptions options = new ImageTransformationOptions();
+        long defaultSize = transform(MimetypeMap.MIMETYPE_IMAGE_JPEG, MimetypeMap.MIMETYPE_IMAGE_PNG, options);
+
+        options.setCommandOptions("-resize 200%");
+        long biggerSize = transform(MimetypeMap.MIMETYPE_IMAGE_JPEG, MimetypeMap.MIMETYPE_IMAGE_PNG, options);
+
+        assertTrue("The commandOption appears not to have been used as the file size " + biggerSize +
+                " is not larger than the default size " + defaultSize, biggerSize > defaultSize);
+    }
+
+    // This fails with remote transformers
+    // The thumbnails actually have parameters in real life
+    public void ignoreTestPageSourceOptions() throws Exception
     {
         // Test empty source options
         ImageTransformationOptions options = new ImageTransformationOptions();

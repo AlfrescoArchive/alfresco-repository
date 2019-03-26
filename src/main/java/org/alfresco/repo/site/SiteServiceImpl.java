@@ -43,8 +43,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.alfresco.error.AlfrescoRuntimeException;
-import org.alfresco.events.types.Event;
-import org.alfresco.events.types.SiteManagementEvent;
+import org.alfresco.sync.events.types.Event;
+import org.alfresco.sync.events.types.SiteManagementEvent;
 import org.alfresco.model.ContentModel;
 import org.alfresco.query.CannedQuery;
 import org.alfresco.query.CannedQueryFactory;
@@ -60,8 +60,8 @@ import org.alfresco.repo.activities.ActivityType;
 import org.alfresco.repo.admin.SysAdminParams;
 import org.alfresco.repo.cache.SimpleCache;
 import org.alfresco.repo.domain.node.NodeDAO;
-import org.alfresco.repo.events.EventPreparator;
-import org.alfresco.repo.events.EventPublisher;
+import org.alfresco.sync.repo.events.EventPreparator;
+import org.alfresco.sync.repo.events.EventPublisher;
 import org.alfresco.repo.node.NodeArchiveServicePolicies;
 import org.alfresco.repo.node.NodeArchiveServicePolicies.BeforePurgeNodePolicy;
 import org.alfresco.repo.node.NodeArchiveServicePolicies.BeforeRestoreArchivedNodePolicy;
@@ -1623,10 +1623,30 @@ public class SiteServiceImpl extends AbstractLifecycleBean implements SiteServic
      * @see org.alfresco.service.cmr.site.SiteService#deleteSite(java.lang.String)
      */
     public void deleteSite(final String shortName)
+    {     
+        if (isSiteAdmin(AuthenticationUtil.getFullyAuthenticatedUser()))
+        {
+            AuthenticationUtil.runAs(new AuthenticationUtil.RunAsWork<Void>()
+            {
+                public Void doWork() throws Exception
+                {
+                    // Delete the site
+                    deleteSiteImpl(shortName);
+                    return null;
+                }
+            }, AuthenticationUtil.getAdminUserName());
+        }
+        else
+        {
+            // Delete the site
+            deleteSiteImpl(shortName);
+        }
+    }
+    
+    protected void deleteSiteImpl(final String shortName)
     {
         // In deleting the site node, we have to jump through a few hoops to manage the site groups.
         // The order of execution is important here.
-        
         logger.debug("delete site :" + shortName);
         final NodeRef siteNodeRef = getSiteNodeRef(shortName);
         if (siteNodeRef == null)

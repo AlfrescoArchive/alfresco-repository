@@ -55,10 +55,10 @@ import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
 
 import org.alfresco.error.AlfrescoRuntimeException;
-import org.alfresco.events.types.ContentEvent;
-import org.alfresco.events.types.ContentEventImpl;
-import org.alfresco.events.types.ContentReadRangeEvent;
-import org.alfresco.events.types.Event;
+import org.alfresco.sync.events.types.ContentEvent;
+import org.alfresco.sync.events.types.ContentEventImpl;
+import org.alfresco.sync.events.types.ContentReadRangeEvent;
+import org.alfresco.sync.events.types.Event;
 import org.alfresco.model.ContentModel;
 import org.alfresco.service.cmr.activities.ActivityInfo;
 import org.alfresco.opencmis.dictionary.CMISActionEvaluator;
@@ -78,13 +78,13 @@ import org.alfresco.opencmis.search.CMISQueryService;
 import org.alfresco.opencmis.search.CMISResultSet;
 import org.alfresco.opencmis.search.CMISResultSetColumn;
 import org.alfresco.opencmis.search.CMISResultSetRow;
-import org.alfresco.repo.Client;
-import org.alfresco.repo.Client.ClientType;
+import org.alfresco.sync.repo.Client;
+import org.alfresco.sync.repo.Client.ClientType;
 import org.alfresco.repo.action.executer.ContentMetadataExtracter;
 import org.alfresco.repo.cache.SimpleCache;
 import org.alfresco.repo.coci.CheckOutCheckInServiceImpl;
-import org.alfresco.repo.events.EventPreparator;
-import org.alfresco.repo.events.EventPublisher;
+import org.alfresco.sync.repo.events.EventPreparator;
+import org.alfresco.sync.repo.events.EventPublisher;
 import org.alfresco.repo.model.filefolder.GetChildrenCannedQuery;
 import org.alfresco.repo.model.filefolder.HiddenAspect;
 import org.alfresco.repo.model.filefolder.HiddenAspect.Visibility;
@@ -309,6 +309,7 @@ public class CMISConnector implements ApplicationContextAware, ApplicationListen
     private CheckOutCheckInService checkOutCheckInService;
     private LockService lockService;
     private ContentService contentService;
+    @Deprecated
     private RenditionService renditionService;
     private FileFolderService fileFolderService;
     private TenantAdminService tenantAdminService;
@@ -327,6 +328,7 @@ public class CMISConnector implements ApplicationContextAware, ApplicationListen
     private DictionaryService dictionaryService;
     private SiteService siteService;
     private ActionService actionService;
+    @Deprecated
     private ThumbnailService thumbnailService;
     private ServiceRegistry serviceRegistry;
     private EventPublisher eventPublisher;
@@ -498,6 +500,12 @@ public class CMISConnector implements ApplicationContextAware, ApplicationListen
         return openHttpSession;
     }
 
+    /**
+     *
+     *
+     * @deprecated The thumbnails code is being moved out of the codebase and replaced by the new async RenditionService2 or other external libraries.
+     */
+    @Deprecated
     public void setThumbnailService(ThumbnailService thumbnailService)
     {
 		this.thumbnailService = thumbnailService;
@@ -614,7 +622,10 @@ public class CMISConnector implements ApplicationContextAware, ApplicationListen
 
     /**
      * Sets the rendition service.
+     *
+     * @deprecated The RenditionService is being replace by the simpler async RenditionService2.
      */
+    @Deprecated
     public void setrenditionService(RenditionService renditionService)
     {
         this.renditionService = renditionService;
@@ -3664,11 +3675,15 @@ public class CMISConnector implements ApplicationContextAware, ApplicationListen
         final ObjectListImpl result = new ObjectListImpl();
         result.setObjects(new ArrayList<ObjectData>());
 
+        // Collect entryIds to use a counter and a way to find the last changeLogToken
+        final List<Long> entryIds = new ArrayList<Long>();
+
         EntryIdCallback changeLogCollectingCallback = new EntryIdCallback(true)
         {
             @Override
             public boolean handleAuditEntry(Long entryId, String user, long time, Map<String, Serializable> values)
             {
+                entryIds.add(entryId);
                 result.getObjects().addAll(createChangeEvents(time, values));
                 return super.handleAuditEntry(entryId, user, time, values);
             }
@@ -3683,7 +3698,7 @@ public class CMISConnector implements ApplicationContextAware, ApplicationListen
             }
             catch (NumberFormatException e)
             {
-                throw new CmisInvalidArgumentException("Invalid change log token: " + changeLogToken);
+                throw new CmisInvalidArgumentException("Invalid change log token: " + changeLogToken.getValue());
             }
         }
 
@@ -3701,27 +3716,26 @@ public class CMISConnector implements ApplicationContextAware, ApplicationListen
 
         auditService.auditQuery(changeLogCollectingCallback, params, queryFor);
 
-        String newChangeLogToken = null;
+        int resultSize = result.getObjects().size();
+
+        // Use the entryIds as a counter is more reliable then the result.getObjects().
+        // result.getObjects() can be more or less then the requested maxResults, because it is filtered based on the content.
+        boolean hasMoreItems = entryIds.size() >= maxResults;
+        result.setHasMoreItems(hasMoreItems);
         // Check if we got more than the client requested
-        if (result.getObjects().size() >= maxResults)
+        if (hasMoreItems && resultSize >= maxResults)
         {
-            // Build the change log token from the last item
-            StringBuilder clt = new StringBuilder();
-            newChangeLogToken = (from == null ? clt.append(maxItems.intValue() + 1).toString() : clt.append(from.longValue() + maxItems.intValue()).toString());    // TODO: Make this readable
+            // We are assuming there are there is only one extra document now in line with how it used to behave
             // Remove extra item that was not actually requested
-            result.getObjects().remove(result.getObjects().size() - 1).getId();
-            // Note to client that there are more items
-            result.setHasMoreItems(true);
-        }
-        else
-        {
-            // We got the same or fewer than the number requested, so there are no more items
-            result.setHasMoreItems(false);
+            result.getObjects().remove(resultSize - 1);
+            entryIds.remove(resultSize - 1);
         }
 
         if (changeLogToken != null)
         {
-            changeLogToken.setValue(newChangeLogToken);
+            //Update the changelog after removing the last item if there are more items.
+            Long newChangeLogToken = entryIds.isEmpty() ? from : entryIds.get(entryIds.size() - 1);
+            changeLogToken.setValue(String.valueOf(newChangeLogToken));
         }
 
         return result;
@@ -4079,7 +4093,12 @@ public class CMISConnector implements ApplicationContextAware, ApplicationListen
 
         return result;
     }
-    
+
+    /**
+     *
+     * @deprecated The RenditionService is being replace by the simpler async RenditionService2.
+     */
+    @Deprecated
     private CMISRenditionMapping getRenditionMapping()
     {
         CMISRenditionMapping renditionMapping = (CMISRenditionMapping)singletonCache.get(KEY_CMIS_RENDITION_MAPPING_NODEREF);

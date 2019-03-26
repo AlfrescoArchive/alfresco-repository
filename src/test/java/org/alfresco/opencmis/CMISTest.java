@@ -2052,19 +2052,72 @@ public class CMISTest
         }
     }
 
+    /**
+     * MNT-20139
+     * CmisConnector returns wrong values for changeLogToken and hasMoreItems
+     */
+    @Test
     public void testGetContentChanges()
     {
-        // create folder with file
-        String folderName = "testfolder" + GUID.generate();
-        String docName = "testdoc.txt" + GUID.generate();
-        createContent(folderName, docName, false);
-        folderName = "testfolder" + GUID.generate();
-        docName = "testdoc.txt" + GUID.generate();
-        createContent(folderName, docName, false);
-        Holder<String> changeLogToken = new Holder<String>();
-        ObjectList ol = this.cmisConnector.getContentChanges(changeLogToken, new BigInteger("2"));
-        assertEquals(2, ol.getNumItems());
-        assertEquals("3", changeLogToken.getValue());
+        setupAudit();
+
+        AuthenticationUtil.pushAuthentication();
+        AuthenticationUtil.setFullyAuthenticatedUser(AuthenticationUtil.getAdminUserName());
+
+        try
+        {
+            // create folders with files
+            createContent("testfolder" + GUID.generate(), "testdoc.txt" + GUID.generate(), false);
+            createContent("testfolder" + GUID.generate(), "testdoc.txt" + GUID.generate(), false);
+            createContent("testfolder" + GUID.generate(), "testdoc.txt" + GUID.generate(), false);
+
+            Holder<String> changeLogToken = new Holder<String>();
+
+            /*
+             * GetContentChanges with maxitems = 2 and null changeLogToken
+             * Check that changeLogToken should be the latest from the retrieved entries
+             */
+            ObjectList ol = this.cmisConnector.getContentChanges(changeLogToken, new BigInteger("2"));
+            assertEquals(2, ol.getObjects().size());
+            assertEquals("ChangeLogToken should be latest from retrieved entries.", "2", changeLogToken.getValue());
+            assertTrue(ol.hasMoreItems());
+
+            /*
+             * GetContentChanges with maxitems = 2 and changeLogToken = 0
+             * Check that changeLogToken should be the latest from the retrieved entries
+             */
+            changeLogToken.setValue(Integer.toString(0));
+            ol = this.cmisConnector.getContentChanges(changeLogToken, new BigInteger("2"));
+            assertEquals(2, ol.getObjects().size());
+            assertEquals("ChangeLogToken should be latest from retrieved entries.", "2", changeLogToken.getValue());
+            assertTrue(ol.hasMoreItems());
+
+            /*
+             * GetContentChanges with changeLogToken = maxChangeLogToken - 2
+             * Check that changeLogToken is not null when the latest entries (fromToken) are retrieved
+             */
+            Long latestToken = transactionService.getRetryingTransactionHelper().doInTransaction(new RetryingTransactionCallback<Long>()
+            {
+                public Long execute() throws Exception
+                {
+                    return Long.parseLong(cmisConnector.getRepositoryInfo(CmisVersion.CMIS_1_1).getLatestChangeLogToken());
+                }
+            }, true, false);
+
+            Long fromToken = latestToken - 2;
+            changeLogToken.setValue(fromToken.toString());
+
+            ol = this.cmisConnector.getContentChanges(changeLogToken, new BigInteger("20"));
+            assertEquals(3, ol.getObjects().size());
+            assertNotNull(changeLogToken.getValue());
+            assertEquals("ChangeLogToken should be the latest from all entries.", latestToken.toString(), changeLogToken.getValue());
+            assertFalse(ol.hasMoreItems());
+        }
+        finally
+        {
+            auditSubsystem.destroy();
+            AuthenticationUtil.popAuthentication();
+        };
     }
 
     /**
@@ -3919,5 +3972,62 @@ public class CMISTest
             auditSubsystem.destroy();
             AuthenticationUtil.popAuthentication();
         }
+    }
+    /*
+     * REPO-3627 / MNT-19630: CMIS: Unable to call getAllVersions() if node is checked out and if binding type is WSDL
+     * 
+     * For WS binding the getAllVersions call is made with null objectId
+     */
+    @Test
+    public void getAllVersionsWithNullObjectId()
+    {
+        AuthenticationUtil.pushAuthentication();
+        AuthenticationUtil.setFullyAuthenticatedUser(AuthenticationUtil.getAdminUserName());
+
+        // Create folder with file
+        String folderName = "testfolder" + GUID.generate();
+        String docName = "testdoc.txt" + GUID.generate();
+        NodeRef folderRef = createContent(folderName, docName, false).getNodeRef();
+        List<FileInfo> folderFileList = fileFolderService.list(folderRef);
+        final NodeRef fileRef = folderFileList.get(0).getNodeRef();
+
+        // Create new version for file
+        transactionService.getRetryingTransactionHelper().doInTransaction(new RetryingTransactionCallback<Void>()
+        {
+            @Override
+            public Void execute() throws Throwable
+            {
+                // create a new version
+                versionService.createVersion(fileRef, null);
+
+                return null;
+            }
+        });
+
+        // Checkout document and get all versions
+        List<ObjectData> versions = withCmisService(new CmisServiceCallback<List<ObjectData>>()
+        {
+            @Override
+            public List<ObjectData> execute(CmisService cmisService)
+            {
+                String repositoryId = cmisService.getRepositoryInfos(null).get(0).getId();
+                ObjectData objectData = cmisService.getObjectByPath(repositoryId, "/" + folderName + "/" + docName, null, true, IncludeRelationships.NONE, null,
+                        false, true, null);
+
+                // Checkout
+                Holder<String> objectId = new Holder<String>(objectData.getId());
+                cmisService.checkOut(repositoryId, objectId, null, new Holder<Boolean>(true));
+
+                // Call get all versions with null objectId
+                List<ObjectData> versions = cmisService.getAllVersions(repositoryId, null, fileRef.toString(), null, null, null);
+
+                return versions;
+            }
+        });
+
+        // Check that the correct versions are retrieved
+        assertEquals(2, versions.size());
+        assertEquals(versions.get(0).getProperties().getProperties().get("cmis:versionLabel").getFirstValue(), "pwc");
+        assertEquals(versions.get(1).getProperties().getProperties().get("cmis:versionLabel").getFirstValue(), "0.1");
     }
 }

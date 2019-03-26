@@ -42,7 +42,6 @@ import org.junit.runners.Suite;
     org.alfresco.encryption.EncryptorTest.class,
     org.alfresco.encryption.KeyStoreKeyProviderTest.class,
     org.alfresco.filesys.config.ServerConfigurationBeanTest.class,
-    org.alfresco.filesys.repo.CIFSContentComparatorTest.class,
     org.alfresco.filesys.repo.rules.ShuffleTest.class,
     org.alfresco.repo.admin.Log4JHierarchyInitTest.class,
     org.alfresco.repo.attributes.PropTablesCleanupJobTest.class,
@@ -111,6 +110,7 @@ import org.junit.runners.Suite;
     org.alfresco.util.schemacomp.validator.TypeNameOnlyValidatorTest.class,
     org.alfresco.util.test.junitrules.TemporaryMockOverrideTest.class,
     org.alfresco.repo.search.impl.solr.SolrQueryHTTPClientTest.class,
+    org.alfresco.repo.search.impl.solr.SolrSQLHttpClientTest.class,
     org.alfresco.repo.search.impl.solr.SolrStatsResultTest.class,
     org.alfresco.repo.search.impl.solr.facet.SolrFacetComparatorTest.class,
     org.alfresco.repo.search.impl.solr.facet.FacetQNameUtilsTest.class,
@@ -196,10 +196,11 @@ import org.junit.runners.Suite;
     org.alfresco.heartbeat.ModelUsageDataCollectorTest.class,
     org.alfresco.heartbeat.SystemUsageDataCollectorTest.class,
 
-    org.alfresco.repo.domain.DialectFactoryBeanTest.class,
     org.alfresco.util.BeanExtenderUnitTest.class,
     org.alfresco.util.bean.HierarchicalBeanLoaderTest.class,
-    org.alfresco.util.resource.HierarchicalResourceLoaderTest.class
+    org.alfresco.util.resource.HierarchicalResourceLoaderTest.class,
+    org.alfresco.repo.events.ClientUtilTest.class,
+    org.alfresco.repo.rendition2.RenditionService2Test.class
 })
 public class AllUnitTestsSuite
 {

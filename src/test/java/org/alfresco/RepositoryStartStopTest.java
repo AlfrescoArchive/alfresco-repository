@@ -186,12 +186,34 @@ public class RepositoryStartStopTest extends TestCase
        ctx = getFullContext();
        assertEquals(ctx, ctx2);
        
-       // Refresh it, shouldn't break anything
-       ((AbstractApplicationContext)ctx).refresh();
-       
        // And finally close it
        ApplicationContextHelper.closeApplicationContext();
        assertNoCachedApplicationContext();
+    }
+
+    /**
+     *
+     * Enable test after this issue is resolved: https://issues.alfresco.com/jira/browse/REPO-4176
+     * @throws Exception
+     */
+    public void ignoreTestFullContextRefresh() throws Exception
+    {
+
+        assertNoCachedApplicationContext();
+
+        // Open it, and use it
+        ApplicationContext ctx = getFullContext();
+        assertNotNull(ctx);
+        doTestBasicWriteOperations(ctx);
+
+        // Refresh it, shouldn't break anything
+        ((AbstractApplicationContext)ctx).refresh();
+        assertNotNull(ctx);
+        doTestBasicWriteOperations(ctx);
+
+        // And finally close it
+        ApplicationContextHelper.closeApplicationContext();
+        assertNoCachedApplicationContext();
     }
     
     /**

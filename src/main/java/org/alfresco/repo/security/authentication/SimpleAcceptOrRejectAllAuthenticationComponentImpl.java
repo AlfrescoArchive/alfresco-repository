@@ -27,7 +27,6 @@ package org.alfresco.repo.security.authentication;
 
 import net.sf.acegisecurity.providers.dao.UsernameNotFoundException;
 import org.alfresco.error.AlfrescoRuntimeException;
-import org.alfresco.repo.security.authentication.ntlm.NLTMAuthenticator;
 
 import net.sf.acegisecurity.Authentication;
 import net.sf.acegisecurity.UserDetails;
@@ -47,10 +46,9 @@ import net.sf.acegisecurity.providers.dao.AuthenticationDao;
  *  
  * @author Andy Hind
  */
-public class SimpleAcceptOrRejectAllAuthenticationComponentImpl extends AbstractAuthenticationComponent implements NLTMAuthenticator
+public class SimpleAcceptOrRejectAllAuthenticationComponentImpl extends AbstractAuthenticationComponent
 {
     private boolean accept = false;
-    private boolean supportNtlm = false;
 
     private AuthenticationDao authenticationDao;
 
@@ -69,11 +67,6 @@ public class SimpleAcceptOrRejectAllAuthenticationComponentImpl extends Abstract
         this.accept = accept;
     }
             
-    public void setSupportNtlm(boolean supportNtlm)
-    {
-        this.supportNtlm = supportNtlm;
-    }
-
    public void authenticateImpl(String userName, char[] password) throws AuthenticationException
     {
         if(accept)
@@ -105,11 +98,6 @@ public class SimpleAcceptOrRejectAllAuthenticationComponentImpl extends Abstract
         }
     }
 
-    public NTLMMode getNTLMMode()
-    {
-        return supportNtlm ? NTLMMode.MD4_PROVIDER : NTLMMode.NONE;
-    }
-    
     /**
      * The default is not to support Authentication token base authentication
      */
@@ -140,6 +128,7 @@ public class SimpleAcceptOrRejectAllAuthenticationComponentImpl extends Abstract
             catch (UsernameNotFoundException unfe)
             {
                 // the user was not created beforehand
+                logEvent(userName);
                 userDetails = super.getUserDetails(userName);
             }
             finally
@@ -159,9 +148,20 @@ public class SimpleAcceptOrRejectAllAuthenticationComponentImpl extends Abstract
             catch (UsernameNotFoundException unfe)
             {
                 // the user was not created beforehand
+                logEvent(userName);
                 userDetails = super.getUserDetails(userName);
             }
         }
         return userDetails;
+    }
+
+    private void logEvent(String userName)
+    {
+        if (logger.isTraceEnabled())
+        {
+            // we log this as trace because we expect sometimes this to happen and it is ok
+            logger.trace("The user was not created beforehand: " + AuthenticationUtil.maskUsername(userName)
+                + " . This is not a problem, we expect this to happen in some cases");
+        }
     }
 }

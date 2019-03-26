@@ -2,20 +2,20 @@
     <modelVersion>4.0.0</modelVersion>
     <artifactId>alfresco-repository</artifactId>
     <name>Alfresco Repository</name>
-    <version>7.1</version>
+    <version>7.56-SNAPSHOT</version>
     <packaging>jar</packaging>
 
     <parent>
         <groupId>org.alfresco</groupId>
         <artifactId>alfresco-super-pom</artifactId>
-        <version>9</version>
+        <version>10</version>
     </parent>
 
     <scm>
         <connection>scm:git:git@github.com:Alfresco/alfresco-repository.git</connection>
         <developerConnection>scm:git:git@github.com:Alfresco/alfresco-repository.git</developerConnection>
         <url>https://github.com/Alfresco/alfresco-repository</url>
-        <tag>alfresco-repository-7.1</tag>
+        <tag>HEAD</tag>
     </scm>
 
     <distributionManagement>
@@ -36,28 +36,30 @@
         <img.exe>convert</img.exe>
 
         <dependency.alfresco-legacy-lucene.version>6.2</dependency.alfresco-legacy-lucene.version>
-        <dependency.alfresco-core.version>7.3</dependency.alfresco-core.version>
+        <dependency.alfresco-core.version>7.9</dependency.alfresco-core.version>
         <dependency.alfresco-greenmail.version>6.1</dependency.alfresco-greenmail.version>
-        <dependency.alfresco-data-model.version>8.9</dependency.alfresco-data-model.version>
+        <dependency.alfresco-data-model.version>8.29</dependency.alfresco-data-model.version>
         <dependency.alfresco-jlan.version>7.1</dependency.alfresco-jlan.version>
         <dependency.alfresco-pdf-renderer.version>1.1</dependency.alfresco-pdf-renderer.version>
-        <dependency.alfresco-hb-data-sender.version>1.0.9</dependency.alfresco-hb-data-sender.version>
+        <dependency.alfresco-hb-data-sender.version>1.0.10</dependency.alfresco-hb-data-sender.version>
 
 
-        <dependency.spring.version>5.0.4.RELEASE</dependency.spring.version>
-        <dependency.httpcomponents.version>4.5.2</dependency.httpcomponents.version>
-        <dependency.truezip.version>7.7.9</dependency.truezip.version>
+        <dependency.spring.version>5.1.5.RELEASE</dependency.spring.version>
+        <dependency.httpcomponents.version>4.5.7</dependency.httpcomponents.version>
+        <dependency.truezip.version>7.7.10</dependency.truezip.version>
         <dependency.poi.version>3.17</dependency.poi.version>
-        <dependency.webscripts.version>6.19</dependency.webscripts.version>
+        <dependency.webscripts.version>6.21</dependency.webscripts.version>
         <dependency.opencmis.version>1.0.0</dependency.opencmis.version>
         <dependency.activiti-engine.version>5.22.0</dependency.activiti-engine.version>
         <dependency.activiti.version>5.22.0</dependency.activiti.version>
-        <dependency.postgresql.version>42.2.1</dependency.postgresql.version>
-        <dependency.mysql.version>5.1.40</dependency.mysql.version>
-        <dependency.mariadb.version>2.0.1</dependency.mariadb.version>
+        <dependency.postgresql.version>42.2.5</dependency.postgresql.version>
+        <dependency.mysql.version>5.1.47</dependency.mysql.version>
+        <dependency.mariadb.version>2.2.5</dependency.mariadb.version>
         <dependency.antlr.version>3.5.2</dependency.antlr.version>
-        <dependency.keycloak.version>3.4.3.Final</dependency.keycloak.version>
-        <dependency.jboss.logging.version>3.3.1.Final</dependency.jboss.logging.version>
+        <dependency.keycloak.version>4.5.0.Final</dependency.keycloak.version>
+        <dependency.jboss.logging.version>3.3.2.Final</dependency.jboss.logging.version>
+        <dependency.camel.version>2.23.1</dependency.camel.version>
+        <dependency.activemq.version>5.15.9</dependency.activemq.version>
     </properties>
 
     <dependencyManagement>
@@ -98,11 +100,6 @@
             <version>1.4</version>
         </dependency>
         <dependency>
-            <groupId>org.alfresco.services</groupId>
-            <artifactId>alfresco-events</artifactId>
-            <version>1.2.12</version>
-        </dependency>
-        <dependency>
             <groupId>org.alfresco</groupId>
             <artifactId>alfresco-heartbeat-data-sender</artifactId>
             <version>${dependency.alfresco-hb-data-sender.version}</version>
@@ -110,7 +107,7 @@
         <dependency>
             <groupId>com.sun.mail</groupId>
             <artifactId>javax.mail</artifactId>
-            <version>1.6.1</version>
+            <version>1.6.2</version>
         </dependency>
         <dependency>
             <groupId>org.alfresco</groupId>
@@ -130,17 +127,27 @@
         <dependency>
             <groupId>commons-fileupload</groupId>
             <artifactId>commons-fileupload</artifactId>
-            <version>1.3.3</version>
+            <version>1.4</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.camel</groupId>
+            <artifactId>camel-jackson</artifactId>
+            <version>2.23.1</version>
         </dependency>
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-compress</artifactId>
-            <version>1.15</version>
+            <version>1.18</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+            <version>3.8.1</version>
         </dependency>
         <dependency>
             <groupId>commons-codec</groupId>
             <artifactId>commons-codec</artifactId>
-            <version>1.11</version>
+            <version>1.12</version>
         </dependency>
         <dependency>
             <groupId>commons-beanutils</groupId>
@@ -155,12 +162,12 @@
         <dependency>
             <groupId>commons-io</groupId>
             <artifactId>commons-io</artifactId>
-            <version>2.4</version>
+            <version>2.6</version>
         </dependency>
         <dependency>
             <groupId>commons-net</groupId>
             <artifactId>commons-net</artifactId>
-            <version>3.5</version>
+            <version>3.6</version>
         </dependency>
         <dependency>
             <groupId>commons-lang</groupId>
@@ -190,7 +197,7 @@
         <dependency>
             <groupId>com.ibm.icu</groupId>
             <artifactId>icu4j</artifactId>
-            <version>3.6.1</version>
+            <version>63.1</version>
         </dependency>
         <dependency>
             <groupId>oro</groupId>
@@ -211,7 +218,7 @@
         <dependency>
             <groupId>org.mozilla</groupId>
             <artifactId>rhino</artifactId>
-            <version>1.7.9</version>
+            <version>1.7.10</version>
         </dependency>
         <dependency>
             <groupId>org.springframework</groupId>
@@ -255,6 +262,11 @@
             <version>3.2.1</version>
         </dependency>
         <dependency>
+            <groupId>javax.xml.bind</groupId>
+            <artifactId>jaxb-api</artifactId>
+            <version>2.3.1</version>
+        </dependency>
+        <dependency>
             <groupId>de.schlichtherle.truezip</groupId>
             <artifactId>truezip-driver-zip</artifactId>
             <version>${dependency.truezip.version}</version>
@@ -294,22 +306,17 @@
         <dependency>
             <groupId>cglib</groupId>
             <artifactId>cglib</artifactId>
-            <version>2.2</version>
+            <version>3.2.10</version>
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
-            <version>1.7.24</version>
+            <version>1.7.26</version>
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-log4j12</artifactId>
-            <version>1.7.25</version>
-        </dependency>
-        <dependency>
-            <groupId>org.beanshell</groupId>
-            <artifactId>bsh</artifactId>
-            <version>1.3.0</version>
+            <version>1.7.26</version>
         </dependency>
         <dependency>
             <groupId>xerces</groupId>
@@ -327,9 +334,20 @@
             <version>1.4.01</version>
         </dependency>
         <dependency>
+            <groupId>javax.annotation</groupId>
+            <artifactId>javax.annotation-api</artifactId>
+            <version>1.3.2</version>
+        </dependency>
+        <dependency>
             <groupId>org.apache.geronimo.specs</groupId>
             <artifactId>geronimo-annotation_1.0_spec</artifactId>
             <version>1.1.1</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>javax.annotation</groupId>
+                    <artifactId>javax.annotation-api</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.apache.geronimo.specs</groupId>
@@ -360,38 +378,38 @@
         <dependency>
             <groupId>org.apache.xmlbeans</groupId>
             <artifactId>xmlbeans</artifactId>
-            <version>2.6.0</version>
+            <version>3.0.2</version>
         </dependency>
         <dependency>
             <groupId>org.apache.pdfbox</groupId>
             <artifactId>pdfbox</artifactId>
-            <version>2.0.8</version>
+            <version>2.0.14</version>
         </dependency>
         <dependency>
             <groupId>org.apache.pdfbox</groupId>
             <artifactId>fontbox</artifactId>
-            <version>2.0.8</version>
+            <version>2.0.14</version>
         </dependency>
         <dependency>
             <!-- we need this for TextToPdfContentTransformer -->
             <groupId>org.apache.pdfbox</groupId>
             <artifactId>pdfbox-tools</artifactId>
-            <version>2.0.8</version>
+            <version>2.0.14</version>
         </dependency>
         <dependency>
             <groupId>org.apache.pdfbox</groupId>
             <artifactId>jempbox</artifactId>
-            <version>1.8.13</version>
+            <version>1.8.16</version>
         </dependency>
         <dependency>
             <groupId>org.bouncycastle</groupId>
             <artifactId>bcprov-jdk15on</artifactId>
-            <version>1.59</version>
+            <version>1.61</version>
         </dependency>
         <dependency>
             <groupId>org.bouncycastle</groupId>
             <artifactId>bcmail-jdk15on</artifactId>
-            <version>1.59</version>
+            <version>1.61</version>
         </dependency>
         <dependency>
             <groupId>com.googlecode.mp4parser</groupId>
@@ -401,7 +419,7 @@
         <dependency>
             <groupId>com.drewnoakes</groupId>
             <artifactId>metadata-extractor</artifactId>
-            <version>2.10.1</version>
+            <version>2.11.0</version>
         </dependency>
         <dependency>
             <groupId>org.ccil.cowan.tagsoup</groupId>
@@ -452,7 +470,7 @@
         <dependency>
             <groupId>org.apache.ws.xmlschema</groupId>
             <artifactId>xmlschema-core</artifactId>
-             <version>2.2.1</version>
+             <version>2.2.4</version>
         </dependency>
         <dependency>
             <groupId>com.googlecode.concurrentlinkedhashmap</groupId>
@@ -462,12 +480,12 @@
         <dependency>
             <groupId>com.sun.xml.fastinfoset</groupId>
             <artifactId>FastInfoset</artifactId>
-            <version>1.2.13</version>
+            <version>1.2.16</version>
         </dependency>
         <dependency>
             <groupId>org.codehaus.groovy</groupId>
             <artifactId>groovy-all</artifactId>
-            <version>2.4.7</version>
+            <version>2.4.16</version>
             <classifier>indy</classifier>
         </dependency>
         <dependency>
@@ -489,6 +507,11 @@
             <groupId>org.htmlparser</groupId>
             <artifactId>htmlparser</artifactId>
             <version>2.1</version>
+        </dependency>
+        <dependency>
+            <groupId>joda-time</groupId>
+            <artifactId>joda-time</artifactId>
+            <version>2.10.1</version>
         </dependency>
         <!-- Apache POI -->
         <dependency>
@@ -528,7 +551,13 @@
             <version>3.0.1</version>
             <scope>provided</scope>
         </dependency>
-        
+
+        <dependency>
+            <groupId>javax.transaction</groupId>
+            <artifactId>jta</artifactId>
+            <version>1.1</version>
+        </dependency>
+
         <!-- Spring Surf -->
         <dependency>
             <groupId>org.alfresco.surf</groupId>
@@ -621,12 +650,12 @@
         <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
-            <version>24.0-jre</version>
+            <version>27.1-jre</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.security</groupId>
             <artifactId>spring-security-core</artifactId>
-            <version>5.0.1.RELEASE</version>
+            <version>5.1.4.RELEASE</version>
             <exclusions>
                 <exclusion>
                     <groupId>org.springframework</groupId>
@@ -665,6 +694,10 @@
                     <groupId>javax.mail</groupId>
                     <artifactId>mail</artifactId>
                 </exclusion>
+                <exclusion>
+                    <groupId>commons-lang</groupId>
+                    <artifactId>commons-lang3</artifactId>
+                </exclusion>
             </exclusions>
         </dependency>
         <dependency>
@@ -692,6 +725,17 @@
         </dependency>
 
         <!-- Keycloak dependencies -->
+        <dependency>
+            <groupId>org.keycloak</groupId>
+            <artifactId>keycloak-authz-client</artifactId>
+            <version>${dependency.keycloak.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>*</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
         <dependency>
             <groupId>org.keycloak</groupId>
             <artifactId>keycloak-core</artifactId>
@@ -752,7 +796,197 @@
             <artifactId>jboss-logging</artifactId>
             <version>${dependency.jboss.logging.version}</version>
         </dependency>
-        
+
+        <!-- Events dependencies -->
+        <dependency>
+            <groupId>org.alfresco</groupId>
+            <artifactId>alfresco-sync-events</artifactId>
+            <version>1.2.14</version>
+        </dependency>
+        <dependency>
+            <groupId>org.gytheio</groupId>
+            <artifactId>gytheio-messaging-camel</artifactId>
+            <version>0.9.1</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>commons-logging</groupId>
+                    <artifactId>commons-logging</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>commons-io</groupId>
+                    <artifactId>commons-io</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>commons-lang</groupId>
+                    <artifactId>commons-lang</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>commons-pool</groupId>
+                    <artifactId>commons-pool</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-api</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-log4j12</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.apache.tika</groupId>
+                    <artifactId>tika-core</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.apache.camel</groupId>
+                    <artifactId>camel-core</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.apache.camel</groupId>
+                    <artifactId>camel-jackson</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.camel</groupId>
+            <artifactId>camel-spring</artifactId>
+            <version>${dependency.camel.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.springframework</groupId>
+                    <artifactId>spring-context</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.springframework</groupId>
+                    <artifactId>spring-aop</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.springframework</groupId>
+                    <artifactId>spring-tx</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.springframework</groupId>
+                    <artifactId>spring-core</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.springframework</groupId>
+                    <artifactId>spring-beans</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.springframework</groupId>
+                    <artifactId>spring-expression</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.camel</groupId>
+            <artifactId>camel-amqp</artifactId>
+            <version>${dependency.camel.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.springframework</groupId>
+                    <artifactId>spring-core</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.springframework</groupId>
+                    <artifactId>spring-tx</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.springframework</groupId>
+                    <artifactId>spring-beans</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-api</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-log4j12</artifactId>
+                </exclusion>
+                <!-- conflicts with activemq geronimo-jms_1.1_spec -->
+                <exclusion>
+                    <groupId>org.apache.geronimo.specs</groupId>
+                    <artifactId>geronimo-jms_2.0_spec</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.activemq</groupId>
+            <artifactId>activemq-client</artifactId>
+            <version>${dependency.activemq.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-api</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-log4j12</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.activemq</groupId>
+            <artifactId>activemq-broker</artifactId>
+            <version>${dependency.activemq.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.activemq</groupId>
+            <artifactId>activemq-camel</artifactId>
+            <version>${dependency.activemq.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.springframework</groupId>
+                    <artifactId>spring-beans</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>commons-logging</groupId>
+                    <artifactId>commons-logging</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>commons-pool</groupId>
+                    <artifactId>commons-pool</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-api</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-log4j12</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.activemq</groupId>
+            <artifactId>activemq-amqp</artifactId>
+            <version>${dependency.activemq.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-api</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-log4j12</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.activemq</groupId>
+            <artifactId>activemq-pool</artifactId>
+            <version>${dependency.activemq.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-api</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-log4j12</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
         <!-- Test dependencies -->
         <dependency>
             <groupId>org.mockito</groupId>
@@ -838,7 +1072,13 @@
         <dependency>
             <groupId>org.aspectj</groupId>
             <artifactId>aspectjrt</artifactId>
-            <version>1.8.7</version>
+            <version>1.9.2</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.activemq</groupId>
+            <artifactId>activemq-kahadb-store</artifactId>
+            <version>${dependency.activemq.version}</version>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 
@@ -1080,9 +1320,9 @@
                 </executions>
             </plugin>
             <plugin>
-                <groupId>org.codehaus.mojo</groupId>
+                <groupId>com.github.m50d</groupId>
                 <artifactId>aspectj-maven-plugin</artifactId>
-                <version>1.8</version>
+                <version>1.11.1</version>
                 <executions>
                     <execution>
                         <!-- phase>process-sources</phase -->
@@ -1144,7 +1384,7 @@
                 <plugin>
                     <groupId>org.codehaus.mojo</groupId>
                     <artifactId>license-maven-plugin</artifactId>
-                    <version>1.13</version>
+                    <version>1.19</version>
                 </plugin>
                 <!--This plugin's configuration is used to store Eclipse m2e settings only. It has no influence on the Maven build itself.-->
                 <plugin>

@@ -39,8 +39,8 @@ import java.util.Set;
 import java.util.StringTokenizer;
 
 import org.alfresco.error.AlfrescoRuntimeException;
-import org.alfresco.events.types.Event;
-import org.alfresco.events.types.UserManagementEvent;
+import org.alfresco.sync.events.types.Event;
+import org.alfresco.sync.events.types.UserManagementEvent;
 import org.alfresco.model.ContentModel;
 import org.alfresco.query.CannedQueryFactory;
 import org.alfresco.query.CannedQueryResults;
@@ -50,8 +50,8 @@ import org.alfresco.repo.action.executer.MailActionExecuter;
 import org.alfresco.repo.cache.SimpleCache;
 import org.alfresco.repo.cache.TransactionalCache;
 import org.alfresco.repo.domain.permissions.AclDAO;
-import org.alfresco.repo.events.EventPreparator;
-import org.alfresco.repo.events.EventPublisher;
+import org.alfresco.sync.repo.events.EventPreparator;
+import org.alfresco.sync.repo.events.EventPublisher;
 import org.alfresco.repo.node.NodeServicePolicies;
 import org.alfresco.repo.node.NodeServicePolicies.BeforeCreateNodePolicy;
 import org.alfresco.repo.node.NodeServicePolicies.BeforeDeleteNodePolicy;
@@ -121,7 +121,7 @@ public class PersonServiceImpl extends TransactionListenerAdapter implements Per
 {
     private static Log logger = LogFactory.getLog(PersonServiceImpl.class);
     
-    private static final String CANNED_QUERY_PEOPLE_LIST = "getPeopleCannedQueryFactory";
+    static final String CANNED_QUERY_PEOPLE_LIST = "getPeopleCannedQueryFactory";
 
     private static final String DELETE = "DELETE";
     private static final String SPLIT = "SPLIT";
@@ -493,6 +493,16 @@ public class PersonServiceImpl extends TransactionListenerAdapter implements Per
         {
             return null;
         }
+        if (isSystemUserName(userName))
+        {
+            // The built-in authority SYSTEM is a user, but not a Person (i.e. it does not have a profile).
+            if (exceptionOrNull)
+            {
+                throw new NoSuchPersonException(userName);
+            }
+            return null;
+        }
+        
         final NodeRef personNode = getPersonOrNullImpl(userName);
         if (personNode == null)
         {
@@ -523,6 +533,11 @@ public class PersonServiceImpl extends TransactionListenerAdapter implements Per
      */
     public boolean personExists(String caseSensitiveUserName)
     {
+        if (isSystemUserName(caseSensitiveUserName))
+        {
+            return false;
+        }
+        
         NodeRef person = getPersonOrNullImpl(caseSensitiveUserName); 
         if (person != null)
         {
@@ -963,6 +978,11 @@ public class PersonServiceImpl extends TransactionListenerAdapter implements Per
         if (userName == null)
         {
             throw new IllegalArgumentException("No username specified when creating the person.");
+        }
+        
+        if (EqualsHelper.nullSafeEquals(userName, AuthenticationUtil.getSystemUserName()))
+        {
+            throw new AlfrescoRuntimeException("The built-in authority '" + AuthenticationUtil.getSystemUserName()  + "' is a user, but not a Person (i.e. it does not have a profile).");
         }
 
         AuthorityType authorityType = AuthorityType.getAuthorityType(userName);
@@ -2162,10 +2182,14 @@ public class PersonServiceImpl extends TransactionListenerAdapter implements Per
         return true;
     }
 
-	public void setEventPublisher(EventPublisher eventPublisher) 
-	{
-		this.eventPublisher = eventPublisher;
-	}
-    
-    
+    public void setEventPublisher(EventPublisher eventPublisher)
+    {
+        this.eventPublisher = eventPublisher;
+    }
+
+    private boolean isSystemUserName(String userName)
+    {
+        return EqualsHelper.nullSafeEquals(userName, AuthenticationUtil.getSystemUserName(), true);
+    }
+
 }

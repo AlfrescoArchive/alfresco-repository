@@ -42,11 +42,31 @@ import org.alfresco.util.exec.RuntimeExec.ExecutionResult;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import static org.alfresco.repo.rendition2.RenditionDefinition2.ALLOW_ENLARGEMENT;
+import static org.alfresco.repo.rendition2.RenditionDefinition2.ALPHA_REMOVE;
+import static org.alfresco.repo.rendition2.RenditionDefinition2.AUTO_ORIENT;
+import static org.alfresco.repo.rendition2.RenditionDefinition2.CROP_GRAVITY;
+import static org.alfresco.repo.rendition2.RenditionDefinition2.CROP_HEIGHT;
+import static org.alfresco.repo.rendition2.RenditionDefinition2.CROP_PERCENTAGE;
+import static org.alfresco.repo.rendition2.RenditionDefinition2.CROP_WIDTH;
+import static org.alfresco.repo.rendition2.RenditionDefinition2.CROP_X_OFFSET;
+import static org.alfresco.repo.rendition2.RenditionDefinition2.CROP_Y_OFFSET;
+import static org.alfresco.repo.rendition2.RenditionDefinition2.END_PAGE;
+import static org.alfresco.repo.rendition2.RenditionDefinition2.MAINTAIN_ASPECT_RATIO;
+import static org.alfresco.repo.rendition2.RenditionDefinition2.RESIZE_HEIGHT;
+import static org.alfresco.repo.rendition2.RenditionDefinition2.RESIZE_PERCENTAGE;
+import static org.alfresco.repo.rendition2.RenditionDefinition2.RESIZE_WIDTH;
+import static org.alfresco.repo.rendition2.RenditionDefinition2.START_PAGE;
+import static org.alfresco.repo.rendition2.RenditionDefinition2.THUMBNAIL;
+
 /**
  * Executes a statement to implement 
- * 
+ *
  * @author Derek Hulley
+ *
+ * @deprecated The transformations code is being moved out of the codebase and replaced by the new async RenditionService2 or other external libraries.
  */
+@Deprecated
 public class ImageMagickContentTransformerWorker extends AbstractImageMagickContentTransformerWorker
 {
     /** options variable name */
@@ -260,12 +280,16 @@ public class ImageMagickContentTransformerWorker extends AbstractImageMagickCont
         String allowEnlargement = null;
         String maintainAspectRatio = null;
 
+        String commandOptions = null;
+
 
         if (options instanceof ImageTransformationOptions)
         {
             ImageTransformationOptions imageOptions = (ImageTransformationOptions)options;
             CropSourceOptions cropOptions = imageOptions.getSourceOptions(CropSourceOptions.class);
             ImageResizeOptions resizeOptions = imageOptions.getResizeOptions();
+            commandOptions = imageOptions.getCommandOptions();
+            commandOptions = commandOptions == null || "".equals(commandOptions.trim()) ? null : commandOptions.trim();
 
             // MNT-10882 :  JPEG File Format, does not save the alpha (transparency) channel.
             if (MimetypeMap.MIMETYPE_IMAGE_JPEG.equalsIgnoreCase(targetMimetype) && isAlphaOptionSupported())
@@ -356,25 +380,28 @@ public class ImageMagickContentTransformerWorker extends AbstractImageMagickCont
         remoteTransformerClient.request(reader, writer, sourceMimetype, sourceExtension, targetExtension,
                 timeoutMs, logger,
 
-                "startPage", startPage,
-                "endPage", endPage,
+                START_PAGE, startPage,
+                END_PAGE, endPage,
 
-                "alphaRemove", alphaRemove,
-                "autoOrient", autoOrient,
+                ALPHA_REMOVE, alphaRemove,
+                AUTO_ORIENT, autoOrient,
 
-                "cropGravity", cropGravity,
-                "cropWidth", cropWidth,
-                "cropHeight",  cropHeight,
-                "cropPercentage", cropPercentage,
-                "cropXOffset", cropXOffset,
-                "cropYOffset", cropYOffset,
+                CROP_GRAVITY, cropGravity,
+                CROP_WIDTH, cropWidth,
+                CROP_HEIGHT,  cropHeight,
+                CROP_PERCENTAGE, cropPercentage,
+                CROP_X_OFFSET, cropXOffset,
+                CROP_Y_OFFSET, cropYOffset,
 
-                "thumbnail", thumbnail,
-                "resizeWidth", resizeWidth,
-                "resizeHeight", resizeHeight,
-                "resizePercentage", resizePercentage,
-                "allowEnlargement", allowEnlargement,
-                "maintainAspectRatio", maintainAspectRatio);
+                THUMBNAIL, thumbnail,
+                RESIZE_WIDTH, resizeWidth,
+                RESIZE_HEIGHT, resizeHeight,
+                RESIZE_PERCENTAGE, resizePercentage,
+                ALLOW_ENLARGEMENT, allowEnlargement,
+                MAINTAIN_ASPECT_RATIO, maintainAspectRatio,
+
+                // Parameter not to be taken forward into the Transform Service version
+                "commandOptions", commandOptions);
     }
 
     protected String getImageMagickVersionNumber()

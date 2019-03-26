@@ -33,7 +33,12 @@ import org.alfresco.repo.content.transform.ContentTransformerWorker;
 import org.alfresco.repo.content.transform.RemoteTransformerClient;
 import org.alfresco.repo.content.transform.magick.ImageResizeOptions;
 import org.alfresco.repo.content.transform.magick.ImageTransformationOptions;
-import org.alfresco.service.cmr.repository.*;
+import org.alfresco.service.cmr.repository.ContentIOException;
+import org.alfresco.service.cmr.repository.ContentReader;
+import org.alfresco.service.cmr.repository.ContentWriter;
+import org.alfresco.service.cmr.repository.MimetypeService;
+import org.alfresco.service.cmr.repository.PagedSourceOptions;
+import org.alfresco.service.cmr.repository.TransformationOptions;
 import org.alfresco.util.Pair;
 import org.alfresco.util.PropertyCheck;
 import org.alfresco.util.TempFileProvider;
@@ -46,6 +51,17 @@ import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 
+import static org.alfresco.repo.rendition2.RenditionDefinition2.ALLOW_PDF_ENLARGEMENT;
+import static org.alfresco.repo.rendition2.RenditionDefinition2.HEIGHT;
+import static org.alfresco.repo.rendition2.RenditionDefinition2.MAINTAIN_PDF_ASPECT_RATIO;
+import static org.alfresco.repo.rendition2.RenditionDefinition2.PAGE;
+import static org.alfresco.repo.rendition2.RenditionDefinition2.WIDTH;
+
+/**
+ *
+ * @deprecated The transformations code is being moved out of the codebase and replaced by the new async RenditionService2 or other external libraries.
+ */
+@Deprecated
 public class AlfrescoPdfRendererContentTransformerWorker extends ContentTransformerHelper implements ContentTransformerWorker, InitializingBean
 {
 
@@ -366,11 +382,11 @@ public class AlfrescoPdfRendererContentTransformerWorker extends ContentTransfor
         remoteTransformerClient.request(reader, writer, sourceMimetype, sourceExtension, targetExtension,
                 timeoutMs, logger,
 
-                "page", page,
-                "width", width,
-                "height", height,
-                "allowEnlargement", allowEnlargement,
-                "maintainAspectRatio", maintainAspectRatio);
+                PAGE, page,
+                WIDTH, width,
+                HEIGHT, height,
+                ALLOW_PDF_ENLARGEMENT, allowEnlargement,
+                MAINTAIN_PDF_ASPECT_RATIO, maintainAspectRatio);
     }
 
     @Override

@@ -11,7 +11,6 @@
     <import resource="classpath:alfresco/blog-context.xml"/>
     <import resource="classpath:alfresco/calendar-services-context.xml"/>
     <import resource="classpath:alfresco/comment-services-context.xml"/>
-    <import resource="classpath:alfresco/discussions-services-context.xml"/>
     <import resource="classpath:alfresco/download-services-context.xml"/>
     <import resource="classpath:alfresco/links-services-context.xml"/>
     <import resource="classpath:alfresco/quickshare-services-context.xml"/>
@@ -21,6 +20,7 @@
     <import resource="classpath:alfresco/oauth2-credentials-store-services-context.xml"/>
     <import resource="classpath:alfresco/remote-ticket-services-context.xml"/>
     <import resource="classpath:alfresco/rendition-services-context.xml"/>
+    <import resource="classpath:alfresco/rendition-services2-context.xml"/>
     <import resource="classpath:alfresco/replication-services-context.xml"/>
     <import resource="classpath:alfresco/thumbnail-service-context.xml"/>
     <import resource="classpath:alfresco/preference-service-context.xml"/>
@@ -41,4 +41,6 @@
     <import resource="classpath:alfresco/heartbeat/heartbeat-repo-collector-context.xml"/>
     <import resource="classpath*:alfresco/enterprise/heartbeat/heartbeat-enterprise-repo-collector-context.xml" />
     <import resource="classpath*:alfresco/deprecated-model-bootstrap-context.xml" />
+    <import resource="classpath*:alfresco/events-context.xml" />
+    <import resource="classpath*:alfresco/messaging-context.xml" />
 </beans>

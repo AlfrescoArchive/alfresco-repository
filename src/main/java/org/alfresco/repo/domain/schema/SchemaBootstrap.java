@@ -52,7 +52,6 @@ import java.sql.SQLXML;
 import java.sql.Savepoint;
 import java.sql.Statement;
 import java.sql.Struct;
-import java.sql.Types;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -75,7 +74,6 @@ import org.alfresco.repo.content.filestore.FileContentWriter;
 import org.alfresco.repo.domain.dialect.MySQLClusterNDBDialect;
 import org.alfresco.repo.domain.dialect.Oracle9Dialect;
 import org.alfresco.repo.domain.dialect.SQLServerDialect;
-import org.alfresco.repo.domain.dialect.DB2Dialect;
 import org.alfresco.repo.domain.dialect.Dialect;
 import org.alfresco.repo.domain.dialect.MySQLInnoDBDialect;
 import org.alfresco.repo.domain.dialect.PostgreSQLDialect;
@@ -83,6 +81,7 @@ import org.alfresco.repo.domain.patch.AppliedPatchDAO;
 import org.alfresco.service.cmr.repository.ContentWriter;
 import org.alfresco.service.descriptor.DescriptorService;
 import org.alfresco.util.DatabaseMetaDataHelper;
+import org.alfresco.util.DialectUtil;
 import org.alfresco.util.LogUtil;
 import org.alfresco.util.PropertyCheck;
 import org.alfresco.util.TempFileProvider;
@@ -112,9 +111,6 @@ import org.springframework.extensions.surf.util.I18NUtil;
  */
 public class SchemaBootstrap extends AbstractLifecycleBean
 {
-    /** The placeholder for the configured <code>Dialect</code> class name: <b>${db.script.dialect}</b> */
-    private static final String PLACEHOLDER_DIALECT = "\\$\\{db\\.script\\.dialect\\}";
-    
     /** The global property containing the default batch size used by --FOREACH */
     private static final String PROPERTY_DEFAULT_BATCH_SIZE = "system.upgrade.default.batchsize";
 
@@ -324,7 +320,6 @@ public class SchemaBootstrap extends AbstractLifecycleBean
      * type (e.g. PostgreSQL)
      * 
      * @param schemaReferenceUrls the schemaReferenceUrls to set
-     * @see #PLACEHOLDER_DIALECT
      */
     public void setSchemaReferenceUrls(List<String> schemaReferenceUrls)
     {
@@ -781,6 +776,10 @@ public class SchemaBootstrap extends AbstractLifecycleBean
         {
             stmt.executeUpdate("create table alf_bootstrap_lock (charval CHAR(1) NOT NULL)");
             // Success
+            if (logger.isInfoEnabled())
+            {
+                logger.info("Bootstrap started.");
+            }
             return;
         }
         catch (Throwable e)
@@ -799,9 +798,7 @@ public class SchemaBootstrap extends AbstractLifecycleBean
      * has created the alf_bootstrap_lock table - This table indicates that a schema initialization
      * or schema DB update is in progress.
      *
-     * Advice: Do not consider this locking system as bullet proof!
-     *
-     * @return true if the alf_bootstrap_lock exists; false otherwise
+     * @return true if the alf_bootstrap_lock marker table exists in the DB; false otherwise
      *
      */
     private synchronized boolean isBootstrapInProgress(Connection connection) throws Exception
@@ -811,6 +808,10 @@ public class SchemaBootstrap extends AbstractLifecycleBean
         {
             stmt.executeQuery("select * from alf_bootstrap_lock");
             // Success
+            if (logger.isInfoEnabled())
+            {
+                logger.info("Bootstrap marker still present in the DB.");
+            }
             return true;
         }
         catch (Throwable e)
@@ -837,10 +838,17 @@ public class SchemaBootstrap extends AbstractLifecycleBean
 
             // from Thor
             executedStatementsThreadLocal.set(null);
+            if (logger.isInfoEnabled())
+            {
+                logger.info("Bootstrap completed.");
+            }
         }
         catch (Throwable e)
         {
-            // Table exists
+            if (logger.isDebugEnabled())
+            {
+                logger.debug("Exception in deleting the alf_bootstrap_lock table: " + e.getMessage(), e);
+            }
             throw AlfrescoRuntimeException.create(ERR_PREVIOUS_FAILED_BOOTSTRAP);
         }
         finally
@@ -857,12 +865,17 @@ public class SchemaBootstrap extends AbstractLifecycleBean
         boolean create = false;
         try
         {
-            countAppliedPatches(connection);
+            final int numberOfPatchesApplied = countAppliedPatches(connection);
+            if (logger.isInfoEnabled())
+            {
+                logger.info("Applied patches detected: " + numberOfPatchesApplied);
+            }
         }
         catch (NoSchemaException e)
         {
             create = true;
         }
+
         // Get the dialect
         final Dialect dialect = this.dialect;
         String dialectStr = dialect.getClass().getSimpleName();
@@ -884,22 +897,41 @@ public class SchemaBootstrap extends AbstractLifecycleBean
 
             if (logger.isInfoEnabled())
             {
-                logger.info("Create scripts executed in "+(System.currentTimeMillis()-start)+" ms");
+                logger.info("Creating Alfresco tables took " + (System.currentTimeMillis() - start) + " ms");
             }
         }
         else
         {
+            long start = System.currentTimeMillis();
+
             // Execute any pre-auto-update scripts
             checkSchemaPatchScripts(connection, preUpdateScriptPatches, true);
             
             // Execute any post-auto-update scripts
             checkSchemaPatchScripts(connection, postUpdateScriptPatches, true);
+
+            if (logger.isInfoEnabled())
+            {
+                logger.info(
+                    "Checking and patching Alfresco tables took " + (System.currentTimeMillis() - start) + " ms");
+            }
         }
+
+        ensureCurrentClusterMemberIsBootstrapping(connection);
 
         // Initialise Activiti DB, using an unclosable connection
         boolean activitiTablesExist = checkActivitiTablesExist(connection);
+        if (logger.isInfoEnabled())
+        {
+            logger.info("Activiti tables need to be " + (activitiTablesExist ? "checked for patches" : " created"));
+        }
+
         if(!activitiTablesExist)
         {
+            long start = System.currentTimeMillis();
+
+            ensureCurrentClusterMemberIsBootstrapping(connection);
+
             // Activiti DB updates are performed as patches in alfresco, only give
             // control to activiti when creating new one.
             initialiseActivitiDBSchema(new UnclosableConnection(connection));
@@ -924,21 +956,39 @@ public class SchemaBootstrap extends AbstractLifecycleBean
                 appliedPatch.setReport("Placeholder for Activiti bootstrap at schema " + installedSchemaNumber);
                 appliedPatchDAO.createAppliedPatch(appliedPatch);
             }
+            if (logger.isInfoEnabled())
+            {
+                logger.info("Creating Activiti tables took " + (System.currentTimeMillis() - start) + " ms");
+            }
         }
         else
         {
+            long start = System.currentTimeMillis();
+
             // Execute any auto-update scripts for Activiti tables
             checkSchemaPatchScripts(connection, updateActivitiScriptPatches, true);
 
             // verify that all Activiti patches have been applied correctly
             checkSchemaPatchScripts(connection, updateActivitiScriptPatches, false);
+
+            if (logger.isInfoEnabled())
+            {
+                logger.info("Checking and patching Activiti tables took " + (System.currentTimeMillis() - start) + " ms");
+            }
         }
 
         if (!create)
         {
+            long start = System.currentTimeMillis();
+
             // verify that all patches have been applied correctly
             checkSchemaPatchScripts(connection, preUpdateScriptPatches, false);       // check scripts
             checkSchemaPatchScripts(connection, postUpdateScriptPatches, false);      // check scripts
+
+            if (logger.isInfoEnabled())
+            {
+                logger.info("Checking that all patches have been applied took " + (System.currentTimeMillis() - start) + " ms");
+            }
         }
 
         return create;
@@ -965,7 +1015,10 @@ public class SchemaBootstrap extends AbstractLifecycleBean
                 buildProcessEngine();
 
             String schemaName = dbSchemaName != null ? dbSchemaName : databaseMetaDataHelper.getSchema(connection);
-            // create or upgrade the DB schema
+            if (logger.isInfoEnabled())
+            {
+                logger.info("Creating Activiti DB schema tables");
+            }
             engine.getManagementService().databaseSchemaUpgrade(connection, null, schemaName);
         }
         finally
@@ -995,17 +1048,7 @@ public class SchemaBootstrap extends AbstractLifecycleBean
             return;
         }
 
-        if (executedStatementsThreadLocal.get()== null && isBootstrapInProgress(connection))
-        {
-            // This means that there is a bootstrap in progress and this node has NOT executed any queries
-            // therefore this node is NOT the one doing the schema initialization/upgrade
-            // we should therefore wait for the other node to finish and then continue the checks
-            logger.info("Another cluster node is doing a DB schema initialization or DB update. "
-                + "Waiting for the other node to finish...");
-
-            // We throw a well-known exception to be handled by retrying code if required
-            throw new LockFailedException();
-        }
+        ensureCurrentClusterMemberIsBootstrapping(connection);
 
         // Retrieve the first installed schema number
         int installedSchema = getInstalledSchemaNumber(connection);
@@ -1050,7 +1093,41 @@ public class SchemaBootstrap extends AbstractLifecycleBean
             executeScriptUrl(connection, scriptUrl);
         }
     }
-    
+
+    /**
+     * This method throws a LockFailedException in case the current Alfresco cluster node
+     * is NOT the node that is doing the schema bootstrap;
+     * This is the exception that signals that this node should wait for a while and retry
+     *
+     *
+     * Only one node from the cluster should do the initialization of the DB, so all other
+     * nodes should just retry to execute the schema checks after the initialization of
+     * the DB has ended;
+     *
+     */
+    private void ensureCurrentClusterMemberIsBootstrapping(Connection connection) throws Exception
+    {
+        if (isAnotherClusterMemberBootstrapping(connection))
+        {
+            logger.info("Another Alfresco cluster node is updating the DB");
+
+            // We throw a well-known exception to be handled by retrying code if required
+            throw new LockFailedException();
+        }
+    }
+
+    /**
+     *
+     * @return true if there is a bootstrap in progress and this node has NOT executed any queries
+     * therefore this node is NOT the one doing the schema initialization/upgrade
+     *
+     * @throws Exception if the DB connections has problems
+     */
+    private boolean isAnotherClusterMemberBootstrapping(Connection connection) throws Exception
+    {
+        return executedStatementsThreadLocal.get()== null && isBootstrapInProgress(connection);
+    }
+
     private void executeScriptUrl(Connection connection, String scriptUrl) throws Exception
     {
         Dialect dialect = this.dialect;
@@ -1074,62 +1151,9 @@ public class SchemaBootstrap extends AbstractLifecycleBean
             try { scriptInputStream.close(); } catch (Throwable e) {}  // usually a duplicate close
         }
         // now execute it
-        String dialectScriptUrl = scriptUrl.replaceAll(PLACEHOLDER_DIALECT, dialect.getClass().getName());
+        String dialectScriptUrl = scriptUrl.replaceAll(DialectUtil.PLACEHOLDER_DIALECT, dialect.getClass().getName());
         // Replace the script placeholders
         executeScriptFile(connection, tempFile, dialectScriptUrl);
-    }
-    
-    /**
-     * Replaces the dialect placeholder in the resource URL and attempts to find a file for
-     * it.  If not found, the dialect hierarchy will be walked until a compatible resource is
-     * found.  This makes it possible to have resources that are generic to all dialects.
-     * 
-     * @return The Resource, otherwise null
-     */
-    private Resource getDialectResource(Class<?> dialectClass, String resourceUrl)
-    {
-        // replace the dialect placeholder
-        String dialectResourceUrl = resolveDialectUrl(dialectClass, resourceUrl);
-        // get a handle on the resource
-        Resource resource = rpr.getResource(dialectResourceUrl);
-        if (!resource.exists())
-        {
-            // it wasn't found.  Get the superclass of the dialect and try again
-            Class<?> superClass = dialectClass.getSuperclass();
-            if (Dialect.class.isAssignableFrom(superClass))
-            {
-                // we still have a Dialect - try again
-                return getDialectResource(superClass, resourceUrl);
-            }
-            else
-            {
-                // we have exhausted all options
-                return null;
-            }
-        }
-        else
-        {
-            // we have a handle to it
-            return resource;
-        }
-    }
-
-    /**
-     * Takes resource URL containing the {@link SchemaBootstrap#PLACEHOLDER_DIALECT dialect placeholder text}
-     * and substitutes the placeholder with the name of the given dialect's class.
-     * <p/>
-     * For example:
-     * <pre>
-     *   resolveDialectUrl(MySQLInnoDBDialect.class, "classpath:alfresco/db/${db.script.dialect}/myfile.xml")
-     * </pre>
-     * would give the following String:
-     * <pre>
-     *   classpath:alfresco/db/org.hibernate.dialect.MySQLInnoDBDialect/myfile.xml
-     * </pre>
-     */
-    private String resolveDialectUrl(Class<?> dialectClass, String resourceUrl)
-    {
-        return resourceUrl.replaceAll(PLACEHOLDER_DIALECT, dialectClass.getName());
     }
     
     /**
@@ -1141,7 +1165,7 @@ public class SchemaBootstrap extends AbstractLifecycleBean
      */
     private InputStream getScriptInputStream(Class<?> dialectClazz, String scriptUrl) throws Exception
     {
-        Resource resource = getDialectResource(dialectClazz, scriptUrl);
+        Resource resource = DialectUtil.getDialectResource(rpr, dialectClazz, scriptUrl);
         if (resource == null)
         {
             throw new AlfrescoRuntimeException("Script [ " + scriptUrl + " ] can't be found for " + dialectClazz);
@@ -1161,9 +1185,8 @@ public class SchemaBootstrap extends AbstractLifecycleBean
             String scriptUrl) throws Exception
     {
         final Dialect dialect = this.dialect;
-        
-        StringBuilder executedStatements = executedStatementsThreadLocal.get();
-        if (executedStatements == null)
+
+        if (executedStatementsThreadLocal.get() == null)
         {
             // Validate the schema, pre-upgrade
             validateSchema("Alfresco-{0}-Validation-Pre-Upgrade-{1}-", null);
@@ -1172,8 +1195,7 @@ public class SchemaBootstrap extends AbstractLifecycleBean
 
             // There is no lock at this stage.  This process can fall out if the lock can't be applied.
             setBootstrapStarted(connection);
-            executedStatements = new StringBuilder(8094);
-            executedStatementsThreadLocal.set(executedStatements);
+            executedStatementsThreadLocal.set(new StringBuilder(8094));
         }
         
         if (scriptUrl == null)
@@ -1566,13 +1588,6 @@ public class SchemaBootstrap extends AbstractLifecycleBean
             // serializable_value image null,
             maxStringLength = SchemaBootstrap.DEFAULT_MAX_STRING_LENGTH;
         }
-        else if (dialect instanceof DB2Dialect)
-        {
-            // string_value varchar(1024),
-            // serializable_value varchar(8192) for bit data,
-            maxStringLength = SchemaBootstrap.DEFAULT_MAX_STRING_LENGTH;
-            serializableType = Types.BLOB;
-        }
         else if (dialect instanceof MySQLClusterNDBDialect)
         {
             // string_value varchar(400),
@@ -1643,13 +1658,24 @@ public class SchemaBootstrap extends AbstractLifecycleBean
                 {
                     try
                     {
+                        long start = System.currentTimeMillis();
+
                         createdSchema = updateSchema(connection);
                         updatedSchema = true;
+
+                        if (logger.isInfoEnabled())
+                        {
+                            logger.info(
+                                (createdSchema ? "Creating" : "Updating") +
+                                    " the DB schema took " + (System.currentTimeMillis() - start) + " ms");
+                        }
                         break;
                     }
                     catch (LockFailedException e)
                     {
-                        logger.info("DB lock failed on schema bootstrap. Attempt: " + i);
+                        logger.info(
+                            "The current Alfresco cluster node is waiting for another chance to bootstrap the DB schema. "
+                                + "Attempt: " + (i + 1) + " of " + schemaUpdateLockRetryCount);
                         try { this.wait(schemaUpdateLockRetryWaitSeconds * 1000L); } catch (InterruptedException ee) {}
                     }
                 }
@@ -1666,8 +1692,12 @@ public class SchemaBootstrap extends AbstractLifecycleBean
                 {
                     // Remove the flag indicating a running bootstrap
                     setBootstrapCompleted(connection);
+
+                    // Validate the schema, post-upgrade
+                    validateSchema("Alfresco-{0}-Validation-Post-Upgrade-{1}-", null);
+                    // 4.0+ schema dump
+                    dumpSchema("post-upgrade");
                 }
-                reportNormalizedDumps();
             }
             else
             {
@@ -1721,17 +1751,6 @@ public class SchemaBootstrap extends AbstractLifecycleBean
         }
     }
 
-    private void reportNormalizedDumps()
-    {
-        if (executedStatementsThreadLocal.get() != null)
-        {
-            // Validate the schema, post-upgrade
-            validateSchema("Alfresco-{0}-Validation-Post-Upgrade-{1}-", null);
-            // 4.0+ schema dump
-            dumpSchema("post-upgrade");
-        }
-    }
-
     private void writeLogsWithDBStatementExecuted()
     {
         // Copy the executed statements to the output file
@@ -1778,11 +1797,11 @@ public class SchemaBootstrap extends AbstractLifecycleBean
         // and process each in turn.
         for (String schemaReferenceUrl : schemaReferenceUrls)
         {
-            Resource referenceResource = getDialectResource(dialect.getClass(), schemaReferenceUrl);
+            Resource referenceResource = DialectUtil.getDialectResource(rpr, dialect.getClass(), schemaReferenceUrl);
             
             if (referenceResource == null || !referenceResource.exists())
             {
-                String resourceUrl = resolveDialectUrl(dialect.getClass(), schemaReferenceUrl);
+                String resourceUrl = DialectUtil.resolveDialectUrl(dialect.getClass(), schemaReferenceUrl);
                 LogUtil.debug(logger, DEBUG_SCHEMA_COMP_NO_REF_FILE, resourceUrl);
             }
             else
