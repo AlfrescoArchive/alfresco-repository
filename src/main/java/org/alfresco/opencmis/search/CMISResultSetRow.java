@@ -178,7 +178,8 @@ public class CMISResultSetRow implements ResultSetRow
         for (Column column : query.getColumns())
         {
             // When an SCORE selector is included, score must be adapted to range 0..1 due to CMIS specification
-            if (column.getFunction().getName().equals(Score.NAME)) {
+            if (column.getFunction().getName().equals(Score.NAME)) 
+            {
                 return getNormalisedScore();
             }
             else if (column.getAlias().equals(columnName))
@@ -233,7 +234,8 @@ public class CMISResultSetRow implements ResultSetRow
      * It's a safe approach, as includes negative numbers and also paged requests.
      * @return A value between 0 and 1
      */
-    private float getNormalisedScore() {
+    private float getNormalisedScore() 
+    {
         return (float) (Math.atan(getScore()) / Math.PI) + 0.5f;  
     }
 
