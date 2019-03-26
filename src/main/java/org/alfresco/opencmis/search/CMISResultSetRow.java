@@ -178,7 +178,7 @@ public class CMISResultSetRow implements ResultSetRow
         for (Column column : query.getColumns())
         {
             // When an SCORE selector is included, score must be adapted to range 0..1 due to CMIS specification
-            if (column.getFunction().getName().equals(Score.NAME)) 
+            if (column.getFunction()!= null && column.getFunction().getName().equals(Score.NAME)) 
             {
                 return getNormalisedScore();
             }
