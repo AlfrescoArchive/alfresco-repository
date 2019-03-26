@@ -142,10 +142,22 @@ public class LocalTransformClient implements TransformClient, InitializingBean
 
                             ContentWriter writer = contentService.getTempWriter();
                             writer.setMimetype(targetMimetype);
+                            if (logger.isDebugEnabled())
+                            {
+                                logger.debug("Local transform requested for rendition of " + renditionDefinition.getRenditionName());
+                            }
                             localTransformServiceRegistry.transform(reader, writer, options, renditionName, sourceNodeRef);
 
                             InputStream inputStream = writer.getReader().getContentInputStream();
+                            if (logger.isDebugEnabled())
+                            {
+                                logger.debug("Local transform to be consumed for rendition of " + renditionDefinition.getRenditionName());
+                            }
                             renditionService2.consume(sourceNodeRef, inputStream, renditionDefinition, sourceContentHashCode);
+                            if (logger.isDebugEnabled())
+                            {
+                                logger.debug("Local transform consumed for rendition of " + renditionDefinition.getRenditionName());
+                            }
                         }
                         catch (Exception e)
                         {
