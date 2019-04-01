@@ -134,7 +134,7 @@ public class RemoteTransformerClient
 
         if (logger.isDebugEnabled())
         {
-            logger.debug("Remote "+name+' '+sourceExtension+' '+targetExtension+' '+url+' '+args);
+            logger.debug(name+' '+sourceExtension+' '+targetExtension+' '+url+' '+args);
         }
 
         try
@@ -146,7 +146,7 @@ public class RemoteTransformerClient
                     StatusLine statusLine = response.getStatusLine();
                     if (statusLine == null)
                     {
-                        throw new AlfrescoRuntimeException("Remote "+name+" returned no status " + url + ' ' + args);
+                        throw new AlfrescoRuntimeException(name+" returned no status " + url + ' ' + args);
                     }
                     HttpEntity resEntity = response.getEntity();
                     if (resEntity != null)
@@ -161,7 +161,7 @@ public class RemoteTransformerClient
                                     long responseContentLength = resEntity.getContentLength();
                                     Header responseContentEncoding = resEntity.getContentEncoding();
                                     Header responseContentType = resEntity.getContentType();
-                                    logger.debug("Remote " + name + ' ' + sourceExtension + ' ' + targetExtension +
+                                    logger.debug(name + ' ' + sourceExtension + ' ' + targetExtension +
                                             " returned. length=" + responseContentLength +
                                             " type=" + responseContentType +
                                             " encoding=" + responseContentEncoding);
@@ -172,13 +172,13 @@ public class RemoteTransformerClient
                             }
                             catch (IOException e)
                             {
-                                throw new AlfrescoRuntimeException("Remote " + name + " failed to read the returned content", e);
+                                throw new AlfrescoRuntimeException(name + " failed to read the returned content", e);
                             }
                         }
                         else
                         {
                             String message = getErrorMessage(resEntity);
-                            String msg = ("Remote " + name + " returned a " + statusCode + " status " + message +
+                            String msg = (name + " returned a " + statusCode + " status " + message +
                                     ' ' + url + ' ' + args).trim();
                             if (statusCode == 401)
                             {
@@ -196,7 +196,7 @@ public class RemoteTransformerClient
                     }
                     else
                     {
-                        throw new AlfrescoRuntimeException("Remote " + name + " did not return an entity " + url);
+                        throw new AlfrescoRuntimeException(name + " did not return an entity " + url);
                     }
                 }
                 catch (IOException e)
@@ -204,12 +204,12 @@ public class RemoteTransformerClient
                     // In the case of transform requests, unlike version checks, it is only the failure to connect that
                     // forces a wait before trying again.
                     connectionFailed();
-                    throw new AlfrescoRuntimeException("Remote " + name + " failed to connect or to read the response", e);
+                    throw new AlfrescoRuntimeException(name + " failed to connect or to read the response", e);
                 }
             }
             catch (IOException e)
             {
-                throw new AlfrescoRuntimeException("Remote " + name + " failed to create an HttpClient", e);
+                throw new AlfrescoRuntimeException(name + " failed to create an HttpClient", e);
             }
         }
         catch (AlfrescoRuntimeException e)
@@ -232,7 +232,7 @@ public class RemoteTransformerClient
     {
         if (!isTimeToCheckAvailability())
         {
-            logger.debug("Remote "+name+' '+" too early to check availability");
+            logger.debug(name+' '+" too early to check availability");
             Pair<Boolean, String> result = getCheckResult();
             return result;
         }
@@ -242,7 +242,7 @@ public class RemoteTransformerClient
 
         if (logger.isDebugEnabled())
         {
-            logger.debug("Remote "+name+' '+" check" +url);
+            logger.debug(name+' '+" check" +url);
         }
 
         try
@@ -254,7 +254,7 @@ public class RemoteTransformerClient
                     StatusLine statusLine = response.getStatusLine();
                     if (statusLine == null)
                     {
-                        throw new AlfrescoRuntimeException("Remote "+name+" check returned no status " + url);
+                        throw new AlfrescoRuntimeException(name+" check returned no status " + url);
                     }
                     HttpEntity resEntity = response.getEntity();
                     if (resEntity != null)
@@ -271,7 +271,7 @@ public class RemoteTransformerClient
                                     long responseContentLength = resEntity.getContentLength();
                                     Header responseContentType = resEntity.getContentType();
                                     Header responseContentEncoding = resEntity.getContentEncoding();
-                                    logger.debug("Remote " + name +
+                                    logger.debug(name +
                                             " check returned. length=" + responseContentLength +
                                             " type=" + responseContentType +
                                             " encoding=" + responseContentEncoding+
@@ -286,28 +286,28 @@ public class RemoteTransformerClient
                             }
                             catch (IOException e)
                             {
-                                throw new AlfrescoRuntimeException("Remote " + name + " check failed to read the returned content", e);
+                                throw new AlfrescoRuntimeException(name + " check failed to read the returned content", e);
                             }
                         }
                         else
                         {
                             String message = getErrorMessage(resEntity);
-                            throw new AlfrescoRuntimeException("Remote " + name + " check returned a " + statusCode + " status " + message + ' ' + url);
+                            throw new AlfrescoRuntimeException(name + " check returned a " + statusCode + " status " + message + ' ' + url);
                         }
                     }
                     else
                     {
-                        throw new AlfrescoRuntimeException("Remote " + name + " check did not return an entity " + url);
+                        throw new AlfrescoRuntimeException(name + " check did not return an entity " + url);
                     }
                 }
                 catch (IOException e)
                 {
-                    throw new AlfrescoRuntimeException("Remote " + name + " check failed to connect or to read the response", e);
+                    throw new AlfrescoRuntimeException(name + " check failed to connect or to read the response", e);
                 }
             }
             catch (IOException e)
             {
-                throw new AlfrescoRuntimeException("Remote " + name + " check failed to create an HttpClient", e);
+                throw new AlfrescoRuntimeException(name + " check failed to create an HttpClient", e);
             }
         }
         catch (AlfrescoRuntimeException e)

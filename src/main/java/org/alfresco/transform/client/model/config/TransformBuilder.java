@@ -27,6 +27,7 @@ package org.alfresco.transform.client.model.config;
 
 import java.util.ArrayList;
 import java.util.List;
+import org.alfresco.transform.client.model.config.Transformer;
 
 /**
  * Helper class that builds a {@link Transformer} given the source and target extensions and a pipeline of Transformers
@@ -49,11 +50,4 @@ public class TransformBuilder
                 });
         return new Transformer(name, version, options, sourceAndTargetList);
     }
-
-    // TODO Commented out for now as it is unclear what the Transform service will support in terms of failover transformations.
-    // Note: The use of a list of Transformers rather than ChildTransformers, as the supplied actual options would have
-    //       to match one or more of the transformer's options. Matching one or more options is not currently
-    //       implemented by the TransformServiceRegistry
-    // public Transformer buildFailover(String name, String version, List<SupportedSourceAndTarget> sourceAndTargetList,
-    //                                  List<Transformer> transformerList)
 }

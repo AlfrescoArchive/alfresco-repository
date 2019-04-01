@@ -23,22 +23,44 @@
  * along with Alfresco. If not, see <http://www.gnu.org/licenses/>.
  * #L%
  */
-package org.alfresco.repo.content.transform2;
-
-import org.alfresco.service.cmr.repository.ContentReader;
-import org.alfresco.service.cmr.repository.ContentWriter;
-import org.alfresco.service.cmr.repository.NodeRef;
-
-import java.util.Map;
+package org.alfresco.transform.client.model.config;
 
 /**
- * Interface of a local transformer using flat transform options. The configuration of what is supported is defined
- * in {@code local-transform-service-config.json}. Each transformer is automatically registered with the
- * {@link LocalTransformServiceRegistry}.
+ * Represents a single transform step in a transform pipeline. The last step in the pipeline does not specify the
+ * target type as that is based on the supported types and what has been requested.
  */
-public interface LocalTransformer
+public class TransformStep
 {
-    void transform(ContentReader reader, ContentWriter writer, Map<String, String> transformOptions,
-                   String renditionName, NodeRef sourceNodeRef)
-            throws Exception;
+    private String name;
+    private String targetExt;
+
+    public TransformStep()
+    {
+    }
+
+    public TransformStep(String name, String targetExt)
+    {
+        setName(name);
+        setTargetExt(targetExt);
+    }
+
+    public String getName()
+    {
+        return name;
+    }
+
+    public void setName(String name)
+    {
+        this.name = name;
+    }
+
+    public String getTargetExt()
+    {
+        return targetExt;
+    }
+
+    public void setTargetExt(String targetExt)
+    {
+        this.targetExt = targetExt;
+    }
 }

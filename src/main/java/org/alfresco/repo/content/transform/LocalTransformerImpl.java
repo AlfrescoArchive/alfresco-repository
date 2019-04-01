@@ -23,16 +23,14 @@
  * along with Alfresco. If not, see <http://www.gnu.org/licenses/>.
  * #L%
  */
-package org.alfresco.repo.content.transform2;
+package org.alfresco.repo.content.transform;
 
 import org.alfresco.error.AlfrescoRuntimeException;
-import org.alfresco.repo.content.transform.RemoteTransformerClient;
-import org.alfresco.repo.content.transform.TransformerDebug;
 import org.alfresco.repo.rendition2.RenditionDefinition2;
 import org.alfresco.service.cmr.repository.ContentReader;
 import org.alfresco.service.cmr.repository.ContentWriter;
-import org.alfresco.service.cmr.repository.MimetypeService;
 import org.alfresco.service.cmr.repository.NodeRef;
+import org.alfresco.transform.client.model.config.ExtensionMap;
 import org.alfresco.util.Pair;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -49,7 +47,7 @@ public class LocalTransformerImpl implements LocalTransformer
     private static final Log log = LogFactory.getLog(LocalTransformerImpl.class);
     
     private String name;
-    private MimetypeService mimetypeService;
+    private ExtensionMap extensionMap;
     private TransformerDebug transformerDebug;
     private RemoteTransformerClient remoteTransformerClient;
 
@@ -64,10 +62,10 @@ public class LocalTransformerImpl implements LocalTransformer
     };
 
     public LocalTransformerImpl(String name, String baseUrl, int startupRetryPeriodSeconds,
-                                MimetypeService mimetypeService, TransformerDebug transformerDebug)
+                                ExtensionMap extensionMap, TransformerDebug transformerDebug)
     {
         this.name = name;
-        this.mimetypeService = mimetypeService;
+        this.extensionMap = extensionMap;
         this.transformerDebug = transformerDebug;
 
         remoteTransformerClient = new RemoteTransformerClient(name, baseUrl);
@@ -159,8 +157,8 @@ public class LocalTransformerImpl implements LocalTransformer
                 String targetMimetype = writer.getMimetype();
                 String targetEncoding = writer.getEncoding();
 
-                String sourceExtension = mimetypeService.getExtension(sourceMimetype);
-                String targetExtension = mimetypeService.getExtension(targetMimetype);
+                String sourceExtension = extensionMap.toExtension(sourceMimetype);
+                String targetExtension = extensionMap.toExtension(targetMimetype);
                 if (sourceExtension == null || targetExtension == null)
                 {
                     throw new AlfrescoRuntimeException("Unknown extensions for mimetypes: \n" +

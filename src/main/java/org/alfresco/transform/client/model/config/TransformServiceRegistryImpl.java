@@ -75,6 +75,11 @@ public class TransformServiceRegistryImpl implements TransformServiceRegistry, I
         this.jsonObjectMapper = jsonObjectMapper;
     }
 
+    public ExtensionMap getExtensionMap()
+    {
+        return extensionMap;
+    }
+
     public void setExtensionMap(ExtensionMap extensionMap)
     {
         this.extensionMap = extensionMap;

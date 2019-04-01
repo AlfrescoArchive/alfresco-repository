@@ -2,7 +2,7 @@
  * #%L
  * Alfresco Repository
  * %%
- * Copyright (C) 2005 - 2018 Alfresco Software Limited
+ * Copyright (C) 2005 - 2019 Alfresco Software Limited
  * %%
  * This file is part of the Alfresco software.
  * If the software was purchased under a paid Alfresco license, the terms of
@@ -50,6 +50,9 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
+/**
+ * Test the config received from the Transform Service about what it supports.
+ */
 public class TransformServiceRegistryImplTest
 {
     public static final String GIF = "gif";
@@ -84,9 +87,9 @@ public class TransformServiceRegistryImplTest
     public static final ObjectMapper JSON_OBJECT_MAPPER = new ObjectMapper();
 
     private TransformServiceRegistryImpl registry;
-    private TransformBuilder builder;
-    private Transformer transformer;
-    private ExtensionMap extensionMap;
+    protected TransformBuilder builder;
+    protected Transformer transformer;
+    protected ExtensionMap extensionMap;
 
     @Before
     public void setUp() throws Exception
@@ -116,14 +119,26 @@ public class TransformServiceRegistryImplTest
             {
                 return map.get(extension);
             }
+
+            @Override
+            public String toExtension(String mimetype)
+            {
+                for (Map.Entry<String, String> entry : map.entrySet())
+                {
+                    if (entry.getValue().equals(mimetype))
+                    {
+                        return entry.getKey();
+                    }
+                }
+                return null;
+            }
         };
 
         registry = buildTransformServiceRegistryImpl();
-
         builder = new TransformBuilder();
     }
 
-    private TransformServiceRegistryImpl buildTransformServiceRegistryImpl()
+    protected TransformServiceRegistryImpl buildTransformServiceRegistryImpl()
     {
         TransformServiceRegistryImpl registry = new TransformServiceRegistryImpl();
         registry.setExtensionMap(extensionMap);
@@ -135,6 +150,11 @@ public class TransformServiceRegistryImplTest
     public void tearDown()
     {
         // shut down
+    }
+
+    protected String getTransformServiceConfig()
+    {
+        return TRANSFORM_SERVICE_CONFIG;
     }
 
     private void assertAddToPossibleOptions(TransformOptionGroup transformOptionGroup, String actualOptionNames, String expectedNames, String expectedRequired)
@@ -338,7 +358,7 @@ public class TransformServiceRegistryImplTest
                         new SupportedSourceAndTarget(TIFF, PNG, -1),
                         new SupportedSourceAndTarget(TIFF, TIFF, -1)));
 
-        Transformer officeToImage = builder.buildPipeLine("officeToImageViaPdf", "1",
+        Transformer officeToImage = builder.buildPipeLine("transformer1", "1",
                 Arrays.asList(
                         new SupportedSourceAndTarget(DOC, GIF, -1),
                         new SupportedSourceAndTarget(DOC, JPEG, -1),
@@ -378,13 +398,13 @@ public class TransformServiceRegistryImplTest
                     42, countSupportedTransforms(false));
 
             // Check a supported transform for each transformer.
-            assertSupported(DOC, 1234, PDF, null, null, ""); // libreoffice
-            assertSupported(DOC, 1234, PDF, null, null, ""); // libreoffice
-            assertSupported(PDF, 1234, PNG, null, null, ""); // pdfrenderer
-            assertSupported(JPEG,1234, GIF, null, null, ""); // imagemagick
+            assertSupported(DOC, 1234, PDF, null, null, ""); // libreOffice
+            assertSupported(DOC, 1234, PDF, null, null, ""); // libreOffice
+            assertSupported(PDF, 1234, PNG, null, null, ""); // pdfRenderer
+            assertSupported(JPEG,1234, GIF, null, null, ""); // imageMagick
             assertSupported(MSG, 1234, TXT, null, null, ""); // tika
-            assertSupported(MSG, 1234, GIF, null, null, ""); // officeToImageViaPdf
-            assertSupported(DOC, 1234, PNG, null, null, ""); // officeToImageViaPdf
+            assertSupported(MSG, 1234, GIF, null, null, ""); // transformer1 (officeToImageViaPdf)
+            assertSupported(DOC, 1234, PNG, null, null, ""); // transformer1 (officeToImageViaPdf)
         }
     }
 
@@ -392,7 +412,7 @@ public class TransformServiceRegistryImplTest
     public void testJsonConfig() throws IOException
     {
         try (Reader reader = new BufferedReader(new InputStreamReader(getClass().getClassLoader().
-                getResourceAsStream(TRANSFORM_SERVICE_CONFIG))))
+                getResourceAsStream(getTransformServiceConfig()))))
         {
             registry.register(reader);
 
@@ -404,10 +424,10 @@ public class TransformServiceRegistryImplTest
                     60, countSupportedTransforms(false));
 
             // Check a supported transform for each transformer.
-            assertSupported(DOC, 1234, PDF, null, null, ""); // libreoffice
-            assertSupported(DOC, 1234, PDF, null, null, ""); // libreoffice
-            assertSupported(PDF, 1234, PNG, null, null, ""); // pdfrenderer
-            assertSupported(JPEG,1234, GIF, null, null, ""); // imagemagick
+            assertSupported(DOC, 1234, PDF, null, null, ""); // libreOffice
+            assertSupported(DOC, 1234, PDF, null, null, ""); // libreOffice
+            assertSupported(PDF, 1234, PNG, null, null, ""); // pdfRenderer
+            assertSupported(JPEG,1234, GIF, null, null, ""); // imageMagick
             assertSupported(MSG, 1234, TXT, null, null, ""); // tika
             assertSupported(MSG, 1234, GIF, null, null, ""); // officeToImageViaPdf
 
@@ -812,7 +832,7 @@ public class TransformServiceRegistryImplTest
 
     private void buildPipelineTransformer(Transformer transformer1, Transformer transformer2)
     {
-        transformer = builder.buildPipeLine("officeToImage", "1",
+        transformer = builder.buildPipeLine("transformer1", "1",
                 Arrays.asList(
                         new SupportedSourceAndTarget(DOC, GIF, -1),
                         new SupportedSourceAndTarget(DOC, JPEG, -1),

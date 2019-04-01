@@ -26,7 +26,8 @@
 package org.alfresco.repo.rendition2;
 
 import org.alfresco.model.ContentModel;
-import org.alfresco.repo.content.transform2.LocalTransformServiceRegistry;
+import org.alfresco.repo.content.transform.LocalTransformer;
+import org.alfresco.repo.content.transform.LocalTransformServiceRegistry;
 import org.alfresco.repo.security.authentication.AuthenticationUtil;
 import org.alfresco.service.cmr.repository.ContentReader;
 import org.alfresco.service.cmr.repository.ContentService;
@@ -45,7 +46,7 @@ import java.util.concurrent.Executors;
 
 /**
  * Requests rendition transforms take place using transforms available on the local machine (based on
- * {@link org.alfresco.repo.content.transform2.LocalTransformer}. The transform and consumption of the
+ * {@link LocalTransformer}. The transform and consumption of the
  * resulting content is linked into a single operation that will take place at some point in the future on the local
  * machine.
  *
@@ -134,7 +135,7 @@ public class LocalTransformClient implements TransformClient, InitializingBean
                             String renditionName = renditionDefinition.getRenditionName();
                             Map<String, String> options = renditionDefinition.getTransformOptions();
 
-                            ContentReader reader = LocalTransformClient.this.contentService.getReader(sourceNodeRef, ContentModel.PROP_CONTENT);
+                            ContentReader reader = contentService.getReader(sourceNodeRef, ContentModel.PROP_CONTENT);
                             if (null == reader || !reader.exists())
                             {
                                 throw new IllegalArgumentException("The supplied sourceNodeRef "+sourceNodeRef+" has no content.");
@@ -164,7 +165,7 @@ public class LocalTransformClient implements TransformClient, InitializingBean
                             if (logger.isDebugEnabled())
                             {
                                 String renditionName = renditionDefinition.getRenditionName();
-                                logger.debug("Rendition of "+renditionName+" failed", e);
+                                logger.error("Rendition of "+renditionName+" failed", e);
                             }
                             renditionService2.failure(sourceNodeRef, renditionDefinition, sourceContentHashCode);
                             throw e;

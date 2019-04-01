@@ -474,6 +474,7 @@
          class="org.alfresco.repo.content.transform.TikaPoweredContentTransformer"
          abstract="true"
          parent="baseContentTransformer">
+       <property name="enabled" value="${legacy.local.transform.service.enabled}" />
        <property name="remoteTransformerClient">
           <ref bean="tikaRemoteTransformerClient" />
       </property>

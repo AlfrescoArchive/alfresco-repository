@@ -32,4 +32,5 @@ package org.alfresco.transform.client.model.config;
 public interface ExtensionMap
 {
     String toMimetype(String extension);
+    String toExtension(String mimetype);
 }

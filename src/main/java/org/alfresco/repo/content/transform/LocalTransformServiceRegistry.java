@@ -23,9 +23,8 @@
  * along with Alfresco. If not, see <http://www.gnu.org/licenses/>.
  * #L%
  */
-package org.alfresco.repo.content.transform2;
+package org.alfresco.repo.content.transform;
 
-import org.alfresco.repo.content.transform.TransformerDebug;
 import org.alfresco.service.cmr.repository.ContentReader;
 import org.alfresco.service.cmr.repository.ContentWriter;
 import org.alfresco.service.cmr.repository.MimetypeService;
@@ -33,6 +32,7 @@ import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.transform.client.model.config.ExtensionMap;
 import org.alfresco.transform.client.model.config.TransformServiceRegistry;
 import org.alfresco.transform.client.model.config.TransformServiceRegistryImpl;
+import org.alfresco.transform.client.model.config.TransformStep;
 import org.alfresco.transform.client.model.config.Transformer;
 import org.alfresco.util.PropertyCheck;
 import org.apache.commons.logging.Log;
@@ -43,6 +43,7 @@ import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
@@ -107,6 +108,12 @@ public class LocalTransformServiceRegistry extends TransformServiceRegistryImpl 
             {
                 return mimetypeService.getMimetype(extension);
             }
+
+            @Override
+            public String toExtension(String mimetype)
+            {
+                return mimetypeService.getExtension(mimetype);
+            }
         });
         super.afterPropertiesSet();
 
@@ -122,40 +129,97 @@ public class LocalTransformServiceRegistry extends TransformServiceRegistryImpl 
     {
         super.register(transformer);
 
-        // TODO handle a pipeline
-
         try
         {
             String name = transformer.getName();
-            String baseUrl = getBaseUrl(name);
-            int startupRetryPeriodSeconds = getStartupRetryPeriodSeconds(name);
-            LocalTransformerImpl localTransformer =
-                    new LocalTransformerImpl(name, baseUrl, startupRetryPeriodSeconds,
-                            mimetypeService, transformerDebug);
+
+            if (name == null || transformers.get(name) != null)
+            {
+                throw new IllegalArgumentException("Local transformers must exist and have unique names (" + name + ").");
+            }
+
+            ExtensionMap extensionMap = getExtensionMap();
+            List<TransformStep> transformPipeline = transformer.getTransformPipeline();
+            LocalTransformer localTransformer;
+            if (transformPipeline == null)
+            {
+                String baseUrl = getBaseUrl(name);
+                int startupRetryPeriodSeconds = getStartupRetryPeriodSeconds(name);
+                localTransformer = new LocalTransformerImpl(name, baseUrl, startupRetryPeriodSeconds,
+                        extensionMap, transformerDebug);
+            }
+            else
+            {
+                int transformerCount = transformPipeline.size();
+                if (transformerCount <= 1)
+                {
+                    throw new IllegalArgumentException("Local pipeline transformer " + name +
+                            " must have more than one intermediate transformer defined.");
+                }
+
+                localTransformer = new LocalPipelineTransformer(name, extensionMap);
+                for (int i=0; i < transformerCount; i++)
+                {
+                    TransformStep intermediateTransformerStep = transformPipeline.get(i);
+                    String intermediateTransformerName = intermediateTransformerStep.getName();
+                    if (name == null || transformers.get(name) != null)
+                    {
+                        throw new IllegalArgumentException("Local pipeline transformer " + name +
+                                " did not specified an intermediate transformer name.");
+                    }
+
+                    LocalTransformer intermediateTransformer = transformers.get(intermediateTransformerName);
+                    if (intermediateTransformer == null)
+                    {
+                        throw new IllegalArgumentException("Local pipeline transformer " + name +
+                                " specified an intermediate transformer (" +
+                                intermediateTransformerName + " that has not previously been defined.");
+                    }
+
+                    String targetExt = intermediateTransformerStep.getTargetExt();
+                    if (i == transformerCount-1)
+                    {
+                        if (targetExt != null)
+                        {
+                            throw new IllegalArgumentException("Local pipeline transformer " + name +
+                                    " must not specify targetExt for the final intermediate transformer, " +
+                                    "as this is defined via the supportedSourceAndTargetList.");
+                        }
+                    }
+                    else
+                    {
+                        if (targetExt == null)
+                        {
+                            throw new IllegalArgumentException("Local pipeline transformer " + name +
+                                    " must specify targetExt for all intermediate transformers except for the final one.");
+                        }
+                    }
+                    ((LocalPipelineTransformer)localTransformer).addIntermediateTransformer(intermediateTransformer, targetExt);
+                }
+            }
             transformers.put(name, localTransformer);
         }
-        catch (IllegalArgumentException ignore)
+        catch (IllegalArgumentException e)
         {
-            // We will have logged an error already and there is not much else we can do.
+            String msg = e.getMessage();
+            log.error(msg);
         }
     }
 
     private String getBaseUrl(String name)
     {
-        String baseUrlName = name.toLowerCase() + ".url";
+        String baseUrlName = name + ".url";
         String baseUrl = properties.getProperty(baseUrlName);
         if (baseUrl == null)
         {
-            String msg = "Local transformer property " + baseUrlName + " was not set";
-            log.error(msg);
-            throw new IllegalArgumentException(msg);
+            throw new IllegalArgumentException("Local transformer property " + baseUrlName + " was not set");
         }
         return baseUrl;
     }
 
     private int getStartupRetryPeriodSeconds(String name)
     {
-        String startupRetryPeriodSecondsName = name.toLowerCase() + ".startupRetryPeriodSeconds";
+        String startupRetryPeriodSecondsName = name + ".startupRetryPeriodSeconds";
         String property = properties.getProperty(startupRetryPeriodSecondsName, "0");
         int startupRetryPeriodSeconds;
         try
@@ -164,9 +228,8 @@ public class LocalTransformServiceRegistry extends TransformServiceRegistryImpl 
         }
         catch (NumberFormatException e)
         {
-            String msg = "Local transformer property " + startupRetryPeriodSecondsName + " should be an integer";
-            log.error(msg);
-            throw new IllegalArgumentException(msg);
+            throw new IllegalArgumentException("Local transformer property " + startupRetryPeriodSecondsName +
+                    " should be an integer");
         }
         return startupRetryPeriodSeconds;
     }
