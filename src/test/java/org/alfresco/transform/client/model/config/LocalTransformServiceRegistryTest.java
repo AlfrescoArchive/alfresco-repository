@@ -59,10 +59,10 @@ public class LocalTransformServiceRegistryTest extends TransformServiceRegistryI
         properties.setProperty("transformer3.url", "dummy");
         properties.setProperty("transformer4.url", "dummy");
         properties.setProperty("transformer5.url", "dummy");
-        properties.setProperty( "libreOffice.url", "dummy");
+        properties.setProperty( "libreoffice.url", "dummy");
         properties.setProperty(        "tika.url", "dummy");
-        properties.setProperty( "pdfRenderer.url", "dummy");
-        properties.setProperty( "imageMagick.url", "dummy");
+        properties.setProperty( "pdfrenderer.url", "dummy");
+        properties.setProperty( "imagemagick.url", "dummy");
 
         super.setUp();
     }

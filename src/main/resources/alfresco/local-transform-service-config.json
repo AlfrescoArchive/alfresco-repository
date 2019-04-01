@@ -1,6 +1,6 @@
 [
   {
-    "name": "libreOffice",
+    "name": "libreoffice",
     "version": "1",
     "supportedSourceAndTargetList": [
       {"sourceExt": "doc",  "targetExt": "doc" },
@@ -36,7 +36,7 @@
     ]
   },
   {
-    "name": "pdfRenderer",
+    "name": "pdfrenderer",
     "version": "1",
     "transformOptions": [
       {"value": {"name": "page"}},
@@ -50,7 +50,7 @@
     ]
   },
   {
-    "name": "imageMagick",
+    "name": "imagemagick",
     "version": "1",
     "transformOptions": [
       {"value": {"name": "alphaRemove"}},
@@ -98,9 +98,9 @@
     "name": "officeToImageViaPdf",
     "version": "1",
     "transformPipeline" : [
-      {"name": "libreOffice", "targetExt": "pdf"},
-      {"name": "pdfRenderer", "targetExt": "png"},
-      {"name": "imageMagick"}
+      {"name": "libreoffice", "targetExt": "pdf"},
+      {"name": "pdfrenderer", "targetExt": "png"},
+      {"name": "imagemagick"}
     ],
     "transformOptions": [
       {

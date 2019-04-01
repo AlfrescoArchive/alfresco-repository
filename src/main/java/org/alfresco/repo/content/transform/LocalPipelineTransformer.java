@@ -63,6 +63,7 @@ public class LocalPipelineTransformer implements LocalTransformer
         IntermediateTransformer transformer = new IntermediateTransformer();
         transformer.intermediateTransformer = intermediateTransformer;
         transformer.targetMimetype = extensionMap.toMimetype(targetExt);
+        transformers.add(transformer);
     }
 
     @Override
