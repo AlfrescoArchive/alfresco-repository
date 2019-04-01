@@ -38,13 +38,12 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Transformer that passes a document through a pipeline of transformations to arrive at an target mimetype.
+ * Transformer that passes a document through a pipeline of transformations to arrive at an target mimetype. Instances
+ * are automatically created for pipeline transformers defined in {@code}local-transform-service-config.json{@code}.
  */
-public class LocalPipelineTransformer implements LocalTransformer
+public class LocalPipelineTransformer extends AbstractLocalTransformer
 {
-    private final String name;
     private final List<IntermediateTransformer> transformers = new ArrayList<>();
-    private final ExtensionMap extensionMap;
 
     private class IntermediateTransformer
     {
@@ -52,10 +51,15 @@ public class LocalPipelineTransformer implements LocalTransformer
         String targetMimetype;
     }
 
-    public LocalPipelineTransformer(String name, ExtensionMap extensionMap)
+    public LocalPipelineTransformer(String name, ExtensionMap extensionMap, TransformerDebug transformerDebug)
     {
-        this.name = name;
-        this.extensionMap = extensionMap;
+        super(name, extensionMap, transformerDebug);
+    }
+
+    @Override
+    public boolean isAvailable()
+    {
+        return true;
     }
 
     public void addIntermediateTransformer(LocalTransformer intermediateTransformer, String targetExt)
@@ -67,7 +71,11 @@ public class LocalPipelineTransformer implements LocalTransformer
     }
 
     @Override
-    public void transform(ContentReader reader, ContentWriter writer, Map<String, String> transformOptions, String renditionName, NodeRef sourceNodeRef) throws Exception
+    protected void transformImpl(ContentReader reader,
+                                 ContentWriter writer, Map<String, String> transformOptions,
+                                 String sourceMimetype, String targetMimetype,
+                                 String sourceExtension, String targetExtension,
+                                 String targetEncoding, String renditionName, NodeRef sourceNodeRef) throws Exception
     {
         ContentReader currentReader = reader;
         int lastI = transformers.size() - 1;
@@ -75,7 +83,7 @@ public class LocalPipelineTransformer implements LocalTransformer
         {
             IntermediateTransformer transformer = transformers.get(i);
 
-            ContentWriter currentWriter = null;
+            ContentWriter currentWriter;
             if (i == lastI)
             {
                 currentWriter = writer;

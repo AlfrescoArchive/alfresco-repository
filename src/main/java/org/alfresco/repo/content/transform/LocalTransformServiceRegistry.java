@@ -145,8 +145,8 @@ public class LocalTransformServiceRegistry extends TransformServiceRegistryImpl 
             {
                 String baseUrl = getBaseUrl(name);
                 int startupRetryPeriodSeconds = getStartupRetryPeriodSeconds(name);
-                localTransformer = new LocalTransformerImpl(name, baseUrl, startupRetryPeriodSeconds,
-                        extensionMap, transformerDebug);
+                localTransformer = new LocalTransformerImpl(name, extensionMap, transformerDebug, baseUrl, startupRetryPeriodSeconds
+                );
             }
             else
             {
@@ -157,7 +157,7 @@ public class LocalTransformServiceRegistry extends TransformServiceRegistryImpl 
                             " must have more than one intermediate transformer defined.");
                 }
 
-                localTransformer = new LocalPipelineTransformer(name, extensionMap);
+                localTransformer = new LocalPipelineTransformer(name, extensionMap, transformerDebug);
                 for (int i=0; i < transformerCount; i++)
                 {
                     TransformStep intermediateTransformerStep = transformPipeline.get(i);

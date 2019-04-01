@@ -25,15 +25,12 @@
  */
 package org.alfresco.repo.content.transform;
 
-import org.alfresco.error.AlfrescoRuntimeException;
 import org.alfresco.repo.rendition2.RenditionDefinition2;
 import org.alfresco.service.cmr.repository.ContentReader;
 import org.alfresco.service.cmr.repository.ContentWriter;
 import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.transform.client.model.config.ExtensionMap;
 import org.alfresco.util.Pair;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 
 import java.util.Map;
 
@@ -42,48 +39,28 @@ import java.util.Map;
  * {@code}local-transform-service-config.json{@code}. The transforms take place in a separate process (typically a
  * Docker container).
  */
-public class LocalTransformerImpl implements LocalTransformer
+public class LocalTransformerImpl extends AbstractLocalTransformer
 {
-    private static final Log log = LogFactory.getLog(LocalTransformerImpl.class);
-    
-    private String name;
-    private ExtensionMap extensionMap;
-    private TransformerDebug transformerDebug;
     private RemoteTransformerClient remoteTransformerClient;
 
     private boolean available = false;
-    private static ThreadLocal<Integer> depth = new ThreadLocal<Integer>()
-    {
-        @Override
-        protected Integer initialValue()
-        {
-            return 0;
-        }
-    };
 
-    public LocalTransformerImpl(String name, String baseUrl, int startupRetryPeriodSeconds,
-                                ExtensionMap extensionMap, TransformerDebug transformerDebug)
+    public LocalTransformerImpl(String name, ExtensionMap extensionMap, TransformerDebug transformerDebug,
+                                String baseUrl, int startupRetryPeriodSeconds)
     {
-        this.name = name;
-        this.extensionMap = extensionMap;
-        this.transformerDebug = transformerDebug;
-
+        super(name, extensionMap, transformerDebug);
         remoteTransformerClient = new RemoteTransformerClient(name, baseUrl);
         remoteTransformerClient.setStartupRetryPeriodSeconds(startupRetryPeriodSeconds);
 
         checkAvailability();
     }
 
-    public String getName()
-    {
-        return name;
-    }
-
-    boolean remoteTransformerClientConfigured()
+    private boolean remoteTransformerClientConfigured()
     {
         return remoteTransformerClient.getBaseUrl() != null;
     }
 
+    @Override
     public boolean isAvailable()
     {
         if (remoteTransformerClientConfigured() && !remoteTransformerClient.isAvailable())
@@ -111,14 +88,13 @@ public class LocalTransformerImpl implements LocalTransformer
                 String msg = result.getSecond() == null ? "" : result.getSecond();
                 if (isAvailable != null && isAvailable)
                 {
-                    String versionString = msg;
                     setAvailable(true);
-                    log.info("Using local transformer " + getName() + ": " + versionString);
+                    log.info("Using local transformer " + name + ": " + msg);
                 }
                 else
                 {
                     setAvailable(false);
-                    String message = "Local transformer " + getName() + " is not available. " + msg;
+                    String message = "Local transformer " + name + " is not available. " + msg;
                     if (isAvailable == null)
                     {
                         log.debug(message);
@@ -132,8 +108,7 @@ public class LocalTransformerImpl implements LocalTransformer
             catch (Throwable e)
             {
                 setAvailable(false);
-                log.error("Local transformer " + getName() + " is not available: " + (e.getMessage() != null ? e.getMessage() : ""));
-                // debug so that we can trace the issue if required
+                log.error("Local transformer " + name + " is not available: " + (e.getMessage() != null ? e.getMessage() : ""));
                 log.debug(e);
             }
         }
@@ -144,94 +119,11 @@ public class LocalTransformerImpl implements LocalTransformer
     }
 
     @Override
-    public void transform(ContentReader reader, ContentWriter writer, Map<String, String> transformOptions,
-                          String renditionName, NodeRef sourceNodeRef)
-            throws Exception
-    {
-        if (isAvailable())
-        {
-//          if (remoteTransformerClientConfigured()) - should always be true if isAvailable().
-//                                It might have been false with legacy local transformers in ACS 6.1.
-            {
-                String sourceMimetype = reader.getMimetype();
-                String targetMimetype = writer.getMimetype();
-                String targetEncoding = writer.getEncoding();
-
-                String sourceExtension = extensionMap.toExtension(sourceMimetype);
-                String targetExtension = extensionMap.toExtension(targetMimetype);
-                if (sourceExtension == null || targetExtension == null)
-                {
-                    throw new AlfrescoRuntimeException("Unknown extensions for mimetypes: \n" +
-                            "   source mimetype: " + sourceMimetype + "\n" +
-                            "   source extension: " + sourceExtension + "\n" +
-                            "   target mimetype: " + targetMimetype + "\n" +
-                            "   target extension: " + targetExtension + "\n" +
-                            "   target encoding: " + targetEncoding);
-                }
-
-                transformWithDebug(reader, writer, transformOptions, renditionName, sourceNodeRef, sourceMimetype,
-                        targetMimetype, targetEncoding, sourceExtension, targetExtension);
-            }
-
-            if (log.isDebugEnabled())
-            {
-                log.debug("Local transformation completed: \n" +
-                        "   source: " + reader + "\n" +
-                        "   target: " + writer + "\n" +
-                        "   options: " + transformOptions);
-            }
-        }
-        else
-        {
-            log.debug("Local transformer not available: \n" +
-                    "   source: " + reader + "\n" +
-                    "   target: " + writer + "\n" +
-                    "   options: " + transformOptions);
-        }
-    }
-
-    private void transformWithDebug(ContentReader reader, ContentWriter writer, Map<String, String> transformOptions,
-                                    String renditionName, NodeRef sourceNodeRef, String sourceMimetype, String targetMimetype,
-                                    String targetEncoding, String sourceExtension, String targetExtension) throws Exception
-    {
-
-        long before = System.currentTimeMillis();
-        try
-        {
-            depth.set(depth.get()+1);
-
-            // TODO strictMimetypeCheck?
-
-            if (transformerDebug.isEnabled())
-            {
-                transformerDebug.pushTransform(name, reader.getContentUrl(), sourceMimetype,
-                        targetMimetype, reader.getSize(), renditionName, sourceNodeRef);
-            }
-
-            transformRemote(remoteTransformerClient, reader, writer, transformOptions, sourceMimetype,
-                    targetMimetype, sourceExtension, targetExtension, targetEncoding, renditionName, sourceNodeRef);
-        }
-        catch (Throwable e)
-        {
-            // TODO retryTransformOnDifferentMimeType?
-        }
-        finally
-        {
-            transformerDebug.popTransform();
-            depth.set(depth.get()-1);
-        }
-    }
-
-    private Log getLogger()
-    {
-        return log;
-    }
-
-    private void transformRemote(RemoteTransformerClient remoteTransformerClient, ContentReader reader,
-                                 ContentWriter writer, Map<String, String> transformOptions,
-                                 String sourceMimetype, String targetMimetype,
-                                 String sourceExtension, String targetExtension,
-                                 String targetEncoding, String renditionName, NodeRef sourceNodeRef) throws Exception
+    protected void transformImpl(ContentReader reader,
+                               ContentWriter writer, Map<String, String> transformOptions,
+                               String sourceMimetype, String targetMimetype,
+                               String sourceExtension, String targetExtension,
+                               String targetEncoding, String renditionName, NodeRef sourceNodeRef) throws Exception
     {
         // Build an array of option names and values and extract the timeout.
         long timeoutMs = 0;
