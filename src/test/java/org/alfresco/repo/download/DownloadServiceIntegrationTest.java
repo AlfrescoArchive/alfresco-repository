@@ -25,22 +25,13 @@
  */
 package org.alfresco.repo.download;
 
-import static org.junit.Assert.fail;
-
-import java.io.IOException;
-import java.io.Serializable;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeSet;
-
 import net.sf.acegisecurity.Authentication;
-
 import org.alfresco.model.ContentModel;
 import org.alfresco.repo.model.Repository;
+import org.alfresco.repo.node.SystemNodeUtils;
 import org.alfresco.repo.node.integrity.IntegrityChecker;
 import org.alfresco.repo.security.authentication.AuthenticationUtil;
+import org.alfresco.repo.security.permissions.AccessDeniedException;
 import org.alfresco.repo.transaction.RetryingTransactionHelper;
 import org.alfresco.repo.transaction.RetryingTransactionHelper.RetryingTransactionCallback;
 import org.alfresco.service.cmr.coci.CheckOutCheckInService;
@@ -53,10 +44,14 @@ import org.alfresco.service.cmr.repository.ContentReader;
 import org.alfresco.service.cmr.repository.ContentService;
 import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.cmr.repository.NodeService;
+import org.alfresco.service.cmr.security.MutableAuthenticationService;
 import org.alfresco.service.cmr.security.PermissionService;
+import org.alfresco.service.cmr.security.PersonService;
 import org.alfresco.service.namespace.QName;
 import org.alfresco.service.namespace.RegexQNamePattern;
 import org.alfresco.test_category.OwnJVMTestsCategory;
+import org.alfresco.util.GUID;
+import org.alfresco.util.PropertyMap;
 import org.alfresco.util.test.junitrules.AlfrescoPerson;
 import org.alfresco.util.test.junitrules.ApplicationContextInit;
 import org.alfresco.util.test.junitrules.TemporaryNodes;
@@ -70,6 +65,16 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.junit.rules.RuleChain;
+
+import java.io.IOException;
+import java.io.Serializable;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
+
+import static org.junit.Assert.fail;
 
 /**
  * Integration test for DownloadServiceImpl
@@ -89,6 +94,8 @@ public class DownloadServiceIntegrationTest
     // Rules to create 2 test users.
     public static AlfrescoPerson TEST_USER = new AlfrescoPerson(APP_CONTEXT_INIT, "User");
     public static AlfrescoPerson TEST_USER2 = new AlfrescoPerson(APP_CONTEXT_INIT, "User 2");
+
+    public static String TEST_USER_NAME = "some-user";
     
     // A rule to manage test nodes reused across all the test methods
     public static TemporaryNodes STATIC_TEST_NODES = new TemporaryNodes(APP_CONTEXT_INIT);
@@ -103,6 +110,7 @@ public class DownloadServiceIntegrationTest
 
     // Service under test
     public static DownloadService DOWNLOAD_SERVICE;
+    private static DownloadStorage DOWNLOAD_STORAGE;
     
     // Various supporting services
     private static CheckOutCheckInService    CHECK_OUT_CHECK_IN_SERVICE;
@@ -131,6 +139,7 @@ public class DownloadServiceIntegrationTest
         CHECK_OUT_CHECK_IN_SERVICE = APP_CONTEXT_INIT.getApplicationContext().getBean("CheckOutCheckInService", CheckOutCheckInService.class);
         CONTENT_SERVICE = APP_CONTEXT_INIT.getApplicationContext().getBean("contentService", ContentService.class);
         DOWNLOAD_SERVICE = APP_CONTEXT_INIT.getApplicationContext().getBean("DownloadService", DownloadService.class);
+        DOWNLOAD_STORAGE = APP_CONTEXT_INIT.getApplicationContext().getBean("downloadStorage", DownloadStorage.class);
         NODE_SERVICE = APP_CONTEXT_INIT.getApplicationContext().getBean("NodeService", NodeService.class);
         PERMISSION_SERVICE = APP_CONTEXT_INIT.getApplicationContext().getBean("PermissionService", PermissionService.class);
         TRANSACTION_HELPER = APP_CONTEXT_INIT.getApplicationContext().getBean("retryingTransactionHelper", RetryingTransactionHelper.class);
@@ -321,7 +330,7 @@ public class DownloadServiceIntegrationTest
         });
     }
     
-    @Test public void deleteBefore() throws InterruptedException
+    @Test public void deleteBeforeDateAsSystem() throws InterruptedException
     {
         NodeRef beforeNodeRef;
         NodeRef afterNodeRef;
@@ -343,7 +352,105 @@ public class DownloadServiceIntegrationTest
         Assert.assertTrue(NODE_SERVICE.exists(afterNodeRef));
 
     }
-    
+
+    @Test
+    public void deleteBeforeDateAsNormalUser() throws InterruptedException
+    {
+        String randomUsername= TEST_USER_NAME + GUID.generate();
+        TRANSACTION_HELPER.doInTransaction(new RetryingTransactionCallback<Void>()
+        {
+            @Override
+            public Void execute()
+            {
+                createUser(randomUsername);
+                return null;
+            }
+        },false, true);
+
+        Authentication previousAuth = AuthenticationUtil.getFullAuthentication();
+        AuthenticationUtil.setFullyAuthenticatedUser(randomUsername);
+
+        NodeRef beforeNodeRef;
+        NodeRef afterNodeRef;
+        Date beforeTime;
+
+        try
+        {
+            beforeNodeRef = DOWNLOAD_SERVICE.createDownload(new NodeRef[] { level1Folder1 }, true);
+            testNodes.addNodeRef(beforeNodeRef);
+            waitForDownload(beforeNodeRef);
+
+            beforeTime = new Date();
+
+            afterNodeRef = DOWNLOAD_SERVICE.createDownload(new NodeRef[] { level1Folder2 }, true);
+            testNodes.addNodeRef(afterNodeRef);
+            waitForDownload(afterNodeRef);
+        }
+        finally
+        {
+            // assuming previous authentication is the system user
+            AuthenticationUtil.setFullAuthentication(previousAuth);
+        }
+        DOWNLOAD_SERVICE.deleteDownloads(beforeTime, 1000, false);
+
+        Assert.assertFalse(NODE_SERVICE.exists(beforeNodeRef));
+        Assert.assertTrue(NODE_SERVICE.exists(afterNodeRef));
+    }
+
+    // see MNT-20212
+    @Test
+    public void deleteBeforeDateAsNormalUserFromAllSysDownloadFolders() throws InterruptedException
+    {
+        // in order to trick the system into making multiple sys:download folders,
+        // just like in the reported bug:
+        SystemNodeUtils.USE_SYSTEM_ACCOUNT_TO_GET_SYSTEM_LOCATIONS = false;
+
+        String randomUsername= TEST_USER_NAME + GUID.generate();
+        TRANSACTION_HELPER.doInTransaction(new RetryingTransactionCallback<Void>()
+        {
+            @Override
+            public Void execute()
+            {
+                createUser(randomUsername);
+                return null;
+            }
+        },false, true);
+
+        Authentication previousAuth = AuthenticationUtil.getFullAuthentication();
+        AuthenticationUtil.setFullyAuthenticatedUser(randomUsername);
+
+        NodeRef beforeNodeRef;
+        NodeRef afterNodeRef;
+        Date beforeTime;
+
+        try
+        {
+            beforeNodeRef = DOWNLOAD_SERVICE.createDownload(new NodeRef[] { level1Folder1 }, true);
+            testNodes.addNodeRef(beforeNodeRef);
+            waitForDownload(beforeNodeRef);
+
+            beforeTime = new Date();
+
+            afterNodeRef = DOWNLOAD_SERVICE.createDownload(new NodeRef[] { level1Folder2 }, true);
+            testNodes.addNodeRef(afterNodeRef);
+            waitForDownload(afterNodeRef);
+        }
+        finally
+        {
+            // assuming previous authentication is the system user
+            AuthenticationUtil.setFullAuthentication(previousAuth);
+        }
+        DOWNLOAD_SERVICE.deleteDownloads(beforeTime, 1000, false);
+
+        Assert.assertTrue(NODE_SERVICE.exists(beforeNodeRef));
+        Assert.assertTrue(NODE_SERVICE.exists(afterNodeRef));
+
+        DOWNLOAD_SERVICE.deleteDownloads(beforeTime, 1000, true);
+
+        Assert.assertFalse(NODE_SERVICE.exists(beforeNodeRef));
+        Assert.assertTrue(NODE_SERVICE.exists(afterNodeRef));
+    }
+
     @Test public void cancel() throws InterruptedException
     {
         // Initiate the download
@@ -472,5 +579,77 @@ public class DownloadServiceIntegrationTest
                 return null;
             }
         });
+    }
+
+    // you need to clean the DB if you make changes to downloadsSpace.xml
+    @Test
+    public void checkNormalUsersCanNotAccessSysDownloadFolder() throws Exception
+    {
+        final NodeRef containerFolderForDownloads = DOWNLOAD_STORAGE.getOrCreateDowloadContainer();
+
+        String randomUsername = TEST_USER_NAME + GUID.generate();
+        TRANSACTION_HELPER.doInTransaction(new RetryingTransactionCallback<Void>()
+        {
+            @Override
+            public Void execute()
+            {
+                createUser(randomUsername);
+                return null;
+            }
+        }, false, true);
+
+        Authentication previousAuth = AuthenticationUtil.getFullAuthentication();
+        AuthenticationUtil.setFullyAuthenticatedUser(randomUsername);
+        try
+        {
+            try
+            {
+                NODE_SERVICE.getProperties(containerFolderForDownloads);
+                fail("The normal user should not be able to read the sys:Download node properties");
+            }
+            catch (AccessDeniedException e)
+            {
+                // we expect this to happen.
+                // normal users should not be able to read the properties of this sys:download container folder
+            }
+            try
+            {
+                NODE_SERVICE.getChildAssocs(containerFolderForDownloads);
+                fail("The normal user should not be able to list the sys:Download node children");
+            }
+            catch (AccessDeniedException e)
+            {
+                // we expect this to happen.
+                // normal users should not be able to list the children of this sys:download container folder
+            }
+        }
+        finally
+        {
+            // assuming previous authentication is the system user
+            AuthenticationUtil.setFullAuthentication(previousAuth);
+        }
+    }
+
+    private void createUser(String username)
+    {
+        PersonService personService = APP_CONTEXT_INIT.getApplicationContext().getBean("PersonService", PersonService.class);
+
+        MutableAuthenticationService mutableAuthenticationService = APP_CONTEXT_INIT.getApplicationContext()
+            .getBean("authenticationService", MutableAuthenticationService.class);
+        if (mutableAuthenticationService.authenticationExists(username))
+        {
+            return;
+        }
+
+        mutableAuthenticationService.createAuthentication(username, "password".toCharArray());
+
+        PropertyMap personProperties = new PropertyMap();
+        personProperties.put(ContentModel.PROP_USERNAME, username);
+        personProperties.put(ContentModel.PROP_AUTHORITY_DISPLAY_NAME, "title" + username);
+        personProperties.put(ContentModel.PROP_FIRSTNAME, "firstName");
+        personProperties.put(ContentModel.PROP_LASTNAME, "lastName");
+        personProperties.put(ContentModel.PROP_EMAIL, username + "@example.com");
+        personProperties.put(ContentModel.PROP_JOBTITLE, "jobTitle");
+        personService.createPerson(personProperties);
     }
 }
