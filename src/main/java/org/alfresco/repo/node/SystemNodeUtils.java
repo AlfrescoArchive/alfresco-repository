@@ -59,9 +59,7 @@ public abstract class SystemNodeUtils
     
     private static QName SYSTEM_FOLDER_QNAME =
             QName.createQName(NamespaceService.SYSTEM_MODEL_1_0_URI, "system");
-    // change this to false only to test MNT-20212
-    public static boolean USE_SYSTEM_ACCOUNT_TO_GET_SYSTEM_LOCATIONS = true;
-    
+
     /**
      * Returns the System Container for the current tenant
      */
@@ -133,27 +131,19 @@ public abstract class SystemNodeUtils
         }
     }
 
-    private static List<ChildAssociationRef> getChildAssociationRefs(QName childName, NodeService nodeService, Repository repositoryHelper)
+    private static List<ChildAssociationRef> getChildAssociationRefs(final QName childName, final NodeService nodeService,
+        final Repository repositoryHelper)
     {
-        NodeRef system = getSystemContainer(nodeService, repositoryHelper);
+        final NodeRef system = getSystemContainer(nodeService, repositoryHelper);
 
-        // Find the container, under system
-        List<ChildAssociationRef> containerRefs = Collections.emptyList();
-        if (USE_SYSTEM_ACCOUNT_TO_GET_SYSTEM_LOCATIONS)
+        List<ChildAssociationRef> containerRefs = AuthenticationUtil.runAsSystem(new RunAsWork<List<ChildAssociationRef>>()
         {
-            containerRefs = AuthenticationUtil.runAsSystem(new RunAsWork<List<ChildAssociationRef>>()
+            @Override
+            public List<ChildAssociationRef> doWork() throws Exception
             {
-                @Override
-                public List<ChildAssociationRef> doWork() throws Exception
-                {
-                    return nodeService.getChildAssocs(system, ContentModel.ASSOC_CHILDREN, childName);
-                }
-            });
-        }
-        else
-        {
-            containerRefs = nodeService.getChildAssocs(system, ContentModel.ASSOC_CHILDREN, childName);
-        }
+                return nodeService.getChildAssocs(system, ContentModel.ASSOC_CHILDREN, childName);
+            }
+        });
         return containerRefs;
     }
 

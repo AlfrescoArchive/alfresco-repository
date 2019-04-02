@@ -38,6 +38,8 @@ import org.alfresco.service.cmr.coci.CheckOutCheckInService;
 import org.alfresco.service.cmr.download.DownloadService;
 import org.alfresco.service.cmr.download.DownloadStatus;
 import org.alfresco.service.cmr.download.DownloadStatus.Status;
+import org.alfresco.service.cmr.model.FileFolderService;
+import org.alfresco.service.cmr.model.FileInfo;
 import org.alfresco.service.cmr.repository.AssociationRef;
 import org.alfresco.service.cmr.repository.ChildAssociationRef;
 import org.alfresco.service.cmr.repository.ContentReader;
@@ -47,6 +49,7 @@ import org.alfresco.service.cmr.repository.NodeService;
 import org.alfresco.service.cmr.security.MutableAuthenticationService;
 import org.alfresco.service.cmr.security.PermissionService;
 import org.alfresco.service.cmr.security.PersonService;
+import org.alfresco.service.namespace.NamespaceService;
 import org.alfresco.service.namespace.QName;
 import org.alfresco.service.namespace.RegexQNamePattern;
 import org.alfresco.test_category.OwnJVMTestsCategory;
@@ -74,6 +77,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 
+import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.fail;
 
 /**
@@ -356,16 +360,7 @@ public class DownloadServiceIntegrationTest
     @Test
     public void deleteBeforeDateAsNormalUser() throws InterruptedException
     {
-        String randomUsername= TEST_USER_NAME + GUID.generate();
-        TRANSACTION_HELPER.doInTransaction(new RetryingTransactionCallback<Void>()
-        {
-            @Override
-            public Void execute()
-            {
-                createUser(randomUsername);
-                return null;
-            }
-        },false, true);
+        String randomUsername = createRandomUser();
 
         Authentication previousAuth = AuthenticationUtil.getFullAuthentication();
         AuthenticationUtil.setFullyAuthenticatedUser(randomUsername);
@@ -401,11 +396,122 @@ public class DownloadServiceIntegrationTest
     @Test
     public void deleteBeforeDateAsNormalUserFromAllSysDownloadFolders() throws InterruptedException
     {
-        // in order to trick the system into making multiple sys:download folders,
-        // just like in the reported bug:
-        SystemNodeUtils.USE_SYSTEM_ACCOUNT_TO_GET_SYSTEM_LOCATIONS = false;
+        String randomUsername = createRandomUser();
 
-        String randomUsername= TEST_USER_NAME + GUID.generate();
+        NamespaceService namespaceService = APP_CONTEXT_INIT.getApplicationContext().getBean("namespaceService", NamespaceService.class);
+        Repository repositoryHelper = APP_CONTEXT_INIT.getApplicationContext().getBean("repositoryHelper", Repository.class);
+        FileFolderService fileFolderService = APP_CONTEXT_INIT.getApplicationContext().getBean("fileFolderService", FileFolderService.class);
+
+        // this value should be similar to whatever is set in the properties files for:
+        // system.downloads_container.childname=sys:downloads
+        final String nodeName = "sys:downloads";
+        QName container = QName.createQName(nodeName, namespaceService);
+
+        final NodeRef problematicDuplicateSystemDownloadNode = createProblematicDuplicateSystemNode(container, NODE_SERVICE, repositoryHelper);
+
+        try
+        {
+            //add "downloads_container"
+            assertNotEquals(problematicDuplicateSystemDownloadNode.getId(), nodeName);
+            // downloads_container is taken from the downloadsSpace.xml uuid setting
+            assertNotEquals(problematicDuplicateSystemDownloadNode.getId(), "downloads_container");
+
+            Authentication previousAuth = AuthenticationUtil.getFullAuthentication();
+            AuthenticationUtil.setFullyAuthenticatedUser(randomUsername);
+
+            NodeRef beforeNodeRef;
+            NodeRef afterNodeRef;
+            Date beforeTime;
+
+            try
+            {
+                beforeNodeRef = DOWNLOAD_SERVICE.createDownload(new NodeRef[] { level1Folder1 }, true);
+                testNodes.addNodeRef(beforeNodeRef);
+                waitForDownload(beforeNodeRef);
+
+                beforeTime = new Date();
+
+                afterNodeRef = DOWNLOAD_SERVICE.createDownload(new NodeRef[] { level1Folder2 }, true);
+                testNodes.addNodeRef(afterNodeRef);
+                waitForDownload(afterNodeRef);
+            }
+            finally
+            {
+                // assuming previous authentication is the system user
+                AuthenticationUtil.setFullAuthentication(previousAuth);
+            }
+
+            moveDownloadedFileToProblematicFolder(fileFolderService, problematicDuplicateSystemDownloadNode, beforeNodeRef);
+
+            deleteDownloadsAndCheckParameters(beforeNodeRef, afterNodeRef, beforeTime);
+        }
+        finally
+        {
+            cleanProblematicFolder(problematicDuplicateSystemDownloadNode);
+        }
+    }
+
+    private void deleteDownloadsAndCheckParameters(NodeRef beforeNodeRef, NodeRef afterNodeRef, Date beforeTime)
+    {
+        TRANSACTION_HELPER.doInTransaction(new RetryingTransactionCallback<Void>()
+        {
+            @Override
+            public Void execute()
+            {
+                DOWNLOAD_SERVICE.deleteDownloads(beforeTime, 1000, false);
+
+                Assert.assertTrue(NODE_SERVICE.exists(beforeNodeRef));
+                Assert.assertTrue(NODE_SERVICE.exists(afterNodeRef));
+
+                DOWNLOAD_SERVICE.deleteDownloads(beforeTime, 1000, true);
+                // because when we moved the file (with fileFolderService) the modified date is updated,
+                // therefore none of the downloads files will be deleted
+                Assert.assertTrue(NODE_SERVICE.exists(beforeNodeRef));
+                Assert.assertTrue(NODE_SERVICE.exists(afterNodeRef));
+
+                Date newBeforeTime = new Date();
+
+                DOWNLOAD_SERVICE.deleteDownloads(newBeforeTime, 1000, true);
+                // now both download files should be removed
+                Assert.assertFalse(NODE_SERVICE.exists(beforeNodeRef));
+                Assert.assertFalse(NODE_SERVICE.exists(afterNodeRef));
+
+                return null;
+            }
+        }, false, true);
+    }
+
+    private void moveDownloadedFileToProblematicFolder(FileFolderService fileFolderService, NodeRef problematicDuplicateSystemDownloadNode,
+        NodeRef beforeNodeRef)
+    {
+        FileInfo fileInfo = TRANSACTION_HELPER.doInTransaction(new RetryingTransactionCallback<FileInfo>()
+        {
+            @Override
+            public FileInfo execute()
+            {
+                try
+                {
+                    // now move the beforeNodeRef to the problematicDuplicateSystemDownloadNode
+                    return fileFolderService.move(beforeNodeRef, problematicDuplicateSystemDownloadNode, null);
+                }
+                catch (Exception e)
+                {
+                    e.printStackTrace();
+                    fail(e.getMessage());
+                }
+                return null;
+            }
+        }, false, true);
+
+        if (fileInfo == null)
+        {
+            fail("The node move should have succeeded");
+        }
+    }
+
+    private String createRandomUser()
+    {
+        String randomUsername = TEST_USER_NAME + GUID.generate();
         TRANSACTION_HELPER.doInTransaction(new RetryingTransactionCallback<Void>()
         {
             @Override
@@ -414,41 +520,46 @@ public class DownloadServiceIntegrationTest
                 createUser(randomUsername);
                 return null;
             }
-        },false, true);
+        }, false, true);
+        return randomUsername;
+    }
 
-        Authentication previousAuth = AuthenticationUtil.getFullAuthentication();
-        AuthenticationUtil.setFullyAuthenticatedUser(randomUsername);
-
-        NodeRef beforeNodeRef;
-        NodeRef afterNodeRef;
-        Date beforeTime;
-
-        try
+    private NodeRef createProblematicDuplicateSystemNode(final QName childName, final NodeService nodeService, final Repository repositoryHelper)
+    {
+        return TRANSACTION_HELPER.doInTransaction(new RetryingTransactionCallback<NodeRef>()
         {
-            beforeNodeRef = DOWNLOAD_SERVICE.createDownload(new NodeRef[] { level1Folder1 }, true);
-            testNodes.addNodeRef(beforeNodeRef);
-            waitForDownload(beforeNodeRef);
+            @Override
+            public NodeRef execute()
+            {
+                return AuthenticationUtil.runAsSystem(new AuthenticationUtil.RunAsWork<NodeRef>()
+                {
+                    @Override
+                    public NodeRef doWork() throws Exception
+                    {
+                        NodeRef system = SystemNodeUtils.getSystemContainer(nodeService, repositoryHelper);
 
-            beforeTime = new Date();
+                        NodeRef container = nodeService.createNode(system, ContentModel.ASSOC_CHILDREN, childName, ContentModel.TYPE_CONTAINER)
+                            .getChildRef();
+                        nodeService.setProperty(container, ContentModel.PROP_NAME, childName.getLocalName());
 
-            afterNodeRef = DOWNLOAD_SERVICE.createDownload(new NodeRef[] { level1Folder2 }, true);
-            testNodes.addNodeRef(afterNodeRef);
-            waitForDownload(afterNodeRef);
-        }
-        finally
+                        return container;
+                    }
+                });
+            }
+        }, false, true);
+    }
+
+    private void cleanProblematicFolder(NodeRef problematicDuplicateSystemDownloadNode)
+    {
+        TRANSACTION_HELPER.doInTransaction(new RetryingTransactionCallback<Void>()
         {
-            // assuming previous authentication is the system user
-            AuthenticationUtil.setFullAuthentication(previousAuth);
-        }
-        DOWNLOAD_SERVICE.deleteDownloads(beforeTime, 1000, false);
-
-        Assert.assertTrue(NODE_SERVICE.exists(beforeNodeRef));
-        Assert.assertTrue(NODE_SERVICE.exists(afterNodeRef));
-
-        DOWNLOAD_SERVICE.deleteDownloads(beforeTime, 1000, true);
-
-        Assert.assertFalse(NODE_SERVICE.exists(beforeNodeRef));
-        Assert.assertTrue(NODE_SERVICE.exists(afterNodeRef));
+            @Override
+            public Void execute()
+            {
+                NODE_SERVICE.deleteNode(problematicDuplicateSystemDownloadNode);
+                return null;
+            }
+        }, false, true);
     }
 
     @Test public void cancel() throws InterruptedException
@@ -587,16 +698,7 @@ public class DownloadServiceIntegrationTest
     {
         final NodeRef containerFolderForDownloads = DOWNLOAD_STORAGE.getOrCreateDowloadContainer();
 
-        String randomUsername = TEST_USER_NAME + GUID.generate();
-        TRANSACTION_HELPER.doInTransaction(new RetryingTransactionCallback<Void>()
-        {
-            @Override
-            public Void execute()
-            {
-                createUser(randomUsername);
-                return null;
-            }
-        }, false, true);
+        String randomUsername = createRandomUser();
 
         Authentication previousAuth = AuthenticationUtil.getFullAuthentication();
         AuthenticationUtil.setFullyAuthenticatedUser(randomUsername);
