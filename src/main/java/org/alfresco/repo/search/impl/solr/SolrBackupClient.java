@@ -32,8 +32,9 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import org.alfresco.repo.lock.JobLockService;
 import org.alfresco.repo.lock.JobLockService.JobLockRefreshCallback;
 import org.alfresco.repo.lock.LockAcquisitionException;
-import org.alfresco.repo.search.impl.solr.SolrAdminClient.COMMAND;
-import org.alfresco.repo.search.impl.solr.SolrAdminClient.HANDLER;
+import org.alfresco.repo.search.impl.lucene.JSONAPIResultFactory;
+import org.alfresco.repo.search.impl.lucene.JSONAPIResultFactory.COMMAND;
+import org.alfresco.repo.search.impl.lucene.JSONAPIResultFactory.HANDLER;
 import org.alfresco.repo.solr.SOLRAdminClient;
 import org.alfresco.service.namespace.NamespaceService;
 import org.alfresco.service.namespace.QName;
@@ -186,7 +187,7 @@ public class SolrBackupClient implements InitializingBean
             parameters.put("numberToKeep", String.valueOf(numberToKeep));
         }
 
-        solrAdminClient.executeCommand(core, HANDLER.replication, COMMAND.backup, parameters);
+        solrAdminClient.executeCommand(core, JSONAPIResultFactory.HANDLER.replication, JSONAPIResultFactory.COMMAND.backup, parameters);
 
 
         if(logger.isInfoEnabled())

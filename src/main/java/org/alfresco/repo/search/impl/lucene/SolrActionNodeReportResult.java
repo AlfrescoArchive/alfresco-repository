@@ -25,9 +25,7 @@
  */
 package org.alfresco.repo.search.impl.lucene;
 
-import java.time.ZonedDateTime;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -38,20 +36,20 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 /**
- * The results of executing a SOLR STATUS action
+ * The results of executing a SOLR NODE REPORT action
  *
  * @author aborroy
  * @since 6.2
  */
-public class SolrActionStatusResult extends AbstractJSONAPIResult
+public class SolrActionNodeReportResult extends AbstractJSONAPIResult
 {
-    private static final Log logger = LogFactory.getLog(SolrActionStatusResult.class);
+    private static final Log logger = LogFactory.getLog(SolrActionNodeReportResult.class);
     
     /**
      * Parses the JSON to set this Java Object values
      * @param json JSONObject returned by SOLR API
      */
-    public SolrActionStatusResult(JSONObject json)
+    public SolrActionNodeReportResult(JSONObject json)
     {
         try 
         {
@@ -73,39 +71,41 @@ public class SolrActionStatusResult extends AbstractJSONAPIResult
         cores = new ArrayList<>();
         coresInfo = new HashMap<>();
         
-        if (json.has("status"))
+        if (json.has("report")) 
         {
-            
-            JSONObject coreList = json.getJSONObject("status");
-            JSONArray coreNameList = coreList.names();
-            for(int i = 0; i < coreNameList.length(); i++)
+        
+            if (json.has("report")) 
             {
-                JSONObject core = coreList.getJSONObject(String.valueOf(coreNameList.get(i)));
-                
-                String coreName = core.getString("name");
-                
-                cores.add(coreName);
-                
-                Map<String, Object> coreInfo = new HashMap<>();
-                coreInfo.put("instanceDir", core.getString("instanceDir"));
-                coreInfo.put("dataDirectory", core.get("dataDir"));
-                coreInfo.put("startTime", Date.from(ZonedDateTime.parse(core.getString("startTime")).toInstant()));
-                coreInfo.put("uptime", core.getLong("uptime"));
-                
-                if (core.has("index"))
-                {
-                    JSONObject index = core.getJSONObject("index");
-                    coreInfo.put("numDocs", index.getInt("numDocs"));
-                    coreInfo.put("maxDocument", index.getInt("maxDoc"));
-                    coreInfo.put("version", index.getLong("version"));
-                    coreInfo.put("current", index.getBoolean("current"));
-                    coreInfo.put("hasDeletions", index.getBoolean("hasDeletions"));
-                    coreInfo.put("directory", index.getString("directory"));
-                    coreInfo.put("lastModified", Date.from(ZonedDateTime.parse(index.getString("lastModified")).toInstant()));
-                }
             
-                coresInfo.put(coreName, coreInfo);
-                
+                JSONObject coreList = json.getJSONObject("report");
+                JSONArray coreNameList = coreList.names();
+                for(int i = 0; i < coreNameList.length(); i++)
+                {
+                    
+                    String coreName = String.valueOf(coreNameList.get(i));
+                    JSONObject core = coreList.getJSONObject(coreName);
+                    cores.add(coreName);
+                    
+                    Map<String, Object> coreInfo = new HashMap<>();
+                    JSONArray nodesPropertyNameList = core.names();
+                    for (int j = 0; j < nodesPropertyNameList.length(); j++)
+                    {
+                        String propertyName = String.valueOf(nodesPropertyNameList.get(j));
+                        Object propertyValue = core.get(propertyName);
+                        if (propertyValue != JSONObject.NULL)
+                        {
+                            // MBeans Objects are defined as Long types, so we need casting to provide the expected type
+                            if (propertyValue instanceof Integer)
+                            {
+                                propertyValue = Long.valueOf(propertyValue.toString());
+                            }
+                            coreInfo.put(propertyName, propertyValue);
+                        }
+                    }
+                    coresInfo.put(coreName, coreInfo);
+                    
+                }
+
             }
 
         }

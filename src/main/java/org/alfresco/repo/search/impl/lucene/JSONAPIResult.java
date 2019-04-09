@@ -25,6 +25,9 @@
  */
 package org.alfresco.repo.search.impl.lucene;
 
+import java.util.List;
+import java.util.Map;
+
 /**
  * JSON returned from SOLR API
  *
@@ -46,5 +49,18 @@ public interface JSONAPIResult
      * @return Number representing an HTTP Status
      */
     public Long getStatus();
+
+    /**
+     * Name of the cores managed by SOLR
+     * @return A list with the names of the cores
+     */
+    public List<String> getCores();
+
+    /**
+     * Information from the cores to be exposed in JMX Beans
+     * The names and the structure of the properties depend on the type of the Action
+     * @return Core information by core name
+     */
+    public Map<String, Map<String, Object>> getCoresInfo();
 
 }

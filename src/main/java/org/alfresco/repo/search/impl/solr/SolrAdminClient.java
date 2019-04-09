@@ -29,6 +29,7 @@ import java.util.Collections;
 import java.util.Map;
 
 import org.alfresco.repo.search.impl.lucene.JSONAPIResult;
+import org.alfresco.repo.search.impl.lucene.JSONAPIResultFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.InitializingBean;
 
@@ -42,41 +43,18 @@ public interface SolrAdminClient extends BeanFactoryAware, InitializingBean
 {
     
     /**
-     * SOLR CoreAdmin API Actions (partial list)
-     */
-    public static enum ACTION 
-    {
-        STATUS
-    }
-    
-    /**
-     * SOLR API Commands (partial list)
-     */
-    public static enum COMMAND
-    {
-        backup
-    }
-    
-    /**
-     * SOLR API Handlers (partial list)
-     */
-    public static enum HANDLER
-    {
-        replication
-    }
-    
-    /**
      * Default parameters to request a JSON Response (default is XML)
      */
     public static Map<String, String> JSON_PARAM = Collections.singletonMap("wt","json");
     
     /**
      * Execute an ACTION from the SOLR CoreAdmin API
+     * @param core Name of the core to execute the command, when null the action is executed for all existing cores
      * @param action SOLR CoreAdmin API Action name
      * @param parameters Action parameters in pairs of key, value
      * @return
      */
-    public JSONAPIResult executeAction(ACTION action, Map<String, String> parameters);
+    public JSONAPIResult executeAction(String core, JSONAPIResultFactory.ACTION action, Map<String, String> parameters);
     
     /**
      * Execute a COMMAND from the SOLR API
@@ -86,7 +64,7 @@ public interface SolrAdminClient extends BeanFactoryAware, InitializingBean
      * @param parameters Action parameters in pairs of key, value
      * @return
      */
-    public JSONAPIResult executeCommand(String core, HANDLER handler, COMMAND command, Map<String, String> parameters);
+    public JSONAPIResult executeCommand(String core, JSONAPIResultFactory.HANDLER handler, JSONAPIResultFactory.COMMAND command, Map<String, String> parameters);
     
     
 }

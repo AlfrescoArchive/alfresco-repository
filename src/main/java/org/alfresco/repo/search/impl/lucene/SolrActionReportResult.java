@@ -25,26 +25,31 @@
  */
 package org.alfresco.repo.search.impl.lucene;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 /**
- * The results of executing a SOLR BACKUP command
+ * The results of executing a SOLR REPORT action
  *
  * @author aborroy
  * @since 6.2
  */
-public class SolrCommandBackupResult extends AbstractJSONAPIResult
+public class SolrActionReportResult extends AbstractJSONAPIResult
 {
-    private static final Log logger = LogFactory.getLog(SolrCommandBackupResult.class);
+    private static final Log logger = LogFactory.getLog(SolrActionReportResult.class);
     
     /**
-     * Parses the JSON to create a new result object
+     * Parses the JSON to set this Java Object values
      * @param json JSONObject returned by SOLR API
      */
-    public SolrCommandBackupResult(JSONObject json)
+    public SolrActionReportResult(JSONObject json)
     {
         try 
         {
@@ -62,22 +67,37 @@ public class SolrCommandBackupResult extends AbstractJSONAPIResult
     @Override
     protected void processCoresInfoJson(JSONObject json) throws JSONException
     {
-    }
-    
-    /* (non-Javadoc)
-     * @see org.alfresco.repo.search.impl.lucene.JSONAPIResult#getStatus()
-     */
-    public Long getStatus()
-    {
-        return this.status;
-    }
-    
-    /* (non-Javadoc)
-     * @see org.alfresco.repo.search.impl.lucene.JSONAPIResult#getQueryTime()
-     */
-    public Long getQueryTime()
-    {
-        return this.queryTime;
+
+        cores = new ArrayList<>();
+        coresInfo = new HashMap<>();
+        
+        if (json.has("report")) 
+        {
+        
+            JSONObject coreList = json.getJSONObject("report");
+            JSONArray coreNameList = coreList.names();
+            for(int i = 0; i < coreNameList.length(); i++)
+            {
+                
+                String coreName = String.valueOf(coreNameList.get(i));
+                cores.add(coreName);
+                
+                Map<String, Object> coreInfo = new HashMap<>();
+                JSONObject coreProperties = coreList.getJSONObject(coreName);
+                JSONArray propertyNameList = coreProperties.names();
+                for (int j = 0; j < propertyNameList.length(); j++)
+                {
+                    String propertyName = String.valueOf(propertyNameList.get(j));
+                    coreInfo.put(propertyName, coreProperties.get(propertyName));
+                }
+                
+                coresInfo.put(coreName, coreInfo);
+
+            }
+
+        }
+        
     }
     
 }
+

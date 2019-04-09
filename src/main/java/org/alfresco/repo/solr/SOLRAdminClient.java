@@ -38,6 +38,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock.WriteLock;
 import org.alfresco.error.AlfrescoRuntimeException;
 import org.alfresco.repo.index.shard.ShardRegistry;
 import org.alfresco.repo.search.impl.lucene.JSONAPIResult;
+import org.alfresco.repo.search.impl.lucene.JSONAPIResultFactory;
 import org.alfresco.repo.search.impl.lucene.LuceneQueryParserException;
 import org.alfresco.repo.search.impl.lucene.SolrActionStatusResult;
 import org.alfresco.repo.search.impl.lucene.SolrCommandBackupResult;
@@ -170,7 +171,7 @@ public class SOLRAdminClient extends AbstractSolrAdminHTTPClient
      * @see org.alfresco.repo.search.impl.solr.SolrAdminClient#executeAction(org.alfresco.repo.search.impl.solr.SolrAdminClient.ACTION, java.util.Map)
      */
     @Override
-    public JSONAPIResult executeAction(ACTION action, Map<String, String> parameters) {
+    public JSONAPIResult executeAction(String core, JSONAPIResultFactory.ACTION action, Map<String, String> parameters) {
         
         StoreRef store = StoreRef.STORE_REF_WORKSPACE_SPACESSTORE;
         SolrStoreMappingWrapper mapping = 
@@ -211,12 +212,16 @@ public class SOLRAdminClient extends AbstractSolrAdminHTTPClient
             String solrurl = httpClient.getHostConfiguration().getHostURL() + mapping.getHttpClientAndBaseUrl().getSecond();
             url.append(solrurl);
         }
-        
-        try
+        if (core != null)
         {
+            url.append("&core=" + core);
+        }
+        
+        try 
+        {   
             
-            return new SolrActionStatusResult(getOperation(httpClient, url.toString()));
-
+            return JSONAPIResultFactory.buildActionResult(action, getOperation(httpClient, url.toString()));
+        
         }
         catch (IOException | JSONException | URISyntaxException e)
         {
@@ -229,7 +234,7 @@ public class SOLRAdminClient extends AbstractSolrAdminHTTPClient
      * @see org.alfresco.repo.search.impl.solr.SolrAdminClient#executeCommand(java.lang.String, org.alfresco.repo.search.impl.solr.SolrAdminClient.HANDLER, org.alfresco.repo.search.impl.solr.SolrAdminClient.COMMAND, java.util.Map)
      */
     @Override
-    public JSONAPIResult executeCommand(String core, HANDLER handler, COMMAND command, Map<String, String> parameters) {
+    public JSONAPIResult executeCommand(String core, JSONAPIResultFactory.HANDLER handler, JSONAPIResultFactory.COMMAND command, Map<String, String> parameters) {
         
         StoreRef store = StoreRef.STORE_REF_WORKSPACE_SPACESSTORE;
         SolrStoreMappingWrapper mapping = 
@@ -327,7 +332,7 @@ public class SOLRAdminClient extends AbstractSolrAdminHTTPClient
 		protected void pingSolr()
 		{
 		    
-		    SolrActionStatusResult result = (SolrActionStatusResult) executeAction(ACTION.STATUS, JSON_PARAM);
+		    SolrActionStatusResult result = (SolrActionStatusResult) executeAction(null, JSONAPIResultFactory.ACTION.STATUS, JSON_PARAM);
 		    
 		    if(result != null)
 		    {
