@@ -27,11 +27,11 @@ package org.alfresco.repo.search.impl.lucene;
 
 import java.util.ArrayList;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * The results of executing a SOLR FIX action
@@ -42,7 +42,7 @@ import org.json.JSONObject;
 public class SolrActionFixResult extends AbstractJSONAPIResult
 {
     
-    private static final Log logger = LogFactory.getLog(SolrActionFixResult.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(SolrActionFixResult.class);
     
     /**
      * Parses the JSON to set this Java Object values
@@ -56,7 +56,7 @@ public class SolrActionFixResult extends AbstractJSONAPIResult
         }
         catch (NullPointerException | JSONException e)
         {
-           logger.info(e.getMessage());
+           LOGGER.info(e.getMessage());
         }
     }
     

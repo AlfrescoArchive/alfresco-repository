@@ -26,7 +26,6 @@
 package org.alfresco.repo.solr;
 
 import java.io.IOException;
-import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -44,7 +43,7 @@ import org.alfresco.repo.search.impl.lucene.SolrActionStatusResult;
 import org.alfresco.repo.search.impl.lucene.SolrCommandBackupResult;
 import org.alfresco.repo.search.impl.solr.AbstractSolrAdminHTTPClient;
 import org.alfresco.repo.search.impl.solr.ExplicitSolrStoreMappingWrapper;
-import org.alfresco.repo.search.impl.solr.SolrAdminClient;
+import org.alfresco.repo.search.impl.solr.SolrAdminClientInterface;
 import org.alfresco.repo.search.impl.solr.SolrClientUtil;
 import org.alfresco.repo.search.impl.solr.SolrStoreMapping;
 import org.alfresco.repo.search.impl.solr.SolrStoreMappingWrapper;
@@ -52,7 +51,6 @@ import org.alfresco.service.cmr.repository.StoreRef;
 import org.apache.commons.codec.EncoderException;
 import org.apache.commons.codec.net.URLCodec;
 import org.apache.commons.httpclient.HttpClient;
-import org.json.JSONException;
 import org.quartz.CronScheduleBuilder;
 import org.quartz.JobBuilder;
 import org.quartz.JobDataMap;
@@ -75,7 +73,7 @@ import org.springframework.context.ApplicationEventPublisherAware;
  *
  */
 public class SOLRAdminClient extends AbstractSolrAdminHTTPClient
-        implements ApplicationEventPublisherAware, DisposableBean, SolrAdminClient 
+        implements ApplicationEventPublisherAware, DisposableBean, SolrAdminClientInterface 
 {
 
 	private String solrPingCronExpression;
@@ -223,7 +221,7 @@ public class SOLRAdminClient extends AbstractSolrAdminHTTPClient
             return JSONAPIResultFactory.buildActionResult(action, getOperation(httpClient, url.toString()));
         
         }
-        catch (IOException | JSONException | URISyntaxException e)
+        catch (IOException e)
         {
             throw new LuceneQueryParserException("action", e);
         }
@@ -254,10 +252,10 @@ public class SOLRAdminClient extends AbstractSolrAdminHTTPClient
             url.append("/");
         }
         
-        url.append(core + "/" + handler);
+        url.append(core + "/" + handler.toString().toLowerCase());
         
         URLCodec encoder = new URLCodec();
-        url.append("?command=" + command);
+        url.append("?command=" + command.toString().toLowerCase());
         parameters.forEach((key, value) -> {
             try {
                 url.append("&" + key + "=" + encoder.encode(value));
@@ -289,7 +287,7 @@ public class SOLRAdminClient extends AbstractSolrAdminHTTPClient
             return response;
             
         }
-        catch (IOException | JSONException | URISyntaxException e)
+        catch (IOException e)
         {
             throw new LuceneQueryParserException("action", e);
         }

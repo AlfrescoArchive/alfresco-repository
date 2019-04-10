@@ -25,6 +25,9 @@
  */
 package org.alfresco.repo.search.impl.lucene;
 
+import java.util.Arrays;
+
+import org.alfresco.error.AlfrescoRuntimeException;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -58,7 +61,7 @@ public class JSONAPIResultFactory
      */
     public static enum COMMAND
     {
-        backup
+        BACKUP
     }
 
     /**
@@ -66,7 +69,7 @@ public class JSONAPIResultFactory
      */
     public static enum HANDLER
     {
-        replication
+        REPLICATION
     }
 
     /**
@@ -76,47 +79,47 @@ public class JSONAPIResultFactory
      * @return
      * @throws JSONException
      */
-    public static JSONAPIResult buildActionResult(ACTION action, JSONObject json) throws JSONException
+    public static JSONAPIResult buildActionResult(ACTION action, JSONObject json)
     {
         switch (action)
         {
-            case STATUS:
-            {
-                return new SolrActionStatusResult(json);
-            }
-            case REPORT:
-            {
-                return new SolrActionReportResult(json);
-            }
-            case TXREPORT:
-            {
-                return new SolrActionTxReportResult(json);
-            }
-            case ACLTXREPORT:
-            {
-                return new SolrActionAclTxReportResult(json);
-            }
-            case ACLREPORT:
-            {
-                return new SolrActionAclReportResult(json);
-            }
-            case NODEREPORT:
-            {
-                return new SolrActionNodeReportResult(json);
-            }
-            case FIX:
-            {
-                return new SolrActionFixResult(json);
-            }
-            case CHECK:
-            {
-                return new SolrActionCheckResult(json);
-            }
-            default:
-            {
-                throw new JSONException("Action " + action + " is not supported!");
-            }
+        case STATUS:
+        {
+            return new SolrActionStatusResult(json);
+        }
+        case REPORT:
+        {
+            return new SolrActionReportResult(json);
+        }
+        case TXREPORT:
+        {
+            return new SolrActionTxReportResult(json);
+        }
+        case ACLTXREPORT:
+        {
+            return new SolrActionAclTxReportResult(json);
+        }
+        case ACLREPORT:
+        {
+            return new SolrActionAclReportResult(json);
+        }
+        case NODEREPORT:
+        {
+            return new SolrActionNodeReportResult(json);
+        }
+        case FIX:
+        {
+            return new SolrActionFixResult(json);
+        }
+        case CHECK:
+        {
+            return new SolrActionCheckResult(json);
+        }
+        default:
+        {
+            throw new AlfrescoRuntimeException("Action " + action + " is not supported when invoking to SOLR REST API, available actions: " + Arrays.asList(ACTION.values()));
+        }
         }
     }
-
+    
 }

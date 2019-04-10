@@ -30,17 +30,15 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.io.UnsupportedEncodingException;
-import java.net.URISyntaxException;
 
 import javax.servlet.http.HttpServletResponse;
 
+import org.alfresco.error.AlfrescoRuntimeException;
 import org.alfresco.repo.search.impl.lucene.LuceneQueryParserException;
 import org.apache.commons.httpclient.Header;
 import org.apache.commons.httpclient.HttpClient;
-import org.apache.commons.httpclient.HttpException;
 import org.apache.commons.httpclient.HttpStatus;
 import org.apache.commons.httpclient.URI;
-import org.apache.commons.httpclient.URIException;
 import org.apache.commons.httpclient.methods.GetMethod;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -64,13 +62,8 @@ public abstract class AbstractSolrAdminHTTPClient
      * @param url Complete URL of SOLR REST API Endpoint
      * @return A JSON Object including SOLR response
      * @throws UnsupportedEncodingException
-     * @throws IOException
-     * @throws HttpException
-     * @throws URIException
-     * @throws JSONException
      */
-    protected JSONObject getOperation(HttpClient httpClient, String url)
-            throws UnsupportedEncodingException, IOException, HttpException, URIException, JSONException, URISyntaxException 
+    protected JSONObject getOperation(HttpClient httpClient, String url) throws UnsupportedEncodingException 
     {
 
         GetMethod get = new GetMethod(url);
@@ -97,7 +90,13 @@ public abstract class AbstractSolrAdminHTTPClient
             JSONObject json = new JSONObject(new JSONTokener(reader));
             return json;
             
-        } finally {
+        }
+        catch (IOException | JSONException e) 
+        {
+            throw new AlfrescoRuntimeException(e.getMessage(), e);
+        } 
+        finally 
+        {
             get.releaseConnection();
         }
     }

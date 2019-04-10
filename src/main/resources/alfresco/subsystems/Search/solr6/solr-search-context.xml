@@ -174,10 +174,10 @@
       <property name="scheduler">
         <ref bean="searchSchedulerFactory" />
       </property>
-		<property name="storeMappings">
-			<ref bean="solr6.store.mappings" />
-		</property>
-		<property name="useDynamicShardRegistration" value="${solr.useDynamicShardRegistration}" />
+      <property name="storeMappings">
+        <ref bean="solr6.store.mappings" />
+      </property>
+      <property name="useDynamicShardRegistration" value="${solr.useDynamicShardRegistration}" />
     </bean>
 
     <bean id="search.solrAdminHTTPCLient" class="org.alfresco.repo.search.impl.solr.SolrAdminHTTPClient" init-method="init">

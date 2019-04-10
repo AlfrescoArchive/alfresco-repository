@@ -25,10 +25,10 @@
  */
 package org.alfresco.repo.search.impl.lucene;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * The results of executing a SOLR BACKUP command
@@ -38,7 +38,7 @@ import org.json.JSONObject;
  */
 public class SolrCommandBackupResult extends AbstractJSONAPIResult
 {
-    private static final Log logger = LogFactory.getLog(SolrCommandBackupResult.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(SolrCommandBackupResult.class);
     
     /**
      * Parses the JSON to create a new result object
@@ -52,7 +52,7 @@ public class SolrCommandBackupResult extends AbstractJSONAPIResult
         }
         catch (NullPointerException | JSONException e)
         {
-           logger.info(e.getMessage());
+           LOGGER.info(e.getMessage());
         }
     }
     

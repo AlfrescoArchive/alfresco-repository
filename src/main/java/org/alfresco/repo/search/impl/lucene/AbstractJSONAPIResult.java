@@ -25,13 +25,14 @@
  */
 package org.alfresco.repo.search.impl.lucene;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * JSON returned from SOLR API Parser
@@ -44,7 +45,7 @@ import org.json.JSONObject;
 public abstract class AbstractJSONAPIResult implements JSONAPIResult
 {
     
-    private static final Log logger = LogFactory.getLog(AbstractJSONAPIResult.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(AbstractJSONAPIResult.class);
     
     protected Long status; 
     protected Long queryTime;
@@ -73,15 +74,16 @@ public abstract class AbstractJSONAPIResult implements JSONAPIResult
     @Override
     public List<String> getCores()
     {
-        return cores;
+        return Collections.unmodifiableList(cores);
     }
     
     /* (non-Javadoc)
      * @see org.alfresco.repo.search.impl.lucene.JSONAPIResult#getCoresInfo()
      */
     @Override
-    public Map<String, Map<String, Object>> getCoresInfo() {
-        return coresInfo;
+    public Map<String, Map<String, Object>> getCoresInfo() 
+    {
+        return Collections.unmodifiableMap(coresInfo);
     }
     
     /**
@@ -91,10 +93,8 @@ public abstract class AbstractJSONAPIResult implements JSONAPIResult
      */
     protected void processJson(JSONObject json) throws JSONException
     {
-        if (logger.isDebugEnabled())
-        {
-            logger.debug("JSON response: "+json);
-        }
+        
+        LOGGER.debug("JSON response: {}", json);
         
         JSONObject responseHeader = json.getJSONObject("responseHeader");
         status = responseHeader.getLong("status");

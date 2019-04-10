@@ -29,11 +29,11 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * The results of executing a SOLR TX action
@@ -43,7 +43,7 @@ import org.json.JSONObject;
  */
 public class SolrActionTxReportResult extends AbstractJSONAPIResult
 {
-    private static final Log logger = LogFactory.getLog(SolrActionTxReportResult.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(SolrActionTxReportResult.class);
     
     /**
      * Parses the JSON to set this Java Object values
@@ -57,7 +57,7 @@ public class SolrActionTxReportResult extends AbstractJSONAPIResult
         }
         catch (NullPointerException | JSONException e)
         {
-           logger.info(e.getMessage());
+           LOGGER.info(e.getMessage());
         }
     }
     

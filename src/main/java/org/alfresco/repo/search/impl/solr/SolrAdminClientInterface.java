@@ -39,7 +39,7 @@ import org.springframework.beans.factory.InitializingBean;
  * @author aborroy
  * @since 6.2
  */
-public interface SolrAdminClient extends BeanFactoryAware, InitializingBean
+public interface SolrAdminClientInterface extends BeanFactoryAware, InitializingBean
 {
     
     /**
