@@ -27,6 +27,7 @@ package org.alfresco.repo.search.impl.lucene;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.json.JSONArray;
@@ -68,8 +69,8 @@ public class SolrActionAclReportResult extends AbstractJSONAPIResult
     protected void processCoresInfoJson(JSONObject json) throws JSONException
     {
 
-        cores = new ArrayList<>();
-        coresInfo = new HashMap<>();
+        List<String> cores = new ArrayList<>();
+        Map<String, Map<String, Object>> coresInfo = new HashMap<>();
         
         if (json.has("report")) 
         {
@@ -83,27 +84,14 @@ public class SolrActionAclReportResult extends AbstractJSONAPIResult
                 JSONObject core = coreList.getJSONObject(coreName);
                 cores.add(coreName);
                 
-                Map<String, Object> coreInfo = new HashMap<>();
-                JSONArray nodesPropertyNameList = core.names();
-                for (int j = 0; j < nodesPropertyNameList.length(); j++)
-                {
-                    String propertyName = String.valueOf(nodesPropertyNameList.get(j));
-                    Object propertyValue = core.get(propertyName);
-                    if (propertyValue != JSONObject.NULL)
-                    {
-                        // MBeans Objects are defined as Long types, so we need casting to provide the expected type
-                        if (propertyValue instanceof Integer)
-                        {
-                            propertyValue = Long.valueOf(propertyValue.toString());
-                        }
-                        coreInfo.put(propertyName, propertyValue);
-                    }
-                }
-                coresInfo.put(coreName, coreInfo);
+                coresInfo.put(coreName, getPropertyValueMap(core));
                 
             }
 
         }
+        
+        this.cores = cores;
+        this.coresInfo = coresInfo;
         
     }
     

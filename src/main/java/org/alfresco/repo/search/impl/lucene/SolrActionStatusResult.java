@@ -29,6 +29,7 @@ import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.json.JSONArray;
@@ -70,8 +71,8 @@ public class SolrActionStatusResult extends AbstractJSONAPIResult
     protected void processCoresInfoJson(JSONObject json) throws JSONException
     {
 
-        cores = new ArrayList<>();
-        coresInfo = new HashMap<>();
+        List<String> cores = new ArrayList<>();
+        Map<String, Map<String, Object>> coresInfo = new HashMap<>();
         
         if (json.has("status"))
         {
@@ -109,6 +110,9 @@ public class SolrActionStatusResult extends AbstractJSONAPIResult
             }
 
         }
+        
+        this.cores = cores;
+        this.coresInfo = coresInfo;
         
     }
     

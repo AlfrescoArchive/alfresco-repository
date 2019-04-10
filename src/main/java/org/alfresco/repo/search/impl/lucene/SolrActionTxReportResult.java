@@ -27,6 +27,7 @@ package org.alfresco.repo.search.impl.lucene;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.json.JSONArray;
@@ -68,8 +69,8 @@ public class SolrActionTxReportResult extends AbstractJSONAPIResult
     protected void processCoresInfoJson(JSONObject json) throws JSONException
     {
 
-        cores = new ArrayList<>();
-        coresInfo = new HashMap<>();
+        List<String> cores = new ArrayList<>();
+        Map<String, Map<String, Object>> coresInfo = new HashMap<>();
         
         if (json.has("report")) 
         {
@@ -86,15 +87,7 @@ public class SolrActionTxReportResult extends AbstractJSONAPIResult
                 Map<String, Object> coreInfo = new HashMap<>();
                 
                 JSONObject transaction = core.getJSONObject("transaction");
-                Map<String, Object> txInfo = new HashMap<>();
-                JSONArray txPropertyNameList = transaction.names();
-                
-                for (int j = 0; j < txPropertyNameList.length(); j++)
-                {
-                    String propertyName = String.valueOf(txPropertyNameList.get(j));
-                    txInfo.put(propertyName, transaction.get(propertyName));
-                }
-                coreInfo.put("transaction", txInfo);
+                coreInfo.put("transaction", getPropertyValueMap(transaction));
 
                 JSONObject nodes = core.getJSONObject("nodes");
                 Map<String, Object> nodesInfo = new HashMap<>();
@@ -103,19 +96,8 @@ public class SolrActionTxReportResult extends AbstractJSONAPIResult
                 {
                     String nodeName = String.valueOf(nodesPropertyNameList.get(j));
                     JSONObject node = nodes.getJSONObject(nodeName);
-                    Map<String, Object> nodeInfo = new HashMap<>();
-                    JSONArray nodePropertyNameList = node.names();
-                    for (int k = 0; k < nodePropertyNameList.length(); k++) {
-                        String propertyName = String.valueOf(nodePropertyNameList.get(k));
-                        Object propertyValue = node.get(propertyName);
-                        // MBeans Objects are defined as Long types, so we need casting to provide the expected type
-                        if (propertyValue instanceof Integer)
-                        {
-                            propertyValue = Long.valueOf(propertyValue.toString());
-                        }
-                        nodeInfo.put(propertyName, propertyValue);
-                    }
-                    nodesInfo.put(nodeName, nodeInfo);
+                    coresInfo.put(coreName, getPropertyValueMap(node));
+                
                 }
                 coreInfo.put("nodes", nodesInfo);
                 
@@ -124,6 +106,9 @@ public class SolrActionTxReportResult extends AbstractJSONAPIResult
             }
 
         }
+        
+        this.cores = cores;
+        this.coresInfo = coresInfo;
         
     }
     

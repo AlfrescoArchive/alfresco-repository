@@ -26,9 +26,11 @@
 package org.alfresco.repo.search.impl.lucene;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.slf4j.Logger;
@@ -102,6 +104,34 @@ public abstract class AbstractJSONAPIResult implements JSONAPIResult
         
         processCoresInfoJson(json);
 
+    }
+    
+    /**
+     * Creates a property-value Map from a JSON Object containing properties and values
+     * This method provides the right input for MBeans to expose the SOLR response values from the Response
+     * @param json Simple JSON Object containing only properties
+     * @return Property-value Map
+     * @throws JSONException
+     */
+    protected Map<String, Object> getPropertyValueMap(JSONObject json) throws JSONException
+    {
+        Map<String, Object> propertyValueMap = new HashMap<>();
+        JSONArray nodesPropertyNameList = json.names();
+        for (int j = 0; j < nodesPropertyNameList.length(); j++)
+        {
+            String propertyName = String.valueOf(nodesPropertyNameList.get(j));
+            Object propertyValue = json.get(propertyName);
+            if (propertyValue != JSONObject.NULL)
+            {
+                // MBeans Objects are defined as Long types, so we need casting to provide the expected type
+                if (propertyValue instanceof Integer)
+                {
+                    propertyValue = Long.valueOf((Integer) propertyValue);
+                }
+                propertyValueMap.put(propertyName, propertyValue);
+            }
+        }
+        return propertyValueMap;
     }
     
     /**
