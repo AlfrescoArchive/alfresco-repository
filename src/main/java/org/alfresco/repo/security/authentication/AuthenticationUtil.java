@@ -104,6 +104,39 @@ public class AuthenticationUtil implements InitializingBean
         return AuthenticationUtil.mtEnabled;
     }
 
+    public static String maskUsername(String userName)
+    {
+        if (userName != null)
+        {
+            try
+            {
+                if (userName.length() >= 2)
+                {
+                    return userName.substring(0, 2) + new String(new char[(userName.length() - 2)]).replace("\0", "*");
+                }
+            }
+            catch (Exception e)
+            {
+                if (s_logger.isDebugEnabled())
+                {
+                    s_logger.debug("Failed to mask the username because: " + e.getMessage(), e);
+                }
+            }
+            return userName;
+        }
+        return null;
+    }
+
+    public static String getMaskedUsername(Authentication authentication)
+    {
+        String extractedUsername = null;
+        if (authentication != null && authentication.getPrincipal() != null)
+        {
+            extractedUsername = getUserName(authentication);
+        }
+        return maskUsername(extractedUsername);
+    }
+
     public AuthenticationUtil()
     {
         super();
