@@ -76,7 +76,7 @@ public abstract class AbstractJSONAPIResult implements JSONAPIResult
     @Override
     public List<String> getCores()
     {
-        return Collections.unmodifiableList(cores);
+        return (cores == null ? null : Collections.unmodifiableList(cores));
     }
     
     /* (non-Javadoc)
@@ -85,7 +85,7 @@ public abstract class AbstractJSONAPIResult implements JSONAPIResult
     @Override
     public Map<String, Map<String, Object>> getCoresInfo() 
     {
-        return Collections.unmodifiableMap(coresInfo);
+        return (coresInfo == null ? null : Collections.unmodifiableMap(coresInfo));
     }
     
     /**
