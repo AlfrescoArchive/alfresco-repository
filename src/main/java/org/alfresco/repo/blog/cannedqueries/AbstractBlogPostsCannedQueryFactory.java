@@ -79,6 +79,10 @@ public abstract class AbstractBlogPostsCannedQueryFactory extends AbstractQNameA
            {
                return entity.getCreatedDate();
            }
+           else if (comparableProperty.equals(BlogIntegrationModel.PROP_POSTED))
+           {
+               return entity.getPostedDate();
+           }
            else
            {
                throw new IllegalArgumentException("Unsupported blog sort property: "+comparableProperty);
