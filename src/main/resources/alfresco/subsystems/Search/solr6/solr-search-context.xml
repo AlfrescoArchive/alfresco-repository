@@ -156,7 +156,7 @@
     </bean>
     
     <bean id="solrHttpClientFactory" class="org.alfresco.httpclient.HttpClientFactory" init-method="init">
-        <property name="secureCommsType" value="${solr.secureComms:https}"/>
+        <property name="secureCommsType" value="${solr.secureComms}"/>
         <property name="sSLEncryptionParameters" ref="sslEncryptionParameters"/>
         <property name="keyResourceLoader" ref="springKeyResourceLoader"/>
         <property name="keyStoreParameters" ref="keyStoreParameters"/>
