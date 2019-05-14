@@ -28,6 +28,7 @@ package org.alfresco.repo.content.transform;
 import org.alfresco.repo.content.filestore.FileContentWriter;
 import org.alfresco.service.cmr.repository.ContentReader;
 import org.alfresco.service.cmr.repository.ContentWriter;
+import org.alfresco.service.cmr.repository.MimetypeService;
 import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.transform.client.model.config.ExtensionMap;
 import org.alfresco.util.TempFileProvider;
@@ -51,9 +52,13 @@ public class LocalPipelineTransformer extends AbstractLocalTransformer
         String targetMimetype;
     }
 
-    public LocalPipelineTransformer(String name, ExtensionMap extensionMap, TransformerDebug transformerDebug)
+    public LocalPipelineTransformer(String name, ExtensionMap extensionMap, TransformerDebug transformerDebug,
+                                    MimetypeService mimetypeService, boolean strictMimeTypeCheck,
+                                    boolean retryTransformOnDifferentMimeType,
+                                    LocalTransformServiceRegistry localTransformServiceRegistry)
     {
-        super(name, extensionMap, transformerDebug);
+        super(name, extensionMap, transformerDebug, mimetypeService, strictMimeTypeCheck,
+                retryTransformOnDifferentMimeType, localTransformServiceRegistry);
     }
 
     @Override

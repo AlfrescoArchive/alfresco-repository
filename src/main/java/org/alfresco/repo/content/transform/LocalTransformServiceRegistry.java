@@ -55,21 +55,18 @@ import java.util.Properties;
  */
 public class LocalTransformServiceRegistry extends TransformServiceRegistryImpl implements InitializingBean
 {
-    private static final Log log = LogFactory.getLog(LocalTransformerImpl.class);
+    private static final Log log = LogFactory.getLog(LocalTransformer.class);
 
-    private MimetypeService mimetypeService;
     private String transformServiceConfigFile;
     private boolean enabled = true;
     private boolean firstTime = true;
     private Properties properties;
+    private MimetypeService mimetypeService;
     private TransformerDebug transformerDebug;
+    private boolean strictMimeTypeCheck;
+    private boolean retryTransformOnDifferentMimeType;
 
     private Map<String, LocalTransformer> transformers = new HashMap<>();
-
-    public void setMimetypeService(MimetypeService mimetypeService)
-    {
-        this.mimetypeService = mimetypeService;
-    }
 
     public void setTransformServiceConfigFile(String transformServiceConfigFile)
     {
@@ -89,9 +86,24 @@ public class LocalTransformServiceRegistry extends TransformServiceRegistryImpl 
         this.properties = properties;
     }
 
+    public void setMimetypeService(MimetypeService mimetypeService)
+    {
+        this.mimetypeService = mimetypeService;
+    }
+
     public void setTransformerDebug(TransformerDebug transformerDebug)
     {
         this.transformerDebug = transformerDebug;
+    }
+
+    public void setStrictMimeTypeCheck(boolean strictMimeTypeCheck)
+    {
+        this.strictMimeTypeCheck = strictMimeTypeCheck;
+    }
+
+    public void setRetryTransformOnDifferentMimeType(boolean retryTransformOnDifferentMimeType)
+    {
+        this.retryTransformOnDifferentMimeType = retryTransformOnDifferentMimeType;
     }
 
     @Override
@@ -145,8 +157,9 @@ public class LocalTransformServiceRegistry extends TransformServiceRegistryImpl 
             {
                 String baseUrl = getBaseUrl(name);
                 int startupRetryPeriodSeconds = getStartupRetryPeriodSeconds(name);
-                localTransformer = new LocalTransformerImpl(name, extensionMap, transformerDebug, baseUrl, startupRetryPeriodSeconds
-                );
+                localTransformer = new LocalTransformerImpl(name, extensionMap, transformerDebug, mimetypeService,
+                         strictMimeTypeCheck, retryTransformOnDifferentMimeType,
+                        this, baseUrl, startupRetryPeriodSeconds);
             }
             else
             {
@@ -157,7 +170,8 @@ public class LocalTransformServiceRegistry extends TransformServiceRegistryImpl 
                             " must have more than one intermediate transformer defined.");
                 }
 
-                localTransformer = new LocalPipelineTransformer(name, extensionMap, transformerDebug);
+                localTransformer = new LocalPipelineTransformer(name, extensionMap, transformerDebug, mimetypeService,
+                        strictMimeTypeCheck, retryTransformOnDifferentMimeType, this);
                 for (int i=0; i < transformerCount; i++)
                 {
                     TransformStep intermediateTransformerStep = transformPipeline.get(i);
@@ -256,9 +270,14 @@ public class LocalTransformServiceRegistry extends TransformServiceRegistryImpl 
         String sourceMimetype = reader.getMimetype();
         String targetMimetype = writer.getMimetype();
         long sourceSizeInBytes = reader.getSize();
-        String name = getTransformerName(sourceMimetype, sourceSizeInBytes, targetMimetype, actualOptions, renditionName);
-
-        LocalTransformer localTransformer = transformers.get(name);
+        LocalTransformer localTransformer = getLocalTransformer(actualOptions, renditionName, sourceMimetype, targetMimetype, sourceSizeInBytes);
         localTransformer.transform(reader, writer, actualOptions, renditionName, sourceNodeRef);
+    }
+
+    public LocalTransformer getLocalTransformer(Map<String, String> actualOptions, String renditionName,
+                                                String sourceMimetype, String targetMimetype, long sourceSizeInBytes)
+    {
+        String name = getTransformerName(sourceMimetype, sourceSizeInBytes, targetMimetype, actualOptions, renditionName);
+        return transformers.get(name);
     }
 }

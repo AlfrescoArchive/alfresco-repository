@@ -28,6 +28,7 @@ package org.alfresco.repo.content.transform;
 import org.alfresco.repo.rendition2.RenditionDefinition2;
 import org.alfresco.service.cmr.repository.ContentReader;
 import org.alfresco.service.cmr.repository.ContentWriter;
+import org.alfresco.service.cmr.repository.MimetypeService;
 import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.transform.client.model.config.ExtensionMap;
 import org.alfresco.util.Pair;
@@ -46,9 +47,13 @@ public class LocalTransformerImpl extends AbstractLocalTransformer
     private boolean available = false;
 
     public LocalTransformerImpl(String name, ExtensionMap extensionMap, TransformerDebug transformerDebug,
-                                String baseUrl, int startupRetryPeriodSeconds)
+                                MimetypeService mimetypeService, boolean strictMimeTypeCheck,
+                                boolean retryTransformOnDifferentMimeType,
+                                LocalTransformServiceRegistry localTransformServiceRegistry, String baseUrl,
+                                int startupRetryPeriodSeconds)
     {
-        super(name, extensionMap, transformerDebug);
+        super(name, extensionMap, transformerDebug, mimetypeService, strictMimeTypeCheck,
+                retryTransformOnDifferentMimeType, localTransformServiceRegistry);
         remoteTransformerClient = new RemoteTransformerClient(name, baseUrl);
         remoteTransformerClient.setStartupRetryPeriodSeconds(startupRetryPeriodSeconds);
 

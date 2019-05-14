@@ -109,11 +109,13 @@
 
     <bean id="localTransformServiceRegistryImpl" class="org.alfresco.repo.content.transform.LocalTransformServiceRegistry" >
         <property name="jsonObjectMapper" ref="localTransformServiceRegistryJsonObjectMapper" />
-        <property name="mimetypeService" ref="MimetypeService" />
         <property name="transformServiceConfigFile" value="alfresco/local-transform-service-config.json" />
         <property name="enabled" value="${local.transform.service.enabled}" />
         <property name="properties" ref="global-properties" />
         <property name="transformerDebug" ref="transformerDebug" />
+        <property name="mimetypeService" ref="MimetypeService" />
+        <property name="strictMimeTypeCheck" value="${transformer.strict.mimetype.check}"/>
+        <property name="retryTransformOnDifferentMimeType" value="${content.transformer.retryOn.different.mimetype}"/>
     </bean>
 
     <bean id="localTransformServiceRegistryJsonObjectMapper" class="com.fasterxml.jackson.databind.ObjectMapper" />
