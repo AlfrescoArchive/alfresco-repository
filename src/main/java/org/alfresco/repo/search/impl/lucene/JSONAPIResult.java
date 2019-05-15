@@ -23,45 +23,44 @@
  * along with Alfresco. If not, see <http://www.gnu.org/licenses/>.
  * #L%
  */
-package org.alfresco.service.cmr.discussion;
+package org.alfresco.repo.search.impl.lucene;
 
 import java.util.List;
-
-import org.alfresco.repo.security.permissions.PermissionCheckValue;
-import org.alfresco.service.cmr.repository.NodeRef;
+import java.util.Map;
 
 /**
- * This class holds a post and all replies to it, possibly nested.
- * 
- * This is used with {@link DiscussionService#listPostReplies(PostInfo, int)}
- * 
- * @author Nick Burch
- * @since 4.0
+ * JSON returned from SOLR API
+ *
+ * @author aborroy
+ * @since 6.2
  */
-public class PostWithReplies implements PermissionCheckValue 
+public interface JSONAPIResult
 {
-   private PostInfo post;
-   private List<PostWithReplies> replies;
-   
-   public PostWithReplies(PostInfo post, List<PostWithReplies> replies)
-   {
-      this.post = post;
-      this.replies = replies;
-   }
+    
+    /**
+     * Time to perform the requested action or command in SOLR
+     * @return Number of milliseconds
+     */
+    public Long getQueryTime();
+    
+    /**
+     * HTTP Response code
+     * But for 200, that is being returned as 0
+     * @return Number representing an HTTP Status
+     */
+    public Long getStatus();
 
-   public PostInfo getPost() 
-   {
-      return post;
-   }
+    /**
+     * Name of the cores managed by SOLR
+     * @return A list with the names of the cores
+     */
+    public List<String> getCores();
 
-   public List<PostWithReplies> getReplies() 
-   {
-      return replies;
-   }
+    /**
+     * Information from the cores to be exposed in JMX Beans
+     * The names and the structure of the properties depend on the type of the Action
+     * @return Core information by core name
+     */
+    public Map<String, Map<String, Object>> getCoresInfo();
 
-   @Override
-   public NodeRef getNodeRef() 
-   {
-      return post.getNodeRef();
-   }
 }
