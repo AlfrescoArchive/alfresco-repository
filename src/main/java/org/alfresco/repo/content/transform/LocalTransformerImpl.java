@@ -30,15 +30,16 @@ import org.alfresco.service.cmr.repository.ContentReader;
 import org.alfresco.service.cmr.repository.ContentWriter;
 import org.alfresco.service.cmr.repository.MimetypeService;
 import org.alfresco.service.cmr.repository.NodeRef;
-import org.alfresco.transform.client.model.config.ExtensionMap;
 import org.alfresco.util.Pair;
 
 import java.util.Map;
 
 /**
- * A local transformer using flat transform options. Instances are automatically created for transformers defined in
- * {@code}local-transform-service-config.json{@code}. The transforms take place in a separate process (typically a
- * Docker container).
+ * A local transformer using flat transform options.
+ *
+ * Instances are automatically created for transformers identified by alfresco/transform json files and returned from
+ * T-Engines which are themselves identified by global properties the match the pattern localTransformer.&lt;name>.url.
+ * The transforms take place in a separate process (typically a Docker container).
  */
 public class LocalTransformerImpl extends AbstractLocalTransformer
 {
@@ -46,13 +47,13 @@ public class LocalTransformerImpl extends AbstractLocalTransformer
 
     private boolean available = false;
 
-    public LocalTransformerImpl(String name, ExtensionMap extensionMap, TransformerDebug transformerDebug,
+    public LocalTransformerImpl(String name, TransformerDebug transformerDebug,
                                 MimetypeService mimetypeService, boolean strictMimeTypeCheck,
                                 boolean retryTransformOnDifferentMimeType,
                                 LocalTransformServiceRegistry localTransformServiceRegistry, String baseUrl,
                                 int startupRetryPeriodSeconds)
     {
-        super(name, extensionMap, transformerDebug, mimetypeService, strictMimeTypeCheck,
+        super(name, transformerDebug, mimetypeService, strictMimeTypeCheck,
                 retryTransformOnDifferentMimeType, localTransformServiceRegistry);
         remoteTransformerClient = new RemoteTransformerClient(name, baseUrl);
         remoteTransformerClient.setStartupRetryPeriodSeconds(startupRetryPeriodSeconds);

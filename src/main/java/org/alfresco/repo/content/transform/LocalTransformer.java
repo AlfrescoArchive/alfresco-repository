@@ -32,9 +32,7 @@ import org.alfresco.service.cmr.repository.NodeRef;
 import java.util.Map;
 
 /**
- * Interface of a local transformer using flat transform options. The configuration of what is supported is defined
- * in {@code local-transform-service-config.json}. Each transformer is automatically registered with the
- * {@link LocalTransformServiceRegistry}.
+ * Interface of a local transformer using flat transform options.
  */
 public interface LocalTransformer
 {

@@ -30,7 +30,6 @@ import org.alfresco.service.cmr.repository.ContentReader;
 import org.alfresco.service.cmr.repository.ContentWriter;
 import org.alfresco.service.cmr.repository.MimetypeService;
 import org.alfresco.service.cmr.repository.NodeRef;
-import org.alfresco.transform.client.model.config.ExtensionMap;
 import org.alfresco.util.TempFileProvider;
 
 import java.io.File;
@@ -39,8 +38,11 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Transformer that passes a document through a pipeline of transformations to arrive at an target mimetype. Instances
- * are automatically created for pipeline transformers defined in {@code}local-transform-service-config.json{@code}.
+ * Transformer that passes a document through a pipeline of transformations to arrive at an target mimetype.
+ *
+ * Instances are automatically created for transformers identified by alfresco/transform json files and returned from
+ * T-Engines which are themselves identified by global properties the match the pattern localTransformer.&lt;name>.url.
+ * The transforms take place in a separate process (typically a Docker container).
  */
 public class LocalPipelineTransformer extends AbstractLocalTransformer
 {
@@ -52,12 +54,12 @@ public class LocalPipelineTransformer extends AbstractLocalTransformer
         String targetMimetype;
     }
 
-    public LocalPipelineTransformer(String name, ExtensionMap extensionMap, TransformerDebug transformerDebug,
+    public LocalPipelineTransformer(String name, TransformerDebug transformerDebug,
                                     MimetypeService mimetypeService, boolean strictMimeTypeCheck,
                                     boolean retryTransformOnDifferentMimeType,
                                     LocalTransformServiceRegistry localTransformServiceRegistry)
     {
-        super(name, extensionMap, transformerDebug, mimetypeService, strictMimeTypeCheck,
+        super(name, transformerDebug, mimetypeService, strictMimeTypeCheck,
                 retryTransformOnDifferentMimeType, localTransformServiceRegistry);
     }
 
@@ -67,11 +69,11 @@ public class LocalPipelineTransformer extends AbstractLocalTransformer
         return true;
     }
 
-    public void addIntermediateTransformer(LocalTransformer intermediateTransformer, String targetExt)
+    public void addIntermediateTransformer(LocalTransformer intermediateTransformer, String targetMimetype)
     {
         IntermediateTransformer transformer = new IntermediateTransformer();
         transformer.intermediateTransformer = intermediateTransformer;
-        transformer.targetMimetype = extensionMap.toMimetype(targetExt);
+        transformer.targetMimetype = targetMimetype;
         transformers.add(transformer);
     }
 
@@ -96,8 +98,8 @@ public class LocalPipelineTransformer extends AbstractLocalTransformer
             else
             {
                 // make a temp file writer with the correct extension
-                String sourceExt = extensionMap.toExtension(currentReader.getMimetype());
-                String targetExt = extensionMap.toExtension(transformer.targetMimetype);
+                String sourceExt = mimetypeService.getExtension(currentReader.getMimetype());
+                String targetExt = mimetypeService.getExtension(transformer.targetMimetype);
                 File tempFile = TempFileProvider.createTempFile(
                         "LocalPipelineTransformer_intermediate_" + sourceExt + "_",
                         "." + targetExt);

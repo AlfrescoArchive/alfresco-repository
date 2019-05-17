@@ -25,7 +25,13 @@
  */
 package org.alfresco.transform.client.model.config;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -37,10 +43,13 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.net.URL;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -55,33 +64,18 @@ import static org.junit.Assert.assertTrue;
  */
 public class TransformServiceRegistryImplTest
 {
-    public static final String GIF = "gif";
-    public static final String JPEG = "jpeg";
-    public static final String PNG = "png";
-    public static final String TIFF = "tiff";
-    public static final String PDF = "pdf";
-    public static final String DOC = "doc";
-    public static final String XLS = "xls";
-    public static final String PPT = "ppt";
-    public static final String DOCX = "docx";
-    public static final String XLSX = "xlsx";
-    public static final String PPTX = "pptx";
-    public static final String MSG = "msg";
-    public static final String TXT = "txt";
+    private static Log log = LogFactory.getLog(TransformServiceRegistryImplTest.class);
 
-    public static final String GIF_MIMETYPE = "image/gif";
-    public static final String JPEG_MIMETYPE = "image/jpeg";
-    public static final String PNG_MIMETYPE = "image/png";
-    public static final String TIFF_MIMETYPE = "image/tiff";
-    public static final String PDF_MIMETYPE = "application/pdf";
-    public static final String DOC_MIMETYPE = "application/msword";
-    public static final String XLS_MIMETYPE = "application/vnd.ms-excel";
-    public static final String PPT_MIMETYPE = "application/vnd.ms-powerpoint";
-    public static final String DOCX_MIMETYPE = "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
-    public static final String XLSX_MIMETYPE = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
-    public static final String PPTX_MIMETYPE = "application/vnd.openxmlformats-officedocument.presentationml.presentation";
-    public static final String MSG_MIMETYPE = "application/vnd.ms-outlook";
-    public static final String TXT_MIMETYPE = "text/plain";
+    public static final String GIF = "image/gif";
+    public static final String JPEG = "image/jpeg";
+    public static final String PNG = "image/png";
+    public static final String TIFF = "image/tiff";
+    public static final String PDF = "application/pdf";
+    public static final String DOC = "application/msword";
+    public static final String XLS = "application/vnd.ms-excel";
+    public static final String PPT = "application/vnd.ms-powerpoint";
+    public static final String MSG = "application/vnd.ms-outlook";
+    public static final String TXT = "text/plain";
 
     public static final String TRANSFORM_SERVICE_CONFIG = "alfresco/transform-service-config.json";
     public static final ObjectMapper JSON_OBJECT_MAPPER = new ObjectMapper();
@@ -89,59 +83,24 @@ public class TransformServiceRegistryImplTest
     private TransformServiceRegistryImpl registry;
     protected TransformBuilder builder;
     protected Transformer transformer;
-    protected ExtensionMap extensionMap;
 
     @Before
     public void setUp() throws Exception
     {
-        extensionMap = new ExtensionMap()
-        {
-            private Map<String, String> map = new HashMap<>();
-
-            {
-                map.put(GIF, GIF_MIMETYPE);
-                map.put(JPEG, JPEG_MIMETYPE);
-                map.put(PNG, PNG_MIMETYPE);
-                map.put(TIFF, TIFF_MIMETYPE);
-                map.put(PDF, PDF_MIMETYPE);
-                map.put(DOC, DOC_MIMETYPE);
-                map.put(XLS, XLS_MIMETYPE);
-                map.put(PPT, PPT_MIMETYPE);
-                map.put(DOCX, DOCX_MIMETYPE);
-                map.put(XLSX, XLSX_MIMETYPE);
-                map.put(PPTX, PPTX_MIMETYPE);
-                map.put(MSG, MSG_MIMETYPE);
-                map.put(TXT, TXT_MIMETYPE);
-            }
-
-            @Override
-            public String toMimetype(String extension)
-            {
-                return map.get(extension);
-            }
-
-            @Override
-            public String toExtension(String mimetype)
-            {
-                for (Map.Entry<String, String> entry : map.entrySet())
-                {
-                    if (entry.getValue().equals(mimetype))
-                    {
-                        return entry.getKey();
-                    }
-                }
-                return null;
-            }
-        };
-
         registry = buildTransformServiceRegistryImpl();
         builder = new TransformBuilder();
     }
 
     protected TransformServiceRegistryImpl buildTransformServiceRegistryImpl()
     {
-        TransformServiceRegistryImpl registry = new TransformServiceRegistryImpl();
-        registry.setExtensionMap(extensionMap);
+        TransformServiceRegistryImpl registry = new TransformServiceRegistryImpl()
+        {
+            @Override
+            protected Log getLog()
+            {
+                return log;
+            }
+        };
         registry.setJsonObjectMapper(JSON_OBJECT_MAPPER);
         return registry;
     }
@@ -217,35 +176,33 @@ public class TransformServiceRegistryImplTest
         registry = buildTransformServiceRegistryImpl();
         registry.register(transformer);
 
-        assertTrue(registry.isSupported(XLS_MIMETYPE, 1024, TXT_MIMETYPE, Collections.emptyMap(), null));
-        assertTrue(registry.isSupported(XLS_MIMETYPE, 1024000, TXT_MIMETYPE, null, null));
-        assertFalse(registry.isSupported(XLS_MIMETYPE, 1024001, TXT_MIMETYPE, Collections.emptyMap(), null));
-        assertTrue(registry.isSupported(DOC_MIMETYPE, 1024001, TXT_MIMETYPE, null, null));
+        assertTrue(registry.isSupported(XLS, 1024, TXT, Collections.emptyMap(), null));
+        assertTrue(registry.isSupported(XLS, 1024000, TXT, null, null));
+        assertFalse(registry.isSupported(XLS, 1024001, TXT, Collections.emptyMap(), null));
+        assertTrue(registry.isSupported(DOC, 1024001, TXT, null, null));
     }
 
-    private void assertTransformerName(String sourceExt, long sourceSizeInBytes, String targetExt,
+    private void assertTransformerName(String sourceMimetype, long sourceSizeInBytes, String targetMimetype,
                                        Map<String, String> actualOptions, String expectedTransformerName,
                                        Transformer... transformers)
     {
         buildAndPopulateRegistry(transformers);
-        String sourceMimetype = extensionMap.toMimetype(sourceExt);
-        String targetMimetype = extensionMap.toMimetype(targetExt);
         String transformerName = registry.getTransformerName(sourceMimetype, sourceSizeInBytes, targetMimetype, actualOptions, null);
-        assertEquals(sourceExt+" to "+targetExt+" should have returned "+expectedTransformerName, expectedTransformerName, transformerName);
+        assertEquals(sourceMimetype+" to "+targetMimetype+" should have returned "+expectedTransformerName, expectedTransformerName, transformerName);
     }
 
-    private void assertSupported(String sourceExt, long sourceSizeInBytes, String targetExt,
+    private void assertSupported(String sourceMimetype, long sourceSizeInBytes, String targetMimetype,
                                  Map<String, String> actualOptions, String unsupportedMsg)
     {
-        assertSupported(sourceExt, sourceSizeInBytes, targetExt, actualOptions, unsupportedMsg, transformer);
+        assertSupported(sourceMimetype, sourceSizeInBytes, targetMimetype, actualOptions, unsupportedMsg, transformer);
     }
 
-    private void assertSupported(String sourceExt, long sourceSizeInBytes, String targetExt,
+    private void assertSupported(String sourceMimetype, long sourceSizeInBytes, String targetMimetype,
                                  Map<String, String> actualOptions, String unsupportedMsg,
                                  Transformer... transformers)
     {
         buildAndPopulateRegistry(transformers);
-        assertSupported(sourceExt, sourceSizeInBytes, targetExt, actualOptions, null, unsupportedMsg);
+        assertSupported(sourceMimetype, sourceSizeInBytes, targetMimetype, actualOptions, null, unsupportedMsg);
     }
 
     private void buildAndPopulateRegistry(Transformer[] transformers)
@@ -257,20 +214,18 @@ public class TransformServiceRegistryImplTest
         }
     }
 
-    private void assertSupported(String sourceExt, long sourceSizeInBytes, String targetExt,
+    private void assertSupported(String sourceMimetype, long sourceSizeInBytes, String targetMimetype,
                                  Map<String, String> actualOptions, String transformName,
                                  String unsupportedMsg)
     {
-        String sourceMimetype = extensionMap.toMimetype(sourceExt);
-        String targetMimetype = extensionMap.toMimetype(targetExt);
         boolean supported = registry.isSupported(sourceMimetype, sourceSizeInBytes, targetMimetype, actualOptions, transformName);
         if (unsupportedMsg == null || unsupportedMsg.isEmpty())
         {
-            assertTrue(sourceExt+" to "+targetExt+" should be SUPPORTED", supported);
+            assertTrue(sourceMimetype+" to "+targetMimetype+" should be SUPPORTED", supported);
         }
         else
         {
-            assertFalse(sourceExt+" to "+targetExt+" should NOT be supported", supported);
+            assertFalse(sourceMimetype+" to "+targetMimetype+" should NOT be supported", supported);
         }
     }
 
@@ -411,89 +366,81 @@ public class TransformServiceRegistryImplTest
     @Test
     public void testJsonConfig() throws IOException
     {
-        try (Reader reader = new BufferedReader(new InputStreamReader(getClass().getClassLoader().
-                getResourceAsStream(getTransformServiceConfig()))))
-        {
-            registry.register(reader);
+        registry.register(getTransformServiceConfig());
 
-            // Check the count of transforms supported
-            assertEquals("The number of UNIQUE source to target mimetypes transforms has changed. Config change?",
-                    60, countSupportedTransforms(true));
-            assertEquals("The number of source to target mimetypes transforms has changed. " +
-                            "There may be multiple transformers for the same combination. Config change?",
-                    60, countSupportedTransforms(false));
+        // Check the count of transforms supported
+        assertEquals("The number of UNIQUE source to target mimetypes transforms has changed. Config change?",
+                60, countSupportedTransforms(true));
+        assertEquals("The number of source to target mimetypes transforms has changed. " +
+                        "There may be multiple transformers for the same combination. Config change?",
+                60, countSupportedTransforms(false));
 
-            // Check a supported transform for each transformer.
-            assertSupported(DOC, 1234, PDF, null, null, ""); // libreoffice
-            assertSupported(DOC, 1234, PDF, null, null, ""); // libreoffice
-            assertSupported(PDF, 1234, PNG, null, null, ""); // pdfrenderer
-            assertSupported(JPEG,1234, GIF, null, null, ""); // imagemagick
-            assertSupported(MSG, 1234, TXT, null, null, ""); // tika
-            assertSupported(MSG, 1234, GIF, null, null, ""); // officeToImageViaPdf
+        // Check a supported transform for each transformer.
+        assertSupported(DOC, 1234, PDF, null, null, ""); // libreoffice
+        assertSupported(DOC, 1234, PDF, null, null, ""); // libreoffice
+        assertSupported(PDF, 1234, PNG, null, null, ""); // pdfrenderer
+        assertSupported(JPEG,1234, GIF, null, null, ""); // imagemagick
+        assertSupported(MSG, 1234, TXT, null, null, ""); // tika
+        assertSupported(MSG, 1234, GIF, null, null, ""); // officeToImageViaPdf
 
-            Map<String, String> invalidPdfOptions = new HashMap<>();
-            invalidPdfOptions.put("allowEnlargement", "false");
-            assertSupported(DOC, 1234, PDF, invalidPdfOptions, null, "Invalid as there is a extra option");
-        }
+        Map<String, String> invalidPdfOptions = new HashMap<>();
+        invalidPdfOptions.put("allowEnlargement", "false");
+        assertSupported(DOC, 1234, PDF, invalidPdfOptions, null, "Invalid as there is a extra option");
     }
 
     @Test
     public void testJsonPipeline() throws IOException
     {
-        try (Reader reader = new BufferedReader(new InputStreamReader(getClass().getClassLoader().
-                getResourceAsStream("alfresco/transform-service-config-test1.json"))))
-        {
-            registry.register(reader);
+        registry.register("alfresco/transform-service-config-test1.json");
 
-            // Check the count of transforms supported
-            assertEquals("The number of UNIQUE source to target mimetypes transforms has changed. Config change?",
-                    4, countSupportedTransforms(true));
-            assertEquals("The number of source to target mimetypes transforms has changed. " +
-                            "There may be multiple transformers for the same combination. Config change?",
-                    4, countSupportedTransforms(false));
+        // Check the count of transforms supported
+        assertEquals("The number of UNIQUE source to target mimetypes transforms has changed. Config change?",
+                4, countSupportedTransforms(true));
+        assertEquals("The number of source to target mimetypes transforms has changed. " +
+                        "There may be multiple transformers for the same combination. Config change?",
+                4, countSupportedTransforms(false));
 
-            ConcurrentMap<String, List<TransformServiceRegistryImpl.SupportedTransform>> transformer =
-                    registry.transformers.get("officeToImageViaPdf");
+        ConcurrentMap<String, List<TransformServiceRegistryImpl.SupportedTransform>> transformer =
+                registry.transformers.get("officeToImageViaPdf");
 
-            // Check required and optional default correctly
-            ConcurrentMap<String, List<TransformServiceRegistryImpl.SupportedTransform>> transformsToWord =
-                    registry.transformers.get("application/msword");
-            List<TransformServiceRegistryImpl.SupportedTransform> supportedTransforms = transformsToWord.get("image/gif");
-            TransformServiceRegistryImpl.SupportedTransform supportedTransform = supportedTransforms.get(0);
+        // Check required and optional default correctly
+        ConcurrentMap<String, List<TransformServiceRegistryImpl.SupportedTransform>> transformsToWord =
+                registry.transformers.get(DOC);
+        List<TransformServiceRegistryImpl.SupportedTransform> supportedTransforms = transformsToWord.get(GIF);
+        TransformServiceRegistryImpl.SupportedTransform supportedTransform = supportedTransforms.get(0);
 
-            TransformOptionGroup imagemagick = (TransformOptionGroup)supportedTransform.transformOptions.transformOptions.get(0);
-            TransformOptionGroup pdf         = (TransformOptionGroup)supportedTransform.transformOptions.transformOptions.get(1);
+        TransformOptionGroup imagemagick = (TransformOptionGroup)supportedTransform.transformOptions.transformOptions.get(0);
+        TransformOptionGroup pdf         = (TransformOptionGroup)supportedTransform.transformOptions.transformOptions.get(1);
 
-            TransformOptionValue alphaRemove = (TransformOptionValue)imagemagick.transformOptions.get(0);
-            TransformOptionGroup crop = (TransformOptionGroup)imagemagick.transformOptions.get(4);
-            TransformOptionValue cropGravity = (TransformOptionValue)crop.transformOptions.get(0);
-            TransformOptionValue cropWidth = (TransformOptionValue)crop.transformOptions.get(1);
+        TransformOptionValue alphaRemove = (TransformOptionValue)imagemagick.transformOptions.get(0);
+        TransformOptionGroup crop = (TransformOptionGroup)imagemagick.transformOptions.get(4);
+        TransformOptionValue cropGravity = (TransformOptionValue)crop.transformOptions.get(0);
+        TransformOptionValue cropWidth = (TransformOptionValue)crop.transformOptions.get(1);
 
-            assertTrue("The holding group should be required", supportedTransform.transformOptions.isRequired());
-            assertTrue("imagemagick should be required as it is set", imagemagick.isRequired());
-            assertFalse("pdf should be optional as required is not set", pdf.isRequired());
-            assertEquals("alphaRemove", alphaRemove.getName());
-            assertEquals("cropGravity", cropGravity.getName());
-            assertEquals("cropWidth", cropWidth.getName());
-            assertFalse("alphaRemove should be optional as required is not set", alphaRemove.isRequired());
-            assertFalse("crop should be optional as required is not set", crop.isRequired());
-            assertTrue("cropGravity should be required as it is set", cropGravity.isRequired());
-            assertFalse("cropWidth should be optional as required is not set", cropWidth.isRequired());
+        assertTrue("The holding group should be required", supportedTransform.transformOptions.isRequired());
+        assertFalse("imagemagick should be optional as it is not set", imagemagick.isRequired());
+        assertFalse("pdf should be optional as required is not set", pdf.isRequired());
+        assertEquals("alphaRemove", alphaRemove.getName());
+        assertEquals("cropGravity", cropGravity.getName());
+        assertEquals("cropWidth", cropWidth.getName());
+        assertFalse("alphaRemove should be optional as required is not set", alphaRemove.isRequired());
+        assertFalse("crop should be optional as required is not set", crop.isRequired());
+        assertTrue("cropGravity should be required as it is set", cropGravity.isRequired());
+        assertFalse("cropWidth should be optional as required is not set", cropWidth.isRequired());
 
-            // Check a supported transform for each transformer.
-            assertSupported(DOC,1234, GIF,  null, null, "");
-            assertSupported(DOC,1234, PNG,  null, null, "");
-            assertSupported(DOC,1234, JPEG, null, null, "");
-            assertSupported(DOC,1234, TIFF, null, null, "");
+        // Check a supported transform for each transformer.
+        assertSupported(DOC,1234, GIF,  null, null, "");
+        assertSupported(DOC,1234, PNG,  null, null, "");
+        assertSupported(DOC,1234, JPEG, null, null, "");
+        assertSupported(DOC,1234, TIFF, null, null, "");
 
-            Map<String, String> actualOptions = new HashMap<>();
-            actualOptions.put("thumbnail", "true");
-            actualOptions.put("resizeWidth", "100");
-            actualOptions.put("resizeHeight", "100");
-            actualOptions.put("allowEnlargement", "false");
-            actualOptions.put("maintainAspectRatio", "true");
-            assertSupported(DOC,1234, PNG, actualOptions, null, "");
-        }
+        Map<String, String> actualOptions = new HashMap<>();
+        actualOptions.put("thumbnail", "true");
+        actualOptions.put("resizeWidth", "100");
+        actualOptions.put("resizeHeight", "100");
+        actualOptions.put("allowEnlargement", "false");
+        actualOptions.put("maintainAspectRatio", "true");
+        assertSupported(DOC,1234, PNG, actualOptions, null, "");
     }
 
     private int countSupportedTransforms(boolean unique)
@@ -703,13 +650,13 @@ public class TransformServiceRegistryImplTest
         assertSupported(DOC, 1024, GIF, null, "doclib", "");
         assertSupported(MSG, 1024, GIF, null, "doclib", "");
 
-        assertEquals(102400L, registry.getMaxSize(DOC_MIMETYPE, GIF_MIMETYPE, null, "doclib"));
-        assertEquals(-1L, registry.getMaxSize(MSG_MIMETYPE, GIF_MIMETYPE, null, "doclib"));
+        assertEquals(102400L, registry.getMaxSize(DOC, GIF, null, "doclib"));
+        assertEquals(-1L, registry.getMaxSize(MSG, GIF, null, "doclib"));
 
         // Change the cached value and try and check we are now using the cached value.
-        List<TransformServiceRegistryImpl.SupportedTransform> supportedTransforms = registry.cachedSupportedTransformList.get("doclib").get(DOC_MIMETYPE);
+        List<TransformServiceRegistryImpl.SupportedTransform> supportedTransforms = registry.cachedSupportedTransformList.get("doclib").get(DOC);
         supportedTransforms.get(0).maxSourceSizeBytes = 1234L;
-        assertEquals(1234L, registry.getMaxSize(DOC_MIMETYPE, GIF_MIMETYPE, null, "doclib"));
+        assertEquals(1234L, registry.getMaxSize(DOC, GIF, null, "doclib"));
     }
 
     @Test
@@ -840,15 +787,5 @@ public class TransformServiceRegistryImplTest
                 Arrays.asList(
                         new ChildTransformer(false, transformer1),
                         new ChildTransformer(true, transformer2)));
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void textMissingMimetype()
-    {
-        transformer = new Transformer("name", "1",
-                null, // there are no options
-                Arrays.asList(
-                        new SupportedSourceAndTarget("rubbish", PDF, -1)));
-        registry.register(transformer);
     }
 }

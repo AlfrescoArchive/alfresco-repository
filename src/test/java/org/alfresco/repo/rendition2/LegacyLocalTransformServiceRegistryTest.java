@@ -25,7 +25,6 @@
  */
 package org.alfresco.repo.rendition2;
 
-import com.sun.star.auth.InvalidArgumentException;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;

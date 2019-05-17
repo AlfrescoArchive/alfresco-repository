@@ -27,6 +27,7 @@ package org.alfresco.transform.client.model.config;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.commons.logging.Log;
 import org.springframework.beans.factory.InitializingBean;
 
 import java.io.IOException;
@@ -44,7 +45,7 @@ import static org.alfresco.repo.rendition2.RenditionDefinition2.TIMEOUT;
 /**
  * Used by clients to work out if a transformation is supported by the Transform Service.
  */
-public class TransformServiceRegistryImpl implements TransformServiceRegistry, InitializingBean
+public abstract class TransformServiceRegistryImpl implements TransformServiceRegistry, InitializingBean
 {
     class SupportedTransform
     {
@@ -65,7 +66,6 @@ public class TransformServiceRegistryImpl implements TransformServiceRegistry, I
     }
 
     private ObjectMapper jsonObjectMapper;
-    private ExtensionMap extensionMap;
 
     ConcurrentMap<String, ConcurrentMap<String, List<SupportedTransform>>> transformers = new ConcurrentHashMap<>();
     ConcurrentMap<String, ConcurrentMap<String, List<SupportedTransform>>> cachedSupportedTransformList = new ConcurrentHashMap<>();
@@ -75,16 +75,6 @@ public class TransformServiceRegistryImpl implements TransformServiceRegistry, I
         this.jsonObjectMapper = jsonObjectMapper;
     }
 
-    public ExtensionMap getExtensionMap()
-    {
-        return extensionMap;
-    }
-
-    public void setExtensionMap(ExtensionMap extensionMap)
-    {
-        this.extensionMap = extensionMap;
-    }
-
     @Override
     public void afterPropertiesSet() throws Exception
     {
@@ -92,37 +82,35 @@ public class TransformServiceRegistryImpl implements TransformServiceRegistry, I
         {
             throw new IllegalStateException("jsonObjectMapper has not been set");
         }
-        if (extensionMap == null)
-        {
-            throw new IllegalStateException("extensionMap has not been set");
-        }
     }
 
-    private String toMimetype(String ext)
-    {
-        String mimetype = extensionMap.toMimetype(ext);
-        if (mimetype == null)
-        {
-            throw new IllegalArgumentException("The mimetype for the file extension "+ext+" cannot be looked up by: "+
-                    extensionMap.getClass().getName());
-        }
-        return mimetype;
-    }
+    protected abstract Log getLog();
 
-    public void register(Transformer transformer)
+    public void register(String path) throws IOException
     {
-        transformer.getSupportedSourceAndTargetList().forEach(
-            e -> transformers.computeIfAbsent(toMimetype(e.getSourceExt()),
-                k -> new ConcurrentHashMap<>()).computeIfAbsent(toMimetype(e.getTargetExt()),
-                k -> new ArrayList<>()).add(
-                    new SupportedTransform(transformer.getName(),
-                            transformer.getTransformOptions(), e.getMaxSourceSizeBytes(), e.getPriority())));
+        JsonConverter jsonConverter = new JsonConverter(getLog());
+        jsonConverter.addJsonSource(path);
+        List<Transformer> transformers = jsonConverter.getTransformers();
+        for (Transformer transformer : transformers)
+        {
+            register(transformer);
+        }
     }
 
     public void register(Reader reader) throws IOException
     {
         List<Transformer> transformers = jsonObjectMapper.readValue(reader, new TypeReference<List<Transformer>>(){});
         transformers.forEach(t -> register(t));
+    }
+
+    public void register(Transformer transformer)
+    {
+        transformer.getSupportedSourceAndTargetList().forEach(
+            e -> transformers.computeIfAbsent(e.getSourceMediaType(),
+                k -> new ConcurrentHashMap<>()).computeIfAbsent(e.getTargetMediaType(),
+                k -> new ArrayList<>()).add(
+                    new SupportedTransform(transformer.getName(),
+                            transformer.getTransformOptions(), e.getMaxSourceSizeBytes(), e.getPriority())));
     }
 
     @Override

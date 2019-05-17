@@ -29,7 +29,6 @@ import org.alfresco.service.cmr.repository.ContentReader;
 import org.alfresco.service.cmr.repository.ContentWriter;
 import org.alfresco.service.cmr.repository.MimetypeService;
 import org.alfresco.service.cmr.repository.NodeRef;
-import org.alfresco.transform.client.model.config.ExtensionMap;
 import org.alfresco.transform.client.model.config.TransformServiceRegistry;
 import org.alfresco.transform.client.model.config.TransformServiceRegistryImpl;
 import org.alfresco.transform.client.model.config.TransformStep;
@@ -39,9 +38,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.InitializingBean;
 
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
-import java.io.Reader;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -57,7 +54,10 @@ public class LocalTransformServiceRegistry extends TransformServiceRegistryImpl 
 {
     private static final Log log = LogFactory.getLog(LocalTransformer.class);
 
-    private String transformServiceConfigFile;
+    private static final String LOCAL_TRANSFORMER = "localTransformer.";
+    private static final String URL = ".url";
+
+    private String pipelineConfigFolder;
     private boolean enabled = true;
     private boolean firstTime = true;
     private Properties properties;
@@ -68,9 +68,9 @@ public class LocalTransformServiceRegistry extends TransformServiceRegistryImpl 
 
     private Map<String, LocalTransformer> transformers = new HashMap<>();
 
-    public void setTransformServiceConfigFile(String transformServiceConfigFile)
+    public void setPipelineConfigFolder(String pipelineConfigFolder)
     {
-        this.transformServiceConfigFile = transformServiceConfigFile;
+        this.pipelineConfigFolder = pipelineConfigFolder;
     }
 
     public void setEnabled(boolean enabled)
@@ -110,30 +110,16 @@ public class LocalTransformServiceRegistry extends TransformServiceRegistryImpl 
     public void afterPropertiesSet() throws Exception
     {
         PropertyCheck.mandatory(this, "mimetypeService", mimetypeService);
-        PropertyCheck.mandatory(this, "transformServiceConfigFile", transformServiceConfigFile);
+        PropertyCheck.mandatory(this, "pipelineConfigFolder", pipelineConfigFolder);
         PropertyCheck.mandatory(this, "properties", properties);
         PropertyCheck.mandatory(this, "transformerDebug", transformerDebug);
-
-        setExtensionMap(new ExtensionMap() {
-            @Override
-            public String toMimetype(String extension)
-            {
-                return mimetypeService.getMimetype(extension);
-            }
-
-            @Override
-            public String toExtension(String mimetype)
-            {
-                return mimetypeService.getExtension(mimetype);
-            }
-        });
         super.afterPropertiesSet();
 
-        try (Reader reader = new BufferedReader(new InputStreamReader(getClass().getClassLoader().
-                getResourceAsStream(transformServiceConfigFile))))
-        {
-            register(reader);
-        }
+        // Reads files alfresco/transformers from resource path
+        register(pipelineConfigFolder);
+
+        // TODO read json from the T-Engines. Need to find urls to these by looking for a-g.p or system props that match "localTransformer.*.url"
+        List<String> urls = getTEngineUrls();
     }
 
     @Override
@@ -150,14 +136,13 @@ public class LocalTransformServiceRegistry extends TransformServiceRegistryImpl 
                 throw new IllegalArgumentException("Local transformers must exist and have unique names (" + name + ").");
             }
 
-            ExtensionMap extensionMap = getExtensionMap();
             List<TransformStep> transformPipeline = transformer.getTransformPipeline();
             LocalTransformer localTransformer;
             if (transformPipeline == null)
             {
                 String baseUrl = getBaseUrl(name);
                 int startupRetryPeriodSeconds = getStartupRetryPeriodSeconds(name);
-                localTransformer = new LocalTransformerImpl(name, extensionMap, transformerDebug, mimetypeService,
+                localTransformer = new LocalTransformerImpl(name, transformerDebug, mimetypeService,
                          strictMimeTypeCheck, retryTransformOnDifferentMimeType,
                         this, baseUrl, startupRetryPeriodSeconds);
             }
@@ -170,7 +155,7 @@ public class LocalTransformServiceRegistry extends TransformServiceRegistryImpl 
                             " must have more than one intermediate transformer defined.");
                 }
 
-                localTransformer = new LocalPipelineTransformer(name, extensionMap, transformerDebug, mimetypeService,
+                localTransformer = new LocalPipelineTransformer(name, transformerDebug, mimetypeService,
                         strictMimeTypeCheck, retryTransformOnDifferentMimeType, this);
                 for (int i=0; i < transformerCount; i++)
                 {
@@ -190,10 +175,10 @@ public class LocalTransformServiceRegistry extends TransformServiceRegistryImpl 
                                 intermediateTransformerName + " that has not previously been defined.");
                     }
 
-                    String targetExt = intermediateTransformerStep.getTargetExt();
+                    String targetMimetype = intermediateTransformerStep.getTargetMediaType();
                     if (i == transformerCount-1)
                     {
-                        if (targetExt != null)
+                        if (targetMimetype != null)
                         {
                             throw new IllegalArgumentException("Local pipeline transformer " + name +
                                     " must not specify targetExt for the final intermediate transformer, " +
@@ -202,13 +187,13 @@ public class LocalTransformServiceRegistry extends TransformServiceRegistryImpl 
                     }
                     else
                     {
-                        if (targetExt == null)
+                        if (targetMimetype == null)
                         {
                             throw new IllegalArgumentException("Local pipeline transformer " + name +
                                     " must specify targetExt for all intermediate transformers except for the final one.");
                         }
                     }
-                    ((LocalPipelineTransformer)localTransformer).addIntermediateTransformer(intermediateTransformer, targetExt);
+                    ((LocalPipelineTransformer)localTransformer).addIntermediateTransformer(intermediateTransformer, targetMimetype);
                 }
             }
             transformers.put(name, localTransformer);
@@ -216,13 +201,43 @@ public class LocalTransformServiceRegistry extends TransformServiceRegistryImpl 
         catch (IllegalArgumentException e)
         {
             String msg = e.getMessage();
-            log.error(msg);
+            getLog().error(msg);
         }
+    }
+
+    @Override
+    protected Log getLog()
+    {
+        return log;
+    }
+
+    private List<String> getTEngineUrls()
+    {
+        List<String> urls = new ArrayList<>();
+        for (Object o : properties.keySet())
+        {
+            if (o instanceof String)
+            {
+                String key = (String)o;
+                if (key.startsWith(LOCAL_TRANSFORMER) && key.endsWith(URL))
+                {
+                    Object url = properties.get(key);
+                    if (url instanceof String)
+                    {
+                        urls.add((String) url);
+                        // TODO remove this println
+                        System.out.println("url="+url);
+                    }
+                }
+            }
+        }
+
+        return urls;
     }
 
     private String getBaseUrl(String name)
     {
-        String baseUrlName = name + ".url";
+        String baseUrlName = LOCAL_TRANSFORMER + name + URL;
         String baseUrl = properties.getProperty(baseUrlName);
         if (baseUrl == null)
         {

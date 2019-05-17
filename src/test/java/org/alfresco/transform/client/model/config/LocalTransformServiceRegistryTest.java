@@ -46,7 +46,7 @@ public class LocalTransformServiceRegistryTest extends TransformServiceRegistryI
     @Mock
     private TransformerDebug transformerDebug;
 
-    public static final String TRANSFORM_SERVICE_CONFIG = "alfresco/local-transform-service-config.json";
+    public static final String TRANSFORM_SERVICE_CONFIG = "alfresco/transformers";
 
     @Before
     public void setUp() throws Exception
@@ -70,7 +70,6 @@ public class LocalTransformServiceRegistryTest extends TransformServiceRegistryI
     protected TransformServiceRegistryImpl buildTransformServiceRegistryImpl()
     {
         registry = new LocalTransformServiceRegistry();
-        registry.setExtensionMap(extensionMap);
         registry.setJsonObjectMapper(JSON_OBJECT_MAPPER);
         registry.setProperties(properties);
         registry.setTransformerDebug(transformerDebug);

@@ -32,16 +32,16 @@ package org.alfresco.transform.client.model.config;
 public class TransformStep
 {
     private String name;
-    private String targetExt;
+    private String targetMediaType;
 
     public TransformStep()
     {
     }
 
-    public TransformStep(String name, String targetExt)
+    public TransformStep(String name, String targetMediaType)
     {
         setName(name);
-        setTargetExt(targetExt);
+        setTargetMediaType(targetMediaType);
     }
 
     public String getName()
@@ -54,13 +54,13 @@ public class TransformStep
         this.name = name;
     }
 
-    public String getTargetExt()
+    public String getTargetMediaType()
     {
-        return targetExt;
+        return targetMediaType;
     }
 
-    public void setTargetExt(String targetExt)
+    public void setTargetMediaType(String targetMediaType)
     {
-        this.targetExt = targetExt;
+        this.targetMediaType = targetMediaType;
     }
 }
