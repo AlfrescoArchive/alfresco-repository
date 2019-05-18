@@ -10,7 +10,7 @@
   },
   "transformers": [
     {
-      "name": "tika",
+      "transformerName": "tika",
       "supportedSourceAndTargetList": [
         {"sourceMediaType": "application/pdf",                           "maxSourceSizeBytes": 26214400, "targetMediaType": "text/plain" },
         {"sourceMediaType": "application/msword",                                                        "targetMediaType": "text/plain"},

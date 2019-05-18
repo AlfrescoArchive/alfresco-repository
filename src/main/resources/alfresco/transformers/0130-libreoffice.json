@@ -1,7 +1,7 @@
 {
   "transformers": [
     {
-      "name": "libreoffice",
+      "transformerName": "libreoffice",
       "supportedSourceAndTargetList": [
         {"sourceMediaType": "application/msword",                                                                                        "targetMediaType": "application/msword" },
         {"sourceMediaType": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",                                   "targetMediaType": "application/msword" },

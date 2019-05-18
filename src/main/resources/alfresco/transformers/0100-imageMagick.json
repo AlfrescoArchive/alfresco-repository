@@ -25,7 +25,7 @@
   },
   "transformers": [
     {
-      "name": "imageMagick",
+      "transformerName": "imageMagick",
       "supportedSourceAndTargetList": [
         {"sourceMediaType": "image/gif",  "targetMediaType": "image/gif" },
         {"sourceMediaType": "image/gif",  "targetMediaType": "image/jpeg"},

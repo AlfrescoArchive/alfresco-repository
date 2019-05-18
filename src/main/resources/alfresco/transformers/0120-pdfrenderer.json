@@ -10,7 +10,7 @@
   },
   "transformers": [
     {
-      "name": "pdfrenderer",
+      "transformerName": "pdfrenderer",
       "supportedSourceAndTargetList": [
         {"sourceMediaType": "application/pdf", "targetMediaType": "image/png" }
       ],

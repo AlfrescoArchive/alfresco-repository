@@ -31,27 +31,27 @@ package org.alfresco.transform.client.model.config;
  */
 public class TransformStep
 {
-    private String name;
+    private String transformerName;
     private String targetMediaType;
 
     public TransformStep()
     {
     }
 
-    public TransformStep(String name, String targetMediaType)
+    public TransformStep(String transformerName, String targetMediaType)
     {
-        setName(name);
+        setTransformerName(transformerName);
         setTargetMediaType(targetMediaType);
     }
 
-    public String getName()
+    public String getTransformerName()
     {
-        return name;
+        return transformerName;
     }
 
-    public void setName(String name)
+    public void setTransformerName(String transformerName)
     {
-        this.name = name;
+        this.transformerName = transformerName;
     }
 
     public String getTargetMediaType()

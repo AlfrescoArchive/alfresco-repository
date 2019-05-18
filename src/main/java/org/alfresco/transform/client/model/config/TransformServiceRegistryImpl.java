@@ -109,7 +109,7 @@ public abstract class TransformServiceRegistryImpl implements TransformServiceRe
             e -> transformers.computeIfAbsent(e.getSourceMediaType(),
                 k -> new ConcurrentHashMap<>()).computeIfAbsent(e.getTargetMediaType(),
                 k -> new ArrayList<>()).add(
-                    new SupportedTransform(transformer.getName(),
+                    new SupportedTransform(transformer.getTransformerName(),
                             transformer.getTransformOptions(), e.getMaxSourceSizeBytes(), e.getPriority())));
     }
 

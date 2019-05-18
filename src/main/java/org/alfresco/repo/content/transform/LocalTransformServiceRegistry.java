@@ -115,11 +115,12 @@ public class LocalTransformServiceRegistry extends TransformServiceRegistryImpl 
         PropertyCheck.mandatory(this, "transformerDebug", transformerDebug);
         super.afterPropertiesSet();
 
+        // TODO read json from the T-Engines. Need to find urls to these by looking for a-g.p or system props that match "localTransformer.*.url"
+        // Do before reading local files, so the files can override T-Engine values.
+        List<String> urls = getTEngineUrls();
+
         // Reads files alfresco/transformers from resource path
         register(pipelineConfigFolder);
-
-        // TODO read json from the T-Engines. Need to find urls to these by looking for a-g.p or system props that match "localTransformer.*.url"
-        List<String> urls = getTEngineUrls();
     }
 
     @Override
@@ -129,16 +130,16 @@ public class LocalTransformServiceRegistry extends TransformServiceRegistryImpl 
 
         try
         {
-            String name = transformer.getName();
+            String name = transformer.getTransformerName();
 
             if (name == null || transformers.get(name) != null)
             {
                 throw new IllegalArgumentException("Local transformers must exist and have unique names (" + name + ").");
             }
 
-            List<TransformStep> transformPipeline = transformer.getTransformPipeline();
+            List<TransformStep> transformerPipeline = transformer.getTransformerPipeline();
             LocalTransformer localTransformer;
-            if (transformPipeline == null)
+            if (transformerPipeline == null)
             {
                 String baseUrl = getBaseUrl(name);
                 int startupRetryPeriodSeconds = getStartupRetryPeriodSeconds(name);
@@ -148,7 +149,7 @@ public class LocalTransformServiceRegistry extends TransformServiceRegistryImpl 
             }
             else
             {
-                int transformerCount = transformPipeline.size();
+                int transformerCount = transformerPipeline.size();
                 if (transformerCount <= 1)
                 {
                     throw new IllegalArgumentException("Local pipeline transformer " + name +
@@ -159,8 +160,8 @@ public class LocalTransformServiceRegistry extends TransformServiceRegistryImpl 
                         strictMimeTypeCheck, retryTransformOnDifferentMimeType, this);
                 for (int i=0; i < transformerCount; i++)
                 {
-                    TransformStep intermediateTransformerStep = transformPipeline.get(i);
-                    String intermediateTransformerName = intermediateTransformerStep.getName();
+                    TransformStep intermediateTransformerStep = transformerPipeline.get(i);
+                    String intermediateTransformerName = intermediateTransformerStep.getTransformerName();
                     if (name == null || transformers.get(name) != null)
                     {
                         throw new IllegalArgumentException("Local pipeline transformer " + name +

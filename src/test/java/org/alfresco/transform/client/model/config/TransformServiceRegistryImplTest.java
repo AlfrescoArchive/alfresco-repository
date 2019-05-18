@@ -25,11 +25,7 @@
  */
 package org.alfresco.transform.client.model.config;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.junit.After;
@@ -41,15 +37,11 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.io.Reader;
-import java.net.URL;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -167,7 +159,7 @@ public class TransformServiceRegistryImplTest
 
     private void assertTransformOptions(List<TransformOption> transformOptions)
     {
-        transformer = new Transformer("name", "1",
+        transformer = new Transformer("name",
                 transformOptions,
                 Arrays.asList(
                         new SupportedSourceAndTarget(DOC, TXT, -1),
@@ -243,7 +235,7 @@ public class TransformServiceRegistryImplTest
     @Test
     public void testReadWriteJson() throws IOException
     {
-        Transformer libreoffice = new Transformer("libreoffice", "1",
+        Transformer libreoffice = new Transformer("libreoffice",
                 null, // there are no options
                 Arrays.asList(
                         new SupportedSourceAndTarget(DOC, PDF, -1),
@@ -251,7 +243,7 @@ public class TransformServiceRegistryImplTest
                         new SupportedSourceAndTarget(PPT, PDF, -1),
                         new SupportedSourceAndTarget(MSG, PDF, -1)));
 
-        Transformer pdfrenderer = new Transformer("pdfrenderer", "1",
+        Transformer pdfrenderer = new Transformer("pdfrenderer",
                 Arrays.asList(
                         new TransformOptionValue(false, "page"),
                         new TransformOptionValue(false, "width"),
@@ -261,7 +253,7 @@ public class TransformServiceRegistryImplTest
                 Arrays.asList(
                         new SupportedSourceAndTarget(PDF, PNG, -1)));
 
-        Transformer tika = new Transformer("tika", "1",
+        Transformer tika = new Transformer("tika",
                 Arrays.asList(
                         new TransformOptionValue(false, "transform"),
                         new TransformOptionValue(false, "includeContents"),
@@ -275,7 +267,7 @@ public class TransformServiceRegistryImplTest
                         new SupportedSourceAndTarget(PPT, TXT, -1),
                         new SupportedSourceAndTarget(MSG, TXT, -1)));
 
-        Transformer imagemagick = new Transformer("imagemagick", "1",
+        Transformer imagemagick = new Transformer("imagemagick",
                 Arrays.asList(
                         new TransformOptionValue(false, "alphaRemove"),
                         new TransformOptionValue(false, "autoOrient"),
@@ -313,7 +305,7 @@ public class TransformServiceRegistryImplTest
                         new SupportedSourceAndTarget(TIFF, PNG, -1),
                         new SupportedSourceAndTarget(TIFF, TIFF, -1)));
 
-        Transformer officeToImage = builder.buildPipeLine("transformer1", "1",
+        Transformer officeToImage = builder.buildPipeLine("transformer1",
                 Arrays.asList(
                         new SupportedSourceAndTarget(DOC, GIF, -1),
                         new SupportedSourceAndTarget(DOC, JPEG, -1),
@@ -610,7 +602,7 @@ public class TransformServiceRegistryImplTest
     @Test
     public void testSupported()
     {
-        transformer = new Transformer("name", "1",
+        transformer = new Transformer("name",
                 Arrays.asList(
                         new TransformOptionValue(false, "page"),
                         new TransformOptionValue(false, "width"),
@@ -636,7 +628,7 @@ public class TransformServiceRegistryImplTest
     public void testCache()
     {
         // Note: transformNames are an alias for a set of actualOptions and the target mimetpe. The source mimetype may change.
-        transformer = new Transformer("name", "1",
+        transformer = new Transformer("name",
                 Arrays.asList(
                         new TransformOptionValue(false, "page"),
                         new TransformOptionValue(false, "width"),
@@ -662,15 +654,15 @@ public class TransformServiceRegistryImplTest
     @Test
     public void testGetTransformerName()
     {
-        Transformer t1 = new Transformer("transformer1", "1", null,
+        Transformer t1 = new Transformer("transformer1", null,
                 Arrays.asList(new SupportedSourceAndTarget(MSG, GIF, 100, 50)));
-        Transformer t2 = new Transformer("transformer2", "1", null,
+        Transformer t2 = new Transformer("transformer2", null,
                 Arrays.asList(new SupportedSourceAndTarget(MSG, GIF, 200, 60)));
-        Transformer t3 = new Transformer("transformer3", "1", null,
+        Transformer t3 = new Transformer("transformer3", null,
                 Arrays.asList(new SupportedSourceAndTarget(MSG, GIF, 200, 40)));
-        Transformer t4 = new Transformer("transformer4", "1", null,
+        Transformer t4 = new Transformer("transformer4", null,
                 Arrays.asList(new SupportedSourceAndTarget(MSG, GIF, -1, 100)));
-        Transformer t5 = new Transformer("transformer5", "1", null,
+        Transformer t5 = new Transformer("transformer5", null,
                 Arrays.asList(new SupportedSourceAndTarget(MSG, GIF, -1, 80)));
 
         Map<String, String> actualOptions = null;
@@ -693,7 +685,7 @@ public class TransformServiceRegistryImplTest
     @Test
     public void testMultipleTransformers()
     {
-        Transformer transformer1 = new Transformer("transformer1", "1",
+        Transformer transformer1 = new Transformer("transformer1",
                 Arrays.asList(
                         new TransformOptionValue(false, "page"),
                         new TransformOptionValue(false, "width"),
@@ -703,7 +695,7 @@ public class TransformServiceRegistryImplTest
                         new SupportedSourceAndTarget(DOC, JPEG, -1),
                         new SupportedSourceAndTarget(MSG, GIF, -1)));
 
-        Transformer transformer2 = new Transformer("transformer2", "1",
+        Transformer transformer2 = new Transformer("transformer2",
                 Arrays.asList(
                         new TransformOptionValue(false, "opt1"),
                         new TransformOptionValue(false, "opt2")),
@@ -711,7 +703,7 @@ public class TransformServiceRegistryImplTest
                         new SupportedSourceAndTarget(PDF, GIF, -1),
                         new SupportedSourceAndTarget(PPT, JPEG, -1)));
 
-        Transformer transformer3 = new Transformer("transformer3", "1",
+        Transformer transformer3 = new Transformer("transformer3",
                 Arrays.asList(
                         new TransformOptionValue(false, "opt1")),
                 Arrays.asList(
@@ -740,13 +732,13 @@ public class TransformServiceRegistryImplTest
     @Test
     public void testPipeline()
     {
-        Transformer transformer1 = new Transformer("transformer1", "1",
+        Transformer transformer1 = new Transformer("transformer1",
                 null, // there are no options
                 Arrays.asList(
                         new SupportedSourceAndTarget(DOC, PDF, -1),
                         new SupportedSourceAndTarget(MSG, PDF, -1)));
 
-        Transformer transformer2 = new Transformer("transformer2", "1",
+        Transformer transformer2 = new Transformer("transformer2",
                 Arrays.asList(
                         new TransformOptionValue(false, "page"),
                         new TransformOptionValue(false, "width"),
@@ -779,7 +771,7 @@ public class TransformServiceRegistryImplTest
 
     private void buildPipelineTransformer(Transformer transformer1, Transformer transformer2)
     {
-        transformer = builder.buildPipeLine("transformer1", "1",
+        transformer = builder.buildPipeLine("transformer1",
                 Arrays.asList(
                         new SupportedSourceAndTarget(DOC, GIF, -1),
                         new SupportedSourceAndTarget(DOC, JPEG, -1),

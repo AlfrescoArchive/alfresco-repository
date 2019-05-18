@@ -26,7 +26,6 @@
 package org.alfresco.transform.client.model.config;
 
 import java.util.List;
-import java.util.Objects;
 
 /**
  * Represents a set of transformations supported by the Transform Service that share the same transform options. Each
@@ -37,24 +36,21 @@ import java.util.Objects;
  * transformations which allows new transformations to be added without the need change client data structures other
  * than to define new name value pairs. For this to work the Transform Service defines unique names for each option.
  * <ul>
- *     <li>name - is unique. The client should infer nothing from the name as it is simply a label.</lI>
- *     <li>version - of the transformer. The client should infer nothing from the value and should only use it
- *     in messages. There should only be one version supplied to the client for each name.</li>
+ *     <li>transformerName - is unique. The client should infer nothing from the name as it is simply a label.</lI>
  *     <li>transformOptions - a grouping of individual transformer transformOptions. The group may be optional and may
  *     contain nested transformOptions.</li>
  * </ul>
  * For local transforms, this structure is extended when defining a pipeline transform.
  * <ul>
- *     <li>transformPipeline - an array of pairs of transformer name and target extension for each transformer in the
+ *     <li>transformerPipeline - an array of pairs of transformer name and target extension for each transformer in the
  *     pipeline. The last one should not have an extension as that is defined by the request and should be in the
  *     supported list.</li>
  * </ul>
  */
 public class Transformer
 {
-    private String name;
-    private String version;
-    private List<TransformStep> transformPipeline;
+    private String transformerName;
+    private List<TransformStep> transformerPipeline;
     private List<TransformOption> transformOptions;
     private List<SupportedSourceAndTarget> supportedSourceAndTargetList;
 
@@ -62,48 +58,37 @@ public class Transformer
     {
     }
 
-    public Transformer(String name, String version, List<TransformOption> transformOptions, List<SupportedSourceAndTarget> supportedSourceAndTargetList)
+    public Transformer(String transformerName, List<TransformOption> transformOptions, List<SupportedSourceAndTarget> supportedSourceAndTargetList)
     {
-        setName(name);
-        setVersion(version);
+        setTransformerName(transformerName);
         setTransformOptions(transformOptions);
         setSupportedSourceAndTargetList(supportedSourceAndTargetList);
     }
 
-    public Transformer(String name, String version, List<TransformStep> transformPipeline, List<TransformOption> transformOptions, List<SupportedSourceAndTarget> supportedSourceAndTargetList)
+    public Transformer(String transformerName, String version, List<TransformStep> transformerPipeline, List<TransformOption> transformOptions, List<SupportedSourceAndTarget> supportedSourceAndTargetList)
     {
-        this(name, version, transformOptions, supportedSourceAndTargetList);
-        setTransformPipeline(transformPipeline);
+        this(transformerName, transformOptions, supportedSourceAndTargetList);
+        setTransformerPipeline(transformerPipeline);
     }
 
-    public String getName()
+    public String getTransformerName()
     {
-        return name;
+        return transformerName;
     }
 
-    public void setName(String name)
+    public void setTransformerName(String transformerName)
     {
-        this.name = name;
+        this.transformerName = transformerName;
     }
 
-    public String getVersion()
+    public List<TransformStep> getTransformerPipeline()
     {
-        return version;
+        return transformerPipeline;
     }
 
-    public void setVersion(String version)
+    public void setTransformerPipeline(List<TransformStep> transformerPipeline)
     {
-        this.version = version;
-    }
-
-    public List<TransformStep> getTransformPipeline()
-    {
-        return transformPipeline;
-    }
-
-    public void setTransformPipeline(List<TransformStep> transformPipeline)
-    {
-        this.transformPipeline = transformPipeline;
+        this.transformerPipeline = transformerPipeline;
     }
 
     public List<TransformOption> getTransformOptions()

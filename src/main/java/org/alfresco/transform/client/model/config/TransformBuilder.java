@@ -27,7 +27,6 @@ package org.alfresco.transform.client.model.config;
 
 import java.util.ArrayList;
 import java.util.List;
-import org.alfresco.transform.client.model.config.Transformer;
 
 /**
  * Helper class that builds a {@link Transformer} given the source and target extensions and a pipeline of Transformers
@@ -35,7 +34,7 @@ import org.alfresco.transform.client.model.config.Transformer;
  */
 public class TransformBuilder
 {
-    public Transformer buildPipeLine(String name, String version, List<SupportedSourceAndTarget> sourceAndTargetList,
+    public Transformer buildPipeLine(String name, List<SupportedSourceAndTarget> sourceAndTargetList,
                                      List<ChildTransformer> transformerList)
     {
         List<TransformOption> options = new ArrayList<>(transformerList.size());
@@ -48,6 +47,6 @@ public class TransformBuilder
                         options.add(new TransformOptionGroup(t.isRequired(), t.getTransformer().getTransformOptions()));
                     }
                 });
-        return new Transformer(name, version, options, sourceAndTargetList);
+        return new Transformer(name, options, sourceAndTargetList);
     }
 }

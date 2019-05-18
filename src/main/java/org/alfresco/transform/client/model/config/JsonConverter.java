@@ -35,15 +35,20 @@ import org.apache.commons.logging.Log;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.Reader;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Comparator;
+import java.util.Collections;
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.jar.JarEntry;
+import java.util.jar.JarFile;
 
 /**
  * This class recreates the json format used in ACS 6.1 where we just had an array of transformers and each
@@ -76,23 +81,59 @@ public class JsonConverter
 
     public void addJsonSource(String path) throws IOException
     {
-        URL url = getClass().getClassLoader().getResource(path);
-        File root = new File(url.getPath());
-        if (root.isDirectory())
+        final File jarFile = new File(getClass().getProtectionDomain().getCodeSource().getLocation().getPath());
+        if (jarFile.isFile())
         {
-            File[] files = root.listFiles();
-            Arrays.sort(files, (file1, file2) -> file1.getName().compareTo(file2.getName()));
-            for (File file: files)
+            JarFile jar = new JarFile(jarFile);
+            Enumeration<JarEntry> entries = jar.entries(); //gives ALL entries in jar
+            String prefix = path + "/";
+            List<String> names = new ArrayList<>();
+            while (entries.hasMoreElements())
             {
-                System.out.println("file="+file.getPath());
-                addJsonSource(new FileReader(file));
+                final String name = entries.nextElement().getName();
+                if (name.startsWith(prefix) && name.length() > prefix.length())
+                {
+                    names.add(name);
+                }
             }
+            Collections.sort(names);
+            for (String name : names)
+            {
+                log.debug("Reading resource "+name);
+                addJsonSource(new InputStreamReader(getResourceAsStream(name)));
+            }
+
+            jar.close();
         }
         else
         {
-            System.out.println("file="+root.getPath());
-            addJsonSource(new FileReader(root));
+            URL url = getClass().getClassLoader().getResource(path);
+            if (url != null)
+            {
+                File root = new File(url.getPath());
+                if (root.isDirectory())
+                {
+                    File[] files = root.listFiles();
+                    Arrays.sort(files, (file1, file2) -> file1.getName().compareTo(file2.getName()));
+                    for (File file: files)
+                    {
+                        log.debug("Reading dir file "+file.getPath());
+                        addJsonSource(new FileReader(file));
+                    }
+                }
+                else
+                {
+                    log.debug("Reading file "+root.getPath());
+                    addJsonSource(new FileReader(root));
+                }
+            }
         }
+    }
+
+    private InputStream getResourceAsStream(String resource)
+    {
+        final InputStream in = Thread.currentThread().getContextClassLoader().getResourceAsStream(resource);
+        return in == null ? getClass().getResourceAsStream(resource) : in;
     }
 
     public void addJsonSource(Reader reader) throws IOException
@@ -131,14 +172,10 @@ public class JsonConverter
 
     public List<Transformer> getTransformers() throws IOException
     {
-        ArrayNode transformers = getCombinedJson();
-        return jsonObjectMapper.convertValue(transformers, new TypeReference<List<Transformer>>(){});
-    }
+        List<Transformer> transformers = new ArrayList<>();
 
-    private ArrayNode getCombinedJson() throws IOException
-    {
         // After all json input has been loaded build the output with the options in place.
-        ArrayNode transformers = jsonObjectMapper.createArrayNode();
+        ArrayNode transformersNode = jsonObjectMapper.createArrayNode();
         for (ObjectNode transform : allTransforms)
         {
             try
@@ -183,7 +220,17 @@ public class JsonConverter
                         transform.set(TRANSFORM_OPTIONS, options);
                     }
                 }
-                transformers.add(transform);
+
+                try
+                {
+                    Transformer transformer = jsonObjectMapper.convertValue(transform, Transformer.class);
+                    transformers.add(transformer);
+                }
+                catch (IllegalArgumentException e)
+                {
+                    log.error("Invalid transformer "+getTransformName(transform)+" "+e.getMessage());
+                }
+                transformersNode.add(transform);
             }
             catch (IllegalArgumentException e)
             {
@@ -193,6 +240,7 @@ public class JsonConverter
         }
 
         return transformers;
+//        return jsonObjectMapper.convertValue(transformersNode, new TypeReference<List<Transformer>>(){});
     }
 
     private ArrayNode getTransformOptions(ArrayNode transformOptions, int i, ObjectNode transform)
