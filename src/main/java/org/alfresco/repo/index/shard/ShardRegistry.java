@@ -49,4 +49,6 @@ public interface ShardRegistry
     public HashMap<Floc, HashMap<Shard, HashSet<ShardState>>> getFlocs();
 
     public void purgeAgedOutShards();
+
+    public int getShardByTransaction(long timestamp);
 }
