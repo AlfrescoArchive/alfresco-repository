@@ -139,4 +139,10 @@ class TestNode implements Node
         return null;
     }
 
+    @Override
+    public int getExplicitShardId()
+    {
+        return 0;
+    }
+
 }
