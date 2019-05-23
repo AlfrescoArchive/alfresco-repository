@@ -25,27 +25,42 @@
  */
 package org.alfresco.repo.index.shard;
 
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import org.alfresco.service.cmr.search.SearchParameters;
 
 /**
- * @author Andy
+ * A registry which collects all the active shard subscriptions.
  *
+ * @author Andy
+ * @author agazzarini
+ * @author eporciani
  */
 public interface ShardRegistry
 {
+    /**
+     * Registers (or updates the existing subscription) of a shard.
+     *
+     * @param shardState the shard state, which contains the information about the shard that wants to subscribe/register.
+     */
     void registerShardState(ShardState shardState);
     
     List<ShardInstance> getIndexSlice(SearchParameters searchParameters);
     
     void purge();
     
-    HashMap<Floc, HashMap<Shard, HashSet<ShardState>>> getFlocs();
+    Map<Floc, Map<Shard, Set<ShardState>>> getFlocs();
 
     void purgeAgedOutShards();
 
-    int getShardInstanceByTransactionTimestamp(String coreId, long timestamp);
+    /**
+     * Returns the shard instance (i.e. shard number) which owns (or should own) the transaction associated with the given timestamp.
+     *
+     * @param coreId an identifier (e.g. core name, base url) of the core / collection whose requested shard belongs to.
+     * @param txnTimestamp the transaction timestamp used as search criteria.
+     * @return the shard instance (i.e. shard number) which owns (or should own) the transaction associated with the given timestamp.
+     */
+    int getShardInstanceByTransactionTimestamp(String coreId, long txnTimestamp);
 }
