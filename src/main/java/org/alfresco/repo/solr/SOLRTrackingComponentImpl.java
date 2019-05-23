@@ -46,6 +46,7 @@ import org.alfresco.repo.dictionary.DictionaryDAO;
 import org.alfresco.repo.domain.node.Node;
 import org.alfresco.repo.domain.node.NodeDAO;
 import org.alfresco.repo.domain.node.NodeDAO.ChildAssocRefQueryCallback;
+import org.alfresco.repo.domain.node.NodeEntity;
 import org.alfresco.repo.domain.permissions.AclDAO;
 import org.alfresco.repo.domain.qname.QNameDAO;
 import org.alfresco.repo.domain.solr.SOLRDAO;
@@ -375,6 +376,10 @@ public class SOLRTrackingComponentImpl implements SOLRTrackingComponent
 
 	        for (Node node : nodes)
 	        {
+                int shardInstance = shardRegistry.getShardInstanceByTransactionTimestamp(
+                        nodeParameters.getCoreName(),
+                        node.getTransaction().getCommitTimeMs());
+                ((NodeEntity) node).setExplicitShardId(shardInstance);
 	            callback.handleNode(node);
 	        }
 	    }
