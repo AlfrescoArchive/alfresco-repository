@@ -32,7 +32,6 @@ import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.cmr.repository.datatype.DefaultTypeConverter;
 import org.junit.Before;
 import org.junit.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import static org.alfresco.model.ContentModel.PROP_CONTENT;
 
@@ -143,6 +142,10 @@ public class LegacyLocalTransformClientIntegrationTest extends AbstractRendition
             {
                 RenditionDefinition2 renditionDefinition =
                         renditionDefinitionRegistry2.getRenditionDefinition(renditionDefinitionName);
+                String contentUrl = contentData.getContentUrl();
+                String sourceMimetype = contentData.getMimetype();
+                long size = contentData.getSize();
+                transformClient.checkSupported(sourceNode, renditionDefinition, sourceMimetype, size, contentUrl);
                 transformClient.transform(
                         sourceNode,
                         renditionDefinition,

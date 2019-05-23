@@ -5,7 +5,7 @@
       "transformerPipeline" : [
         {"transformerName": "libreoffice", "targetMediaType": "application/pdf"},
         {"transformerName": "pdfrenderer", "targetMediaType": "image/png"},
-        {"transformerName": "imagemagick"}
+        {"transformerName": "imageMagick"}
       ],
       "supportedSourceAndTargetList": [
         {"sourceMediaType": "application/msword",  "targetMediaType": "image/gif" },
