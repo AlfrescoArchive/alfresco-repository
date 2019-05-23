@@ -376,9 +376,14 @@ public class SOLRTrackingComponentImpl implements SOLRTrackingComponent
 
 	        for (Node node : nodes)
 	        {
-                int shardInstance = shardRegistry.getShardInstanceByTransactionTimestamp(
-                        nodeParameters.getCoreName(),
-                        node.getTransaction().getCommitTimeMs());
+
+                Long timestamp = node.getTransaction().getCommitTimeMs();
+
+                int shardInstance =  timestamp != null?
+                        shardRegistry.getShardInstanceByTransactionTimestamp(
+                            nodeParameters.getCoreName(),
+                            timestamp) : 0;
+
                 ((NodeEntity) node).setExplicitShardId(shardInstance);
 	            callback.handleNode(node);
 	        }
