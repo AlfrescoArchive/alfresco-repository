@@ -59,7 +59,6 @@
         <result property="localeId" column="locale_id" jdbcType="BIGINT" javaType="java.lang.Long"/>
         <result property="aclId" column="acl_id" jdbcType="BIGINT" javaType="java.lang.Long"/>
         <result property="transaction.id" column="txn_id" jdbcType="BIGINT" javaType="java.lang.Long"/>
-        <result property="transaction.commitTimeMs" column="txn_commit_time_ms" jdbcType="BIGINT" javaType="java.lang.Long"/>
         <result property="transaction.changeTxnId" column="txn_change_id" jdbcType="VARCHAR" javaType="java.lang.String"/>
         <association property="auditableProperties" resultMap="alfresco.node.result_AuditProps"/>
     </resultMap>
