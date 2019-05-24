@@ -36,6 +36,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.OptionalInt;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.zip.CRC32;
@@ -376,15 +377,15 @@ public class SOLRTrackingComponentImpl implements SOLRTrackingComponent
 
 	        for (Node node : nodes)
 	        {
-
-                Long timestamp = node.getTransaction().getCommitTimeMs();
-
-                int shardInstance =  timestamp != null?
-                        shardRegistry.getShardInstanceByTransactionTimestamp(
+                if (shardRegistry != null){
+                    shardRegistry.getShardInstanceByTransactionTimestamp(
                             nodeParameters.getCoreName(),
-                            timestamp) : 0;
+                            node.getTransaction().getCommitTimeMs()).ifPresent(
+                                    shardId -> ((NodeEntity) node).setExplicitShardId(shardId));
 
-                ((NodeEntity) node).setExplicitShardId(shardInstance);
+                }
+
+
 	            callback.handleNode(node);
 	        }
 	    }
