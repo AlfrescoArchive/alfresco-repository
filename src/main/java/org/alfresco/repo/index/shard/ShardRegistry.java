@@ -27,6 +27,8 @@ package org.alfresco.repo.index.shard;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.OptionalInt;
 import java.util.Set;
 
 import org.alfresco.service.cmr.search.SearchParameters;
@@ -62,5 +64,5 @@ public interface ShardRegistry
      * @param txnTimestamp the transaction timestamp used as search criteria.
      * @return the shard instance (i.e. shard number) which owns (or should own) the transaction associated with the given timestamp.
      */
-    int getShardInstanceByTransactionTimestamp(String coreId, long txnTimestamp);
+    OptionalInt getShardInstanceByTransactionTimestamp(String coreId, long txnTimestamp);
 }
