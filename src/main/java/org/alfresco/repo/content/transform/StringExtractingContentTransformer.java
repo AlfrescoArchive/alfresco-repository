@@ -47,7 +47,7 @@ import org.apache.commons.logging.LogFactory;
  * @deprecated The transformations code is being moved out of the codebase and replaced by the new async RenditionService2 or other external libraries.
  */
 @Deprecated
-public class StringExtractingContentTransformer extends AbstractContentTransformer2
+public class StringExtractingContentTransformer extends AbstractRemoteContentTransformer
 {
     public static final String PREFIX_TEXT = "text/";
     
@@ -98,6 +98,12 @@ public class StringExtractingContentTransformer extends AbstractContentTransform
         return sb.toString();
     }
 
+    @Override
+    protected Log getLogger()
+    {
+        return logger;
+    }
+
     /**
      * Text to text conversions are done directly using the content reader and writer string
      * manipulation methods.
@@ -107,13 +113,13 @@ public class StringExtractingContentTransformer extends AbstractContentTransform
      * be unformatted but valid. 
      */
     @Override
-    public void transformInternal(ContentReader reader, ContentWriter writer,  TransformationOptions options)
+    public void transformLocal(ContentReader reader, ContentWriter writer,  TransformationOptions options)
             throws Exception
     {
         // is this a straight text-text transformation
         transformText(reader, writer, options);
     }
-    
+
     /**
      * Transformation optimized for text-to-text conversion
      */
@@ -163,5 +169,20 @@ public class StringExtractingContentTransformer extends AbstractContentTransform
             }
         }
         // done
+    }
+
+    @Override
+    protected void transformRemote(RemoteTransformerClient remoteTransformerClient, ContentReader reader, ContentWriter writer, TransformationOptions options, String sourceMimetype, String targetMimetype, String sourceExtension, String targetExtension, String targetEncoding) throws Exception
+    {
+        String sourceEncoding = reader.getEncoding();
+        long timeoutMs = options.getTimeoutMs();
+
+        remoteTransformerClient.request(reader, writer, sourceMimetype, sourceExtension, targetExtension,
+                timeoutMs, logger,
+                "sourceMimetype", sourceMimetype,
+                "targetMimetype", targetMimetype,
+                "sourceEncoding", sourceEncoding,
+                "targetEncoding", targetEncoding);
+
     }
 }

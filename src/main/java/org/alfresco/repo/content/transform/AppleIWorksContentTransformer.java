@@ -52,9 +52,9 @@ import java.util.List;
  * @deprecated The transformations code is being moved out of the codebase and replaced by the new async RenditionService2 or other external libraries.
  */
 @Deprecated
-public class AppleIWorksContentTransformer extends AbstractContentTransformer2
+public class AppleIWorksContentTransformer extends AbstractRemoteContentTransformer
 {
-    private static final Log log = LogFactory.getLog(AppleIWorksContentTransformer.class);
+    private static final Log logger = LogFactory.getLog(AppleIWorksContentTransformer.class);
 
     // Apple's zip entry names for previews in iWorks have changed over time.
     private static final List<String> PDF_PATHS = Arrays.asList(
@@ -88,7 +88,13 @@ public class AppleIWorksContentTransformer extends AbstractContentTransformer2
     }
 
     @Override
-    protected void transformInternal(ContentReader reader,
+    protected Log getLogger()
+    {
+        return logger;
+    }
+
+    @Override
+    protected void transformLocal(ContentReader reader,
                                      ContentWriter writer,
                                      TransformationOptions options) throws Exception
     {
@@ -97,12 +103,12 @@ public class AppleIWorksContentTransformer extends AbstractContentTransformer2
         final String targetMimetype = writer.getMimetype();
         final String targetExtension = getMimetypeService().getExtension(targetMimetype);
 
-        if (log.isDebugEnabled())
+        if (logger.isDebugEnabled())
         {
             StringBuilder msg = new StringBuilder();
             msg.append("Transforming from ").append(sourceMimetype)
                .append(" to ").append(targetMimetype);
-            log.debug(msg.toString());
+            logger.debug(msg.toString());
         }
 
         ZipArchiveInputStream iWorksZip = null;
@@ -143,5 +149,20 @@ public class AppleIWorksContentTransformer extends AbstractContentTransformer2
                 iWorksZip.close();
             }
         }
+    }
+
+    @Override
+    protected void transformRemote(RemoteTransformerClient remoteTransformerClient, ContentReader reader,
+                                   ContentWriter writer, TransformationOptions options, String sourceMimetype,
+                                   String targetMimetype, String sourceExtension, String targetExtension,
+                                   String targetEncoding) throws Exception
+    {
+        long timeoutMs = options.getTimeoutMs();
+
+        remoteTransformerClient.request(reader, writer, sourceMimetype, sourceExtension, targetExtension,
+                timeoutMs, logger,
+                "sourceExtension", sourceExtension,
+                "sourceMimetype", sourceMimetype,
+                "targetMimetype", targetMimetype);
     }
 }

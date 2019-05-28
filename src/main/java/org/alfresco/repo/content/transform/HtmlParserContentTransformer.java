@@ -62,11 +62,11 @@ import org.apache.commons.logging.LogFactory;
  * @deprecated The transformations code is being moved out of the codebase and replaced by the new async RenditionService2 or other external libraries.
  */
 @Deprecated
-public class HtmlParserContentTransformer extends AbstractContentTransformer2
+public class HtmlParserContentTransformer extends AbstractRemoteContentTransformer
 {
     @SuppressWarnings("unused")
     private static final Log logger = LogFactory.getLog(HtmlParserContentTransformer.class);
-    
+
     /**
      * Only support HTML to TEXT.
      */
@@ -91,9 +91,17 @@ public class HtmlParserContentTransformer extends AbstractContentTransformer2
         return onlySupports(MimetypeMap.MIMETYPE_HTML, MimetypeMap.MIMETYPE_TEXT_PLAIN, available);
     }
 
-    public void transformInternal(ContentReader reader, ContentWriter writer,  TransformationOptions options)
+    @Override
+    protected Log getLogger()
+    {
+        return logger;
+    }
+
+    @Override
+    public void transformLocal(ContentReader reader, ContentWriter writer, TransformationOptions options)
             throws Exception
     {
+
         // We can only work from a file
         File htmlFile = TempFileProvider.createTempFile("HtmlParserContentTransformer_", ".html");
         reader.getContent(htmlFile);
@@ -115,5 +123,22 @@ public class HtmlParserContentTransformer extends AbstractContentTransformer2
         
         // Tidy up
         htmlFile.delete();
+    }
+
+    @Override
+    protected void transformRemote(RemoteTransformerClient remoteTransformerClient, ContentReader reader,
+                                   ContentWriter writer, TransformationOptions options, String sourceMimetype,
+                                   String targetMimetype, String sourceExtension, String targetExtension,
+                                   String targetEncoding) throws Exception
+    {
+        String sourceEncoding = reader.getEncoding();
+        long timeoutMs = options.getTimeoutMs();
+
+        remoteTransformerClient.request(reader, writer, sourceMimetype, sourceExtension, targetExtension,
+                timeoutMs, logger,
+                "sourceMimetype", sourceMimetype,
+                "targetMimetype", targetMimetype,
+                "sourceEncoding", sourceEncoding,
+                "targetEncoding", targetEncoding);
     }
 }
