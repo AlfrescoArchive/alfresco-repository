@@ -5,7 +5,7 @@
       "transformerPipeline" : [
         {"transformerName": "libreoffice", "targetMediaType": "application/pdf"},
         {"transformerName": "pdfrenderer", "targetMediaType": "image/png"},
-        {"transformerName": "imageMagick"}
+        {"transformerName": "imagemagick"}
       ],
       "supportedSourceAndTargetList": [
         {"sourceMediaType": "application/msword",  "targetMediaType": "image/gif" },
@@ -44,8 +44,8 @@
         {"sourceMediaType": "application/vnd.ms-outlook",  "targetMediaType": "image/tiff"}
       ],
       "transformOptions": [
-        "pdfRendererOptions",
-        "imageMagickOptions"
+        "pdfrendererOptions",
+        "imagemagickOptions"
       ]
     }
   ]

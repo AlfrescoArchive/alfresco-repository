@@ -225,9 +225,13 @@ public class LocalTransformServiceRegistry extends TransformServiceRegistryImpl 
                     Object url = properties.get(key);
                     if (url instanceof String)
                     {
-                        urls.add((String) url);
-                        // TODO remove this println
-                        System.out.println("url="+url);
+                        String urlStr = ((String)url).trim();
+                        if (!urlStr.isEmpty())
+                        {
+                            urls.add((String) url);
+                            // TODO remove this println
+                            System.out.println("TODO rm this println url="+url);
+                        }
                     }
                 }
             }
@@ -239,7 +243,7 @@ public class LocalTransformServiceRegistry extends TransformServiceRegistryImpl 
     private String getBaseUrl(String name)
     {
         String baseUrlName = LOCAL_TRANSFORMER + name + URL;
-        String baseUrl = properties.getProperty(baseUrlName);
+        String baseUrl = getProperty(baseUrlName, null);
         if (baseUrl == null)
         {
             throw new IllegalArgumentException("Local transformer property " + baseUrlName + " was not set");
@@ -249,8 +253,8 @@ public class LocalTransformServiceRegistry extends TransformServiceRegistryImpl 
 
     private int getStartupRetryPeriodSeconds(String name)
     {
-        String startupRetryPeriodSecondsName = name + ".startupRetryPeriodSeconds";
-        String property = properties.getProperty(startupRetryPeriodSecondsName, "0");
+        String startupRetryPeriodSecondsName = LOCAL_TRANSFORMER + name + ".startupRetryPeriodSeconds";
+        String property = getProperty(startupRetryPeriodSecondsName, "60");
         int startupRetryPeriodSeconds;
         try
         {
@@ -262,6 +266,24 @@ public class LocalTransformServiceRegistry extends TransformServiceRegistryImpl 
                     " should be an integer");
         }
         return startupRetryPeriodSeconds;
+    }
+
+    /**
+     * Gets a property from an alfresco global property but falls back to a System property with the same name to
+     * allow dynamic creation of transformers without having to have an AMP to add the alfresco global property.
+     */
+    private String getProperty(String name, String defaultValue)
+    {
+        String value = properties.getProperty(name);
+        if (value == null || value.isEmpty())
+        {
+            value = System.getProperty(name);
+            if (value != null && value.isEmpty())
+            {
+                value = null;
+            }
+        }
+        return value == null ? defaultValue : value;
     }
 
     @Override

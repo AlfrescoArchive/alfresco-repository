@@ -1,6 +1,6 @@
 {
   "transformOptions": {
-    "pdfRendererOptions": [
+    "pdfrendererOptions": [
       {"value": {"name": "page"}},
       {"value": {"name": "width"}},
       {"value": {"name": "height"}},
@@ -15,7 +15,7 @@
         {"sourceMediaType": "application/pdf", "targetMediaType": "image/png" }
       ],
       "transformOptions": [
-        "pdfRendererOptions"
+        "pdfrendererOptions"
       ]
     }
   ]
