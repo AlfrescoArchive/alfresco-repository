@@ -76,6 +76,6 @@ public interface Node extends NodeIdAndAclId
     
     String getShardKey();
 
-    int getExplicitShardId();
+    Integer getExplicitShardId();
 
 }

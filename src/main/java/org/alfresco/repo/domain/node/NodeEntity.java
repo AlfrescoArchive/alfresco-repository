@@ -56,7 +56,7 @@ public class NodeEntity implements Node, PermissionCheckValue, Serializable, Clo
     private TransactionEntity transaction;
     private AuditablePropertiesEntity auditableProperties;
     private String shardKey;
-    private int explicitShardId;
+    private Integer explicitShardId;
     
     /**
      * Required default constructor
@@ -344,7 +344,7 @@ public class NodeEntity implements Node, PermissionCheckValue, Serializable, Clo
     }
 
     @Override
-    public int getExplicitShardId()
+    public Integer getExplicitShardId()
     {
         return this.explicitShardId;
     }
@@ -354,7 +354,7 @@ public class NodeEntity implements Node, PermissionCheckValue, Serializable, Clo
         this.shardKey = shardKey;
     }
 
-    public synchronized void setExplicitShardId(int explicitShardId)
+    public synchronized void setExplicitShardId(Integer explicitShardId)
     {
          this.explicitShardId = explicitShardId;
     }

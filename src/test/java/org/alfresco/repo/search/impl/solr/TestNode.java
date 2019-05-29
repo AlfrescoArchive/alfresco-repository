@@ -140,9 +140,9 @@ class TestNode implements Node
     }
 
     @Override
-    public int getExplicitShardId()
+    public Integer getExplicitShardId()
     {
-        return 0;
+        return null;
     }
 
 }
