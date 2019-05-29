@@ -35,6 +35,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Abstract supper class for local transformer using flat transform options.
@@ -43,31 +44,26 @@ public abstract class AbstractLocalTransformer implements LocalTransformer
 {
     protected static final Log log = LogFactory.getLog(LocalTransformer.class);
 
-    protected String name;
-    protected MimetypeService mimetypeService;
-    protected TransformerDebug transformerDebug;
+    protected final String name;
+    protected final MimetypeService mimetypeService;
+    protected final TransformerDebug transformerDebug;
 
-    private LocalTransformServiceRegistry localTransformServiceRegistry;
-    private boolean strictMimeTypeCheck;
-    private boolean retryTransformOnDifferentMimeType;
-    private static ThreadLocal<Integer> depth = new ThreadLocal<Integer>()
-    {
-        @Override
-        protected Integer initialValue()
-        {
-            return 0;
-        }
-    };
+    private final LocalTransformServiceRegistry localTransformServiceRegistry;
+    private final boolean strictMimeTypeCheck;
+    private final Map<String, Set<String>> strictMimetypeExceptions;
+    private final boolean retryTransformOnDifferentMimeType;
+    private final static ThreadLocal<Integer> depth = ThreadLocal.withInitial(()->0);
 
-    public AbstractLocalTransformer(String name, TransformerDebug transformerDebug,
-                                    MimetypeService mimetypeService, boolean strictMimeTypeCheck,
-                                    boolean retryTransformOnDifferentMimeType,
-                                    LocalTransformServiceRegistry localTransformServiceRegistry)
+    AbstractLocalTransformer(String name, TransformerDebug transformerDebug,
+                             MimetypeService mimetypeService, boolean strictMimeTypeCheck,
+                             Map<String, Set<String>> strictMimetypeExceptions, boolean retryTransformOnDifferentMimeType,
+                             LocalTransformServiceRegistry localTransformServiceRegistry)
     {
         this.name = name;
         this.transformerDebug = transformerDebug;
         this.mimetypeService = mimetypeService;
         this.strictMimeTypeCheck = strictMimeTypeCheck;
+        this.strictMimetypeExceptions = strictMimetypeExceptions;
         this.retryTransformOnDifferentMimeType = retryTransformOnDifferentMimeType;
         this.localTransformServiceRegistry = localTransformServiceRegistry;
     }
@@ -129,7 +125,6 @@ public abstract class AbstractLocalTransformer implements LocalTransformer
                                     String targetEncoding, String sourceExtension, String targetExtension) throws Exception
     {
 
-        long before = System.currentTimeMillis();
         try
         {
             depth.set(depth.get()+1);
@@ -143,14 +138,9 @@ public abstract class AbstractLocalTransformer implements LocalTransformer
             strictMimetypeCheck(reader, sourceNodeRef, sourceMimetype);
             transformImpl(reader, writer, transformOptions, sourceMimetype,
                     targetMimetype, sourceExtension, targetExtension, targetEncoding, renditionName, sourceNodeRef);
-
-            long after = System.currentTimeMillis();
-            recordTime(sourceMimetype, targetMimetype, after - before);
         }
         catch (Throwable e)
         {
-            long after = System.currentTimeMillis();
-            recordError(sourceMimetype, targetMimetype, after - before);
             retryWithDifferentMimetype(reader, writer, targetMimetype, transformOptions, renditionName, sourceNodeRef, e);
         }
         finally
@@ -160,27 +150,52 @@ public abstract class AbstractLocalTransformer implements LocalTransformer
         }
     }
 
-    private void strictMimetypeCheck(ContentReader reader, NodeRef sourceNodeRef, String sourceMimetype)
+    private void strictMimetypeCheck(ContentReader reader, NodeRef sourceNodeRef, String declaredMimetype)
             throws UnsupportedTransformationException
     {
-        // TODO Add transformerConfig to supply the list of allowed sourceMimetype, differentType combinations
-        //      that will allow a transform to take place.
-//        if (mimetypeService != null && transformerConfig != null && strictMimeTypeCheck && depth.get() == 1)
-//        {
-//            String differentType = mimetypeService.getMimetypeIfNotMatches(reader.getReader());
-//
-//            if (!transformerConfig.strictMimetypeCheck(sourceMimetype, differentType))
-//            {
-//                String fileName = transformerDebug.getFileName(sourceNodeRef, true, 0);
-//                String readerSourceMimetype = reader.getMimetype();
-//                String message = "Transformation of ("+fileName+
-//                        ") has not taken place because the declared mimetype ("+
-//                        readerSourceMimetype+") does not match the detected mimetype ("+
-//                        differentType+").";
-//                log.warn(message);
-//                throw new UnsupportedTransformationException(message);
-//            }
-//        }
+        if (mimetypeService != null && strictMimeTypeCheck && depth.get() == 1)
+        {
+            String detectedMimetype = mimetypeService.getMimetypeIfNotMatches(reader.getReader());
+
+            if (!strictMimetypeCheck(declaredMimetype, detectedMimetype))
+            {
+                Set<String> allowedMimetypes = strictMimetypeExceptions.get(declaredMimetype);
+                if (allowedMimetypes != null && allowedMimetypes.contains(detectedMimetype))
+                {
+                    String fileName = transformerDebug.getFileName(sourceNodeRef, true, 0);
+                    String readerSourceMimetype = reader.getMimetype();
+                    String message = "Transformation of ("+fileName+
+                            ") has not taken place because the declared mimetype ("+
+                            readerSourceMimetype+") does not match the detected mimetype ("+
+                            detectedMimetype+").";
+                    log.warn(message);
+                    throw new UnsupportedTransformationException(message);
+                }
+            }
+        }
+    }
+
+    /**
+     * When strict mimetype checking is performed before a transformation, this method is called.
+     * There are a few issues with the Tika mimetype detection. As a result we still allow some
+     * transformations to take place even if there is a discrepancy between the detected and
+     * declared mimetypes.
+     * @param declaredMimetype the mimetype on the source node
+     * @param detectedMimetype returned by Tika having looked at the content.
+     * @return true if the transformation should take place. This includes the case where the
+     *         detectedMimetype is null (returned by Tika when the mimetypes are the same), or
+     *         the supplied pair of mimetypes have been added to the
+     *         {@code}transformer.strict.mimetype.check.whitelist{@code}.
+     */
+    private boolean strictMimetypeCheck(String declaredMimetype, String detectedMimetype)
+    {
+        if (detectedMimetype == null)
+        {
+            return true;
+        }
+
+        Set<String> detectedMimetypes = strictMimetypeExceptions.get(declaredMimetype);
+        return detectedMimetypes != null && detectedMimetypes.contains(detectedMimetype);
     }
 
     private void retryWithDifferentMimetype(ContentReader reader, ContentWriter writer, String targetMimetype,
@@ -240,15 +255,5 @@ public abstract class AbstractLocalTransformer implements LocalTransformer
                 }
             }
         }
-    }
-
-    private synchronized void recordTime(String sourceMimetype, String targetMimetype, long transformationTime)
-    {
-        // TODO Do we wish to gather this information? If so we we will need very similar classes.
-    }
-
-    protected synchronized void recordError(String sourceMimetype, String targetMimetype, long transformationTime)
-    {
-        // TODO Do we wish to gather this information? If so we we will need very similar classes.
     }
 }

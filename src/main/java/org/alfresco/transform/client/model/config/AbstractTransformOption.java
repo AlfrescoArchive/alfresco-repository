@@ -31,7 +31,6 @@ package org.alfresco.transform.client.model.config;
 public abstract class AbstractTransformOption implements TransformOption
 {
     private boolean required;
-    private int step = -1;
 
     @Override
     public boolean isRequired()

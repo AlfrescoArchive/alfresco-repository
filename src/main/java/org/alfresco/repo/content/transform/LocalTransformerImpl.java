@@ -33,13 +33,14 @@ import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.util.Pair;
 
 import java.util.Map;
+import java.util.Set;
 
 /**
  * A local transformer using flat transform options.
  *
  * Instances are automatically created for transformers identified by alfresco/transform json files and returned from
- * T-Engines which are themselves identified by global properties the match the pattern localTransformer.&lt;name>.url.
- * The transforms take place in a separate process (typically a Docker container).
+ * T-Engines which are themselves identified by global properties or system properties the match the pattern
+ * localTransformer.&lt;name>.url. The transforms take place in a separate process (typically a Docker container).
  */
 public class LocalTransformerImpl extends AbstractLocalTransformer
 {
@@ -49,11 +50,12 @@ public class LocalTransformerImpl extends AbstractLocalTransformer
 
     public LocalTransformerImpl(String name, TransformerDebug transformerDebug,
                                 MimetypeService mimetypeService, boolean strictMimeTypeCheck,
+                                Map<String, Set<String>> strictMimetypeExceptions,
                                 boolean retryTransformOnDifferentMimeType,
                                 LocalTransformServiceRegistry localTransformServiceRegistry, String baseUrl,
                                 int startupRetryPeriodSeconds)
     {
-        super(name, transformerDebug, mimetypeService, strictMimeTypeCheck,
+        super(name, transformerDebug, mimetypeService, strictMimeTypeCheck, strictMimetypeExceptions,
                 retryTransformOnDifferentMimeType, localTransformServiceRegistry);
         remoteTransformerClient = new RemoteTransformerClient(name, baseUrl);
         remoteTransformerClient.setStartupRetryPeriodSeconds(startupRetryPeriodSeconds);

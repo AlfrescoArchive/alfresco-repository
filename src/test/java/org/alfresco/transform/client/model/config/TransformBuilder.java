@@ -29,8 +29,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Helper class that builds a {@link Transformer} given the source and target extensions and a pipeline of Transformers
- * for creating intermediary content, or a set of failover transformers.
+ * Helper class that builds a {@link Transformer} given the source and target types and a pipeline of Transformers
+ * for creating intermediary content.
  */
 public class TransformBuilder
 {

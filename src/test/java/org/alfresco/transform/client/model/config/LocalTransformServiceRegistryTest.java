@@ -88,4 +88,10 @@ public class LocalTransformServiceRegistryTest extends TransformServiceRegistryI
     }
 
     // TODO test pipeline
+
+    // TODO test strict mimetype check
+
+    // TODO test retry transform on different mimetype
+
+    // TODO test using system properties and alfresco-global.properties
 }

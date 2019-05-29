@@ -26,17 +26,20 @@
 package org.alfresco.transform.client.model.config;
 
 import java.util.List;
+import org.alfresco.transform.client.model.config.TransformServiceRegistry;
 
 /**
- * Represents a set of transformations supported by the Transform Service that share the same transform options. Each
- * may be an actual transformer or the amalgamation of multiple transformers. It is possible that more than one
- * transformer may able to perform a transformation from one mimetype to another. The actual selection of transformer
- * is up to the Transform Service to decide. Clients may use {@link TransformServiceRegistry#isSupported} to decide
+ * Represents a set of transformations supported by the Transform Service or Local Transform Service Registry that
+ * share the same transform options. Each may be an actual transformer or a pipeline of multiple transformers. It is
+ * possible that more than one transformer may able to perform a transformation from one mimetype to another. The actual
+ * selection of transformer is up to the Transform Service or Local Transform Service Registry to decide. Clients may
+ * use {@link TransformServiceRegistry#isSupported(String, long, String, java.util.Map, String)} to decide
  * if they should send a request to the Transform Service. As a result clients have a simple generic view of
- * transformations which allows new transformations to be added without the need change client data structures other
+ * transformations which allows new transformations to be added without the need to change client data structures other
  * than to define new name value pairs. For this to work the Transform Service defines unique names for each option.
  * <ul>
- *     <li>transformerName - is unique. The client should infer nothing from the name as it is simply a label.</lI>
+ *     <li>transformerName - is optional but if supplied should be unique. The client should infer nothing from the name
+ *     as it is simply a label, but the Local Transform Service Registry will use the name in pipelines.</lI>
  *     <li>transformOptions - a grouping of individual transformer transformOptions. The group may be optional and may
  *     contain nested transformOptions.</li>
  * </ul>

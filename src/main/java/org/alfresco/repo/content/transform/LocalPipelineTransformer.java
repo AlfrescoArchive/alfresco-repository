@@ -36,6 +36,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Transformer that passes a document through a pipeline of transformations to arrive at an target mimetype.
@@ -56,10 +57,11 @@ public class LocalPipelineTransformer extends AbstractLocalTransformer
 
     public LocalPipelineTransformer(String name, TransformerDebug transformerDebug,
                                     MimetypeService mimetypeService, boolean strictMimeTypeCheck,
+                                    Map<String, Set<String>> strictMimetypeExceptions,
                                     boolean retryTransformOnDifferentMimeType,
                                     LocalTransformServiceRegistry localTransformServiceRegistry)
     {
-        super(name, transformerDebug, mimetypeService, strictMimeTypeCheck,
+        super(name, transformerDebug, mimetypeService, strictMimeTypeCheck, strictMimetypeExceptions,
                 retryTransformOnDifferentMimeType, localTransformServiceRegistry);
     }
 

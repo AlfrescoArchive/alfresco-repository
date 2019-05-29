@@ -74,12 +74,12 @@ public class JsonConverter
     private List<ObjectNode> allTransforms = new ArrayList<>();
     private ObjectMapper jsonObjectMapper = new ObjectMapper();
 
-    public JsonConverter(Log log)
+    JsonConverter(Log log)
     {
         this.log = log;
     }
 
-    public void addJsonSource(String path) throws IOException
+    void addJsonSource(String path) throws IOException
     {
         final File jarFile = new File(getClass().getProtectionDomain().getCodeSource().getLocation().getPath());
         if (jarFile.isFile())
@@ -136,7 +136,7 @@ public class JsonConverter
         return in == null ? getClass().getResourceAsStream(resource) : in;
     }
 
-    public void addJsonSource(Reader reader) throws IOException
+    private void addJsonSource(Reader reader) throws IOException
     {
         JsonNode jsonNode = jsonObjectMapper.readValue(reader, new TypeReference<JsonNode>() {});
 
@@ -240,7 +240,6 @@ public class JsonConverter
         }
 
         return transformers;
-//        return jsonObjectMapper.convertValue(transformersNode, new TypeReference<List<Transformer>>(){});
     }
 
     private ArrayNode getTransformOptions(ArrayNode transformOptions, int i, ObjectNode transform)

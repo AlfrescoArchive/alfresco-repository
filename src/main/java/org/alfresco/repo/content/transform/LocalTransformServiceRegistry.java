@@ -40,9 +40,11 @@ import org.springframework.beans.factory.InitializingBean;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
 
 /**
  * Implements {@link TransformServiceRegistry} providing a mechanism of validating if a local transformation
@@ -56,6 +58,7 @@ public class LocalTransformServiceRegistry extends TransformServiceRegistryImpl 
 
     private static final String LOCAL_TRANSFORMER = "localTransformer.";
     private static final String URL = ".url";
+    static final String STRICT_MIMETYPE_CHECK_WHITELIST_MIMETYPES = "transformer.strict.mimetype.check.whitelist.mimetypes";
 
     private String pipelineConfigFolder;
     private boolean enabled = true;
@@ -64,6 +67,7 @@ public class LocalTransformServiceRegistry extends TransformServiceRegistryImpl 
     private MimetypeService mimetypeService;
     private TransformerDebug transformerDebug;
     private boolean strictMimeTypeCheck;
+    private Map<String, Set<String>> strictMimetypeExceptions;
     private boolean retryTransformOnDifferentMimeType;
 
     private Map<String, LocalTransformer> transformers = new HashMap<>();
@@ -115,6 +119,8 @@ public class LocalTransformServiceRegistry extends TransformServiceRegistryImpl 
         PropertyCheck.mandatory(this, "transformerDebug", transformerDebug);
         super.afterPropertiesSet();
 
+        strictMimetypeExceptions = getStrictMimetypeExceptions();
+
         // TODO read json from the T-Engines. Need to find urls to these by looking for a-g.p or system props that match "localTransformer.*.url"
         // Do before reading local files, so the files can override T-Engine values.
         List<String> urls = getTEngineUrls();
@@ -144,7 +150,7 @@ public class LocalTransformServiceRegistry extends TransformServiceRegistryImpl 
                 String baseUrl = getBaseUrl(name);
                 int startupRetryPeriodSeconds = getStartupRetryPeriodSeconds(name);
                 localTransformer = new LocalTransformerImpl(name, transformerDebug, mimetypeService,
-                         strictMimeTypeCheck, retryTransformOnDifferentMimeType,
+                         strictMimeTypeCheck, strictMimetypeExceptions, retryTransformOnDifferentMimeType,
                         this, baseUrl, startupRetryPeriodSeconds);
             }
             else
@@ -157,7 +163,8 @@ public class LocalTransformServiceRegistry extends TransformServiceRegistryImpl 
                 }
 
                 localTransformer = new LocalPipelineTransformer(name, transformerDebug, mimetypeService,
-                        strictMimeTypeCheck, retryTransformOnDifferentMimeType, this);
+                        strictMimeTypeCheck, strictMimetypeExceptions, retryTransformOnDifferentMimeType,
+                        this);
                 for (int i=0; i < transformerCount; i++)
                 {
                     TransformStep intermediateTransformerStep = transformerPipeline.get(i);
@@ -215,20 +222,21 @@ public class LocalTransformServiceRegistry extends TransformServiceRegistryImpl 
     private List<String> getTEngineUrls()
     {
         List<String> urls = new ArrayList<>();
-        for (Object o : properties.keySet())
+        for (Object o : getKeySet())
         {
             if (o instanceof String)
             {
                 String key = (String)o;
                 if (key.startsWith(LOCAL_TRANSFORMER) && key.endsWith(URL))
                 {
-                    Object url = properties.get(key);
+                    Object url = getProperty(key, null);
                     if (url instanceof String)
                     {
                         String urlStr = ((String)url).trim();
                         if (!urlStr.isEmpty())
                         {
                             urls.add((String) url);
+                            getLog().debug("T-Engine "+key+"="+url);
                             // TODO remove this println
                             System.out.println("TODO rm this println url="+url);
                         }
@@ -266,6 +274,75 @@ public class LocalTransformServiceRegistry extends TransformServiceRegistryImpl 
                     " should be an integer");
         }
         return startupRetryPeriodSeconds;
+    }
+
+    private Map<String, Set<String>> getStrictMimetypeExceptions()
+    {
+        Map<String, Set<String>> strictMimetypeExceptions = new HashMap<>();
+
+        String whitelist = getProperty(STRICT_MIMETYPE_CHECK_WHITELIST_MIMETYPES, "").trim();
+        if (!whitelist.isEmpty())
+        {
+            String[] mimetypes = whitelist.split(";");
+
+            if (mimetypes.length % 2 != 0)
+            {
+                getLog().error(STRICT_MIMETYPE_CHECK_WHITELIST_MIMETYPES+" should have an even number of mimetypes as a ; separated list.");
+            }
+            else
+            {
+                Set<String> detectedMimetypes = null;
+                for (String mimetype: mimetypes)
+                {
+                    mimetype = mimetype.trim();
+                    if (mimetype.isEmpty())
+                    {
+                        getLog().error(STRICT_MIMETYPE_CHECK_WHITELIST_MIMETYPES+" contains a blank mimetype.");
+                        // Still okay to use it in the map though, but it will be ignored.
+                    }
+
+                    if (detectedMimetypes == null)
+                    {
+                        detectedMimetypes = strictMimetypeExceptions.get(mimetype);
+                        if (detectedMimetypes == null)
+                        {
+                            detectedMimetypes = new HashSet<>();
+                            strictMimetypeExceptions.put(mimetype, detectedMimetypes);
+                        }
+                    }
+                    else
+                    {
+                        detectedMimetypes.add(mimetype);
+                        detectedMimetypes = null;
+                    }
+                }
+            }
+        }
+
+        return strictMimetypeExceptions;
+    }
+
+    /**
+     * @return the set of property keys and System keys.
+     */
+    private Set<String> getKeySet()
+    {
+        Set<Object> systemKeys = System.getProperties().keySet();
+        Set<Object> alfrescoGlobalKeys = this.properties.keySet();
+        Set<String> keys = new HashSet<>(systemKeys.size()+alfrescoGlobalKeys.size());
+        addStrings(keys, systemKeys);
+        addStrings(keys, alfrescoGlobalKeys);
+        return keys;
+    }
+
+    private void addStrings(Set<String> setOfStrings, Set<Object> objects)
+    {
+        objects.forEach(object->{
+            if (object instanceof String)
+            {
+                setOfStrings.add((String)object);
+            }
+        });
     }
 
     /**
