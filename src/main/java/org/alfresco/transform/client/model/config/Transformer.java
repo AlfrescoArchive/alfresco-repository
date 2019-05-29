@@ -68,7 +68,7 @@ public class Transformer
         setSupportedSourceAndTargetList(supportedSourceAndTargetList);
     }
 
-    public Transformer(String transformerName, String version, List<TransformStep> transformerPipeline, List<TransformOption> transformOptions, List<SupportedSourceAndTarget> supportedSourceAndTargetList)
+    public Transformer(String transformerName, List<TransformStep> transformerPipeline, List<TransformOption> transformOptions, List<SupportedSourceAndTarget> supportedSourceAndTargetList)
     {
         this(transformerName, transformOptions, supportedSourceAndTargetList);
         setTransformerPipeline(transformerPipeline);

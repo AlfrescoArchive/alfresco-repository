@@ -94,4 +94,6 @@ public class LocalTransformServiceRegistryTest extends TransformServiceRegistryI
     // TODO test retry transform on different mimetype
 
     // TODO test using system properties and alfresco-global.properties
+
+    // TODO test the JsonConverter
 }
