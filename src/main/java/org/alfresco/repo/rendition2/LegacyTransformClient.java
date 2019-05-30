@@ -53,9 +53,9 @@ import java.util.concurrent.Executors;
  * @author adavis
  */
 @Deprecated
-public class LegacyLocalTransformClient implements TransformClient, InitializingBean
+public class LegacyTransformClient implements TransformClient, InitializingBean
 {
-    private static Log logger = LogFactory.getLog(LegacyLocalTransformClient.class);
+    private static Log logger = LogFactory.getLog(LegacyTransformClient.class);
 
     private TransactionService transactionService;
 
@@ -145,7 +145,7 @@ public class LegacyLocalTransformClient implements TransformClient, Initializing
                         TransformationOptions transformationOptions = converter.getTransformationOptions(renditionName, options);
                         transformationOptions.setSourceNodeRef(sourceNodeRef);
 
-                        ContentReader reader = LegacyLocalTransformClient.this.contentService.getReader(sourceNodeRef, ContentModel.PROP_CONTENT);
+                        ContentReader reader = LegacyTransformClient.this.contentService.getReader(sourceNodeRef, ContentModel.PROP_CONTENT);
                         if (null == reader || !reader.exists())
                         {
                             throw new IllegalArgumentException("The supplied sourceNodeRef "+sourceNodeRef+" has no content.");

@@ -328,7 +328,7 @@
       <constructor-arg>
          <ref bean="transformerSelector"/>
       </constructor-arg>
-       <property name="enabled" value="${legacy.local.transform.service.enabled}" />
+       <property name="enabled" value="${legacy.transform.service.enabled}" />
        <property name="transformerDebug" ref="transformerDebug" />
    </bean>
 
@@ -474,7 +474,7 @@
          class="org.alfresco.repo.content.transform.TikaPoweredContentTransformer"
          abstract="true"
          parent="baseContentTransformer">
-       <property name="enabled" value="${legacy.local.transform.service.enabled}" />
+       <property name="enabled" value="${legacy.transform.service.enabled}" />
        <property name="remoteTransformerClient">
           <ref bean="tikaRemoteTransformerClient" />
       </property>

@@ -207,10 +207,10 @@ public class TransformServiceRegistryImplTest
     }
 
     private void assertSupported(String sourceMimetype, long sourceSizeInBytes, String targetMimetype,
-                                 Map<String, String> actualOptions, String transformName,
+                                 Map<String, String> actualOptions, String renditionName,
                                  String unsupportedMsg)
     {
-        boolean supported = registry.isSupported(sourceMimetype, sourceSizeInBytes, targetMimetype, actualOptions, transformName);
+        boolean supported = registry.isSupported(sourceMimetype, sourceSizeInBytes, targetMimetype, actualOptions, renditionName);
         if (unsupportedMsg == null || unsupportedMsg.isEmpty())
         {
             assertTrue(sourceMimetype+" to "+targetMimetype+" should be SUPPORTED", supported);

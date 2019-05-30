@@ -73,7 +73,7 @@
 
     <bean id="localTransformClient" class="org.alfresco.repo.rendition2.SwitchingTransformClient">
         <constructor-arg name="primary" ref="localTransformClientImpl" />
-        <constructor-arg name="secondary" ref="localLegacyTransformClient" />
+        <constructor-arg name="secondary" ref="legacyTransformClient" />
     </bean>
 
     <bean id="localTransformClientImpl" class="org.alfresco.repo.rendition2.LocalTransformClient">
@@ -83,7 +83,7 @@
         <property name="renditionService2" ref="renditionService2" />
     </bean>
 
-    <bean id="localLegacyTransformClient" class="org.alfresco.repo.rendition2.LegacyLocalTransformClient">
+    <bean id="legacyTransformClient" class="org.alfresco.repo.rendition2.LegacyTransformClient">
         <property name="transactionService" ref="transactionService" />
         <property name="contentService" ref="ContentService" />
         <property name="renditionService2" ref="renditionService2" />
@@ -104,7 +104,7 @@
 
     <bean id="localTransformServiceRegistry" class="org.alfresco.repo.rendition2.SwitchingTransformServiceRegistry">
         <constructor-arg name="primary" ref="localTransformServiceRegistryImpl" />
-        <constructor-arg name="secondary" ref="legacyLocalTransformServiceRegistry" />
+        <constructor-arg name="secondary" ref="legacyTransformServiceRegistry" />
     </bean>
 
     <bean id="localTransformServiceRegistryImpl" class="org.alfresco.repo.content.transform.LocalTransformServiceRegistry" >
@@ -120,10 +120,10 @@
 
     <bean id="localTransformServiceRegistryJsonObjectMapper" class="com.fasterxml.jackson.databind.ObjectMapper" />
 
-    <bean id="legacyLocalTransformServiceRegistry" class="org.alfresco.repo.rendition2.LegacyLocalTransformServiceRegistry" >
+    <bean id="legacyTransformServiceRegistry" class="org.alfresco.repo.rendition2.LegacyTransformServiceRegistry" >
         <property name="contentService" ref="contentService" />
         <property name="converter" ref="transformOptionsConverter" />
-        <property name="enabled" value="${legacy.local.transform.service.enabled}" />
+        <property name="enabled" value="${legacy.transform.service.enabled}" />
         <property name="transformerDebug" ref="transformerDebug" />
     </bean>
 

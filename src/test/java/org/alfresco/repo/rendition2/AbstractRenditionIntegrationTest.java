@@ -44,7 +44,6 @@ import org.alfresco.service.cmr.security.PermissionService;
 import org.alfresco.service.cmr.security.PersonService;
 import org.alfresco.service.namespace.QName;
 import org.alfresco.service.transaction.TransactionService;
-import org.alfresco.util.ApplicationContextHelper;
 import org.alfresco.util.BaseSpringTest;
 import org.alfresco.util.GUID;
 import org.alfresco.util.PropertyMap;
@@ -73,9 +72,6 @@ public abstract class AbstractRenditionIntegrationTest extends BaseSpringTest
 
     @Autowired
     protected RenditionDefinitionRegistry2 renditionDefinitionRegistry2;
-
-    @Autowired
-    protected TransformClient transformClient;
 
     @Autowired
     protected RenditionService renditionService;
@@ -115,11 +111,59 @@ public abstract class AbstractRenditionIntegrationTest extends BaseSpringTest
     @BeforeClass
     public static void before()
     {
-        // Use the docker images for transforms
+        // Use the docker images for transforms (legacy)
         System.setProperty("alfresco-pdf-renderer.url", "http://localhost:8090/");
         System.setProperty("img.url", "http://localhost:8091");
         System.setProperty("jodconverter.url", "http://localhost:8092/");
         System.setProperty("tika.url", "http://localhost:8093/");
+
+        // Use the docker images for transforms (local)
+        System.setProperty("localTransformer.pdfrenderer.url", "http://localhost:8090/");
+        System.setProperty("localTransformer.imagemagick.url", "http://localhost:8091");
+        System.setProperty("localTransformer.libreoffice.url", "http://localhost:8092/");
+        System.setProperty("localTransformer.tika.url", "http://localhost:8093/");
+    }
+
+    protected static void none()
+    {
+        System.setProperty("transform.service.enabled", "false");
+        System.setProperty("local.transform.service.enabled", "false");
+        System.setProperty("legacy.transform.service.enabled", "false");
+    }
+
+    protected static void legacy()
+    {
+        System.setProperty("transform.service.enabled", "false");
+        System.setProperty("local.transform.service.enabled", "false");
+        System.setProperty("legacy.transform.service.enabled", "true");
+    }
+
+    protected static void local()
+    {
+        System.setProperty("transform.service.enabled", "false");
+        System.setProperty("local.transform.service.enabled", "true");
+        System.setProperty("legacy.transform.service.enabled", "false");
+    }
+
+    protected static void service()
+    {
+        System.setProperty("transform.service.enabled", "true");
+        System.setProperty("local.transform.service.enabled", "false");
+        System.setProperty("legacy.transform.service.enabled", "false");
+    }
+
+    protected static void legacyLocal()
+    {
+        System.setProperty("transform.service.enabled", "false");
+        System.setProperty("local.transform.service.enabled", "true");
+        System.setProperty("legacy.transform.service.enabled", "true");
+    }
+
+    protected static void legacyLocalService()
+    {
+        System.setProperty("transform.service.enabled", "true");
+        System.setProperty("local.transform.service.enabled", "true");
+        System.setProperty("legacy.transform.service.enabled", "true");
     }
 
     @Before
@@ -141,6 +185,15 @@ public abstract class AbstractRenditionIntegrationTest extends BaseSpringTest
         System.clearProperty("img.url");
         System.clearProperty("jodconverter.url");
         System.clearProperty("tika.url");
+
+        System.clearProperty("localTransformer.pdfrenderer.url");
+        System.clearProperty("localTransformer.imagemagick.url");
+        System.clearProperty("localTransformer.libreoffice.url");
+        System.clearProperty("localTransformer.tika.url");
+
+        System.clearProperty("transform.service.enabled");
+        System.clearProperty("local.transform.service.enabled");
+        System.clearProperty("legacy.transform.service.enabled");
     }
 
     protected void checkRendition(String testFileName, String renditionName, boolean expectedToPass)

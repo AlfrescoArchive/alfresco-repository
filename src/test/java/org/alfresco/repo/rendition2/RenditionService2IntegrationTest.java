@@ -36,6 +36,8 @@ import org.alfresco.service.cmr.repository.datatype.DefaultTypeConverter;
 import org.alfresco.service.cmr.security.PermissionService;
 import org.alfresco.service.namespace.NamespaceService;
 import org.alfresco.service.namespace.QName;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import java.util.List;
@@ -48,6 +50,13 @@ import static org.junit.Assert.assertNotEquals;
  */
 public class RenditionService2IntegrationTest extends AbstractRenditionIntegrationTest
 {
+    @BeforeClass
+    public static void before()
+    {
+        AbstractRenditionIntegrationTest.before();
+        legacyLocal();
+    }
+
     // PDF transformation
 
     @Test

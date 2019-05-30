@@ -115,9 +115,9 @@ public abstract class TransformServiceRegistryImpl implements TransformServiceRe
 
     @Override
     public boolean isSupported(String sourceMimetype, long sourceSizeInBytes, String targetMimetype,
-                               Map<String, String> actualOptions, String transformName)
+                               Map<String, String> actualOptions, String renditionName)
     {
-        long maxSize = getMaxSize(sourceMimetype, targetMimetype, actualOptions, transformName);
+        long maxSize = getMaxSize(sourceMimetype, targetMimetype, actualOptions, renditionName);
         return maxSize != 0 && (maxSize == -1L || maxSize >= sourceSizeInBytes);
     }
 
@@ -129,14 +129,14 @@ public abstract class TransformServiceRegistryImpl implements TransformServiceRe
      * @param sourceSizeInBytes the size in bytes of the source content. Ignored if negative.
      * @param targetMimetype the mimetype of the target
      * @param actualOptions the actual name value pairs available that could be passed to the Transform Service.
-     * @param transformName (optional) name for the set of options and target mimetype. If supplied is used to cache
+     * @param renditionName (optional) name for the set of options and target mimetype. If supplied is used to cache
      *                      results to avoid having to work out if a given transformation is supported a second time.
      *                      The sourceMimetype and sourceSizeInBytes may still change. In the case of ACS this is the
      *                      rendition name.
      */
-    protected String getTransformerName(String sourceMimetype, long sourceSizeInBytes, String targetMimetype, Map<String, String> actualOptions, String transformName)
+    protected String getTransformerName(String sourceMimetype, long sourceSizeInBytes, String targetMimetype, Map<String, String> actualOptions, String renditionName)
     {
-        List<SupportedTransform> supportedTransforms = getTransformListBySize(sourceMimetype, targetMimetype, actualOptions, transformName);
+        List<SupportedTransform> supportedTransforms = getTransformListBySize(sourceMimetype, targetMimetype, actualOptions, renditionName);
         for (SupportedTransform supportedTransform : supportedTransforms)
         {
             if (supportedTransform.maxSourceSizeBytes == -1 || supportedTransform.maxSourceSizeBytes >= sourceSizeInBytes)
@@ -150,28 +150,28 @@ public abstract class TransformServiceRegistryImpl implements TransformServiceRe
 
     @Override
     public long getMaxSize(String sourceMimetype, String targetMimetype,
-                           Map<String, String> actualOptions, String transformName)
+                           Map<String, String> actualOptions, String renditionName)
     {
-        List<SupportedTransform> supportedTransforms = getTransformListBySize(sourceMimetype, targetMimetype, actualOptions, transformName);
+        List<SupportedTransform> supportedTransforms = getTransformListBySize(sourceMimetype, targetMimetype, actualOptions, renditionName);
         return supportedTransforms.isEmpty() ? 0 : supportedTransforms.get(supportedTransforms.size()-1).maxSourceSizeBytes;
     }
 
     // Returns transformers in increasing supported size order, where lower priority transformers for the same size have
     // been discarded.
     private List<SupportedTransform> getTransformListBySize(String sourceMimetype, String targetMimetype,
-                                                            Map<String, String> actualOptions, String transformName)
+                                                            Map<String, String> actualOptions, String renditionName)
     {
         if (actualOptions == null)
         {
             actualOptions = Collections.EMPTY_MAP;
         }
-        if (transformName != null && transformName.trim().isEmpty())
+        if (renditionName != null && renditionName.trim().isEmpty())
         {
-            transformName = null;
+            renditionName = null;
         }
 
-        List<SupportedTransform> transformListBySize = transformName == null ? null
-                : cachedSupportedTransformList.computeIfAbsent(transformName, k -> new ConcurrentHashMap<>()).get(sourceMimetype);
+        List<SupportedTransform> transformListBySize = renditionName == null ? null
+                : cachedSupportedTransformList.computeIfAbsent(renditionName, k -> new ConcurrentHashMap<>()).get(sourceMimetype);
         if (transformListBySize != null)
         {
             return transformListBySize;
@@ -204,9 +204,9 @@ public abstract class TransformServiceRegistryImpl implements TransformServiceRe
             }
         }
 
-        if (transformName != null)
+        if (renditionName != null)
         {
-            cachedSupportedTransformList.get(transformName).put(sourceMimetype, transformListBySize);
+            cachedSupportedTransformList.get(renditionName).put(sourceMimetype, transformListBySize);
         }
 
         return transformListBySize;

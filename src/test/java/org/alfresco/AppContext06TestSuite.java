@@ -25,6 +25,7 @@
  */
 package org.alfresco;
 
+import org.alfresco.repo.rendition2.LegacyLocalRenditionTest;
 import org.alfresco.util.testing.category.DBTests;
 import org.alfresco.util.testing.category.NonBuildTests;
 import org.junit.experimental.categories.Categories;
@@ -49,9 +50,9 @@ import org.junit.runners.Suite;
     org.alfresco.repo.rawevents.TransactionAwareEventProducerTest.class,
     // Requires running transformers
     org.alfresco.repo.rendition2.RenditionService2IntegrationTest.class,
-    org.alfresco.repo.rendition2.LegacyLocalTransformServiceRegistryTest.class,
-    org.alfresco.repo.rendition2.LegacyLocalTransformClientIntegrationTest.class,
-    org.alfresco.repo.rendition2.RenditionTest.class,
+    org.alfresco.repo.rendition2.LegacyTransformServiceRegistryTest.class,
+    org.alfresco.repo.rendition2.LegacyTransformClientIntegrationTest.class,
+    LegacyLocalRenditionTest.class,
     org.alfresco.repo.solr.SOLRTrackingComponentTest.class,
     org.alfresco.repo.tagging.TaggingServiceImplTest.class,
     org.alfresco.repo.transaction.AlfrescoTransactionSupportTest.class,
