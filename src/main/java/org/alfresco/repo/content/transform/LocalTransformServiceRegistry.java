@@ -239,8 +239,6 @@ public class LocalTransformServiceRegistry extends TransformServiceRegistryImpl 
                         {
                             urls.add((String) url);
                             getLog().debug("T-Engine "+key+"="+url);
-                            // TODO remove this println
-                            System.out.println("TODO rm this println url="+url);
                         }
                     }
                 }
