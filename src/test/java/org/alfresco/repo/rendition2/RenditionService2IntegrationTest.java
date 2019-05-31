@@ -37,6 +37,7 @@ import org.alfresco.service.cmr.security.PermissionService;
 import org.alfresco.service.namespace.NamespaceService;
 import org.alfresco.service.namespace.QName;
 import org.junit.AfterClass;
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -55,6 +56,12 @@ public class RenditionService2IntegrationTest extends AbstractRenditionIntegrati
     {
         AbstractRenditionIntegrationTest.before();
         legacyLocal();
+    }
+
+    @Before
+    public void setup() throws Exception
+    {
+        localTransformServiceRegistry.afterPropertiesSet();
     }
 
     // PDF transformation

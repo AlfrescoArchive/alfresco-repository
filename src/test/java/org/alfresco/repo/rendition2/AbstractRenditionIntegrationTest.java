@@ -28,6 +28,7 @@ package org.alfresco.repo.rendition2;
 import junit.framework.AssertionFailedError;
 import org.alfresco.model.ContentModel;
 import org.alfresco.repo.content.MimetypeMap;
+import org.alfresco.repo.content.transform.LocalTransformServiceRegistry;
 import org.alfresco.repo.security.authentication.AuthenticationUtil;
 import org.alfresco.repo.thumbnail.ThumbnailRegistry;
 import org.alfresco.repo.transaction.RetryingTransactionHelper;
@@ -102,6 +103,9 @@ public abstract class AbstractRenditionIntegrationTest extends BaseSpringTest
 
     @Autowired
     protected PermissionService permissionService;
+
+    @Autowired
+    protected LocalTransformServiceRegistry localTransformServiceRegistry;
 
     static String PASSWORD = "password";
 

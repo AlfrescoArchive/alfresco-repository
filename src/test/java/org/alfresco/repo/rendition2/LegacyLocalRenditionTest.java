@@ -26,6 +26,7 @@
 package org.alfresco.repo.rendition2;
 
 import org.junit.AfterClass;
+import org.junit.Before;
 import org.junit.BeforeClass;
 
 /**
@@ -35,6 +36,7 @@ import org.junit.BeforeClass;
  *
  * @author adavis
  */
+@Deprecated
 public class LegacyLocalRenditionTest extends AbstractRenditionTest
 {
     @BeforeClass
@@ -48,5 +50,11 @@ public class LegacyLocalRenditionTest extends AbstractRenditionTest
     public static void after()
     {
         AbstractRenditionIntegrationTest.after();
+    }
+
+    @Before
+    public void setup() throws Exception
+    {
+        localTransformServiceRegistry.afterPropertiesSet();
     }
 }
