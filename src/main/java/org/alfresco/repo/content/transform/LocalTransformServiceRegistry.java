@@ -80,6 +80,7 @@ public class LocalTransformServiceRegistry extends TransformServiceRegistryImpl 
     public void setEnabled(boolean enabled)
     {
         this.enabled = enabled;
+        firstTime = true;
     }
 
     /**
@@ -118,6 +119,7 @@ public class LocalTransformServiceRegistry extends TransformServiceRegistryImpl 
         PropertyCheck.mandatory(this, "properties", properties);
         PropertyCheck.mandatory(this, "transformerDebug", transformerDebug);
         super.afterPropertiesSet();
+        transformers.clear();
 
         strictMimetypeExceptions = getStrictMimetypeExceptions();
 
@@ -140,7 +142,7 @@ public class LocalTransformServiceRegistry extends TransformServiceRegistryImpl 
 
             if (name == null || transformers.get(name) != null)
             {
-                throw new IllegalArgumentException("Local transformers must exist and have unique names (" + name + ").");
+                throw new IllegalArgumentException("Local transformer names must exist and be unique (" + name + ").");
             }
 
             List<TransformStep> transformerPipeline = transformer.getTransformerPipeline();

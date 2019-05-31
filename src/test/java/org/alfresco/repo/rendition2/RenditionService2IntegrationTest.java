@@ -58,12 +58,6 @@ public class RenditionService2IntegrationTest extends AbstractRenditionIntegrati
         legacyLocal();
     }
 
-    @Before
-    public void setup() throws Exception
-    {
-        localTransformServiceRegistry.afterPropertiesSet();
-    }
-
     // PDF transformation
 
     @Test

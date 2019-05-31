@@ -51,10 +51,4 @@ public class LegacyLocalRenditionTest extends AbstractRenditionTest
     {
         AbstractRenditionIntegrationTest.after();
     }
-
-    @Before
-    public void setup() throws Exception
-    {
-        localTransformServiceRegistry.afterPropertiesSet();
-    }
 }

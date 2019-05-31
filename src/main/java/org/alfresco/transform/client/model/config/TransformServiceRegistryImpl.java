@@ -82,6 +82,8 @@ public abstract class TransformServiceRegistryImpl implements TransformServiceRe
         {
             throw new IllegalStateException("jsonObjectMapper has not been set");
         }
+        cachedSupportedTransformList.clear();
+        transformers.clear();
     }
 
     protected abstract Log getLog();

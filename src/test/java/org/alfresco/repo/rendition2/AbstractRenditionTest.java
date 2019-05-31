@@ -28,7 +28,6 @@ package org.alfresco.repo.rendition2;
 import junit.framework.AssertionFailedError;
 import org.alfresco.repo.security.authentication.AuthenticationUtil;
 import org.alfresco.repo.thumbnail.ThumbnailDefinition;
-import org.alfresco.transform.client.model.config.TransformServiceRegistry;
 import org.alfresco.util.testing.category.DebugTests;
 import org.junit.Before;
 import org.junit.Test;
@@ -90,9 +89,7 @@ public abstract class AbstractRenditionTest extends AbstractRenditionIntegration
             "wpd png avatar32",
             "wpd jpg imgpreview");
 
-    @Autowired
-    private TransformServiceRegistry transformServiceRegistry;
-
+    @Override
     @Before
     public void setUp() throws Exception
     {

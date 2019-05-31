@@ -45,6 +45,7 @@ import org.alfresco.service.cmr.security.PermissionService;
 import org.alfresco.service.cmr.security.PersonService;
 import org.alfresco.service.namespace.QName;
 import org.alfresco.service.transaction.TransactionService;
+import org.alfresco.transform.client.model.config.TransformServiceRegistry;
 import org.alfresco.util.BaseSpringTest;
 import org.alfresco.util.GUID;
 import org.alfresco.util.PropertyMap;
@@ -72,7 +73,7 @@ public abstract class AbstractRenditionIntegrationTest extends BaseSpringTest
     protected RenditionService2Impl renditionService2;
 
     @Autowired
-    protected RenditionDefinitionRegistry2 renditionDefinitionRegistry2;
+    protected RenditionDefinitionRegistry2Impl renditionDefinitionRegistry2;
 
     @Autowired
     protected RenditionService renditionService;
@@ -105,7 +106,13 @@ public abstract class AbstractRenditionIntegrationTest extends BaseSpringTest
     protected PermissionService permissionService;
 
     @Autowired
+    protected TransformServiceRegistry transformServiceRegistry;
+
+    @Autowired
     protected LocalTransformServiceRegistry localTransformServiceRegistry;
+
+    @Autowired
+    protected LegacyTransformServiceRegistry legacyTransformServiceRegistry;
 
     static String PASSWORD = "password";
 
@@ -174,6 +181,15 @@ public abstract class AbstractRenditionIntegrationTest extends BaseSpringTest
     public void setUp() throws Exception
     {
         assertTrue("The RenditionService2 needs to be enabled", renditionService2.isEnabled());
+
+        legacyTransformServiceRegistry.setEnabled(Boolean.parseBoolean(System.getProperty("legacy.transform.service.enabled")));
+        legacyTransformServiceRegistry.afterPropertiesSet();
+
+        localTransformServiceRegistry.setEnabled(Boolean.parseBoolean(System.getProperty("local.transform.service.enabled")));
+        localTransformServiceRegistry.afterPropertiesSet();
+
+        renditionDefinitionRegistry2.setTransformServiceRegistry(transformServiceRegistry);
+        thumbnailRegistry.setTransformServiceRegistry(transformServiceRegistry);
     }
 
     @After
