@@ -157,6 +157,15 @@ public class LocalTransformerImpl extends AbstractLocalTransformer
             }
         }
 
+        System.out.println("*********  args");
+        for (String arg : args)
+        {
+            System.out.println("args: " + arg);
+        }
+        System.out.println("********* options");
+        transformOptions.forEach((k,v) -> System.out.println(k +" - "+ v));
+        System.out.println("*********");
+
         remoteTransformerClient.request(reader, writer, sourceMimetype, sourceExtension, targetExtension,
                 timeoutMs, log, args);
     }

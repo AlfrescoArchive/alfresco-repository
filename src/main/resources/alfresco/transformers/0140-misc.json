@@ -1,0 +1,49 @@
+{
+  "transformOptions": {
+    "mimetypeOptions": [
+      {"value": {"name": "sourceEncoding"}},
+      {"value": {"name": "targetEncoding"}},
+      {"value": {"name": "sourceMimetype"}},
+      {"value": {"name": "targetMimetype"}}
+    ]
+  },
+  "transformers": [
+    {
+      "transformerName": "html",
+      "supportedSourceAndTargetList": [
+        {"sourceMediaType": "text/html",                                                                 "targetMediaType": "text/plain" }
+      ],
+      "transformOptions": [
+        "mimetypeOptions"
+      ]
+    },
+    {
+      "transformerName": "string",
+      "supportedSourceAndTargetList": [
+        {"sourceMediaType": "text/plain",                                                                "targetMediaType": "text/plain" },
+        {"sourceMediaType": "text/mediawiki",                                                            "targetMediaType": "text/plain"},
+        {"sourceMediaType": "text/css",                                                                  "targetMediaType": "text/plain" },
+        {"sourceMediaType": "text/csv",                                                                  "targetMediaType": "text/plain" },
+        {"sourceMediaType": "text/javascript",                                                           "targetMediaType": "text/plain"},
+        {"sourceMediaType": "text/xml",                                                                  "targetMediaType": "text/plain" },
+        {"sourceMediaType": "text/html",                                                                 "targetMediaType": "text/plain" },
+        {"sourceMediaType": "application/x-javascript",                                                  "targetMediaType": "text/plain"},
+        {"sourceMediaType": "application/dita+xml",                                                      "targetMediaType": "text/plain"}
+      ],
+      "transformOptions": [
+        "mimetypeOptions"
+      ]
+    },
+    {
+      "transformerName": "appleIWorks",
+      "supportedSourceAndTargetList": [
+        {"sourceMediaType": "application/vnd.apple.keynote",                                              "targetMediaType": "image/jpeg" },
+        {"sourceMediaType": "application/vnd.apple.numbers",                                              "targetMediaType": "image/jpeg"},
+        {"sourceMediaType": "application/vnd.apple.pages",                                                "targetMediaType": "image/jpeg" }
+      ],
+      "transformOptions": [
+        "mimetypeOptions"
+      ]
+    }
+  ]
+}

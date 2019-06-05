@@ -36,6 +36,10 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+
 import static org.alfresco.model.ContentModel.PROP_CONTENT;
 
 /**
@@ -69,6 +73,14 @@ public class LocalTransformClientIntegrationTest extends AbstractRenditionIntegr
         transformClient = localTransformClient;
     }
 
+    @Test
+    public void testLocalRenderHtmlMedium() throws Exception
+    {
+        RenditionDefinition2 def = new RenditionDefinition2Impl("htmltotext", "text/plain",
+                Collections.emptyMap(), renditionDefinitionRegistry2 );
+        checkClientRendition("quick.html", "htmltotext", true);
+        renditionDefinitionRegistry2.unregister("htmltotext");
+    }
 
     @Test
     public void testLocalRenderDocxJpegMedium() throws Exception
