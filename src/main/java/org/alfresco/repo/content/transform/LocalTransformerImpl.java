@@ -128,15 +128,24 @@ public class LocalTransformerImpl extends AbstractLocalTransformer
 
     @Override
     protected void transformImpl(ContentReader reader,
-                               ContentWriter writer, Map<String, String> transformOptions,
-                               String sourceMimetype, String targetMimetype,
-                               String sourceExtension, String targetExtension,
-                               String targetEncoding, String renditionName, NodeRef sourceNodeRef) throws Exception
+                                 ContentWriter writer, Map<String, String> transformOptions,
+                                 String sourceMimetype, String targetMimetype,
+                                 String sourceExtension, String targetExtension,
+                                 String renditionName, NodeRef sourceNodeRef) throws Exception
     {
+        // At some point in the future, we may decide to only pass the sourceEncoding and other dynamic values like
+        // it if they were supplied in the rendition definition without a value. The sourceEncoding value is also
+        // supplied in the TransformRequest (message to the T-Router).
+        if (transformOptions.get("sourceEncoding") == null)
+        {
+            String sourceEncoding = reader.getEncoding();
+            transformOptions.put("sourceEncoding", sourceEncoding);
+        }
+
         // Build an array of option names and values and extract the timeout.
         long timeoutMs = 0;
         int nonOptions = transformOptions.containsKey(RenditionDefinition2.TIMEOUT) ? 1 : 0;
-        int size = (transformOptions.size() - nonOptions) * 2;
+        int size = (transformOptions.size() - nonOptions + 3) * 2;
         String[] args = new String[size];
         int i = 0;
         for (Map.Entry<String, String> option : transformOptions.entrySet())
@@ -156,6 +165,16 @@ public class LocalTransformerImpl extends AbstractLocalTransformer
                 args[i++] = value;
             }
         }
+
+        // These 3 values are commonly needed and are always supplied in the TransformRequest (message to the T-Router).
+        // The targetExtension is also supplied in the TransformRequest, but in the case of local and legacy transformers
+        // is added by the remoteTransformerClient.request call for historic reasons, so does not need to be added here.
+        args[i++] = "sourceMimetype";
+        args[i++] =  sourceMimetype;
+        args[i++] = "sourceExtension";
+        args[i++] =  sourceExtension;
+        args[i++] = "targetMimetype";
+        args[i++] =  targetMimetype;
 
         remoteTransformerClient.request(reader, writer, sourceMimetype, sourceExtension, targetExtension,
                 timeoutMs, log, args);
