@@ -35,7 +35,7 @@
             source/java/org/alfresco/repo/search/impl/parsers/FTSParser.java,
             source/java/org/alfresco/repo/search/impl/parsers/FTSLexer.java
         </sonar.exclusions>
-        <maven.build.sourceVersion>11</maven.build.sourceVersion>
+        <maven.build.sourceVersion>1.8</maven.build.sourceVersion>
     </properties>
 
     <build>
