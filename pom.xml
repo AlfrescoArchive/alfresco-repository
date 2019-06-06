@@ -15,7 +15,7 @@
         <connection>scm:git:git@github.com:Alfresco/alfresco-repository.git</connection>
         <developerConnection>scm:git:git@github.com:Alfresco/alfresco-repository.git</developerConnection>
         <url>https://github.com/Alfresco/alfresco-repository</url>
-        <tag>alfresco-repository-repo-4400-7.67</tag>
+        <tag>HEAD</tag>
     </scm>
 
     <distributionManagement>
