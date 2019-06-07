@@ -74,7 +74,7 @@ public class HtmlParserContentTransformer extends AbstractRemoteContentTransform
     public boolean isTransformableMimetype(String sourceMimetype, String targetMimetype, TransformationOptions options)
     {
         if (!MimetypeMap.MIMETYPE_HTML.equals(sourceMimetype) ||
-                !MimetypeMap.MIMETYPE_TEXT_PLAIN.equals(targetMimetype))
+            !MimetypeMap.MIMETYPE_TEXT_PLAIN.equals(targetMimetype))
         {
             // only support HTML -> TEXT
             return false;

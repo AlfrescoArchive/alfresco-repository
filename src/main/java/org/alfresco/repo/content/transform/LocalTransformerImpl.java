@@ -32,6 +32,7 @@ import org.alfresco.service.cmr.repository.MimetypeService;
 import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.util.Pair;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
@@ -136,23 +137,24 @@ public class LocalTransformerImpl extends AbstractLocalTransformer
         boolean removeSourceEncoding = false;
         try
         {
+            Map<String, String> mutableTransformOptions = new HashMap<>(transformOptions);
             // At some point in the future, we may decide to only pass the sourceEncoding and other dynamic values like
             // it if they were supplied in the rendition definition without a value. The sourceEncoding value is also
             // supplied in the TransformRequest (message to the T-Router).
-            if (transformOptions.get("sourceEncoding") == null)
+            if (mutableTransformOptions.get("sourceEncoding") == null)
             {
                 String sourceEncoding = reader.getEncoding();
-                transformOptions.put("sourceEncoding", sourceEncoding);
+                mutableTransformOptions.put("sourceEncoding", sourceEncoding);
                 removeSourceEncoding = true;
             }
 
             // Build an array of option names and values and extract the timeout.
             long timeoutMs = 0;
-            int nonOptions = transformOptions.containsKey(RenditionDefinition2.TIMEOUT) ? 1 : 0;
-            int size = (transformOptions.size() - nonOptions + 3) * 2;
+            int nonOptions = mutableTransformOptions.containsKey(RenditionDefinition2.TIMEOUT) ? 1 : 0;
+            int size = (mutableTransformOptions.size() - nonOptions + 3) * 2;
             String[] args = new String[size];
             int i = 0;
-            for (Map.Entry<String, String> option : transformOptions.entrySet())
+            for (Map.Entry<String, String> option : mutableTransformOptions.entrySet())
             {
                 String name = option.getKey();
                 String value = option.getValue();
