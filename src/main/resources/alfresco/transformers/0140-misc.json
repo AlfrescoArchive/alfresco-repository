@@ -1,48 +1,72 @@
 {
   "transformOptions": {
-    "mimetypeOptions": [
-      {"value": {"name": "sourceEncoding"}},
-      {"value": {"name": "targetEncoding"}},
-      {"value": {"name": "sourceMimetype"}},
-      {"value": {"name": "targetMimetype"}}
+    "textToPdfOptions": [
+      {
+        "value": {
+          "name": "pageLimit"
+        }
+      }
+    ],
+    "encodingOptions": [
+      {
+        "value": {
+          "name": "sourceEncoding"
+        }
+      },
+      {
+        "value": {
+          "name": "targetEncoding"
+        }
+      }
     ]
   },
   "transformers": [
     {
       "transformerName": "html",
       "supportedSourceAndTargetList": [
-        {"sourceMediaType": "text/html",                                                                 "targetMediaType": "text/plain" }
+        {"sourceMediaType": "text/html",                                                                 "targetMediaType": "text/plain"}
       ],
       "transformOptions": [
-        "mimetypeOptions"
+        "encodingOptions"
       ]
     },
     {
       "transformerName": "string",
       "supportedSourceAndTargetList": [
-        {"sourceMediaType": "text/plain",                                                                "targetMediaType": "text/plain" },
+        {"sourceMediaType": "text/plain",                                                                "targetMediaType": "text/plain"},
         {"sourceMediaType": "text/mediawiki",                                                            "targetMediaType": "text/plain"},
-        {"sourceMediaType": "text/css",                                                                  "targetMediaType": "text/plain" },
-        {"sourceMediaType": "text/csv",                                                                  "targetMediaType": "text/plain" },
+        {"sourceMediaType": "text/css",                                                                  "targetMediaType": "text/plain"},
+        {"sourceMediaType": "text/csv",                                                                  "targetMediaType": "text/plain"},
         {"sourceMediaType": "text/javascript",                                                           "targetMediaType": "text/plain"},
-        {"sourceMediaType": "text/xml",                                                                  "targetMediaType": "text/plain" },
-        {"sourceMediaType": "text/html",                                                                 "targetMediaType": "text/plain" },
+        {"sourceMediaType": "text/xml",                                                                  "targetMediaType": "text/plain"},
+        {"sourceMediaType": "text/html",                                                                 "targetMediaType": "text/plain"},
         {"sourceMediaType": "application/x-javascript",                                                  "targetMediaType": "text/plain"},
         {"sourceMediaType": "application/dita+xml",                                                      "targetMediaType": "text/plain"}
       ],
       "transformOptions": [
-        "mimetypeOptions"
+        "encodingOptions"
       ]
     },
     {
       "transformerName": "appleIWorks",
       "supportedSourceAndTargetList": [
-        {"sourceMediaType": "application/vnd.apple.keynote",                                              "targetMediaType": "image/jpeg" },
+        {"sourceMediaType": "application/vnd.apple.keynote",                                              "targetMediaType": "image/jpeg"},
         {"sourceMediaType": "application/vnd.apple.numbers",                                              "targetMediaType": "image/jpeg"},
-        {"sourceMediaType": "application/vnd.apple.pages",                                                "targetMediaType": "image/jpeg" }
+        {"sourceMediaType": "application/vnd.apple.pages",                                                "targetMediaType": "image/jpeg"}
       ],
       "transformOptions": [
-        "mimetypeOptions"
+      ]
+    },
+    {
+      "transformerName": "textToPdf",
+      "supportedSourceAndTargetList": [
+        {"sourceMediaType": "text/plain",                                                                 "targetMediaType": "application/pdf"},
+        {"sourceMediaType": "text/csv",                                                                   "targetMediaType": "application/pdf"},
+        {"sourceMediaType": "application/dita+xml",                                                       "targetMediaType": "application/pdf"},
+        {"sourceMediaType": "text/xml",                                                                   "targetMediaType": "application/pdf"}
+      ],
+      "transformOptions": [
+        "textToPdfOptions"
       ]
     }
   ]

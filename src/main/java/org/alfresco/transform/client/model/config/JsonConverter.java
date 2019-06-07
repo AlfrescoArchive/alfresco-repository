@@ -249,8 +249,6 @@ public class JsonConverter
         if (optionName.isTextual())
         {
             String name = optionName.asText();
-//            System.out.println("Got option name: " + name);
-//            allTransformOptions.forEach((k,v) -> System.out.println(k +" -  "+v));
             options = allTransformOptions.get(name);
             if (options == null)
             {
