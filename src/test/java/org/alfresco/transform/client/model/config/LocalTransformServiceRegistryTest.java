@@ -26,66 +26,39 @@
 package org.alfresco.transform.client.model.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.alfresco.model.ContentModel;
-import org.alfresco.repo.content.transform.TransformerDebug;
 import org.alfresco.repo.content.transform.LocalTransformServiceRegistry;
-import org.alfresco.repo.rendition2.RenditionDefinition2;
-import org.alfresco.repo.rendition2.RenditionDefinitionRegistry2Impl;
-import org.alfresco.repo.rendition2.RenditionService2Impl;
-import org.alfresco.repo.security.authentication.AuthenticationUtil;
-import org.alfresco.service.cmr.repository.*;
-import org.alfresco.service.cmr.repository.datatype.DefaultTypeConverter;
-import org.alfresco.service.namespace.QName;
-import org.alfresco.service.transaction.TransactionService;
-import org.alfresco.util.BaseSpringTest;
-import org.alfresco.util.GUID;
+import org.alfresco.repo.content.transform.TransformerDebug;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.util.ResourceUtils;
 
-import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
 
-import static org.alfresco.model.ContentModel.PROP_CONTENT;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 /**
  * Extends the {@link TransformServiceRegistryImplTest} (used to test the config received from the Transform Service)
  * so that configuration for the local transformations may be tested. This includes pipelines and options specific
  * transform steps.
  */
-public class LocalTransformServiceRegistryTest extends BaseSpringTest
+public class LocalTransformServiceRegistryTest extends TransformServiceRegistryImplTest
 {
     protected LocalTransformServiceRegistry registry;
 
-    private Properties properties;
+    private Properties properties = new Properties();
 
-    @Autowired
-    protected TransactionService transactionService;
-
-    @Autowired
-    protected NodeService nodeService;
-
-    @Autowired
-    protected RenditionDefinitionRegistry2Impl renditionDefinitionRegistry2;
-
-    @Autowired
-    protected RenditionService2Impl renditionService2;
-
-    @Autowired
-    protected MimetypeService mimetypeService;
-
-    @Autowired
-    protected ContentService contentService;
-
-    private Properties transformURLS = new Properties();
     @Mock
     private TransformerDebug transformerDebug;
 
@@ -107,33 +80,16 @@ public class LocalTransformServiceRegistryTest extends BaseSpringTest
     {
         MockitoAnnotations.initMocks(this);
         initTestData();
-        registry = buildTransformServiceRegistryImpl();
 
+        super.setUp();
     }
 
-    private LocalTransformServiceRegistry buildTransformServiceRegistryImpl()
+    protected LocalTransformServiceRegistry buildTransformServiceRegistryImpl()
     {
-        // Read and load TRANSFORM_SERVICE_CONFIG file containing local transformer configuration
-        List<Transformer> transformerList = retrieveLocalTransformerList();
-
-        // Build the LocalTransformServiceRegistry based on config file and JVM properties
         registry = new LocalTransformServiceRegistry();
         registry.setJsonObjectMapper(JSON_OBJECT_MAPPER);
+        registry.setProperties(properties);
         registry.setTransformerDebug(transformerDebug);
-        registry.setMimetypeService(mimetypeService);
-
-        for(Transformer t : transformerList)
-        {
-            if (t.getTransformerPipeline() == null)
-            {
-                transformURLS.setProperty(LOCAL_TRANSFORMER + t.getTransformerName() + URL, getBaseUrl(t.getTransformerName()));
-            }
-        }
-        registry.setProperties(transformURLS);
-        for(Transformer t : transformerList)
-        {
-            registry.register(t);
-        }
         return registry;
     }
 
@@ -141,7 +97,7 @@ public class LocalTransformServiceRegistryTest extends BaseSpringTest
      * Reads and loads localTransformers from TRANSFORM_SERVICE_CONFIG config file.
      * @return List<Transformer> list of local transformers.
      */
-    public List<Transformer> retrieveLocalTransformerList ()
+    private List<Transformer> retrieveLocalTransformerList ()
     {
         try {
             JsonConverter jsonConverter = new JsonConverter(log);
@@ -157,8 +113,20 @@ public class LocalTransformServiceRegistryTest extends BaseSpringTest
     /**
      * Initialize source and target test data for each transformer
      */
-    public void initTestData()
+    private void initTestData()
     {
+        // Add JVM properties
+        System.setProperty(LOCAL_TRANSFORMER + "pdfrenderer" + URL, "http://localhost:8090/");
+        System.setProperty(LOCAL_TRANSFORMER + "imagemagick" + URL, "http://localhost:8091/");
+        System.setProperty(LOCAL_TRANSFORMER + "libreoffice" + URL, "http://localhost:8092/");
+        System.setProperty(LOCAL_TRANSFORMER + "tika" + URL, "http://localhost:8093/");
+
+        // Add alfresco-global properties
+        properties.setProperty(LOCAL_TRANSFORMER + "pdfrenderer" + URL, "http://localhost:8090/");
+        properties.setProperty(LOCAL_TRANSFORMER + "imagemagick" + URL, "http://localhost:8091/");
+        properties.setProperty(LOCAL_TRANSFORMER + "libreoffice" + URL, "http://localhost:8092/");
+        properties.setProperty(LOCAL_TRANSFORMER + "tika" + URL, "http://localhost:8093/");
+
         // ImageMagick supported Source and Target List:
         imagemagickSupportedTransformation = new HashMap<>();
         List<String> targetMimetype = new ArrayList<>();
@@ -219,46 +187,12 @@ public class LocalTransformServiceRegistryTest extends BaseSpringTest
         officeToImageViaPdfSupportedTransformation.put("application/vnd.ms-outlook", targetMimetype);
     }
 
-    @Autowired
-    @Qualifier("global-properties")
-    public void setProperties(Properties properties) {
-        this.properties = properties;
-    }
-
-    /**
-     * Gets a property from an alfresco global property but falls back to a System property with the same name to
-     * allow dynamic creation of transformers without having to have an AMP to add the alfresco global property.
-     */
-    private String getProperty(String name, String defaultValue)
-    {
-        String value = properties.getProperty(name);
-        if (value == null || value.isEmpty())
-        {
-            value = System.getProperty(name);
-            if (value != null && value.isEmpty())
-            {
-                value = null;
-            }
-        }
-        return value == null ? defaultValue : value;
-    }
-
-    private String getBaseUrl(String name)
-    {
-        String baseUrlName = LOCAL_TRANSFORMER + name + URL;
-        String baseUrl = getProperty(baseUrlName, null);
-        if (baseUrl == null)
-        {
-            throw new IllegalArgumentException("Local transformer property " + baseUrlName + " was not set");
-        }
-        return baseUrl;
-    }
-
     @Test
     public void testReadJsonConfig()
     {
         List<Transformer> transformerList = retrieveLocalTransformerList();
         // Assert expected size of the transformers.
+        assertNotNull("Transformer list is null.", transformerList);
         assertEquals("Unexpected number of transformers retrieved", 5, transformerList.size());
 
         // Assert proper transformers are loaded
@@ -354,6 +288,7 @@ public class LocalTransformServiceRegistryTest extends BaseSpringTest
     public void testReadTransformProperties()
     {
         List<Transformer> transformerList = retrieveLocalTransformerList();
+        assertNotNull("Transformer list is null.", transformerList);
         for (Transformer t : transformerList)
         {
             if(t.getTransformerPipeline() == null)
@@ -378,83 +313,4 @@ public class LocalTransformServiceRegistryTest extends BaseSpringTest
         assertEquals("Unexpected libreoffice alfresco-global property value", "http://localhost:8092/", properties.getProperty(LOCAL_TRANSFORMER + "libreoffice" + URL));
         assertEquals("Unexpected tika alfresco-global property value", "http://localhost:8093/", properties.getProperty(LOCAL_TRANSFORMER + "tika" + URL));
     }
-
-    // TODO test pipeline
-
-    @Test
-    public void testPipelineTransform() throws InterruptedException {
-        Map<String, String> actualOptions = new HashMap<>();
-        actualOptions.put("timeout", "-1");
-        checkClientRendition("quick.docx", "imgpreview", actualOptions, true);
-    }
-
-    NodeRef createContentNodeFromQuickFile(String fileName) throws FileNotFoundException
-    {
-        NodeRef rootNodeRef = nodeService.getRootNode(StoreRef.STORE_REF_WORKSPACE_SPACESSTORE);
-        NodeRef folderNodeRef = nodeService.createNode(
-                rootNodeRef,
-                ContentModel.ASSOC_CHILDREN,
-                QName.createQName(getName() + GUID.generate()),
-                ContentModel.TYPE_FOLDER).getChildRef();
-
-        File file = ResourceUtils.getFile("classpath:quick/" + fileName);
-        NodeRef contentRef = nodeService.createNode(
-                folderNodeRef,
-                ContentModel.ASSOC_CONTAINS,
-                ContentModel.ASSOC_CONTAINS,
-                ContentModel.TYPE_CONTENT,
-                Collections.singletonMap(ContentModel.PROP_NAME, fileName))
-                .getChildRef();
-        ContentWriter contentWriter = contentService.getWriter(contentRef, ContentModel.PROP_CONTENT, true);
-        contentWriter.setMimetype(mimetypeService.guessMimetype(fileName));
-        contentWriter.putContent(file);
-
-        return contentRef;
-    }
-
-    protected void checkClientRendition(String testFileName, String renditionDefinitionName, Map<String, String> actualOptions, boolean expectedToPass) throws InterruptedException
-    {
-        if (expectedToPass)
-        {
-            // split into separate transactions as the client is async
-            NodeRef sourceNode = transactionService.getRetryingTransactionHelper().doInTransaction(() ->
-                    createContentNodeFromQuickFile(testFileName));
-            ContentData contentData = DefaultTypeConverter.INSTANCE.convert(ContentData.class, nodeService.getProperty(sourceNode, PROP_CONTENT));
-            transactionService.getRetryingTransactionHelper().doInTransaction(() ->
-            {
-                ContentWriter writer = contentService.getWriter(sourceNode, ContentModel.PROP_CONTENT, true);
-                RenditionDefinition2 renditionDefinition = renditionDefinitionRegistry2.getRenditionDefinition(renditionDefinitionName);
-                String targetMimetype = renditionDefinition.getTargetMimetype();
-                writer.setMimetype(targetMimetype);
-                writer.setEncoding("UTF-8");
-
-                ContentReader reader = contentService.getReader(sourceNode, ContentModel.PROP_CONTENT);
-                registry.transform(reader, writer, actualOptions, renditionDefinitionName, sourceNode);
-                return null;
-            });
-            ChildAssociationRef childAssociationRef = null;
-            List<ChildAssociationRef> childAssociationRefList = null;
-            for (int i = 0; i < 20; i++)
-            {
-                AuthenticationUtil.setFullyAuthenticatedUser("admin");
-                childAssociationRef = renditionService2.getRenditionByName(sourceNode, renditionDefinitionName);
-                childAssociationRefList = renditionService2.getRenditions(sourceNode);
-
-                if (childAssociationRef != null)
-                {
-                    break;
-                }
-                else
-                {
-                    Thread.sleep(500);
-                }
-            }
-            assertNotNull("The " + renditionDefinitionName + " rendition failed for " + testFileName, childAssociationRef);
-        }
-    }
-
-    // TODO test strict mimetype check
-
-    // TODO test retry transform on different mimetype
-
 }
