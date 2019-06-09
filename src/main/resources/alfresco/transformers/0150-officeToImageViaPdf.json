@@ -44,8 +44,8 @@
         {"sourceMediaType": "application/vnd.ms-outlook",  "targetMediaType": "image/tiff"}
       ],
       "transformOptions": [
-        "pdfrendererOptions",
-        "imagemagickOptions"
+        "pdfRendererOptions",
+        "imageMagickOptions"
       ]
     }
   ]

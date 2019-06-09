@@ -62,10 +62,13 @@ public abstract class TransformServiceRegistryImpl implements TransformServiceRe
             this.maxSourceSizeBytes = maxSourceSizeBytes;
             this.name = name;
             this.priority = priority;
+            transformCount++;
         }
     }
 
     private ObjectMapper jsonObjectMapper;
+    protected int transformerCount = 0;
+    protected int transformCount = 0;
 
     ConcurrentMap<String, ConcurrentMap<String, List<SupportedTransform>>> transformers = new ConcurrentHashMap<>();
     ConcurrentMap<String, ConcurrentMap<String, List<SupportedTransform>>> cachedSupportedTransformList = new ConcurrentHashMap<>();
@@ -88,31 +91,26 @@ public abstract class TransformServiceRegistryImpl implements TransformServiceRe
 
     protected abstract Log getLog();
 
-    public void register(String path) throws IOException
-    {
-        JsonConverter jsonConverter = new JsonConverter(getLog());
-        jsonConverter.addJsonSource(path);
-        List<Transformer> transformers = jsonConverter.getTransformers();
-        for (Transformer transformer : transformers)
-        {
-            register(transformer);
-        }
-    }
-
-    public void register(Reader reader) throws IOException
+    public void register(Reader reader, String readFrom) throws IOException
     {
         List<Transformer> transformers = jsonObjectMapper.readValue(reader, new TypeReference<List<Transformer>>(){});
-        transformers.forEach(t -> register(t));
+        transformers.forEach(t -> register(t, null, readFrom));
     }
 
-    public void register(Transformer transformer)
+    public void register(Transformer transformer, String baseUrl, String readFrom)
     {
+        transformerCount++;
         transformer.getSupportedSourceAndTargetList().forEach(
             e -> transformers.computeIfAbsent(e.getSourceMediaType(),
                 k -> new ConcurrentHashMap<>()).computeIfAbsent(e.getTargetMediaType(),
                 k -> new ArrayList<>()).add(
                     new SupportedTransform(transformer.getTransformerName(),
                             transformer.getTransformOptions(), e.getMaxSourceSizeBytes(), e.getPriority())));
+    }
+
+    protected String getCounts()
+    {
+        return "("+transformerCount+":"+transformCount+")";
     }
 
     @Override

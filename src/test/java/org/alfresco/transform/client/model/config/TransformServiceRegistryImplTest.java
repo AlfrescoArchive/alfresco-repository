@@ -166,7 +166,7 @@ public class TransformServiceRegistryImplTest
                         new SupportedSourceAndTarget(XLS, TXT, 1024000)));
 
         registry = buildTransformServiceRegistryImpl();
-        registry.register(transformer);
+        registry.register(transformer, null, getClass().getName());
 
         assertTrue(registry.isSupported(XLS, 1024, TXT, Collections.emptyMap(), null));
         assertTrue(registry.isSupported(XLS, 1024000, TXT, null, null));
@@ -202,7 +202,7 @@ public class TransformServiceRegistryImplTest
         registry = buildTransformServiceRegistryImpl();
         for (Transformer transformer : transformers)
         {
-            registry.register(transformer);
+            registry.register(transformer, null, getClass().getName());
         }
     }
 
@@ -231,6 +231,14 @@ public class TransformServiceRegistryImplTest
         }
         return actualOptions;
     }
+
+    private void register(String path) throws IOException
+    {
+        CombinedConfig combinedConfig = new CombinedConfig(log);
+        combinedConfig.addLocalConfig(path);
+        combinedConfig.register(registry);
+    }
+
 
     @Test
     public void testReadWriteJson() throws IOException
@@ -336,7 +344,7 @@ public class TransformServiceRegistryImplTest
 
         try (Reader reader = new BufferedReader(new FileReader(tempFile)))
         {
-            registry.register(reader);
+            registry.register(reader, "testReadWriteJson");
             // Check the count of transforms supported
             assertEquals("The number of UNIQUE source to target mimetypes transforms has changed. Config change?",
                     42, countSupportedTransforms(true));
@@ -358,7 +366,7 @@ public class TransformServiceRegistryImplTest
     @Test
     public void testJsonConfig() throws IOException
     {
-        registry.register(getTransformServiceConfig());
+        register(getTransformServiceConfig());
 
         // Check the count of transforms supported
         assertEquals("The number of UNIQUE source to target mimetypes transforms has changed. Config change?",
@@ -383,7 +391,7 @@ public class TransformServiceRegistryImplTest
     @Test
     public void testJsonPipeline() throws IOException
     {
-        registry.register("alfresco/transform-service-config-test1.json");
+        register("alfresco/transform-service-config-test1.json");
 
         // Check the count of transforms supported
         assertEquals("The number of UNIQUE source to target mimetypes transforms has changed. Config change?",
@@ -637,7 +645,7 @@ public class TransformServiceRegistryImplTest
                         new SupportedSourceAndTarget(DOC, GIF, 102400),
                         new SupportedSourceAndTarget(MSG, GIF, -1)));
 
-        registry.register(transformer);
+        registry.register(transformer, null, getClass().getName());
 
         assertSupported(DOC, 1024, GIF, null, "doclib", "");
         assertSupported(MSG, 1024, GIF, null, "doclib", "");
