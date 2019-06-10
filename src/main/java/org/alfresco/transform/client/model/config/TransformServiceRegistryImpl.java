@@ -176,15 +176,15 @@ public abstract class TransformServiceRegistryImpl implements TransformServiceRe
 
     private synchronized void schedule()
     {
+        // Do an initial config read and replace before the follow up scheduled reads.
+        readConfigAndReplace();
+
         if (scheduler == null)
         {
             StdSchedulerFactory sf = new StdSchedulerFactory();
             String jobName = getClass().getName()+"Job";
             try
             {
-                // Do an initial read before the follow up scheduled reads.
-                readConfigAndReplace();
-
                 scheduler = sf.getScheduler();
 
                 JobDetail job = JobBuilder.newJob()
@@ -216,7 +216,6 @@ public abstract class TransformServiceRegistryImpl implements TransformServiceRe
     {
         getData().firstTime = firstTime;
     }
-
 
     protected boolean getFirstTime()
     {
