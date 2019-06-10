@@ -112,6 +112,19 @@ public class LocalTransformClientIntegrationTest extends AbstractRenditionIntegr
         checkClientRendition("quick.docx", "pdf", false);
     }
 
+    @Test
+    public void testRetryOnDifferentMimetype() throws Exception
+    {
+        // File is actually an image masked as docx
+        checkClientRendition("quick-differentMimetype.docx", "pdf", true);
+    }
+
+    @Test
+    public void testNonWhitelistedStrictMimetype() throws Exception
+    {
+        checkClientRendition("quickMaskedHtml.jpeg", "avatar32", false);
+    }
+
     protected void checkClientRendition(String testFileName, String renditionDefinitionName, boolean expectedToPass) throws InterruptedException
     {
         if (expectedToPass)
