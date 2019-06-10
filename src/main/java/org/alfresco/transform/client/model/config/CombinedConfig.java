@@ -310,10 +310,10 @@ public class CombinedConfig
         }
     }
 
-    public void register(TransformServiceRegistryImpl registry) throws IOException
+    public void register(TransformServiceRegistryImpl.Data data, TransformServiceRegistryImpl registry) throws IOException
     {
         List<TransformerAndItsOrigin> transformers = getTransformers();
-        transformers.forEach(t->registry.register(t.transformer, t.baseUrl, t.readFrom));
+        transformers.forEach(t->registry.register(data, t.transformer, t.baseUrl, t.readFrom));
     }
 
     public List<TransformerAndItsOrigin> getTransformers() throws IOException

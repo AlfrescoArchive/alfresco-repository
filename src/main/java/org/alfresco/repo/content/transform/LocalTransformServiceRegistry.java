@@ -39,6 +39,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.InitializingBean;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -67,8 +68,6 @@ public class LocalTransformServiceRegistry extends TransformServiceRegistryImpl 
     }
 
     private String pipelineConfigDir;
-    private boolean enabled = true;
-    private boolean firstTime = true;
     private Properties properties;
     private MimetypeService mimetypeService;
     private TransformerDebug transformerDebug;
@@ -79,12 +78,6 @@ public class LocalTransformServiceRegistry extends TransformServiceRegistryImpl 
     public void setPipelineConfigDir(String pipelineConfigDir)
     {
         this.pipelineConfigDir = pipelineConfigDir;
-    }
-
-    public void setEnabled(boolean enabled)
-    {
-        this.enabled = enabled;
-        firstTime = true;
     }
 
     /**
@@ -122,9 +115,14 @@ public class LocalTransformServiceRegistry extends TransformServiceRegistryImpl 
         PropertyCheck.mandatory(this, "pipelineConfigDir", pipelineConfigDir);
         PropertyCheck.mandatory(this, "properties", properties);
         PropertyCheck.mandatory(this, "transformerDebug", transformerDebug);
-        super.afterPropertiesSet();
         strictMimetypeExceptions = getStrictMimetypeExceptions();
+        super.afterPropertiesSet();
+    }
 
+    @Override
+    protected Data readConfig() throws IOException
+    {
+        Data data = createData();
         CombinedConfig combinedConfig = new CombinedConfig(getLog());
         List<String> urls = getTEngineUrls();
         combinedConfig.addRemoteConfig(urls, "T-Engine");
@@ -133,22 +131,18 @@ public class LocalTransformServiceRegistry extends TransformServiceRegistryImpl 
         {
             combinedConfig.addLocalConfig(pipelineConfigDir);
         }
-        //
-        combinedConfig.register(this);
-    }
-
-    @Override
-    protected synchronized Data getData()
-    {
-        if (data == null)
-        {
-            data = new LocalData();
-        }
+        combinedConfig.register(data, this);
         return data;
     }
 
     @Override
-    public void register(Transformer transformer, String baseUrl, String readFrom)
+    protected Data createData()
+    {
+        return new LocalData();
+    }
+
+    @Override
+    protected void register(Data data, Transformer transformer, String baseUrl, String readFrom)
     {
         try
         {
@@ -231,7 +225,7 @@ public class LocalTransformServiceRegistry extends TransformServiceRegistryImpl 
                 }
             }
             localTransformers.put(name, localTransformer);
-            super.register(transformer, baseUrl, readFrom);
+            super.register(data, transformer, baseUrl, readFrom);
         }
         catch (IllegalArgumentException e)
         {
@@ -380,9 +374,9 @@ public class LocalTransformServiceRegistry extends TransformServiceRegistryImpl 
     public long getMaxSize(String sourceMimetype, String targetMimetype, Map<String, String> options, String renditionName)
     {
         // This message is not logged if placed in afterPropertiesSet
-        if (firstTime)
+        if (getFirstTime())
         {
-            firstTime = false;
+            setFirstTime(false);
             transformerDebug.debug("Local transforms "+getCounts()+" are " + (enabled ? "enabled" : "disabled"));
         }
 
