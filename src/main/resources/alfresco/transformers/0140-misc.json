@@ -1,23 +1,11 @@
 {
   "transformOptions": {
     "textToPdfOptions": [
-      {
-        "value": {
-          "name": "pageLimit"
-        }
-      }
+      {"value": {"name": "pageLimit"}}
     ],
     "encodingOptions": [
-      {
-        "value": {
-          "name": "sourceEncoding"
-        }
-      },
-      {
-        "value": {
-          "name": "targetEncoding"
-        }
-      }
+      {"value": {"name": "sourceEncoding"}},
+      {"value": {"name": "targetEncoding"}}
     ]
   },
   "transformers": [

@@ -483,7 +483,6 @@
         </property>
     </bean>
 
-
     <bean id="baseTikaContentTransformer"
          class="org.alfresco.repo.content.transform.TikaPoweredContentTransformer"
          abstract="true"
@@ -538,6 +537,10 @@
    <bean id="transformer.PdfBox.TextToPdf"
          class="org.alfresco.repo.content.transform.TextToPdfContentTransformer"
          parent="baseContentTransformer" >
+       <property name="enabled" value="${legacy.transform.service.enabled}" />
+       <property name="remoteTransformerClient">
+           <ref bean="miscRemoteTransformerClient" />
+       </property>
    </bean>
 
    <bean id="transformer.TikaAuto"
