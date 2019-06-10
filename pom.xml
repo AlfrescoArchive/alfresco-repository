@@ -4,6 +4,7 @@
     <name>Alfresco Repository</name>
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     <version>7.70-SNAPSHOT</version>
 =======
     <version>repo-4400-7.67</version>
@@ -11,6 +12,12 @@
 =======
     <version>7.67-SNAPSHOT</version>
 >>>>>>> Revert "[maven-release-plugin] prepare release alfresco-repository-repo-4400-7.67"
+=======
+    <version>7.67-SNAPSHOT</version>
+=======
+    <version>7.68-SNAPSHOT</version>
+>>>>>>> parent of b54176e38... Revert "[maven-release-plugin] prepare for next development iteration"
+>>>>>>> Update pom.xml
     <packaging>jar</packaging>
 
     <parent>
