@@ -77,8 +77,15 @@ public class LocalTransformClientIntegrationTest extends AbstractRenditionIntegr
     public void testLocalRenderHtmltotext() throws Exception
     {
         new RenditionDefinition2Impl("htmltotext", "text/plain", new HashMap<>(), renditionDefinitionRegistry2 );
-        checkClientRendition("quick.html", "htmltotext", true);
-        renditionDefinitionRegistry2.unregister("htmltotext");
+        try
+        {
+            checkClientRendition("quick.html", "htmltotext", true);
+        }
+        finally
+        {
+            // Remove rendition even if check throws an exception to not interfere with other tests
+            renditionDefinitionRegistry2.unregister("htmltotext");
+        }
     }
 
     @Test
