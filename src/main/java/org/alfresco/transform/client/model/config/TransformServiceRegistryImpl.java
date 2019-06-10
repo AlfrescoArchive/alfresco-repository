@@ -47,6 +47,14 @@ import static org.alfresco.repo.rendition2.RenditionDefinition2.TIMEOUT;
  */
 public abstract class TransformServiceRegistryImpl implements TransformServiceRegistry, InitializingBean
 {
+    public class Data
+    {
+        ConcurrentMap<String, ConcurrentMap<String, List<SupportedTransform>>> transformers = new ConcurrentHashMap<>();
+        ConcurrentMap<String, ConcurrentMap<String, List<SupportedTransform>>> cachedSupportedTransformList = new ConcurrentHashMap<>();
+        private int transformerCount = 0;
+        private int transformCount = 0;
+    }
+
     class SupportedTransform
     {
         TransformOptionGroup transformOptions;
@@ -62,16 +70,12 @@ public abstract class TransformServiceRegistryImpl implements TransformServiceRe
             this.maxSourceSizeBytes = maxSourceSizeBytes;
             this.name = name;
             this.priority = priority;
-            transformCount++;
+            data.transformCount++;
         }
     }
 
+    protected Data data;
     private ObjectMapper jsonObjectMapper;
-    protected int transformerCount = 0;
-    protected int transformCount = 0;
-
-    ConcurrentMap<String, ConcurrentMap<String, List<SupportedTransform>>> transformers = new ConcurrentHashMap<>();
-    ConcurrentMap<String, ConcurrentMap<String, List<SupportedTransform>>> cachedSupportedTransformList = new ConcurrentHashMap<>();
 
     public void setJsonObjectMapper(ObjectMapper jsonObjectMapper)
     {
@@ -85,8 +89,16 @@ public abstract class TransformServiceRegistryImpl implements TransformServiceRe
         {
             throw new IllegalStateException("jsonObjectMapper has not been set");
         }
-        cachedSupportedTransformList.clear();
-        transformers.clear();
+        data = null;
+    }
+
+    protected synchronized Data getData()
+    {
+        if (data == null)
+        {
+            data = new Data();
+        }
+        return data;
     }
 
     protected abstract Log getLog();
@@ -99,9 +111,9 @@ public abstract class TransformServiceRegistryImpl implements TransformServiceRe
 
     public void register(Transformer transformer, String baseUrl, String readFrom)
     {
-        transformerCount++;
+        getData().transformerCount++;
         transformer.getSupportedSourceAndTargetList().forEach(
-            e -> transformers.computeIfAbsent(e.getSourceMediaType(),
+            e -> getData().transformers.computeIfAbsent(e.getSourceMediaType(),
                 k -> new ConcurrentHashMap<>()).computeIfAbsent(e.getTargetMediaType(),
                 k -> new ArrayList<>()).add(
                     new SupportedTransform(transformer.getTransformerName(),
@@ -110,7 +122,7 @@ public abstract class TransformServiceRegistryImpl implements TransformServiceRe
 
     protected String getCounts()
     {
-        return "("+transformerCount+":"+transformCount+")";
+        return "("+getData().transformerCount+":"+getData().transformCount+")";
     }
 
     @Override
@@ -171,7 +183,7 @@ public abstract class TransformServiceRegistryImpl implements TransformServiceRe
         }
 
         List<SupportedTransform> transformListBySize = renditionName == null ? null
-                : cachedSupportedTransformList.computeIfAbsent(renditionName, k -> new ConcurrentHashMap<>()).get(sourceMimetype);
+                : getData().cachedSupportedTransformList.computeIfAbsent(renditionName, k -> new ConcurrentHashMap<>()).get(sourceMimetype);
         if (transformListBySize != null)
         {
             return transformListBySize;
@@ -185,7 +197,7 @@ public abstract class TransformServiceRegistryImpl implements TransformServiceRe
         }
 
         transformListBySize = new ArrayList<>();
-        ConcurrentMap<String, List<SupportedTransform>> targetMap = transformers.get(sourceMimetype);
+        ConcurrentMap<String, List<SupportedTransform>> targetMap = getData().transformers.get(sourceMimetype);
         if (targetMap !=  null)
         {
             List<SupportedTransform> supportedTransformList = targetMap.get(targetMimetype);
@@ -206,7 +218,7 @@ public abstract class TransformServiceRegistryImpl implements TransformServiceRe
 
         if (renditionName != null)
         {
-            cachedSupportedTransformList.get(renditionName).put(sourceMimetype, transformListBySize);
+            getData().cachedSupportedTransformList.get(renditionName).put(sourceMimetype, transformListBySize);
         }
 
         return transformListBySize;

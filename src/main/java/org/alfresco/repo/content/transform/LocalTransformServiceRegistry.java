@@ -61,7 +61,12 @@ public class LocalTransformServiceRegistry extends TransformServiceRegistryImpl 
     private static final String URL = ".url";
     static final String STRICT_MIMETYPE_CHECK_WHITELIST_MIMETYPES = "transformer.strict.mimetype.check.whitelist.mimetypes";
 
-    private String pipelineConfigFolder;
+    class LocalData extends TransformServiceRegistryImpl.Data
+    {
+        private Map<String, LocalTransformer> localTransformers = new HashMap<>();
+    }
+
+    private String pipelineConfigDir;
     private boolean enabled = true;
     private boolean firstTime = true;
     private Properties properties;
@@ -71,11 +76,9 @@ public class LocalTransformServiceRegistry extends TransformServiceRegistryImpl 
     private Map<String, Set<String>> strictMimetypeExceptions;
     private boolean retryTransformOnDifferentMimeType;
 
-    private Map<String, LocalTransformer> transformers = new HashMap<>();
-
-    public void setPipelineConfigFolder(String pipelineConfigFolder)
+    public void setPipelineConfigDir(String pipelineConfigDir)
     {
-        this.pipelineConfigFolder = pipelineConfigFolder;
+        this.pipelineConfigDir = pipelineConfigDir;
     }
 
     public void setEnabled(boolean enabled)
@@ -116,19 +119,32 @@ public class LocalTransformServiceRegistry extends TransformServiceRegistryImpl 
     public void afterPropertiesSet() throws Exception
     {
         PropertyCheck.mandatory(this, "mimetypeService", mimetypeService);
-        PropertyCheck.mandatory(this, "pipelineConfigFolder", pipelineConfigFolder);
+        PropertyCheck.mandatory(this, "pipelineConfigDir", pipelineConfigDir);
         PropertyCheck.mandatory(this, "properties", properties);
         PropertyCheck.mandatory(this, "transformerDebug", transformerDebug);
         super.afterPropertiesSet();
-        transformers.clear();
         strictMimetypeExceptions = getStrictMimetypeExceptions();
 
         CombinedConfig combinedConfig = new CombinedConfig(getLog());
         List<String> urls = getTEngineUrls();
         combinedConfig.addRemoteConfig(urls, "T-Engine");
-        combinedConfig.addLocalConfig(pipelineConfigFolder);
-        // TODO read local transformers from an external location
+        combinedConfig.addLocalConfig("alfresco/transformers");
+        if (!pipelineConfigDir.isEmpty())
+        {
+            combinedConfig.addLocalConfig(pipelineConfigDir);
+        }
+        //
         combinedConfig.register(this);
+    }
+
+    @Override
+    protected synchronized Data getData()
+    {
+        if (data == null)
+        {
+            data = new LocalData();
+        }
+        return data;
     }
 
     @Override
@@ -137,7 +153,8 @@ public class LocalTransformServiceRegistry extends TransformServiceRegistryImpl 
         try
         {
             String name = transformer.getTransformerName();
-            if (name == null || transformers.get(name) != null)
+            Map<String, LocalTransformer> localTransformers = ((LocalData)data).localTransformers;
+            if (name == null || localTransformers.get(name) != null)
             {
                 throw new IllegalArgumentException("Local transformer names must exist and be unique (" + name + ").");
             }
@@ -174,14 +191,14 @@ public class LocalTransformServiceRegistry extends TransformServiceRegistryImpl 
                 {
                     TransformStep intermediateTransformerStep = pipeline.get(i);
                     String intermediateTransformerName = intermediateTransformerStep.getTransformerName();
-                    if (name == null || transformers.get(name) != null)
+                    if (name == null || localTransformers.get(name) != null)
                     {
                         throw new IllegalArgumentException("Local pipeline transformer " + name +
                                 " did not specified an intermediate transformer name."+
                                 " Read from "+readFrom);
                     }
 
-                    LocalTransformer intermediateTransformer = transformers.get(intermediateTransformerName);
+                    LocalTransformer intermediateTransformer = localTransformers.get(intermediateTransformerName);
                     if (intermediateTransformer == null)
                     {
                         throw new IllegalArgumentException("Local pipeline transformer " + name +
@@ -213,7 +230,7 @@ public class LocalTransformServiceRegistry extends TransformServiceRegistryImpl 
                     ((LocalPipelineTransformer)localTransformer).addIntermediateTransformer(intermediateTransformer, targetMimetype);
                 }
             }
-            transformers.put(name, localTransformer);
+            localTransformers.put(name, localTransformer);
             super.register(transformer, baseUrl, readFrom);
         }
         catch (IllegalArgumentException e)
@@ -389,6 +406,7 @@ public class LocalTransformServiceRegistry extends TransformServiceRegistryImpl 
                                                 String sourceMimetype, String targetMimetype, long sourceSizeInBytes)
     {
         String name = getTransformerName(sourceMimetype, sourceSizeInBytes, targetMimetype, actualOptions, renditionName);
-        return transformers.get(name);
+        Map<String, LocalTransformer> localTransformers = ((LocalData)data).localTransformers;
+        return localTransformers.get(name);
     }
 }

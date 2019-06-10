@@ -401,11 +401,11 @@ public class TransformServiceRegistryImplTest
                 4, countSupportedTransforms(false));
 
         ConcurrentMap<String, List<TransformServiceRegistryImpl.SupportedTransform>> transformer =
-                registry.transformers.get("officeToImageViaPdf");
+                registry.getData().transformers.get("officeToImageViaPdf");
 
         // Check required and optional default correctly
         ConcurrentMap<String, List<TransformServiceRegistryImpl.SupportedTransform>> transformsToWord =
-                registry.transformers.get(DOC);
+                registry.getData().transformers.get(DOC);
         List<TransformServiceRegistryImpl.SupportedTransform> supportedTransforms = transformsToWord.get(GIF);
         TransformServiceRegistryImpl.SupportedTransform supportedTransform = supportedTransforms.get(0);
 
@@ -447,7 +447,7 @@ public class TransformServiceRegistryImplTest
     {
         int count = 0;
         int uniqueCount = 0;
-        for (ConcurrentMap<String, List<TransformServiceRegistryImpl.SupportedTransform>> targetMap : registry.transformers.values())
+        for (ConcurrentMap<String, List<TransformServiceRegistryImpl.SupportedTransform>> targetMap : registry.getData().transformers.values())
         {
             for (List<TransformServiceRegistryImpl.SupportedTransform> supportedTransforms : targetMap.values())
             {
@@ -654,7 +654,7 @@ public class TransformServiceRegistryImplTest
         assertEquals(-1L, registry.getMaxSize(MSG, GIF, null, "doclib"));
 
         // Change the cached value and try and check we are now using the cached value.
-        List<TransformServiceRegistryImpl.SupportedTransform> supportedTransforms = registry.cachedSupportedTransformList.get("doclib").get(DOC);
+        List<TransformServiceRegistryImpl.SupportedTransform> supportedTransforms = registry.getData().cachedSupportedTransformList.get("doclib").get(DOC);
         supportedTransforms.get(0).maxSourceSizeBytes = 1234L;
         assertEquals(1234L, registry.getMaxSize(DOC, GIF, null, "doclib"));
     }

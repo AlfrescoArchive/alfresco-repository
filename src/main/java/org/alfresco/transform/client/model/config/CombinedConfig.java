@@ -239,7 +239,6 @@ public class CombinedConfig
             Collections.sort(names);
             for (String name : names)
             {
-                log.debug("Reading resource "+name);
                 addJsonSource(new InputStreamReader(getResourceAsStream(name)), null,
                         name+" from jar "+jarFile.getName());
             }
@@ -259,12 +258,12 @@ public class CombinedConfig
                     Arrays.sort(files, (file1, file2) -> file1.getName().compareTo(file2.getName()));
                     for (File file: files)
                     {
-                        addJsonSource(new FileReader(file), null,"File "+ file.getPath());
+                        addJsonSource(new FileReader(file), null,"File " + file.getPath());
                     }
                 }
                 else
                 {
-                    addJsonSource(new FileReader(root), null, rootPath);
+                    addJsonSource(new FileReader(root), null, "File " + rootPath);
                 }
             }
         }
@@ -433,7 +432,9 @@ public class CombinedConfig
                 }
             }
 
-            original = todo;
+            original.clear();
+            original.addAll(todo);
+            todo.clear();
         }
         while (added && !original.isEmpty());
 
