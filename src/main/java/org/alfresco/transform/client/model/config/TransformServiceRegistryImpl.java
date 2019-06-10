@@ -27,7 +27,24 @@ package org.alfresco.transform.client.model.config;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.alfresco.heartbeat.datasender.HBDataSenderServiceImpl;
+import org.alfresco.heartbeat.datasender.internal.schedule.HBDataSenderJob;
+import org.alfresco.util.PropertyCheck;
 import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.quartz.CronExpression;
+import org.quartz.CronScheduleBuilder;
+import org.quartz.CronTrigger;
+import org.quartz.Job;
+import org.quartz.JobBuilder;
+import org.quartz.JobDataMap;
+import org.quartz.JobDetail;
+import org.quartz.JobExecutionContext;
+import org.quartz.JobExecutionException;
+import org.quartz.Scheduler;
+import org.quartz.SchedulerException;
+import org.quartz.TriggerBuilder;
+import org.quartz.impl.StdSchedulerFactory;
 import org.springframework.beans.factory.InitializingBean;
 
 import java.io.IOException;
@@ -47,22 +64,23 @@ import static org.alfresco.repo.rendition2.RenditionDefinition2.TIMEOUT;
  */
 public abstract class TransformServiceRegistryImpl implements TransformServiceRegistry, InitializingBean
 {
-    public class Data
+    public static class Data
     {
         ConcurrentMap<String, ConcurrentMap<String, List<SupportedTransform>>> transformers = new ConcurrentHashMap<>();
         ConcurrentMap<String, ConcurrentMap<String, List<SupportedTransform>>> cachedSupportedTransformList = new ConcurrentHashMap<>();
         private int transformerCount = 0;
         private int transformCount = 0;
+        boolean firstTime = true;
     }
 
-    class SupportedTransform
+    static class SupportedTransform
     {
         TransformOptionGroup transformOptions;
         long maxSourceSizeBytes;
         private String name;
         private int priority;
 
-        public SupportedTransform(String name, List<TransformOption> transformOptions, long maxSourceSizeBytes, int priority)
+        public SupportedTransform(Data data, String name, List<TransformOption> transformOptions, long maxSourceSizeBytes, int priority)
         {
             // Logically the top level TransformOptionGroup is required, so that child options are optional or required
             // based on their own setting.
@@ -74,12 +92,52 @@ public abstract class TransformServiceRegistryImpl implements TransformServiceRe
         }
     }
 
+    public static class TransformServiceRegistryJob implements Job
+    {
+        @Override
+        public void execute(JobExecutionContext context) throws JobExecutionException
+        {
+            JobDataMap dataMap = context.getJobDetail().getJobDataMap();
+            TransformServiceRegistryImpl registry = (TransformServiceRegistryImpl)dataMap.get("registry");
+            registry.readConfigAndReplace();
+        }
+    }
+
+    protected void readConfigAndReplace()
+    {
+        Log log = getLog();
+        log.debug("Config read started");
+        try
+        {
+            Data data = readConfig();
+            setData(data);
+            log.debug("Config replace finished.");
+        }
+        catch (IOException e)
+        {
+            log.error("Config read failed. "+e.getMessage(), e);
+        }
+    }
+
+    protected boolean enabled = true;
     protected Data data;
     private ObjectMapper jsonObjectMapper;
+    private Scheduler scheduler;
+    private CronExpression cronExpression;
 
     public void setJsonObjectMapper(ObjectMapper jsonObjectMapper)
     {
         this.jsonObjectMapper = jsonObjectMapper;
+    }
+
+    public void setScheduler(Scheduler scheduler)
+    {
+        this.scheduler = scheduler;
+    }
+
+    public void setCronExpression(CronExpression cronExpression)
+    {
+        this.cronExpression = cronExpression;
     }
 
     @Override
@@ -89,34 +147,98 @@ public abstract class TransformServiceRegistryImpl implements TransformServiceRe
         {
             throw new IllegalStateException("jsonObjectMapper has not been set");
         }
-        data = null;
+        PropertyCheck.mandatory(this, "cronExpression", cronExpression);
+
+        setData(null);
+        schedule();
+    }
+
+    protected abstract Data readConfig() throws IOException;
+
+    private synchronized void setData(Data data)
+    {
+        this.data = data;
     }
 
     protected synchronized Data getData()
     {
         if (data == null)
         {
-            data = new Data();
+            data = createData();
         }
         return data;
     }
 
-    protected abstract Log getLog();
-
-    public void register(Reader reader, String readFrom) throws IOException
+    protected Data createData()
     {
-        List<Transformer> transformers = jsonObjectMapper.readValue(reader, new TypeReference<List<Transformer>>(){});
-        transformers.forEach(t -> register(t, null, readFrom));
+        return new Data();
     }
 
-    public void register(Transformer transformer, String baseUrl, String readFrom)
+    private synchronized void schedule()
     {
-        getData().transformerCount++;
+        if (scheduler == null)
+        {
+            StdSchedulerFactory sf = new StdSchedulerFactory();
+            String jobName = getClass().getName()+"Job";
+            try
+            {
+                // Do an initial read before the follow up scheduled reads.
+                readConfigAndReplace();
+
+                scheduler = sf.getScheduler();
+
+                JobDetail job = JobBuilder.newJob()
+                        .withIdentity(jobName)
+                        .ofType(TransformServiceRegistryJob.class)
+                        .build();
+                job.getJobDataMap().put("registry", this);
+                CronTrigger trigger = TriggerBuilder.newTrigger()
+                        .withIdentity(jobName+"Trigger", Scheduler.DEFAULT_GROUP)
+                        .withSchedule(CronScheduleBuilder.cronSchedule(cronExpression))
+                        .build();
+                scheduler.startDelayed(30);
+                scheduler.scheduleJob(job, trigger);
+            }
+            catch (SchedulerException e)
+            {
+                getLog().error("Failed to start "+jobName+" "+e.getMessage());
+            }
+        }
+    }
+
+    public void setEnabled(boolean enabled)
+    {
+        this.enabled = enabled;
+        setFirstTime(true);
+    }
+
+    protected void setFirstTime(boolean firstTime)
+    {
+        getData().firstTime = firstTime;
+    }
+
+
+    protected boolean getFirstTime()
+    {
+        return getData().firstTime;
+    }
+
+    protected abstract Log getLog();
+
+    public void register(Data data, Reader reader, String readFrom) throws IOException
+    {
+        List<Transformer> transformers = jsonObjectMapper.readValue(reader, new TypeReference<List<Transformer>>(){});
+        transformers.forEach(t -> register(data, t, null, readFrom));
+    }
+
+    protected void register(Data data, Transformer transformer, String baseUrl, String readFrom)
+    {
+        data.transformerCount++;
         transformer.getSupportedSourceAndTargetList().forEach(
-            e -> getData().transformers.computeIfAbsent(e.getSourceMediaType(),
+            e -> data.transformers.computeIfAbsent(e.getSourceMediaType(),
                 k -> new ConcurrentHashMap<>()).computeIfAbsent(e.getTargetMediaType(),
                 k -> new ArrayList<>()).add(
-                    new SupportedTransform(transformer.getTransformerName(),
+                    new SupportedTransform(data, transformer.getTransformerName(),
                             transformer.getTransformOptions(), e.getMaxSourceSizeBytes(), e.getPriority())));
     }
 
@@ -182,8 +304,10 @@ public abstract class TransformServiceRegistryImpl implements TransformServiceRe
             renditionName = null;
         }
 
+
+        Data data = getData();
         List<SupportedTransform> transformListBySize = renditionName == null ? null
-                : getData().cachedSupportedTransformList.computeIfAbsent(renditionName, k -> new ConcurrentHashMap<>()).get(sourceMimetype);
+                : data.cachedSupportedTransformList.computeIfAbsent(renditionName, k -> new ConcurrentHashMap<>()).get(sourceMimetype);
         if (transformListBySize != null)
         {
             return transformListBySize;
@@ -197,7 +321,7 @@ public abstract class TransformServiceRegistryImpl implements TransformServiceRe
         }
 
         transformListBySize = new ArrayList<>();
-        ConcurrentMap<String, List<SupportedTransform>> targetMap = getData().transformers.get(sourceMimetype);
+        ConcurrentMap<String, List<SupportedTransform>> targetMap = data.transformers.get(sourceMimetype);
         if (targetMap !=  null)
         {
             List<SupportedTransform> supportedTransformList = targetMap.get(targetMimetype);
@@ -218,7 +342,7 @@ public abstract class TransformServiceRegistryImpl implements TransformServiceRe
 
         if (renditionName != null)
         {
-            getData().cachedSupportedTransformList.get(renditionName).put(sourceMimetype, transformListBySize);
+            data.cachedSupportedTransformList.get(renditionName).put(sourceMimetype, transformListBySize);
         }
 
         return transformListBySize;
