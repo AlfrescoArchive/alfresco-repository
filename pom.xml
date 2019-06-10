@@ -3,10 +3,14 @@
     <artifactId>alfresco-repository</artifactId>
     <name>Alfresco Repository</name>
 <<<<<<< HEAD
+<<<<<<< HEAD
     <version>7.70-SNAPSHOT</version>
 =======
     <version>repo-4400-7.67</version>
 >>>>>>> Revert "[maven-release-plugin] prepare for next development iteration"
+=======
+    <version>7.67-SNAPSHOT</version>
+>>>>>>> Revert "[maven-release-plugin] prepare release alfresco-repository-repo-4400-7.67"
     <packaging>jar</packaging>
 
     <parent>
@@ -19,7 +23,7 @@
         <connection>scm:git:git@github.com:Alfresco/alfresco-repository.git</connection>
         <developerConnection>scm:git:git@github.com:Alfresco/alfresco-repository.git</developerConnection>
         <url>https://github.com/Alfresco/alfresco-repository</url>
-        <tag>alfresco-repository-repo-4400-7.67</tag>
+        <tag>HEAD</tag>
     </scm>
 
     <distributionManagement>
