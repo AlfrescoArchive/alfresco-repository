@@ -683,9 +683,9 @@ public class RoutingContentServiceTest extends TestCase
         assertEquals("Mimetype of target reader incorrect",
                 writer.getMimetype(), reader.getMimetype());
         String contentCheck = reader.getContentString();
-        assertEquals("Content check failed", content, contentCheck);
-        
+
         txn.rollback();
+        assertEquals("Content check failed", content, contentCheck);
     }
     
     /**

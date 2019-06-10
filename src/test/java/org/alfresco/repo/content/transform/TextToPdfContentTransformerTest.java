@@ -154,11 +154,6 @@ public class TextToPdfContentTransformerTest extends AbstractContentTransformerT
         String text = sb.toString();
         checkText = (checkText == null) ? clean(text) : clean(checkText);
 
-        System.out.println("********");
-        System.out.println(text);
-        System.out.println("********");
-        System.out.println(checkText);
-        System.out.println("********");
         transformTextAndCheck(text, "UTF-8", checkText);
     }
 
@@ -184,16 +179,6 @@ public class TextToPdfContentTransformerTest extends AbstractContentTransformerT
         doc.close();
         
         String roundTrip = clean(textWriter.toString());
-
-        System.out.println("********");
-        System.out.println("********");
-        System.out.println("**** checkText vs RoundtripText**** ");
-        System.out.println("********");
-        System.out.println("********");
-        System.out.println(checkText);
-        System.out.println("********");
-        System.out.println(roundTrip);
-        System.out.println("********");
         
         assertEquals(
                 "Incorrect text in PDF when starting from text in " + encoding,
