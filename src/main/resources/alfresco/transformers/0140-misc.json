@@ -1,11 +1,15 @@
 {
   "transformOptions": {
     "textToPdfOptions": [
-      {"value": {"name": "pageLimit"}}
+      {"value": {"name": "pageLimit"}},
+      {"value": {"name": "sourceEncoding"}}
     ],
-    "encodingOptions": [
+    "stringOptions": [
       {"value": {"name": "sourceEncoding"}},
       {"value": {"name": "targetEncoding"}}
+    ],
+    "htmlOptions": [
+      {"value": {"name": "sourceEncoding"}}
     ]
   },
   "transformers": [
@@ -15,7 +19,7 @@
         {"sourceMediaType": "text/html",                                                                 "targetMediaType": "text/plain"}
       ],
       "transformOptions": [
-        "encodingOptions"
+        "htmlOptions"
       ]
     },
     {
@@ -32,7 +36,7 @@
         {"sourceMediaType": "application/dita+xml",                                                      "targetMediaType": "text/plain"}
       ],
       "transformOptions": [
-        "encodingOptions"
+        "stringOptions"
       ]
     },
     {

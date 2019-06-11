@@ -138,7 +138,6 @@ public class HtmlParserContentTransformer extends AbstractRemoteContentTransform
                 timeoutMs, logger,
                 "sourceMimetype", sourceMimetype,
                 "targetMimetype", targetMimetype,
-                "sourceEncoding", sourceEncoding,
-                "targetEncoding", targetEncoding);
+                "sourceEncoding", sourceEncoding);
     }
 }

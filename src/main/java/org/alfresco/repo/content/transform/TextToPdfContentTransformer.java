@@ -176,7 +176,10 @@ public class TextToPdfContentTransformer extends AbstractRemoteContentTransforme
     }
 
     @Override
-    protected void transformRemote(RemoteTransformerClient remoteTransformerClient, ContentReader reader, ContentWriter writer, TransformationOptions options, String sourceMimetype, String targetMimetype, String sourceExtension, String targetExtension, String targetEncoding) throws Exception
+    protected void transformRemote(RemoteTransformerClient remoteTransformerClient, ContentReader reader,
+                                   ContentWriter writer, TransformationOptions options, String sourceMimetype,
+                                   String targetMimetype, String sourceExtension, String targetExtension,
+                                   String targetEncoding) throws Exception
     {
         String sourceEncoding = reader.getEncoding();
         long timeoutMs = options.getTimeoutMs();
@@ -190,7 +193,7 @@ public class TextToPdfContentTransformer extends AbstractRemoteContentTransforme
                 "sourceMimetype", sourceMimetype,
                 "targetMimetype", targetMimetype,
                 "sourceEncoding", sourceEncoding,
-                "pageLimit"+pageLimit);
+                "pageLimit", String.valueOf(pageLimit));
     }
 
     protected InputStreamReader buildReader(InputStream is, String encoding, String node)
