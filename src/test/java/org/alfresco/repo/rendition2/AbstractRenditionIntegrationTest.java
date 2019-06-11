@@ -154,6 +154,11 @@ public abstract class AbstractRenditionIntegrationTest extends BaseSpringTest
         System.setProperty("transform.service.enabled", "false");
         System.setProperty("local.transform.service.enabled", "true");
         System.setProperty("legacy.transform.service.enabled", "false");
+
+        // Strict MimetypeCheck
+        System.setProperty("transformer.strict.mimetype.check", "true");
+        //  Retry on DifferentMimetype
+        System.setProperty("content.transformer.retryOn.different.mimetype", "true");
     }
 
     protected static void service()

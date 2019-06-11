@@ -25,14 +25,28 @@
  */
 package org.alfresco.transform.client.model.config;
 
-import org.alfresco.repo.content.transform.TransformerDebug;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.alfresco.repo.content.transform.LocalTransformServiceRegistry;
-import org.junit.After;
+import org.alfresco.repo.content.transform.TransformerDebug;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.junit.Before;
+import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Properties;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 /**
  * Extends the {@link TransformServiceRegistryImplTest} (used to test the config received from the Transform Service)
@@ -42,32 +56,35 @@ import java.util.Properties;
 public class LocalTransformServiceRegistryTest extends TransformServiceRegistryImplTest
 {
     protected LocalTransformServiceRegistry registry;
-    private Properties properties;
+
+    private Properties properties = new Properties();
+
     @Mock
     private TransformerDebug transformerDebug;
 
-    public static final String TRANSFORM_SERVICE_CONFIG = "alfresco/transformers";
+    private static final String TRANSFORM_SERVICE_CONFIG = "alfresco/local-transform-service-config-test1.json";
+    private static final ObjectMapper JSON_OBJECT_MAPPER = new ObjectMapper();
+    private static final String LOCAL_TRANSFORMER = "localTransformer.";
+    private static final String URL = ".url";
+
+    private static Log log = LogFactory.getLog(LocalTransformServiceRegistry.class);
+
+    private Map<String, List<String>> imagemagickSupportedTransformation;
+    private Map<String, List<String>> tikaSupportedTransformation;
+    private Map<String, List<String>> pdfRendererSupportedTransformation;
+    private Map<String, List<String>> libreofficeSupportedTransformation;
+    private Map<String, List<String>> officeToImageViaPdfSupportedTransformation;
 
     @Before
     public void setUp() throws Exception
     {
         MockitoAnnotations.initMocks(this);
-        properties = new Properties();
-        properties.setProperty(        "name.url", "dummy");
-        properties.setProperty("transformer1.url", "dummy");
-        properties.setProperty("transformer2.url", "dummy");
-        properties.setProperty("transformer3.url", "dummy");
-        properties.setProperty("transformer4.url", "dummy");
-        properties.setProperty("transformer5.url", "dummy");
-        properties.setProperty( "libreoffice.url", "dummy");
-        properties.setProperty(        "tika.url", "dummy");
-        properties.setProperty( "pdfrenderer.url", "dummy");
-        properties.setProperty( "imagemagick.url", "dummy");
+        initTestData();
 
         super.setUp();
     }
 
-    protected TransformServiceRegistryImpl buildTransformServiceRegistryImpl()
+    protected LocalTransformServiceRegistry buildTransformServiceRegistryImpl()
     {
         registry = new LocalTransformServiceRegistry();
         registry.setJsonObjectMapper(JSON_OBJECT_MAPPER);
@@ -76,24 +93,219 @@ public class LocalTransformServiceRegistryTest extends TransformServiceRegistryI
         return registry;
     }
 
-    @After
-    public void tearDown()
+    /**
+     * Reads and loads localTransformers from TRANSFORM_SERVICE_CONFIG config file.
+     * @return List<Transformer> list of local transformers.
+     */
+    private List<CombinedConfig.TransformerAndItsOrigin> retrieveLocalTransformerList ()
     {
-        // shut down
+        try {
+            CombinedConfig combinedConfig = new CombinedConfig(log);
+            combinedConfig.addLocalConfig(TRANSFORM_SERVICE_CONFIG);
+            return combinedConfig.getTransformers();
+        } catch (IOException e) {
+            log.error("Could not read LocalTransform config file");
+            fail();
+        }
+        return null;
     }
 
-    protected String getTransformServiceConfig()
+    /**
+     * Initialize source and target test data for each transformer
+     */
+    private void initTestData()
     {
-        return TRANSFORM_SERVICE_CONFIG;
+        // Add JVM properties
+        System.setProperty(LOCAL_TRANSFORMER + "pdfrenderer" + URL, "http://localhost:8090/");
+        System.setProperty(LOCAL_TRANSFORMER + "imagemagick" + URL, "http://localhost:8091/");
+        System.setProperty(LOCAL_TRANSFORMER + "libreoffice" + URL, "http://localhost:8092/");
+        System.setProperty(LOCAL_TRANSFORMER + "tika" + URL, "http://localhost:8093/");
+
+        // Add alfresco-global properties
+        properties.setProperty(LOCAL_TRANSFORMER + "pdfrenderer" + URL, "http://localhost:8090/");
+        properties.setProperty(LOCAL_TRANSFORMER + "imagemagick" + URL, "http://localhost:8091/");
+        properties.setProperty(LOCAL_TRANSFORMER + "libreoffice" + URL, "http://localhost:8092/");
+        properties.setProperty(LOCAL_TRANSFORMER + "tika" + URL, "http://localhost:8093/");
+
+        // ImageMagick supported Source and Target List:
+        imagemagickSupportedTransformation = new HashMap<>();
+        List<String> targetMimetype = new ArrayList<>();
+        targetMimetype.add("image/gif");
+        targetMimetype.add("image/tiff");
+        imagemagickSupportedTransformation.put("image/tiff", targetMimetype);
+        targetMimetype.add("image/png");
+        targetMimetype.add("image/jpeg");
+        imagemagickSupportedTransformation.put("image/gif", targetMimetype);
+        imagemagickSupportedTransformation.put("image/jpeg", targetMimetype);
+        imagemagickSupportedTransformation.put("image/png", targetMimetype);
+
+        // Tika Supported Source and Target List:
+        targetMimetype = new ArrayList<>();
+        tikaSupportedTransformation = new HashMap<>();
+        targetMimetype.add("text/plain");
+        tikaSupportedTransformation.put("application/pdf", targetMimetype);
+        tikaSupportedTransformation.put("application/msword", targetMimetype);
+        tikaSupportedTransformation.put("application/vnd.ms-excel", targetMimetype);
+        tikaSupportedTransformation.put("application/vnd.ms-powerpoint", targetMimetype);
+        tikaSupportedTransformation.put("application/vnd.openxmlformats-officedocument.wordprocessingml.document", targetMimetype);
+        tikaSupportedTransformation.put("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", targetMimetype);
+        tikaSupportedTransformation.put("application/vnd.openxmlformats-officedocument.presentationml.presentation", targetMimetype);
+        tikaSupportedTransformation.put("application/vnd.ms-outlook", targetMimetype);
+
+        // Libre Office Source and Target List:
+        targetMimetype = new ArrayList<>();
+        libreofficeSupportedTransformation = new HashMap<>();
+        targetMimetype.add("application/pdf");
+        libreofficeSupportedTransformation.put("application/vnd.ms-excel", targetMimetype);
+        libreofficeSupportedTransformation.put("application/vnd.ms-powerpoint", targetMimetype);
+        libreofficeSupportedTransformation.put("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", targetMimetype);
+        libreofficeSupportedTransformation.put("application/vnd.openxmlformats-officedocument.presentationml.presentation", targetMimetype);
+        libreofficeSupportedTransformation.put("application/vnd.ms-outlook", targetMimetype);
+        targetMimetype.add("application/msword");
+        libreofficeSupportedTransformation.put("application/msword", targetMimetype);
+        libreofficeSupportedTransformation.put("application/vnd.openxmlformats-officedocument.wordprocessingml.document", targetMimetype);
+
+        // Pdf Renderer Source and Target List:
+        targetMimetype = new ArrayList<>();
+        pdfRendererSupportedTransformation = new HashMap<>();
+        targetMimetype.add("image/png");
+        pdfRendererSupportedTransformation.put("application/pdf", targetMimetype);
+
+        // Office to Image via Pdf Pipeline Transformer Source and Target List:
+        targetMimetype = new ArrayList<>();
+        officeToImageViaPdfSupportedTransformation = new HashMap<>();
+        targetMimetype.add("image/gif");
+        targetMimetype.add("image/tiff");
+        targetMimetype.add("image/png");
+        targetMimetype.add("image/jpeg");
+        officeToImageViaPdfSupportedTransformation.put("application/msword", targetMimetype);
+        officeToImageViaPdfSupportedTransformation.put("application/vnd.ms-excel", targetMimetype);
+        officeToImageViaPdfSupportedTransformation.put("application/vnd.ms-powerpoint", targetMimetype);
+        officeToImageViaPdfSupportedTransformation.put("application/vnd.openxmlformats-officedocument.wordprocessingml.document", targetMimetype);
+        officeToImageViaPdfSupportedTransformation.put("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", targetMimetype);
+        officeToImageViaPdfSupportedTransformation.put("application/vnd.openxmlformats-officedocument.presentationml.presentation", targetMimetype);
+        officeToImageViaPdfSupportedTransformation.put("application/vnd.ms-outlook", targetMimetype);
     }
 
-    // TODO test pipeline
+    @Test
+    public void testReadJsonConfig()
+    {
+        List<CombinedConfig.TransformerAndItsOrigin> transformerList = retrieveLocalTransformerList();
+        // Assert expected size of the transformers.
+        assertNotNull("Transformer list is null.", transformerList);
+        assertEquals("Unexpected number of transformers retrieved", 5, transformerList.size());
 
-    // TODO test strict mimetype check
+        // Assert proper transformers are loaded
+        List<String> listOfExpectedTransformersName= new ArrayList<>();
+        listOfExpectedTransformersName.add("imagemagick");
+        listOfExpectedTransformersName.add("tika");
+        listOfExpectedTransformersName.add("pdfrenderer");
+        listOfExpectedTransformersName.add("libreoffice");
+        listOfExpectedTransformersName.add("officeToImageViaPdf");
 
-    // TODO test retry transform on different mimetype
+        for (CombinedConfig.TransformerAndItsOrigin t : transformerList)
+        {
+            assertTrue(t.transformer.getTransformerName() + " should be an expected local transformer.", listOfExpectedTransformersName.contains(t.transformer.getTransformerName()));
+            listOfExpectedTransformersName.remove(t.transformer.getTransformerName());
 
-    // TODO test using system properties and alfresco-global.properties
+            switch (t.transformer.getTransformerName())
+            {
+                case "imagemagick":
+                    assertEquals(t.transformer.getTransformerName() + " incorrect number of supported transform", 14, t.transformer.getSupportedSourceAndTargetList().size());
+                    assertEquals( t.transformer.getTransformerName() + "incorrect number of transform options", 6, t.transformer.getTransformOptions().size());
+                    assertNull(t.transformer.getTransformerName() + " expected to not be a transformer pipeline", t.transformer.getTransformerPipeline());
 
-    // TODO test the JsonConverter
+                    //Test supportedSourceAndTargetList
+                    for ( SupportedSourceAndTarget ssat: t.transformer.getSupportedSourceAndTargetList())
+                    {
+                        assertTrue(ssat.getSourceMediaType() + " not expected to be a supported transform source.", imagemagickSupportedTransformation.containsKey(ssat.getSourceMediaType()));
+                        assertTrue(ssat.getTargetMediaType() + " not expected to be a supported transform target for " + ssat.getSourceMediaType(), imagemagickSupportedTransformation.get(ssat.getSourceMediaType()).contains(ssat.getTargetMediaType()));
+                    }
+                    break;
+
+                case "tika":
+                    assertEquals(t.transformer.getTransformerName() + " incorrect number of supported transform", 8, t.transformer.getSupportedSourceAndTargetList().size());
+                    assertEquals( t.transformer.getTransformerName() + "incorrect number of transform options", 5, t.transformer.getTransformOptions().size());
+                    assertNull(t.transformer.getTransformerName() + " expected to not be a transformer pipeline", t.transformer.getTransformerPipeline());
+
+                    //Test supportedSourceAndTargetList
+                    for ( SupportedSourceAndTarget ssat: t.transformer.getSupportedSourceAndTargetList())
+                    {
+                        assertTrue(ssat.getSourceMediaType() + " not expected to be a supported transform source.", tikaSupportedTransformation.containsKey(ssat.getSourceMediaType()));
+                        assertTrue(ssat.getTargetMediaType() + " not expected to be a supported transform target for " + ssat.getSourceMediaType(), tikaSupportedTransformation.get(ssat.getSourceMediaType()).contains(ssat.getTargetMediaType()));
+                    }
+                    break;
+
+                case "pdfrenderer":
+                    assertEquals(t.transformer.getTransformerName() + " incorrect number of supported transform", 1, t.transformer.getSupportedSourceAndTargetList().size());
+                    assertEquals( t.transformer.getTransformerName() + "incorrect number of transform options", 5, t.transformer.getTransformOptions().size());
+                    assertNull(t.transformer.getTransformerName() + " expected to not be a transformer pipeline", t.transformer.getTransformerPipeline());
+
+                    //Test supportedSourceAndTargetList
+                    for ( SupportedSourceAndTarget ssat: t.transformer.getSupportedSourceAndTargetList())
+                    {
+                        assertTrue(ssat.getSourceMediaType() + " not expected to be a supported transform source.", pdfRendererSupportedTransformation.containsKey(ssat.getSourceMediaType()));
+                        assertTrue(ssat.getTargetMediaType() + " not expected to be a supported transform target for " + ssat.getSourceMediaType(), pdfRendererSupportedTransformation.get(ssat.getSourceMediaType()).contains(ssat.getTargetMediaType()));
+                    }
+                    break;
+
+                case "libreoffice":
+                    assertEquals(t.transformer.getTransformerName() + " incorrect number of supported transform", 9, t.transformer.getSupportedSourceAndTargetList().size());
+                    assertNull( t.transformer.getTransformerName() + "incorrect number of transform options", t.transformer.getTransformOptions());
+                    assertNull(t.transformer.getTransformerName() + " expected to not be a transformer pipeline", t.transformer.getTransformerPipeline());
+
+                    //Test supportedSourceAndTargetList
+                    for ( SupportedSourceAndTarget ssat: t.transformer.getSupportedSourceAndTargetList())
+                    {
+                        assertTrue(ssat.getSourceMediaType() + " not expected to be a supported transform source.", libreofficeSupportedTransformation.containsKey(ssat.getSourceMediaType()));
+                        assertTrue(ssat.getTargetMediaType() + " not expected to be a supported transform target for " + ssat.getSourceMediaType(), libreofficeSupportedTransformation.get(ssat.getSourceMediaType()).contains(ssat.getTargetMediaType()));
+                    }
+                    break;
+
+                case "officeToImageViaPdf":
+                    assertEquals(t.transformer.getTransformerName() + " incorrect number of supported transform", 28, t.transformer.getSupportedSourceAndTargetList().size());
+                    assertEquals( t.transformer.getTransformerName() + "incorrect number of transform options", 2, t.transformer.getTransformOptions().size());
+                    assertNotNull(t.transformer.getTransformerName() + " expected to be a transformer pipeline", t.transformer.getTransformerPipeline());
+
+                    //Test supportedSourceAndTargetList
+                    for ( SupportedSourceAndTarget ssat: t.transformer.getSupportedSourceAndTargetList())
+                    {
+                        assertTrue(ssat.getSourceMediaType() + " not expected to be a supported transform source.", officeToImageViaPdfSupportedTransformation.containsKey(ssat.getSourceMediaType()));
+                        assertTrue(ssat.getTargetMediaType() + " not expected to be a supported transform target for " + ssat.getSourceMediaType(), officeToImageViaPdfSupportedTransformation.get(ssat.getSourceMediaType()).contains(ssat.getTargetMediaType()));
+                    }
+                    break;
+            }
+        }
+        assertEquals("Transformer expected but not found in config file", 0, listOfExpectedTransformersName.size());
+    }
+
+    @Test
+    public void testReadTransformProperties()
+    {
+        List<CombinedConfig.TransformerAndItsOrigin> transformerList = retrieveLocalTransformerList();
+        assertNotNull("Transformer list is null.", transformerList);
+        for (CombinedConfig.TransformerAndItsOrigin t : transformerList)
+        {
+            if(t.transformer.getTransformerPipeline() == null)
+            {
+                assertNotNull(t.transformer.getTransformerName()+ " JVM property not set.", System.getProperty(LOCAL_TRANSFORMER + t.transformer.getTransformerName() + URL));
+            }
+        }
+        assertEquals("Unexpected pdfrenderer JVM property value", "http://localhost:8090/", System.getProperty(LOCAL_TRANSFORMER + "pdfrenderer" + URL));
+        assertEquals("Unexpected imagemagick JVM property value", "http://localhost:8091/", System.getProperty(LOCAL_TRANSFORMER + "imagemagick" + URL));
+        assertEquals("Unexpected libreoffice JVM property value", "http://localhost:8092/", System.getProperty(LOCAL_TRANSFORMER + "libreoffice" + URL));
+        assertEquals("Unexpected tika JVM property value", "http://localhost:8093/", System.getProperty(LOCAL_TRANSFORMER + "tika" + URL));
+
+        for (CombinedConfig.TransformerAndItsOrigin t : transformerList)
+        {
+            if(t.transformer.getTransformerPipeline() == null)
+            {
+                assertNotNull(t.transformer.getTransformerName()+ " alfresco-global property not set.", properties.getProperty(LOCAL_TRANSFORMER + t.transformer.getTransformerName() + URL));
+            }
+        }
+        assertEquals("Unexpected pdfrenderer alfresco-global property value", "http://localhost:8090/", properties.getProperty(LOCAL_TRANSFORMER + "pdfrenderer" + URL));
+        assertEquals("Unexpected imagemagick alfresco-global property value", "http://localhost:8091/", properties.getProperty(LOCAL_TRANSFORMER + "imagemagick" + URL));
+        assertEquals("Unexpected libreoffice alfresco-global property value", "http://localhost:8092/", properties.getProperty(LOCAL_TRANSFORMER + "libreoffice" + URL));
+        assertEquals("Unexpected tika alfresco-global property value", "http://localhost:8093/", properties.getProperty(LOCAL_TRANSFORMER + "tika" + URL));
+    }
 }

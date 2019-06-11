@@ -732,7 +732,7 @@ public class TransformServiceRegistryImplTest
         assertSupported(DOC, 102401, GIF, null, "source is too large", transformer1);
         assertSupported(DOC, 102401, GIF, null, null, transformer1, transformer3);
 
-        assertSupported(PDF, 1024, GIF, actualOptions, "Only transformer2 supports these mmetypes", transformer1);
+        assertSupported(PDF, 1024, GIF, actualOptions, "Only transformer2 supports these mimetypes", transformer1);
         assertSupported(PDF, 1024, GIF, actualOptions, null, transformer1, transformer2);
         assertSupported(PDF, 1024, GIF, actualOptions, null, transformer1, transformer2, transformer3);
 
