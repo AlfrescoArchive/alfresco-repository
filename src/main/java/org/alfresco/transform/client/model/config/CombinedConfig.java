@@ -85,7 +85,7 @@ public class CombinedConfig
     private List<TransformerNodeAndItsOrigin> allTransforms = new ArrayList<>();
     private ObjectMapper jsonObjectMapper = new ObjectMapper();
 
-    private static class TransformerNodeAndItsOrigin
+    static class TransformerNodeAndItsOrigin
     {
         final ObjectNode node;
         final String baseUrl;
@@ -99,7 +99,7 @@ public class CombinedConfig
         }
     }
 
-    private static class TransformerAndItsOrigin
+    static class TransformerAndItsOrigin
     {
         final Transformer transformer;
         final String baseUrl;
