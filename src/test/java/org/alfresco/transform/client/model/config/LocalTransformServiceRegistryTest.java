@@ -214,7 +214,6 @@ public class LocalTransformServiceRegistryTest extends TransformServiceRegistryI
                     assertEquals(t.getTransformerName() + " incorrect number of supported transform", 14, t.getSupportedSourceAndTargetList().size());
                     assertEquals( t.getTransformerName() + "incorrect number of transform options", 6, t.getTransformOptions().size());
                     assertNull(t.getTransformerName() + " expected to not be a transformer pipeline", t.getTransformerPipeline());
-                    //Test TransformOptions
 
                     //Test supportedSourceAndTargetList
                     for ( SupportedSourceAndTarget ssat: t.getSupportedSourceAndTargetList())
@@ -228,7 +227,6 @@ public class LocalTransformServiceRegistryTest extends TransformServiceRegistryI
                     assertEquals(t.getTransformerName() + " incorrect number of supported transform", 8, t.getSupportedSourceAndTargetList().size());
                     assertEquals( t.getTransformerName() + "incorrect number of transform options", 5, t.getTransformOptions().size());
                     assertNull(t.getTransformerName() + " expected to not be a transformer pipeline", t.getTransformerPipeline());
-                    //Test TransformOptions
 
                     //Test supportedSourceAndTargetList
                     for ( SupportedSourceAndTarget ssat: t.getSupportedSourceAndTargetList())
@@ -242,7 +240,6 @@ public class LocalTransformServiceRegistryTest extends TransformServiceRegistryI
                     assertEquals(t.getTransformerName() + " incorrect number of supported transform", 1, t.getSupportedSourceAndTargetList().size());
                     assertEquals( t.getTransformerName() + "incorrect number of transform options", 5, t.getTransformOptions().size());
                     assertNull(t.getTransformerName() + " expected to not be a transformer pipeline", t.getTransformerPipeline());
-                    //Test TransformOptions
 
                     //Test supportedSourceAndTargetList
                     for ( SupportedSourceAndTarget ssat: t.getSupportedSourceAndTargetList())
@@ -256,7 +253,6 @@ public class LocalTransformServiceRegistryTest extends TransformServiceRegistryI
                     assertEquals(t.getTransformerName() + " incorrect number of supported transform", 9, t.getSupportedSourceAndTargetList().size());
                     assertNull( t.getTransformerName() + "incorrect number of transform options", t.getTransformOptions());
                     assertNull(t.getTransformerName() + " expected to not be a transformer pipeline", t.getTransformerPipeline());
-                    //Test TransformOptions
 
                     //Test supportedSourceAndTargetList
                     for ( SupportedSourceAndTarget ssat: t.getSupportedSourceAndTargetList())
@@ -270,7 +266,6 @@ public class LocalTransformServiceRegistryTest extends TransformServiceRegistryI
                     assertEquals(t.getTransformerName() + " incorrect number of supported transform", 28, t.getSupportedSourceAndTargetList().size());
                     assertEquals( t.getTransformerName() + "incorrect number of transform options", 2, t.getTransformOptions().size());
                     assertNotNull(t.getTransformerName() + " expected to be a transformer pipeline", t.getTransformerPipeline());
-                    //Test TransformOptions
 
                     //Test supportedSourceAndTargetList
                     for ( SupportedSourceAndTarget ssat: t.getSupportedSourceAndTargetList())

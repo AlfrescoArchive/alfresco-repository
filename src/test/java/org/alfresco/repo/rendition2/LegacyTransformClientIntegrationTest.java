@@ -25,18 +25,10 @@
  */
 package org.alfresco.repo.rendition2;
 
-import org.alfresco.repo.security.authentication.AuthenticationUtil;
-import org.alfresco.service.cmr.repository.ChildAssociationRef;
-import org.alfresco.service.cmr.repository.ContentData;
-import org.alfresco.service.cmr.repository.NodeRef;
-import org.alfresco.service.cmr.repository.datatype.DefaultTypeConverter;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
-import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import static org.alfresco.model.ContentModel.PROP_CONTENT;
 
 /**
  * Integration tests for {@link LegacyTransformClient}

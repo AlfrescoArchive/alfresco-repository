@@ -133,11 +133,6 @@ public abstract class AbstractRenditionIntegrationTest extends BaseSpringTest
         System.setProperty("localTransformer.imagemagick.url", "http://localhost:8091");
         System.setProperty("localTransformer.libreoffice.url", "http://localhost:8092/");
         System.setProperty("localTransformer.tika.url", "http://localhost:8093/");
-
-        // Strict MimetypeCheck
-        System.setProperty("transformer.strict.mimetype.check", "true");
-        //  Retry on DifferentMimetype
-        System.setProperty("content.transformer.retryOn.different.mimetype", "true");
     }
 
     protected static void none()
@@ -159,6 +154,11 @@ public abstract class AbstractRenditionIntegrationTest extends BaseSpringTest
         System.setProperty("transform.service.enabled", "false");
         System.setProperty("local.transform.service.enabled", "true");
         System.setProperty("legacy.transform.service.enabled", "false");
+
+        // Strict MimetypeCheck
+        System.setProperty("transformer.strict.mimetype.check", "true");
+        //  Retry on DifferentMimetype
+        System.setProperty("content.transformer.retryOn.different.mimetype", "true");
     }
 
     protected static void service()
