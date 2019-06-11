@@ -240,11 +240,6 @@ public class RemoteTransformerClient
         String url = baseUrl + "/version";
         HttpGet httpGet = new HttpGet(url);
 
-        if (logger.isDebugEnabled())
-        {
-            logger.debug(name+' '+" check" +url);
-        }
-
         try
         {
             try (CloseableHttpClient httpclient = HttpClients.createDefault())
