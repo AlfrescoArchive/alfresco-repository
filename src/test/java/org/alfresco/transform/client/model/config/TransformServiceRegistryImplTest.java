@@ -88,6 +88,12 @@ public class TransformServiceRegistryImplTest
         TransformServiceRegistryImpl registry = new TransformServiceRegistryImpl()
         {
             @Override
+            protected Data readConfig() throws IOException
+            {
+                return createData(); // Empty config
+            }
+
+            @Override
             protected Log getLog()
             {
                 return log;
@@ -166,7 +172,7 @@ public class TransformServiceRegistryImplTest
                         new SupportedSourceAndTarget(XLS, TXT, 1024000)));
 
         registry = buildTransformServiceRegistryImpl();
-        registry.register(transformer);
+        registry.register(registry.getData(), transformer, null, getClass().getName());
 
         assertTrue(registry.isSupported(XLS, 1024, TXT, Collections.emptyMap(), null));
         assertTrue(registry.isSupported(XLS, 1024000, TXT, null, null));
@@ -202,7 +208,7 @@ public class TransformServiceRegistryImplTest
         registry = buildTransformServiceRegistryImpl();
         for (Transformer transformer : transformers)
         {
-            registry.register(transformer);
+            registry.register(registry.getData(), transformer, null, getClass().getName());
         }
     }
 
@@ -231,6 +237,14 @@ public class TransformServiceRegistryImplTest
         }
         return actualOptions;
     }
+
+    private void register(String path) throws IOException
+    {
+        CombinedConfig combinedConfig = new CombinedConfig(log);
+        combinedConfig.addLocalConfig(path);
+        combinedConfig.register(registry.getData(), registry);
+    }
+
 
     @Test
     public void testReadWriteJson() throws IOException
@@ -336,7 +350,7 @@ public class TransformServiceRegistryImplTest
 
         try (Reader reader = new BufferedReader(new FileReader(tempFile)))
         {
-            registry.register(reader);
+            registry.register(registry.getData(), reader, "testReadWriteJson");
             // Check the count of transforms supported
             assertEquals("The number of UNIQUE source to target mimetypes transforms has changed. Config change?",
                     42, countSupportedTransforms(true));
@@ -358,7 +372,7 @@ public class TransformServiceRegistryImplTest
     @Test
     public void testJsonConfig() throws IOException
     {
-        registry.register(getTransformServiceConfig());
+        register(getTransformServiceConfig());
 
         // Check the count of transforms supported
         assertEquals("The number of UNIQUE source to target mimetypes transforms has changed. Config change?",
@@ -383,7 +397,7 @@ public class TransformServiceRegistryImplTest
     @Test
     public void testJsonPipeline() throws IOException
     {
-        registry.register("alfresco/transform-service-config-test1.json");
+        register("alfresco/transform-service-config-test1.json");
 
         // Check the count of transforms supported
         assertEquals("The number of UNIQUE source to target mimetypes transforms has changed. Config change?",
@@ -393,11 +407,11 @@ public class TransformServiceRegistryImplTest
                 4, countSupportedTransforms(false));
 
         ConcurrentMap<String, List<TransformServiceRegistryImpl.SupportedTransform>> transformer =
-                registry.transformers.get("officeToImageViaPdf");
+                registry.getData().transformers.get("officeToImageViaPdf");
 
         // Check required and optional default correctly
         ConcurrentMap<String, List<TransformServiceRegistryImpl.SupportedTransform>> transformsToWord =
-                registry.transformers.get(DOC);
+                registry.getData().transformers.get(DOC);
         List<TransformServiceRegistryImpl.SupportedTransform> supportedTransforms = transformsToWord.get(GIF);
         TransformServiceRegistryImpl.SupportedTransform supportedTransform = supportedTransforms.get(0);
 
@@ -439,7 +453,7 @@ public class TransformServiceRegistryImplTest
     {
         int count = 0;
         int uniqueCount = 0;
-        for (ConcurrentMap<String, List<TransformServiceRegistryImpl.SupportedTransform>> targetMap : registry.transformers.values())
+        for (ConcurrentMap<String, List<TransformServiceRegistryImpl.SupportedTransform>> targetMap : registry.getData().transformers.values())
         {
             for (List<TransformServiceRegistryImpl.SupportedTransform> supportedTransforms : targetMap.values())
             {
@@ -637,7 +651,7 @@ public class TransformServiceRegistryImplTest
                         new SupportedSourceAndTarget(DOC, GIF, 102400),
                         new SupportedSourceAndTarget(MSG, GIF, -1)));
 
-        registry.register(transformer);
+        registry.register(registry.getData(), transformer, null, getClass().getName());
 
         assertSupported(DOC, 1024, GIF, null, "doclib", "");
         assertSupported(MSG, 1024, GIF, null, "doclib", "");
@@ -646,7 +660,7 @@ public class TransformServiceRegistryImplTest
         assertEquals(-1L, registry.getMaxSize(MSG, GIF, null, "doclib"));
 
         // Change the cached value and try and check we are now using the cached value.
-        List<TransformServiceRegistryImpl.SupportedTransform> supportedTransforms = registry.cachedSupportedTransformList.get("doclib").get(DOC);
+        List<TransformServiceRegistryImpl.SupportedTransform> supportedTransforms = registry.getData().cachedSupportedTransformList.get("doclib").get(DOC);
         supportedTransforms.get(0).maxSourceSizeBytes = 1234L;
         assertEquals(1234L, registry.getMaxSize(DOC, GIF, null, "doclib"));
     }
