@@ -62,6 +62,10 @@ public class LocalTransformClientIntegrationTest extends AbstractRenditionIntegr
     @AfterClass
     public static void after()
     {
+        // Strict MimetypeCheck property cleanup
+        System.clearProperty("transformer.strict.mimetype.check");
+        // Retry on DifferentMimetype property cleanup
+        System.clearProperty("content.transformer.retryOn.different.mimetype");
         AbstractRenditionIntegrationTest.after();
     }
 
@@ -128,6 +132,23 @@ public class LocalTransformClientIntegrationTest extends AbstractRenditionIntegr
     public void testLocalRenderDocxPdf() throws Exception
     {
         checkClientRendition("quick.docx", "pdf", false);
+    }
+
+    @Test
+    public void testRetryOnDifferentMimetype() throws Exception
+    {
+        boolean expectedToPass = true;
+        if(!transformClient.getClass().isInstance(LocalTransformClient.class))
+                expectedToPass = false;
+
+        // File is actually an image masked as docx
+        checkClientRendition("quick-differentMimetype.docx", "pdf", expectedToPass);
+    }
+
+    @Test
+    public void testNonWhitelistedStrictMimetype() throws Exception
+    {
+        checkClientRendition("quickMaskedHtml.jpeg", "avatar32", false);
     }
 
     protected void checkClientRendition(String testFileName, String renditionDefinitionName, boolean expectedToPass) throws InterruptedException
