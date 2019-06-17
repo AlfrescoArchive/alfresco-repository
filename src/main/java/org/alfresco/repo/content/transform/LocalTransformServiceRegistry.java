@@ -56,7 +56,7 @@ import java.util.Set;
  */
 public class LocalTransformServiceRegistry extends TransformServiceRegistryImpl implements InitializingBean
 {
-    private static final Log log = LogFactory.getLog(LocalTransformer.class);
+    private static final Log log = LogFactory.getLog(LocalTransformServiceRegistry.class);
 
     private static final String LOCAL_TRANSFORMER = "localTransformer.";
     private static final String URL = ".url";

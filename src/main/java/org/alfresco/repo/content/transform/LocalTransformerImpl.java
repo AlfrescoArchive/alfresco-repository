@@ -89,7 +89,7 @@ public class LocalTransformerImpl extends AbstractLocalTransformer
         // check availability
         if (remoteTransformerClientConfigured())
         {
-            String on = " on " + remoteTransformerClient.getBaseUrl();
+            String logMsgPrefix = "Local transformer " + name + " on " + remoteTransformerClient.getBaseUrl() + " is ";
             try
             {
                 Pair<Boolean, String> result = remoteTransformerClient.check(log);
@@ -98,12 +98,13 @@ public class LocalTransformerImpl extends AbstractLocalTransformer
                 if (isAvailable != null && isAvailable)
                 {
                     setAvailable(true);
-                    log.info("Using local transformer " + name + on + ": " + msg);
+                    log.debug(logMsgPrefix + "available");
+                    log.trace(msg);
                 }
                 else
                 {
                     setAvailable(false);
-                    String message = "Local transformer " + name + on + " is not available. " + msg;
+                    String message = logMsgPrefix + "not available. " + msg;
                     if (isAvailable == null)
                     {
                         log.debug(message);
@@ -117,7 +118,7 @@ public class LocalTransformerImpl extends AbstractLocalTransformer
             catch (Throwable e)
             {
                 setAvailable(false);
-                log.error("Local transformer " + name + on + " is not available: " + (e.getMessage() != null ? e.getMessage() : ""));
+                log.error(logMsgPrefix + "not available: " + (e.getMessage() != null ? e.getMessage() : ""));
                 log.debug(e);
             }
         }

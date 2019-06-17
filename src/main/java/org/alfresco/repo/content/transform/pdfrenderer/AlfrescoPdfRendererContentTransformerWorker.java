@@ -163,12 +163,12 @@ public class AlfrescoPdfRendererContentTransformerWorker extends ContentTransfor
                 {
                     versionString = result.getSecond();
                     setAvailable(true);
-                    logger.info("Using legacy local Alfresco PDF Renderer: " + versionString);
+                    logger.info("Using legacy Alfresco PDF Renderer: " + versionString);
                 }
                 else
                 {
                     setAvailable(false);
-                    String message = "Legacy local Alfresco PDF Renderer is not available for transformations. " + result.getSecond();
+                    String message = "Legacy Alfresco PDF Renderer is not available for transformations. " + result.getSecond();
                     if (isAvailable == null)
                     {
                         logger.debug(message);

@@ -189,13 +189,13 @@ public class ImageMagickContentTransformerWorker extends AbstractImageMagickCont
                 {
                     setAvailable(true);
                     versionString = result.getSecond().trim();
-                    logger.info("Using legacy local ImageMagick: " + versionString);
+                    logger.info("Using legacy ImageMagick: " + versionString);
                 }
                 else
                 {
                     setAvailable(false);
                     versionString = "unknown";
-                    String message = "Leacy remote ImageMagick is not available for transformations. " + result.getSecond();
+                    String message = "Legacy remote ImageMagick is not available for transformations. " + result.getSecond();
                     if (isAvailable == null)
                     {
                         logger.debug(message);

@@ -100,11 +100,11 @@ public class JodContentTransformer extends OOoContentTransformerHelper implement
                 if (isAvailable != null && isAvailable)
                 {
                     String versionString = result.getSecond().trim();
-                    logger.info("Using legacy local JodCoverter: " + versionString);
+                    logger.info("Using legacy JodCoverter: " + versionString);
                 }
                 else
                 {
-                    String message = "Legacy local JodConverter is not available for transformations. " + result.getSecond();
+                    String message = "Legacy JodConverter is not available for transformations. " + result.getSecond();
                     if (isAvailable == null)
                     {
                         logger.debug(message);

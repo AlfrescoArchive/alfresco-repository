@@ -278,7 +278,14 @@ public class CombinedConfig
     private void addJsonSource(Reader reader, String baseUrl, String readFrom) throws IOException
     {
         JsonNode jsonNode = jsonObjectMapper.readValue(reader, new TypeReference<JsonNode>() {});
-        log.debug(readFrom+" config is: "+jsonNode);
+        if (log.isTraceEnabled())
+        {
+            log.trace(readFrom+" config is: "+jsonNode);
+        }
+        else
+        {
+            log.debug(readFrom+" config read");
+        }
 
         JsonNode transformOptions = jsonNode.get(TRANSFORM_OPTIONS);
         if (transformOptions != null && transformOptions.isObject())
@@ -382,7 +389,8 @@ public class CombinedConfig
             catch (IllegalArgumentException e)
             {
                 String transformString = jsonObjectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(entity.node);
-                log.error(e.getMessage()+"\n"+ transformString);
+                log.error(e.getMessage());
+                log.debug(transformString);
             }
         }
         if (log.isTraceEnabled())
@@ -400,9 +408,10 @@ public class CombinedConfig
         List<TransformerAndItsOrigin> transformers = new ArrayList<>(original.size());
         List<TransformerAndItsOrigin> todo = new ArrayList<>(original.size());
         Set<String> transformerNames = new HashSet<>();
-        boolean added = false;
+        boolean added;
         do
         {
+            added = false;
             for (TransformerAndItsOrigin entry : original)
             {
                 String name = entry.transformer.getTransformerName();

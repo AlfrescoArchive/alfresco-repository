@@ -261,12 +261,12 @@ public class RemoteTransformerClient
                             {
                                 String version = getContent(resEntity);
 
-                                if (logger.isDebugEnabled())
+                                if (logger.isTraceEnabled())
                                 {
                                     long responseContentLength = resEntity.getContentLength();
                                     Header responseContentType = resEntity.getContentType();
                                     Header responseContentEncoding = resEntity.getContentEncoding();
-                                    logger.debug(name +
+                                    logger.trace(name +
                                             " check returned. length=" + responseContentLength +
                                             " type=" + responseContentType +
                                             " encoding=" + responseContentEncoding+

@@ -35,7 +35,7 @@ import org.springframework.beans.factory.InitializingBean;
 import java.util.Map;
 
 /**
- * Implements {@link TransformServiceRegistry} providing a mechanism of validating if a legacy local transformation
+ * Implements {@link TransformServiceRegistry} providing a mechanism of validating if a legacy transformation
  * (based on {@link org.alfresco.repo.content.transform.AbstractContentTransformer2} request is supported.
  *
  * @author adavis

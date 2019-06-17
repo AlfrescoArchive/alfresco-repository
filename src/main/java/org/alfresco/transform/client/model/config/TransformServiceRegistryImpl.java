@@ -111,9 +111,9 @@ public abstract class TransformServiceRegistryImpl implements TransformServiceRe
         {
             Data data = readConfig();
             setData(data);
-            log.debug("Config replace finished.");
+            log.debug("Config read finished "+getCounts());
         }
-        catch (IOException e)
+        catch (Exception e)
         {
             log.error("Config read failed. "+e.getMessage(), e);
         }
@@ -150,7 +150,10 @@ public abstract class TransformServiceRegistryImpl implements TransformServiceRe
         PropertyCheck.mandatory(this, "cronExpression", cronExpression);
 
         setData(null);
-        schedule();
+        if (enabled)
+        {
+            schedule();
+        }
     }
 
     protected abstract Data readConfig() throws IOException;
