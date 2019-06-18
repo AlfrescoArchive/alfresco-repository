@@ -86,10 +86,8 @@ public class LocalTransformerImpl extends AbstractLocalTransformer
 
     private void checkAvailability()
     {
-        // check availability
         if (remoteTransformerClientConfigured())
         {
-            String logMsgPrefix = "Local transformer " + name + " on " + remoteTransformerClient.getBaseUrl() + " is ";
             try
             {
                 Pair<Boolean, String> result = remoteTransformerClient.check(log);
@@ -98,13 +96,13 @@ public class LocalTransformerImpl extends AbstractLocalTransformer
                 if (isAvailable != null && isAvailable)
                 {
                     setAvailable(true);
-                    log.debug(logMsgPrefix + "available");
+                    log.debug(getAvailableMessage(true, null));
                     log.trace(msg);
                 }
                 else
                 {
                     setAvailable(false);
-                    String message = logMsgPrefix + "not available. " + msg;
+                    String message = getAvailableMessage(false, msg);
                     if (isAvailable == null)
                     {
                         log.debug(message);
@@ -118,7 +116,7 @@ public class LocalTransformerImpl extends AbstractLocalTransformer
             catch (Throwable e)
             {
                 setAvailable(false);
-                log.error(logMsgPrefix + "not available: " + (e.getMessage() != null ? e.getMessage() : ""));
+                log.error(getAvailableMessage(false, e.getMessage()));
                 log.debug(e);
             }
         }
@@ -126,6 +124,12 @@ public class LocalTransformerImpl extends AbstractLocalTransformer
         {
             setAvailable(false);
         }
+    }
+
+    private String getAvailableMessage(boolean available, String suffix)
+    {
+        return "Local transformer " + name + " on " + remoteTransformerClient.getBaseUrl() +
+                " is " + (available ? "" : "not ") + "available" + (suffix == null ? "." : ": "+suffix);
     }
 
     @Override

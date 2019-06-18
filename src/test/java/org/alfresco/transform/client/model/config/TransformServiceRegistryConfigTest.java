@@ -28,6 +28,8 @@ package org.alfresco.transform.client.model.config;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.log4j.Level;
+import org.apache.log4j.LogManager;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -54,9 +56,9 @@ import static org.junit.Assert.assertTrue;
 /**
  * Test the config received from the Transform Service about what it supports.
  */
-public class TransformServiceRegistryImplTest
+public class TransformServiceRegistryConfigTest
 {
-    private static Log log = LogFactory.getLog(TransformServiceRegistryImplTest.class);
+    private static Log log = LogFactory.getLog(TransformServiceRegistryConfigTest.class);
 
     public static final String GIF = "image/gif";
     public static final String JPEG = "image/jpeg";
@@ -69,7 +71,9 @@ public class TransformServiceRegistryImplTest
     public static final String MSG = "application/vnd.ms-outlook";
     public static final String TXT = "text/plain";
 
-    public static final String TRANSFORM_SERVICE_CONFIG = "alfresco/transform-service-config.json";
+    private static final String TRANSFORM_SERVICE_CONFIG = "alfresco/transform-service-config-test.json";
+    private static final String TRANSFORM_SERVICE_CONFIG_PIPELINE = "alfresco/transform-service-config-pipeline-test.json";
+
     public static final ObjectMapper JSON_OBJECT_MAPPER = new ObjectMapper();
 
     private TransformServiceRegistryImpl registry;
@@ -81,6 +85,7 @@ public class TransformServiceRegistryImplTest
     {
         registry = buildTransformServiceRegistryImpl();
         builder = new TransformBuilder();
+        LogManager.getLogger(TransformServiceRegistryConfigTest.class).setLevel(Level.DEBUG);
     }
 
     protected TransformServiceRegistryImpl buildTransformServiceRegistryImpl()
@@ -112,6 +117,11 @@ public class TransformServiceRegistryImplTest
     protected String getTransformServiceConfig()
     {
         return TRANSFORM_SERVICE_CONFIG;
+    }
+
+    protected String getTransformServiceConfigPipeline()
+    {
+        return TRANSFORM_SERVICE_CONFIG_PIPELINE;
     }
 
     private void assertAddToPossibleOptions(TransformOptionGroup transformOptionGroup, String actualOptionNames, String expectedNames, String expectedRequired)
@@ -172,12 +182,17 @@ public class TransformServiceRegistryImplTest
                         new SupportedSourceAndTarget(XLS, TXT, 1024000)));
 
         registry = buildTransformServiceRegistryImpl();
-        registry.register(registry.getData(), transformer, null, getClass().getName());
+        registry.register(registry.getData(), transformer, getBaseUrl(transformer), getClass().getName());
 
         assertTrue(registry.isSupported(XLS, 1024, TXT, Collections.emptyMap(), null));
         assertTrue(registry.isSupported(XLS, 1024000, TXT, null, null));
         assertFalse(registry.isSupported(XLS, 1024001, TXT, Collections.emptyMap(), null));
         assertTrue(registry.isSupported(DOC, 1024001, TXT, null, null));
+    }
+
+    protected String getBaseUrl(Transformer transformer)
+    {
+        return null;
     }
 
     private void assertTransformerName(String sourceMimetype, long sourceSizeInBytes, String targetMimetype,
@@ -208,7 +223,7 @@ public class TransformServiceRegistryImplTest
         registry = buildTransformServiceRegistryImpl();
         for (Transformer transformer : transformers)
         {
-            registry.register(registry.getData(), transformer, null, getClass().getName());
+            registry.register(registry.getData(), transformer, getBaseUrl(transformer), getClass().getName());
         }
     }
 
@@ -244,7 +259,6 @@ public class TransformServiceRegistryImplTest
         combinedConfig.addLocalConfig(path);
         combinedConfig.register(registry.getData(), registry);
     }
-
 
     @Test
     public void testReadWriteJson() throws IOException
@@ -350,7 +364,7 @@ public class TransformServiceRegistryImplTest
 
         try (Reader reader = new BufferedReader(new FileReader(tempFile)))
         {
-            registry.register(registry.getData(), reader, "testReadWriteJson");
+            registry.register(registry.getData(), reader, getClass().getName());
             // Check the count of transforms supported
             assertEquals("The number of UNIQUE source to target mimetypes transforms has changed. Config change?",
                     42, countSupportedTransforms(true));
@@ -397,14 +411,15 @@ public class TransformServiceRegistryImplTest
     @Test
     public void testJsonPipeline() throws IOException
     {
-        register("alfresco/transform-service-config-test1.json");
+        register(getTransformServiceConfigPipeline());
 
         // Check the count of transforms supported
+        int expectedTransforms = getExpectedTransformsForTestJsonPipeline();
         assertEquals("The number of UNIQUE source to target mimetypes transforms has changed. Config change?",
-                4, countSupportedTransforms(true));
+                expectedTransforms, countSupportedTransforms(true));
         assertEquals("The number of source to target mimetypes transforms has changed. " +
                         "There may be multiple transformers for the same combination. Config change?",
-                4, countSupportedTransforms(false));
+                expectedTransforms, countSupportedTransforms(false));
 
         ConcurrentMap<String, List<TransformServiceRegistryImpl.SupportedTransform>> transformer =
                 registry.getData().transformers.get("officeToImageViaPdf");
@@ -447,6 +462,11 @@ public class TransformServiceRegistryImplTest
         actualOptions.put("allowEnlargement", "false");
         actualOptions.put("maintainAspectRatio", "true");
         assertSupported(DOC,1234, PNG, actualOptions, null, "");
+    }
+
+    protected int getExpectedTransformsForTestJsonPipeline()
+    {
+        return 4;
     }
 
     private int countSupportedTransforms(boolean unique)
@@ -651,7 +671,7 @@ public class TransformServiceRegistryImplTest
                         new SupportedSourceAndTarget(DOC, GIF, 102400),
                         new SupportedSourceAndTarget(MSG, GIF, -1)));
 
-        registry.register(registry.getData(), transformer, null, getClass().getName());
+        registry.register(registry.getData(), transformer, getBaseUrl(transformer), getClass().getName());
 
         assertSupported(DOC, 1024, GIF, null, "doclib", "");
         assertSupported(MSG, 1024, GIF, null, "doclib", "");

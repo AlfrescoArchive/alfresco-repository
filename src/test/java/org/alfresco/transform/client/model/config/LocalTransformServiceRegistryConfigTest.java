@@ -27,6 +27,7 @@ package org.alfresco.transform.client.model.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.alfresco.repo.content.transform.LocalTransformServiceRegistry;
+import org.alfresco.repo.content.transform.LocalTransformer;
 import org.alfresco.repo.content.transform.TransformerDebug;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -49,11 +50,11 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 /**
- * Extends the {@link TransformServiceRegistryImplTest} (used to test the config received from the Transform Service)
+ * Extends the {@link TransformServiceRegistryConfigTest} (used to test the config received from the Transform Service)
  * so that configuration for the local transformations may be tested. This includes pipelines and options specific
  * transform steps.
  */
-public class LocalTransformServiceRegistryTest extends TransformServiceRegistryImplTest
+public class LocalTransformServiceRegistryConfigTest extends TransformServiceRegistryConfigTest
 {
     protected LocalTransformServiceRegistry registry;
 
@@ -62,7 +63,9 @@ public class LocalTransformServiceRegistryTest extends TransformServiceRegistryI
     @Mock
     private TransformerDebug transformerDebug;
 
-    private static final String TRANSFORM_SERVICE_CONFIG = "alfresco/local-transform-service-config-test1.json";
+    private static final String LOCAL_TRANSFORM_SERVICE_CONFIG = "alfresco/local-transform-service-config-test.json";
+    private static final String LOCAL_TRANSFORM_SERVICE_CONFIG_PIPELINE = "alfresco/local-transform-service-config-pipeline-test.json";
+
     private static final ObjectMapper JSON_OBJECT_MAPPER = new ObjectMapper();
     private static final String LOCAL_TRANSFORMER = "localTransformer.";
     private static final String URL = ".url";
@@ -86,22 +89,50 @@ public class LocalTransformServiceRegistryTest extends TransformServiceRegistryI
 
     protected LocalTransformServiceRegistry buildTransformServiceRegistryImpl()
     {
-        registry = new LocalTransformServiceRegistry();
+        registry = new LocalTransformServiceRegistry()
+        {
+            @Override
+            protected String getBaseUrlIfTesting(String name, String baseUrl)
+            {
+                return baseUrl == null
+                        ? getProperty(LOCAL_TRANSFORMER+name+URL, null)
+                        : baseUrl;
+            }
+        };
         registry.setJsonObjectMapper(JSON_OBJECT_MAPPER);
         registry.setProperties(properties);
         registry.setTransformerDebug(transformerDebug);
         return registry;
     }
 
+    @Override
+    protected String getTransformServiceConfig()
+    {
+        return LOCAL_TRANSFORM_SERVICE_CONFIG;
+    }
+
+    @Override
+    protected String getTransformServiceConfigPipeline()
+    {
+        return LOCAL_TRANSFORM_SERVICE_CONFIG_PIPELINE;
+    }
+
+    @Override
+    protected int getExpectedTransformsForTestJsonPipeline()
+    {
+        // Need to have at least one supportedSourceAndTargetList element per transformer and there are 3.
+        return 4+3;
+    }
+
     /**
-     * Reads and loads localTransformers from TRANSFORM_SERVICE_CONFIG config file.
+     * Reads and loads localTransformers from LOCAL_TRANSFORM_SERVICE_CONFIG config file.
      * @return List<Transformer> list of local transformers.
      */
     private List<CombinedConfig.TransformerAndItsOrigin> retrieveLocalTransformerList ()
     {
         try {
             CombinedConfig combinedConfig = new CombinedConfig(log);
-            combinedConfig.addLocalConfig(TRANSFORM_SERVICE_CONFIG);
+            combinedConfig.addLocalConfig(LOCAL_TRANSFORM_SERVICE_CONFIG);
             return combinedConfig.getTransformers();
         } catch (IOException e) {
             log.error("Could not read LocalTransform config file");
@@ -185,6 +216,17 @@ public class LocalTransformServiceRegistryTest extends TransformServiceRegistryI
         officeToImageViaPdfSupportedTransformation.put("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", targetMimetype);
         officeToImageViaPdfSupportedTransformation.put("application/vnd.openxmlformats-officedocument.presentationml.presentation", targetMimetype);
         officeToImageViaPdfSupportedTransformation.put("application/vnd.ms-outlook", targetMimetype);
+    }
+
+    protected String getBaseUrl(Transformer transformer)
+    {
+        return "localTransformer."+transformer.getTransformerName()+".url";
+    }
+
+    @Test
+    public void testReadWriteJson() throws IOException
+    {
+        // Override super method so it passes, as there is nothing more to be gained for LocalTransformers.
     }
 
     @Test

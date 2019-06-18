@@ -1,12 +1,5 @@
 {
   "transformOptions": {
-    "pdfrendererOptions": [
-      {"value": {"name": "page"}},
-      {"value": {"name": "width"}},
-      {"value": {"name": "height"}},
-      {"value": {"name": "allowPdfEnlargement"}},
-      {"value": {"name": "maintainPdfAspectRatio"}}
-    ],
     "imagemagickOptions": [
       {"value": {"name": "alphaRemove"}},
       {"value": {"name": "autoOrient"}},
@@ -28,6 +21,13 @@
         {"value": {"name": "allowEnlargement"}},
         {"value": {"name": "maintainAspectRatio"}}
       ]}}
+    ],
+    "pdfrendererOptions": [
+      {"value": {"name": "page"}},
+      {"value": {"name": "width"}},
+      {"value": {"name": "height"}},
+      {"value": {"name": "allowPdfEnlargement"}},
+      {"value": {"name": "maintainPdfAspectRatio"}}
     ]
   },
   "transformers": [

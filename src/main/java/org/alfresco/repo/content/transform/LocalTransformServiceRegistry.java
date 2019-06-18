@@ -150,13 +150,15 @@ public class LocalTransformServiceRegistry extends TransformServiceRegistryImpl 
             Map<String, LocalTransformer> localTransformers = ((LocalData)data).localTransformers;
             if (name == null || localTransformers.get(name) != null)
             {
-                throw new IllegalArgumentException("Local transformer names must exist and be unique (" + name + ").");
+                throw new IllegalArgumentException("Local transformer names must exist and be unique (" + name + ")."+
+                        " Read from "+readFrom);
             }
 
             LocalTransformer localTransformer;
             List<TransformStep> pipeline = transformer.getTransformerPipeline();
             if (pipeline == null || pipeline.isEmpty())
             {
+                baseUrl = getBaseUrlIfTesting(name, baseUrl);
                 if (baseUrl == null)
                 {
                     throw new IllegalArgumentException("Local transformer " + name +
@@ -196,7 +198,7 @@ public class LocalTransformServiceRegistry extends TransformServiceRegistryImpl 
                     if (intermediateTransformer == null)
                     {
                         throw new IllegalArgumentException("Local pipeline transformer " + name +
-                                " specified an intermediate transformer (" +
+                                " specified an intermediate transformer " +
                                 intermediateTransformerName + " that has not been defined."+
                                 " Read from "+readFrom);
                     }
@@ -230,8 +232,14 @@ public class LocalTransformServiceRegistry extends TransformServiceRegistryImpl 
         catch (IllegalArgumentException e)
         {
             String msg = e.getMessage();
-            getLog().error(msg+" Read from "+readFrom);
+            getLog().error(msg);
         }
+    }
+
+    // When testing, we need to be able to set the baseUrl when reading from a file.
+    protected String getBaseUrlIfTesting(String name, String baseUrl)
+    {
+        return baseUrl;
     }
 
     @Override
@@ -356,7 +364,7 @@ public class LocalTransformServiceRegistry extends TransformServiceRegistryImpl 
      * Gets a property from an alfresco global property but falls back to a System property with the same name to
      * allow dynamic creation of transformers without having to have an AMP to add the alfresco global property.
      */
-    private String getProperty(String name, String defaultValue)
+    protected String getProperty(String name, String defaultValue)
     {
         String value = properties.getProperty(name);
         if (value == null || value.isEmpty())
