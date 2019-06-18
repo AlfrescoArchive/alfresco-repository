@@ -50,9 +50,9 @@ import org.junit.runners.Suite;
 
     // Requires running transformers
     org.alfresco.repo.rendition2.RenditionService2IntegrationTest.class,
-    org.alfresco.repo.rendition2.LocalTransformServiceRegistryTest.class,
+    org.alfresco.repo.rendition2.LocalTransformServiceRegistryIntegrationTest.class,
     org.alfresco.repo.rendition2.LocalTransformClientIntegrationTest.class,
-    org.alfresco.repo.rendition2.LegacyTransformServiceRegistryTest.class,
+    org.alfresco.repo.rendition2.LegacyTransformServiceRegistryIntegrationTest.class,
     org.alfresco.repo.rendition2.LegacyTransformClientIntegrationTest.class,
     org.alfresco.repo.rendition2.LocalRenditionTest.class,
     org.alfresco.repo.rendition2.LegacyRenditionTest.class,
