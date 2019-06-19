@@ -103,41 +103,46 @@ public abstract class TransformServiceRegistryImpl implements TransformServiceRe
         }
     }
 
-    protected void readConfigAndReplace()
-    {
-        Log log = getLog();
-        log.debug("Config read started");
-        try
-        {
-            Data data = readConfig();
-            setData(data);
-            log.debug("Config read finished "+getCounts());
-        }
-        catch (Exception e)
-        {
-            log.error("Config read failed. "+e.getMessage(), e);
-        }
-    }
-
     protected boolean enabled = true;
     protected Data data;
     private ObjectMapper jsonObjectMapper;
     private Scheduler scheduler;
     private CronExpression cronExpression;
+    private int schedulerDelaySeconds = 0;
 
     public void setJsonObjectMapper(ObjectMapper jsonObjectMapper)
     {
         this.jsonObjectMapper = jsonObjectMapper;
     }
 
-    public void setScheduler(Scheduler scheduler)
+    public synchronized Scheduler getScheduler()
+    {
+        return scheduler;
+    }
+
+    public synchronized void setScheduler(Scheduler scheduler)
     {
         this.scheduler = scheduler;
+    }
+
+    public CronExpression getCronExpression()
+    {
+        return cronExpression;
     }
 
     public void setCronExpression(CronExpression cronExpression)
     {
         this.cronExpression = cronExpression;
+    }
+
+    public int getSchedulerDelaySeconds()
+    {
+        return schedulerDelaySeconds;
+    }
+
+    public void setSchedulerDelaySeconds(int schedulerDelaySeconds)
+    {
+        this.schedulerDelaySeconds = schedulerDelaySeconds;
     }
 
     @Override
@@ -153,6 +158,54 @@ public abstract class TransformServiceRegistryImpl implements TransformServiceRe
         if (enabled)
         {
             schedule();
+        }
+    }
+
+    private synchronized void schedule()
+    {
+        // Don't do an initial readConfigAndReplace() as the first scheduled read can be done almost instantly and
+        // there is little point doing two in the space of a few seconds.
+
+        if (scheduler == null)
+        {
+            StdSchedulerFactory sf = new StdSchedulerFactory();
+            String jobName = getClass().getName()+"Job";
+            try
+            {
+                scheduler = sf.getScheduler();
+
+                JobDetail job = JobBuilder.newJob()
+                        .withIdentity(jobName)
+                        .ofType(TransformServiceRegistryJob.class)
+                        .build();
+                job.getJobDataMap().put("registry", this);
+                CronTrigger trigger = TriggerBuilder.newTrigger()
+                        .withIdentity(jobName+"Trigger", Scheduler.DEFAULT_GROUP)
+                        .withSchedule(CronScheduleBuilder.cronSchedule(cronExpression))
+                        .build();
+                scheduler.startDelayed(schedulerDelaySeconds);
+                scheduler.scheduleJob(job, trigger);
+            }
+            catch (SchedulerException e)
+            {
+                getLog().error("Failed to start "+jobName+" "+e.getMessage());
+            }
+        }
+    }
+
+    protected void readConfigAndReplace()
+    {
+        Log log = getLog();
+        log.debug("Config read started");
+        try
+        {
+            Data data = readConfig();
+            setData(data);
+            log.debug("Config read finished "+getCounts());
+        }
+        catch (Exception e)
+        {
+            log.error("Config read failed. "+e.getMessage(), e);
         }
     }
 
@@ -175,38 +228,6 @@ public abstract class TransformServiceRegistryImpl implements TransformServiceRe
     protected Data createData()
     {
         return new Data();
-    }
-
-    private synchronized void schedule()
-    {
-        // Do an initial config read and replace before the follow up scheduled reads.
-        readConfigAndReplace();
-
-        if (scheduler == null)
-        {
-            StdSchedulerFactory sf = new StdSchedulerFactory();
-            String jobName = getClass().getName()+"Job";
-            try
-            {
-                scheduler = sf.getScheduler();
-
-                JobDetail job = JobBuilder.newJob()
-                        .withIdentity(jobName)
-                        .ofType(TransformServiceRegistryJob.class)
-                        .build();
-                job.getJobDataMap().put("registry", this);
-                CronTrigger trigger = TriggerBuilder.newTrigger()
-                        .withIdentity(jobName+"Trigger", Scheduler.DEFAULT_GROUP)
-                        .withSchedule(CronScheduleBuilder.cronSchedule(cronExpression))
-                        .build();
-                scheduler.startDelayed(30);
-                scheduler.scheduleJob(job, trigger);
-            }
-            catch (SchedulerException e)
-            {
-                getLog().error("Failed to start "+jobName+" "+e.getMessage());
-            }
-        }
     }
 
     public void setEnabled(boolean enabled)

@@ -81,9 +81,6 @@ public class LocalTransformServiceRegistryIntegrationTest extends AbstractRendit
     }
     private static final String RENDITION_NAME = "pdf";
 
-    @Autowired
-    private LegacyTransformServiceRegistry legacyTransformServiceRegistry;
-
     @Test
     public void testIsSupported()
     {

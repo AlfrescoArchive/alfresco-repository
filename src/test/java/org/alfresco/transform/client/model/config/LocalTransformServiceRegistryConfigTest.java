@@ -26,6 +26,7 @@
 package org.alfresco.transform.client.model.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.alfresco.repo.content.MimetypeMap;
 import org.alfresco.repo.content.transform.LocalTransformServiceRegistry;
 import org.alfresco.repo.content.transform.LocalTransformer;
 import org.alfresco.repo.content.transform.TransformerDebug;
@@ -35,6 +36,9 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.quartz.CronExpression;
+import org.quartz.Scheduler;
+import org.quartz.SchedulerException;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -44,6 +48,7 @@ import java.util.Map;
 import java.util.Properties;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
@@ -56,12 +61,38 @@ import static org.junit.Assert.fail;
  */
 public class LocalTransformServiceRegistryConfigTest extends TransformServiceRegistryConfigTest
 {
-    protected LocalTransformServiceRegistry registry;
+    private class TestLocalTransformServiceRegistry extends LocalTransformServiceRegistry
+    {
+        @Override
+        protected String getBaseUrlIfTesting(String name, String baseUrl)
+        {
+            return baseUrl == null
+                    ? getProperty(LOCAL_TRANSFORMER+name+URL, null)
+                    : baseUrl;
+        }
+
+        @Override
+        protected TransformServiceRegistryImpl.Data readConfig() throws IOException
+        {
+            System.out.println(getMs() + "readConfig()");
+            readConfigCount++;
+            data = createData();
+            return data;
+        }
+
+        public Data assertDataChanged(Data data)
+        {
+            assertNotEquals("The configuration data chould have changed", this.data, data);
+            return this.data;
+        }
+    }
+
+    protected TestLocalTransformServiceRegistry registry;
 
     private Properties properties = new Properties();
 
-    @Mock
-    private TransformerDebug transformerDebug;
+    @Mock private TransformerDebug transformerDebug;
+    @Mock private MimetypeMap mimetypeMap;
 
     private static final String LOCAL_TRANSFORM_SERVICE_CONFIG = "alfresco/local-transform-service-config-test.json";
     private static final String LOCAL_TRANSFORM_SERVICE_CONFIG_PIPELINE = "alfresco/local-transform-service-config-pipeline-test.json";
@@ -78,6 +109,10 @@ public class LocalTransformServiceRegistryConfigTest extends TransformServiceReg
     private Map<String, List<String>> libreofficeSupportedTransformation;
     private Map<String, List<String>> officeToImageViaPdfSupportedTransformation;
 
+    private TransformServiceRegistryImpl.Data data;
+    private int readConfigCount;
+    private long startMs;
+
     @Before
     public void setUp() throws Exception
     {
@@ -87,22 +122,21 @@ public class LocalTransformServiceRegistryConfigTest extends TransformServiceReg
         super.setUp();
     }
 
-    protected LocalTransformServiceRegistry buildTransformServiceRegistryImpl()
+    protected LocalTransformServiceRegistry buildTransformServiceRegistryImpl() throws Exception
     {
-        registry = new LocalTransformServiceRegistry()
-        {
-            @Override
-            protected String getBaseUrlIfTesting(String name, String baseUrl)
-            {
-                return baseUrl == null
-                        ? getProperty(LOCAL_TRANSFORMER+name+URL, null)
-                        : baseUrl;
-            }
-        };
+        registry = new TestLocalTransformServiceRegistry();
         registry.setJsonObjectMapper(JSON_OBJECT_MAPPER);
         registry.setProperties(properties);
         registry.setTransformerDebug(transformerDebug);
+        registry.setMimetypeService(mimetypeMap);
+        registry.setPipelineConfigDir("");
+        registry.setCronExpression(new CronExpression("* * * * * ? 2099")); // not for a long time.
         return registry;
+    }
+
+    private String getMs()
+    {
+        return (System.currentTimeMillis() - startMs) + "ms: ";
     }
 
     @Override
@@ -349,5 +383,62 @@ public class LocalTransformServiceRegistryConfigTest extends TransformServiceReg
         assertEquals("Unexpected imagemagick alfresco-global property value", "http://localhost:8091/", properties.getProperty(LOCAL_TRANSFORMER + "imagemagick" + URL));
         assertEquals("Unexpected libreoffice alfresco-global property value", "http://localhost:8092/", properties.getProperty(LOCAL_TRANSFORMER + "libreoffice" + URL));
         assertEquals("Unexpected tika alfresco-global property value", "http://localhost:8093/", properties.getProperty(LOCAL_TRANSFORMER + "tika" + URL));
+    }
+
+    @Test
+    public void testAdditionAndRemovalOfTEngines() throws Exception
+    {
+        CronExpression origCronExpression = registry.getCronExpression();
+        int origSchedulerDelaySeconds = registry.getSchedulerDelaySeconds();
+        String origPipelineConfigDir = registry.getPipelineConfigDir();
+        Scheduler origScheduler = registry.getScheduler();
+
+        if (origScheduler != null)
+        {
+            origScheduler.clear();
+        }
+
+        try
+        {
+            TransformServiceRegistryImpl.Data prevData;
+            data = null;
+            readConfigCount = 0;
+
+            registry.setScheduler(null);
+            registry.setCronExpression(new CronExpression(("0/3 * * ? * * *"))); // every 3 seconds rather than 10 mins
+            registry.setSchedulerDelaySeconds(0); // This 0 seconds by default
+
+            // Sleep until a 3 second boundary (or try to in order to make test more successful).
+            Thread.sleep(3000-System.currentTimeMillis()%3000);
+            startMs = System.currentTimeMillis();
+            registry.afterPropertiesSet();
+
+            Thread.sleep(300); // Give it a chance to run the first time
+            assertEquals(getMs()+"The initial read should have taken place", 1, readConfigCount);
+            data = registry.assertDataChanged(data);
+
+            Thread.sleep(3000);
+            assertEquals(getMs()+"The 1st scheduled reads should have taken place", 2, readConfigCount);
+            data = registry.assertDataChanged(data);
+
+            Thread.sleep(6000);
+            assertEquals(getMs()+"The 3rd scheduled reads should have taken place", 4, readConfigCount);
+            data = registry.assertDataChanged(data);
+
+            registry.getScheduler().clear();
+            Thread.sleep(3000);
+            assertEquals(getMs()+"Scheduled reads should have stopped", 4, readConfigCount);
+        }
+        finally
+        {
+            // Reset scheduler properties just in case another tests needs them in future.
+            // We don't start the scheduler with registry.afterPropertiesSet() as this is
+            // really just mocked up version of the registry.
+            registry.setCronExpression(origCronExpression);
+            registry.setSchedulerDelaySeconds(origSchedulerDelaySeconds);
+            registry.setPipelineConfigDir(origPipelineConfigDir);
+            registry.setScheduler(null);
+            // registry.afterPropertiesSet();
+        }
     }
 }

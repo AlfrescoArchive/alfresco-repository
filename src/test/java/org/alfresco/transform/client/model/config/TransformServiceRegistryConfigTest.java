@@ -88,7 +88,7 @@ public class TransformServiceRegistryConfigTest
         LogManager.getLogger(TransformServiceRegistryConfigTest.class).setLevel(Level.DEBUG);
     }
 
-    protected TransformServiceRegistryImpl buildTransformServiceRegistryImpl()
+    protected TransformServiceRegistryImpl buildTransformServiceRegistryImpl() throws Exception
     {
         TransformServiceRegistryImpl registry = new TransformServiceRegistryImpl()
         {
@@ -173,7 +173,7 @@ public class TransformServiceRegistryConfigTest
         }
     }
 
-    private void assertTransformOptions(List<TransformOption> transformOptions)
+    private void assertTransformOptions(List<TransformOption> transformOptions) throws Exception
     {
         transformer = new Transformer("name",
                 transformOptions,
@@ -197,7 +197,7 @@ public class TransformServiceRegistryConfigTest
 
     private void assertTransformerName(String sourceMimetype, long sourceSizeInBytes, String targetMimetype,
                                        Map<String, String> actualOptions, String expectedTransformerName,
-                                       Transformer... transformers)
+                                       Transformer... transformers) throws Exception
     {
         buildAndPopulateRegistry(transformers);
         String transformerName = registry.getTransformerName(sourceMimetype, sourceSizeInBytes, targetMimetype, actualOptions, null);
@@ -205,20 +205,20 @@ public class TransformServiceRegistryConfigTest
     }
 
     private void assertSupported(String sourceMimetype, long sourceSizeInBytes, String targetMimetype,
-                                 Map<String, String> actualOptions, String unsupportedMsg)
+                                 Map<String, String> actualOptions, String unsupportedMsg)  throws Exception
     {
         assertSupported(sourceMimetype, sourceSizeInBytes, targetMimetype, actualOptions, unsupportedMsg, transformer);
     }
 
     private void assertSupported(String sourceMimetype, long sourceSizeInBytes, String targetMimetype,
                                  Map<String, String> actualOptions, String unsupportedMsg,
-                                 Transformer... transformers)
+                                 Transformer... transformers) throws Exception
     {
         buildAndPopulateRegistry(transformers);
         assertSupported(sourceMimetype, sourceSizeInBytes, targetMimetype, actualOptions, null, unsupportedMsg);
     }
 
-    private void buildAndPopulateRegistry(Transformer[] transformers)
+    private void buildAndPopulateRegistry(Transformer[] transformers)  throws Exception
     {
         registry = buildTransformServiceRegistryImpl();
         for (Transformer transformer : transformers)
@@ -619,7 +619,7 @@ public class TransformServiceRegistryConfigTest
     }
 
     @Test
-    public void testNoActualOptions()
+    public void testNoActualOptions()  throws Exception
     {
         assertTransformOptions(Arrays.asList(
                 new TransformOptionValue(false, "option1"),
@@ -627,14 +627,14 @@ public class TransformServiceRegistryConfigTest
     }
 
     @Test
-    public void testNoTrasformOptions()
+    public void testNoTrasformOptions()  throws Exception
     {
         assertTransformOptions(Collections.emptyList());
         assertTransformOptions(null);
     }
 
     @Test
-    public void testSupported()
+    public void testSupported() throws Exception
     {
         transformer = new Transformer("name",
                 Arrays.asList(
@@ -686,7 +686,7 @@ public class TransformServiceRegistryConfigTest
     }
 
     @Test
-    public void testGetTransformerName()
+    public void testGetTransformerName() throws Exception
     {
         Transformer t1 = new Transformer("transformer1", null,
                 Arrays.asList(new SupportedSourceAndTarget(MSG, GIF, 100, 50)));
@@ -717,7 +717,7 @@ public class TransformServiceRegistryConfigTest
     }
 
     @Test
-    public void testMultipleTransformers()
+    public void testMultipleTransformers() throws Exception
     {
         Transformer transformer1 = new Transformer("transformer1",
                 Arrays.asList(
@@ -764,7 +764,7 @@ public class TransformServiceRegistryConfigTest
     }
 
     @Test
-    public void testPipeline()
+    public void testPipeline() throws Exception
     {
         Transformer transformer1 = new Transformer("transformer1",
                 null, // there are no options

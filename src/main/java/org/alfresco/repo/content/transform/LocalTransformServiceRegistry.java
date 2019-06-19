@@ -80,6 +80,11 @@ public class LocalTransformServiceRegistry extends TransformServiceRegistryImpl 
         this.pipelineConfigDir = pipelineConfigDir;
     }
 
+    public String getPipelineConfigDir()
+    {
+        return pipelineConfigDir;
+    }
+
     /**
      * The Alfresco global properties.
      */
@@ -91,6 +96,11 @@ public class LocalTransformServiceRegistry extends TransformServiceRegistryImpl 
     public void setMimetypeService(MimetypeService mimetypeService)
     {
         this.mimetypeService = mimetypeService;
+    }
+
+    public MimetypeService getMimetypeService()
+    {
+        return mimetypeService;
     }
 
     public void setTransformerDebug(TransformerDebug transformerDebug)
