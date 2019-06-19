@@ -164,8 +164,8 @@ public abstract class TransformServiceRegistryImpl implements TransformServiceRe
     private synchronized void schedule()
     {
         // Don't do an initial readConfigAndReplace() as the first scheduled read can be done almost instantly and
-        // there is little point doing two in the space of a few seconds.
-
+        // there is little point doing two in the space of a few seconds. If however the scheduler is already running
+        // we do need to run it (this is only from test cases).
         if (scheduler == null)
         {
             StdSchedulerFactory sf = new StdSchedulerFactory();
@@ -190,6 +190,10 @@ public abstract class TransformServiceRegistryImpl implements TransformServiceRe
             {
                 getLog().error("Failed to start "+jobName+" "+e.getMessage());
             }
+        }
+        else
+        {
+            readConfigAndReplace();
         }
     }
 
