@@ -36,6 +36,10 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+
 import static org.alfresco.model.ContentModel.PROP_CONTENT;
 
 /**
@@ -73,6 +77,21 @@ public class LocalTransformClientIntegrationTest extends AbstractRenditionIntegr
         transformClient = localTransformClient;
     }
 
+    @Test
+    public void testLocalRenderPagesToJpeg() throws Exception
+    {
+        legacyTransformServiceRegistry.setEnabled(false);
+        new RenditionDefinition2Impl("pagesToJpeg", "image/jpeg", new HashMap<>(), renditionDefinitionRegistry2 );
+        try
+        {
+            checkClientRendition("quick2009.pages", "pagesToJpeg", true);
+        }
+        finally
+        {
+            // Remove rendition even if check throws an exception to not interfere with other tests
+            renditionDefinitionRegistry2.unregister("pagesToJpeg");
+        }
+    }
 
     @Test
     public void testLocalRenderDocxJpegMedium() throws Exception
