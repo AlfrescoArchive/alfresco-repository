@@ -78,17 +78,18 @@ public class LocalTransformClientIntegrationTest extends AbstractRenditionIntegr
     }
 
     @Test
-    public void testLocalRenderHtmltotext() throws Exception
+    public void testLocalRenderPagesToJpeg() throws Exception
     {
-        new RenditionDefinition2Impl("htmltotext", "text/plain", new HashMap<>(), renditionDefinitionRegistry2 );
+        legacyTransformServiceRegistry.setEnabled(false);
+        new RenditionDefinition2Impl("pagesToJpeg", "image/jpeg", new HashMap<>(), renditionDefinitionRegistry2 );
         try
         {
-            checkClientRendition("quick.html", "htmltotext", true);
+            checkClientRendition("quick2009.pages", "pagesToJpeg", true);
         }
         finally
         {
             // Remove rendition even if check throws an exception to not interfere with other tests
-            renditionDefinitionRegistry2.unregister("htmltotext");
+            renditionDefinitionRegistry2.unregister("pagesToJpeg");
         }
     }
 
