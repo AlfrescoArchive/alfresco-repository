@@ -97,12 +97,12 @@ public abstract class AbstractRemoteContentTransformer extends AbstractContentTr
                     {
                         String versionString = msg;
                         setAvailable(true);
-                        logger.info("Using legacy local " + getName() + ": " + versionString);
+                        logger.info("Using legacy " + getName() + ": " + versionString);
                     }
                     else
                     {
                         setAvailable(false);
-                        String message = "Legacy local " + getName() + " is not available for transformations. " + msg;
+                        String message = "Legacy " + getName() + " is not available for transformations. " + msg;
                         if (isAvailable == null)
                         {
                             logger.debug(message);

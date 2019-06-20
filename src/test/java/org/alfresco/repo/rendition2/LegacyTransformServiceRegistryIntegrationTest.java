@@ -25,25 +25,16 @@
  */
 package org.alfresco.repo.rendition2;
 
-import org.alfresco.transform.client.model.config.TransformServiceRegistry;
 import org.junit.AfterClass;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
-import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import java.util.HashMap;
-import java.util.Map;
-
-import static org.alfresco.repo.content.MimetypeMap.MIMETYPE_OPENXML_WORDPROCESSING;
-import static org.alfresco.repo.content.MimetypeMap.MIMETYPE_PDF;
 
 /**
  * Integration tests for {@link LegacyTransformServiceRegistry}
  */
 @Deprecated
-public class LegacyTransformServiceRegistryTest extends LocalTransformServiceRegistryTest
+public class LegacyTransformServiceRegistryIntegrationTest extends LocalTransformServiceRegistryIntegrationTest
 {
     @Autowired
     private LegacyTransformServiceRegistry legacyTransformServiceRegistry;

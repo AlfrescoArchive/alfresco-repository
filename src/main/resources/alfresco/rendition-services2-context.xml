@@ -112,6 +112,7 @@
         <property name="pipelineConfigDir" value="${local.transform.pipeline.config.dir}" />
         <property name="enabled" value="${local.transform.service.enabled}" />
         <property name="cronExpression" value="${local.transform.service.cronExpression}"></property>
+        <property name="schedulerDelaySeconds" value="${local.transform.service.schedulerDelaySeconds}"></property>
         <property name="properties" ref="global-properties" />
         <property name="transformerDebug" ref="transformerDebug" />
         <property name="mimetypeService" ref="MimetypeService" />

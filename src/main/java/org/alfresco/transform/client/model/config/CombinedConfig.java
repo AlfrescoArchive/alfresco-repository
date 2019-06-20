@@ -221,6 +221,7 @@ public class CombinedConfig
 
     public void addLocalConfig(String path) throws IOException
     {
+        boolean somethingRead = false;
         final File jarFile = new File(getClass().getProtectionDomain().getCodeSource().getLocation().getPath());
         if (jarFile.isFile())
         {
@@ -239,6 +240,7 @@ public class CombinedConfig
             Collections.sort(names);
             for (String name : names)
             {
+                somethingRead = true;
                 addJsonSource(new InputStreamReader(getResourceAsStream(name)), null,
                         name+" from jar "+jarFile.getName());
             }
@@ -258,14 +260,21 @@ public class CombinedConfig
                     Arrays.sort(files, (file1, file2) -> file1.getName().compareTo(file2.getName()));
                     for (File file: files)
                     {
+                        somethingRead = true;
                         addJsonSource(new FileReader(file), null,"File " + file.getPath());
                     }
                 }
                 else
                 {
+                    somethingRead = true;
                     addJsonSource(new FileReader(root), null, "File " + rootPath);
                 }
             }
+        }
+
+        if (!somethingRead)
+        {
+            log.warn("No config read from "+path);
         }
     }
 
@@ -278,7 +287,14 @@ public class CombinedConfig
     private void addJsonSource(Reader reader, String baseUrl, String readFrom) throws IOException
     {
         JsonNode jsonNode = jsonObjectMapper.readValue(reader, new TypeReference<JsonNode>() {});
-        log.debug(readFrom+" config is: "+jsonNode);
+        if (log.isTraceEnabled())
+        {
+            log.trace(readFrom+" config is: "+jsonNode);
+        }
+        else
+        {
+            log.debug(readFrom+" config read");
+        }
 
         JsonNode transformOptions = jsonNode.get(TRANSFORM_OPTIONS);
         if (transformOptions != null && transformOptions.isObject())
@@ -372,7 +388,7 @@ public class CombinedConfig
                 try
                 {
                     Transformer transformer = jsonObjectMapper.convertValue(entity.node, Transformer.class);
-                    transformers.add(new TransformerAndItsOrigin(transformer, entity.baseUrl, entity.baseUrl));
+                    transformers.add(new TransformerAndItsOrigin(transformer, entity.baseUrl, entity.readFrom));
                 }
                 catch (IllegalArgumentException e)
                 {
@@ -382,7 +398,8 @@ public class CombinedConfig
             catch (IllegalArgumentException e)
             {
                 String transformString = jsonObjectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(entity.node);
-                log.error(e.getMessage()+"\n"+ transformString);
+                log.error(e.getMessage());
+                log.debug(transformString);
             }
         }
         if (log.isTraceEnabled())
@@ -400,9 +417,10 @@ public class CombinedConfig
         List<TransformerAndItsOrigin> transformers = new ArrayList<>(original.size());
         List<TransformerAndItsOrigin> todo = new ArrayList<>(original.size());
         Set<String> transformerNames = new HashSet<>();
-        boolean added = false;
+        boolean added;
         do
         {
+            added = false;
             for (TransformerAndItsOrigin entry : original)
             {
                 String name = entry.transformer.getTransformerName();

@@ -43,7 +43,7 @@ import static org.alfresco.repo.content.MimetypeMap.MIMETYPE_PDF;
 /**
  * Integration tests for {@link LocalTransformServiceRegistry}
  */
-public class LocalTransformServiceRegistryTest extends AbstractRenditionIntegrationTest
+public class LocalTransformServiceRegistryIntegrationTest extends AbstractRenditionIntegrationTest
 {
     @Autowired
     private LocalTransformServiceRegistry localTransformServiceRegistry;
@@ -80,9 +80,6 @@ public class LocalTransformServiceRegistryTest extends AbstractRenditionIntegrat
         localTransformServiceRegistry.setEnabled(enabled);
     }
     private static final String RENDITION_NAME = "pdf";
-
-    @Autowired
-    private LegacyTransformServiceRegistry legacyTransformServiceRegistry;
 
     @Test
     public void testIsSupported()
