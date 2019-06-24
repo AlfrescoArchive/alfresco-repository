@@ -220,7 +220,7 @@ public class JmxDumpUtil
         String replacement = JmxDumpUtil.PROTECTED_VALUE;
         String output = input.replaceAll(pattern, replacement);
 
-        if(output.equals(input)) //If no string have been replaced it's possible password= could be end of sprint
+        if(output.equals(input)) //If nothing has been replaced it's possible password= could be end of string
         {
             // pattern to see if the string ends with "password=", "token=" or "pwd="
             Pattern passwordAtEnd = Pattern.compile("((password=)|(token=)|(pwd=))$");
