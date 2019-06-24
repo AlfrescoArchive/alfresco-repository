@@ -85,6 +85,6 @@ public class JmxDumpUtilTest extends TestCase
         args = new String[]{"-Ddb.port=1234", "-Ddb.user=alfresco", "-DtestArg=Test1234password"};
         expectedArray = new String[]{"-Ddb.port=1234", "-Ddb.user=alfresco", "-DtestArg=Test1234password"};
         actualArray = JmxDumpUtil.cleanPasswordsFromInputArguments(args);
-        assertArrayEquals("Expectected output:"+expectedArray+" Actual output:"+actualArray,expectedArray,actualArray);
+        assertArrayEquals("Expectected output:"+expectedArray+" Actual output:"+actualArray, expectedArray, actualArray);
     }
 }
