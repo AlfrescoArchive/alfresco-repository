@@ -25,7 +25,10 @@
  */
 package org.alfresco.repo.management;
 
+import static org.junit.Assert.assertArrayEquals;
+
 import org.alfresco.util.ApplicationContextHelper;
+import org.junit.Test;
 import org.springframework.context.ApplicationContext;
 
 import junit.framework.TestCase;
@@ -41,5 +44,47 @@ public class JmxDumpUtilTest extends TestCase
             String attr = JmxDumpUtil.updateOSNameAttributeForLinux(osName);
             assertTrue(attr.toLowerCase().startsWith("linux ("));
         }
+    }
+
+    @Test
+    public void testCleanPasswordsFromInputArgument() throws Exception
+    {
+        String passwordArg = "-Ddb.password=I should be stars \"£$%^&*()@";
+        String expected = "-Ddb.password="+JmxDumpUtil.PROTECTED_VALUE;
+        String actual = JmxDumpUtil.cleanPasswordFromInputArgument(passwordArg);
+        assertEquals("Expectected output:"+expected+" Actual output:"+actual,expected, actual);
+
+        passwordArg = "-Ddb.paSsword=@";
+        expected = "-Ddb.paSsword="+JmxDumpUtil.PROTECTED_VALUE;
+        actual = JmxDumpUtil.cleanPasswordFromInputArgument(passwordArg);
+        assertEquals("Expectected output:"+expected+" Actual output:"+actual,expected, actual);
+
+        passwordArg = "somePrefix.token=\"If i'm not replaced, something has gone very wrong\"";
+        expected = "somePrefix.token="+JmxDumpUtil.PROTECTED_VALUE;
+        actual = JmxDumpUtil.cleanPasswordFromInputArgument(passwordArg);
+        assertEquals("Expectected output:"+expected+" Actual output:"+actual,expected, actual);
+
+        passwordArg = "yetanotherpwd=";
+        expected = "yetanotherpwd="+JmxDumpUtil.PROTECTED_VALUE;
+        actual = JmxDumpUtil.cleanPasswordFromInputArgument(passwordArg);
+        assertEquals("Expectected output:"+expected+" Actual output:"+actual,expected, actual);
+
+        passwordArg = "AnyOtherArgument=\"I should still be here\"";
+        expected = "AnyOtherArgument=\"I should still be here\"";
+        actual = JmxDumpUtil.cleanPasswordFromInputArgument(passwordArg);
+        assertEquals("Expectected output:"+expected+" Actual output:"+actual,expected, actual);
+    }
+    @Test
+    public void testCleanPasswordsFromInputArguments() throws Exception
+    {
+        String[] args = {"-Ddb.password=alfresco", "-Ddb.user=alfresco", "-DtestToken=asdoij3ifiej22244ojpgkmkfpsi3j55643pojpdjoismvi4563625mposvsd"};
+        String[] expectedArray = {"-Ddb.password="+JmxDumpUtil.PROTECTED_VALUE, "-Ddb.user=alfresco", "-DtestToken="+JmxDumpUtil.PROTECTED_VALUE};
+        String[] actualArray = JmxDumpUtil.cleanPasswordsFromInputArguments(args);
+        assertArrayEquals("Expectected output:"+expectedArray+" Actual output:"+actualArray,expectedArray,actualArray);
+
+        args = new String[]{"-Ddb.port=1234", "-Ddb.user=alfresco", "-DtestArg=Test1234password"};
+        expectedArray = new String[]{"-Ddb.port=1234", "-Ddb.user=alfresco", "-DtestArg=Test1234password"};
+        actualArray = JmxDumpUtil.cleanPasswordsFromInputArguments(args);
+        assertArrayEquals("Expectected output:"+expectedArray+" Actual output:"+actualArray,expectedArray,actualArray);
     }
 }

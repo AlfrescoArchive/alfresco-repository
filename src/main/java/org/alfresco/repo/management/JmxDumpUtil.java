@@ -30,13 +30,17 @@ import java.io.PrintWriter;
 import java.lang.reflect.Array;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.management.JMException;
 import javax.management.MBeanAttributeInfo;
@@ -70,6 +74,8 @@ public class JmxDumpUtil
     public static final String PROTECTED_VALUE = "********";
 
     private static final String OS_NAME = "os.name";
+
+    private static final String INPUT_ARGUMENTS = "InputArguments";
 
     /**
      * Dumps a local or remote MBeanServer's entire object tree for support purposes. Nested arrays and CompositeData
@@ -164,7 +170,68 @@ public class JmxDumpUtil
                 attributes.put(OS_NAME, updateOSNameAttributeForLinux(osName));
             }
         }
+        if (objectName.getCanonicalName().equals("java.lang:type=Runtime"))
+        {
+            String[] commandInputs = (String[]) attributes.get(INPUT_ARGUMENTS);
+            if(commandInputs != null)
+            {
+                attributes.put(INPUT_ARGUMENTS, cleanPasswordsFromInputArguments(commandInputs));
+            }
+        }
         tabulate(JmxDumpUtil.NAME_HEADER, JmxDumpUtil.VALUE_HEADER, attributes, out, 0);
+    }
+
+    /**
+     * If any of the string contain passwords, denote by "*password=" or "*pwd=" or "token="
+     * then they shall be replaces with JmxDumpUtil.PROTECTED_VALUE.
+     * @param commandInputs
+     * @return array of password redacted strings
+     */
+    public static String[] cleanPasswordsFromInputArguments(String[] commandInputs)
+    {
+        List<String> cleanInputs = new ArrayList<String>();
+        for (String input : commandInputs) 
+        {
+            input = cleanPasswordFromInputArgument(input);
+            cleanInputs.add(input);
+        }
+        
+        return cleanInputs.toArray(new String[commandInputs.length]);
+    }
+
+    /**
+     * Removes any characters following the words:
+     * password
+     * pwd
+     * token
+     * and replaces them with JmxDumpUtil.PROTECTED_VALUE
+     * 
+     * Example: 
+     * Input:   -Ddb.password=alfresco
+     * Output:  -Ddb.password=JmxDumpUtil.PROTECTED_VALUE
+     * 
+     * @param input
+     * @return password redacted string
+     */
+    public static String cleanPasswordFromInputArgument(String input)
+    {
+        // Regex to select the characters following the words password=, token= or pwd=
+        String pattern = "(?i)((?<=(password)=)|(?<=(token)=)|(?<=(pwd)=)).++";
+        String replacement = JmxDumpUtil.PROTECTED_VALUE;
+        String output = input.replaceAll(pattern, replacement);
+
+        if(output.equals(input)) //If no string have been replaced it's possible password= could be end of sprint
+        {
+            // pattern to see if the string ends with "password=", "token=" or "pwd="
+            Pattern passwordAtEnd = Pattern.compile("((password=)|(token=)|(pwd=))$");
+            Matcher matcher = passwordAtEnd.matcher(input);
+            if(matcher.find())
+            {  
+                // Add the protected value to the end of the string if it ends with "password=", "token=" or "pwd="
+                output = input + JmxDumpUtil.PROTECTED_VALUE;
+            }
+        }
+        return output;
     }
 
     /**
