@@ -39,8 +39,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import javax.management.JMException;
 import javax.management.MBeanAttributeInfo;
@@ -187,7 +185,7 @@ public class JmxDumpUtil
      * @param commandInputs
      * @return array of password redacted strings
      */
-    public static String[] cleanPasswordsFromInputArguments(String[] commandInputs)
+    static String[] cleanPasswordsFromInputArguments(String[] commandInputs)
     {
         List<String> cleanInputs = new ArrayList<String>();
         for (String input : commandInputs) 
@@ -213,25 +211,43 @@ public class JmxDumpUtil
      * @param input
      * @return password redacted string
      */
-    public static String cleanPasswordFromInputArgument(String input)
+    static String cleanPasswordFromInputArgument(String input)
     {
-        // Regex to select the characters following the words password=, token= or pwd=
-        String pattern = "(?i)((?<=(password)=)|(?<=(token)=)|(?<=(pwd)=)).++";
-        String replacement = JmxDumpUtil.PROTECTED_VALUE;
-        String output = input.replaceAll(pattern, replacement);
+        // Set up the regex strings
+        String regexPassword = "(?i)(?<=password=|token=|pwd=).++"; // Regex to select the characters following the words password=, token= or pwd= (case insensitive)
+        String regexPasswordAtEnd = "(?i)(.+)(password=|token=|pwd=)"; // Regex to see if the string ends with "password=", "token=" or "pwd=" (case insensitive)
 
-        if(output.equals(input)) //If nothing has been replaced it's possible password= could be end of string
+        //Remove the password from the end of the string
+        String output = input.split(regexPassword)[0]; // returns the argument with the password removed, returns the original string otherwise.
+
+        if(output.matches(regexPasswordAtEnd)) //If the output ends with the keyword
         {
-            // pattern to see if the string ends with "password=", "token=" or "pwd="
-            Pattern passwordAtEnd = Pattern.compile("((password=)|(token=)|(pwd=))$");
-            Matcher matcher = passwordAtEnd.matcher(input);
-            if(matcher.find())
-            {  
-                // Add the protected value to the end of the string if it ends with "password=", "token=" or "pwd="
-                output = input + JmxDumpUtil.PROTECTED_VALUE;
-            }
-        }
+            // Add the protected value to the end of the string if it ends with "password=", "token=" or "pwd="
+            output += JmxDumpUtil.PROTECTED_VALUE;
+        } 
         return output;
+    }
+
+    /**
+     * Creates a regular expression that will select the value of a single input argument for any provided in argEndings.
+     * This can be the whole Input argument or the common characters proceeding the = sign.
+     * Example argEndings:
+     *          -Ddb.password   This will select the values passed as -Ddb.password
+     *          password        This will select any potential values that end in the word password
+     * 
+     * Example usage: 
+     * To select the password provided to an input argument, so that it be removed for obfuscation, whilst leaving 
+     * any arguments that do not match any values of argEndings in tact.
+     * 
+     * @param argEndings
+     *      Strings that will end the input argument you wish to select
+     * @return
+     *      Regex pattern for selecting the characters following the strings passed as argEndings
+     */
+    static String createPasswordFindRegexString(String[] argEndings)
+    {
+
+        return "";
     }
 
     /**
