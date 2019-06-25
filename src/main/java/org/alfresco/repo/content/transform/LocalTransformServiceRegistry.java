@@ -135,7 +135,8 @@ public class LocalTransformServiceRegistry extends TransformServiceRegistryImpl 
         Data data = createData();
         CombinedConfig combinedConfig = new CombinedConfig(getLog());
         List<String> urls = getTEngineUrls();
-        combinedConfig.addRemoteConfig(urls, "T-Engine");
+        boolean successReadingRemoteConfig = combinedConfig.addRemoteConfig(urls, "T-Engine");
+        setSuccessReadingRemoteConfig(data, successReadingRemoteConfig);
         combinedConfig.addLocalConfig("alfresco/transformers");
         if (!pipelineConfigDir.isEmpty())
         {

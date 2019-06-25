@@ -118,15 +118,24 @@ public class CombinedConfig
         this.log = log;
     }
 
-    public void addRemoteConfig(List<String> urls, String remoteType)
+    public boolean addRemoteConfig(List<String> urls, String remoteType)
     {
-        urls.forEach(url->addRemoteConfig(url, remoteType));
+        boolean successReadingRemoteConfig = true;
+        for (String url : urls)
+        {
+            if (!addRemoteConfig(url, remoteType))
+            {
+                successReadingRemoteConfig = false;
+            }
+        }
+        return successReadingRemoteConfig;
     }
 
-    private void addRemoteConfig(String baseUrl, String remoteType)
+    private boolean addRemoteConfig(String baseUrl, String remoteType)
     {
         String url = baseUrl + TRANSFORM_CONFIG;
         HttpGet httpGet = new HttpGet(url);
+        boolean successReadingRemoteConfig = true;
         try
         {
             try (CloseableHttpClient httpclient = HttpClients.createDefault())
@@ -150,7 +159,12 @@ public class CombinedConfig
 
                                 try (StringReader reader = new StringReader(content))
                                 {
+                                    int transformCount = allTransforms.size();
                                     addJsonSource(reader, baseUrl, remoteType+" on "+baseUrl);
+                                    if (transformCount == allTransforms.size())
+                                    {
+                                        successReadingRemoteConfig = false;
+                                    }
                                 }
 
                                 EntityUtils.consume(resEntity);
@@ -187,7 +201,9 @@ public class CombinedConfig
         catch (AlfrescoRuntimeException e)
         {
             log.error(e.getMessage());
+            successReadingRemoteConfig = false;
         }
+        return successReadingRemoteConfig;
     }
 
     // Tests mock the return values

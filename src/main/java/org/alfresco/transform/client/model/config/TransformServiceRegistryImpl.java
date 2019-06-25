@@ -27,11 +27,8 @@ package org.alfresco.transform.client.model.config;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.alfresco.heartbeat.datasender.HBDataSenderServiceImpl;
-import org.alfresco.heartbeat.datasender.internal.schedule.HBDataSenderJob;
 import org.alfresco.util.PropertyCheck;
 import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.quartz.CronExpression;
 import org.quartz.CronScheduleBuilder;
 import org.quartz.CronTrigger;
@@ -71,6 +68,7 @@ public abstract class TransformServiceRegistryImpl implements TransformServiceRe
         private int transformerCount = 0;
         private int transformCount = 0;
         boolean firstTime = true;
+        boolean successReadingRemoteConfig = true;
     }
 
     static class SupportedTransform
@@ -108,7 +106,8 @@ public abstract class TransformServiceRegistryImpl implements TransformServiceRe
     private ObjectMapper jsonObjectMapper;
     private Scheduler scheduler;
     private CronExpression cronExpression;
-    private int schedulerDelaySeconds = 0;
+    private CronExpression initialAndOnErrorCronExpression;
+    private boolean normalCronSchedule;
 
     public void setJsonObjectMapper(ObjectMapper jsonObjectMapper)
     {
@@ -135,14 +134,14 @@ public abstract class TransformServiceRegistryImpl implements TransformServiceRe
         this.cronExpression = cronExpression;
     }
 
-    public int getSchedulerDelaySeconds()
+    public CronExpression getInitialAndOnErrorCronExpression()
     {
-        return schedulerDelaySeconds;
+        return initialAndOnErrorCronExpression;
     }
 
-    public void setSchedulerDelaySeconds(int schedulerDelaySeconds)
+    public void setInitialAndOnErrorCronExpression(CronExpression initialAndOnErrorCronExpression)
     {
-        this.schedulerDelaySeconds = schedulerDelaySeconds;
+        this.initialAndOnErrorCronExpression = initialAndOnErrorCronExpression;
     }
 
     @Override
@@ -153,6 +152,7 @@ public abstract class TransformServiceRegistryImpl implements TransformServiceRe
             throw new IllegalStateException("jsonObjectMapper has not been set");
         }
         PropertyCheck.mandatory(this, "cronExpression", cronExpression);
+        PropertyCheck.mandatory(this, "initialAndOnErrorCronExpression", initialAndOnErrorCronExpression);
 
         setData(null);
         if (enabled)
@@ -179,11 +179,12 @@ public abstract class TransformServiceRegistryImpl implements TransformServiceRe
                         .ofType(TransformServiceRegistryJob.class)
                         .build();
                 job.getJobDataMap().put("registry", this);
+                CronExpression cronExpression = normalCronSchedule ? this.cronExpression : initialAndOnErrorCronExpression;
                 CronTrigger trigger = TriggerBuilder.newTrigger()
                         .withIdentity(jobName+"Trigger", Scheduler.DEFAULT_GROUP)
                         .withSchedule(CronScheduleBuilder.cronSchedule(cronExpression))
                         .build();
-                scheduler.startDelayed(schedulerDelaySeconds);
+                scheduler.startDelayed(0);
                 scheduler.scheduleJob(job, trigger);
             }
             catch (SchedulerException e)
@@ -199,17 +200,46 @@ public abstract class TransformServiceRegistryImpl implements TransformServiceRe
 
     protected void readConfigAndReplace()
     {
+        boolean successReadingRemoteConfig = true;
         Log log = getLog();
         log.debug("Config read started");
         try
         {
             Data data = readConfig();
+            successReadingRemoteConfig = data.successReadingRemoteConfig;
             setData(data);
             log.debug("Config read finished "+getCounts());
         }
         catch (Exception e)
         {
+            successReadingRemoteConfig = false;
             log.error("Config read failed. "+e.getMessage(), e);
+        }
+
+        // Switch schedule sequence if we were on the normal schedule and we now have problems or if
+        // we are on the initial/error schedule and there were no errors.
+        if (normalCronSchedule && !successReadingRemoteConfig ||
+            !normalCronSchedule && successReadingRemoteConfig)
+        {
+            normalCronSchedule = !normalCronSchedule;
+            if (scheduler != null)
+            {
+                try
+                {
+                    CronExpression cronExpression = normalCronSchedule ? this.cronExpression : initialAndOnErrorCronExpression;
+                    scheduler.clear();
+                    scheduler = null;
+                    schedule();
+                }
+                catch (SchedulerException e)
+                {
+                    getLog().error("Problem stopping scheduler for transformer configuration "+e.getMessage());
+                }
+            }
+            else
+            {
+                System.out.println("Switch schedule "+normalCronSchedule+" WITHOUT new schedule");
+            }
         }
     }
 
@@ -232,6 +262,11 @@ public abstract class TransformServiceRegistryImpl implements TransformServiceRe
     protected Data createData()
     {
         return new Data();
+    }
+
+    protected void setSuccessReadingRemoteConfig(Data data, boolean successReadingRemoteConfig)
+    {
+        data.successReadingRemoteConfig = successReadingRemoteConfig;
     }
 
     public void setEnabled(boolean enabled)

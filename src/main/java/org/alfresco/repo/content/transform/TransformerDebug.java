@@ -1609,7 +1609,10 @@ public class TransformerDebug implements ApplicationContextAware
     public String testTransform(final String transformerName, String sourceExtension,
             String targetExtension, String renditionName)
     {
-        return "The testTransform operation for a specific transformer is no longer supported.";
+        logger.error("The testTransform operation for a specific transformer is no longer supported. " +
+                "Direct transforms have been deprecated in favour of async renditions. " +
+                "Request redirected to the version of this method without a transformerName.");
+        return testTransform(sourceExtension, targetExtension, renditionName);
     }
     
     public String[] getTestFileExtensionsAndMimetypes()
@@ -1660,6 +1663,18 @@ public class TransformerDebug implements ApplicationContextAware
 
         String run(String sourceExtension, String targetExtension, String renditionName)
         {
+            RetryingTransactionHelper.RetryingTransactionCallback<String> makeNodeCallback = new RetryingTransactionHelper.RetryingTransactionCallback<String>()
+            {
+                public String execute() throws Throwable
+                {
+                    return runWithinTransaction(sourceExtension, targetExtension);
+                }
+            };
+            return getTransactionService().getRetryingTransactionHelper().doInTransaction(makeNodeCallback, false, true);
+        }
+
+        private String runWithinTransaction(String sourceExtension, String targetExtension)
+        {
             RenditionDefinitionRegistry2Impl renditionDefinitionRegistry2 = getRenditionDefinitionRegistry2Impl();
 
             String targetMimetype = getMimetype(targetExtension, false);
@@ -1707,7 +1722,7 @@ public class TransformerDebug implements ApplicationContextAware
             }
             return sb.toString();
         }
-        
+
         private String getMimetype(String extension, boolean isSource)
         {
             String mimetype = null;

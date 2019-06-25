@@ -28,7 +28,6 @@ package org.alfresco.transform.client.model.config;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.alfresco.repo.content.MimetypeMap;
 import org.alfresco.repo.content.transform.LocalTransformServiceRegistry;
-import org.alfresco.repo.content.transform.LocalTransformer;
 import org.alfresco.repo.content.transform.TransformerDebug;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -38,7 +37,6 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.quartz.CronExpression;
 import org.quartz.Scheduler;
-import org.quartz.SchedulerException;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -63,6 +61,20 @@ public class LocalTransformServiceRegistryConfigTest extends TransformServiceReg
 {
     private class TestLocalTransformServiceRegistry extends LocalTransformServiceRegistry
     {
+        private boolean lastReadSucceed = false;
+        private boolean mockSuccessReadingRemoteConfig = true;
+
+        public synchronized boolean getMockSuccessReadingRemoteConfig()
+        {
+            return mockSuccessReadingRemoteConfig;
+        }
+
+        public synchronized void setMockSuccessReadingRemoteConfig(boolean mockSuccessReadingRemoteConfig)
+        {
+            System.out.println("\n"+getMs()+": set next mock read to "+(mockSuccessReadingRemoteConfig ? "success" : "failure"));
+            this.mockSuccessReadingRemoteConfig = mockSuccessReadingRemoteConfig;
+        }
+
         @Override
         protected String getBaseUrlIfTesting(String name, String baseUrl)
         {
@@ -74,15 +86,28 @@ public class LocalTransformServiceRegistryConfigTest extends TransformServiceReg
         @Override
         protected TransformServiceRegistryImpl.Data readConfig() throws IOException
         {
-            System.out.println(getMs() + "readConfig()");
             readConfigCount++;
             data = createData();
+            boolean mockSuccessReadingRemoteConfig = getMockSuccessReadingRemoteConfig();
+            lastReadSucceed = mockSuccessReadingRemoteConfig;
+            setSuccessReadingRemoteConfig(data, mockSuccessReadingRemoteConfig);
+            System.out.println(getMs() + "readConfig() success="+mockSuccessReadingRemoteConfig+" reads="+readConfigCount);
             return data;
         }
 
-        public Data assertDataChanged(Data data)
+        public Data assertDataChanged(Data data, String msg)
         {
-            assertNotEquals("The configuration data chould have changed", this.data, data);
+            // If the data changes, there has been a read
+            System.out.println(getMs()+msg);
+            assertNotEquals("The configuration data should have changed: "+msg, this.data, data);
+            return this.data;
+        }
+
+        public Data assertDataUnchanged(Data data, String msg)
+        {
+            // If the data changes, there has been a read
+            System.out.println(getMs()+msg);
+            assertEquals("The configuration data should be the same: "+msg, this.data, data);
             return this.data;
         }
     }
@@ -131,6 +156,7 @@ public class LocalTransformServiceRegistryConfigTest extends TransformServiceReg
         registry.setMimetypeService(mimetypeMap);
         registry.setPipelineConfigDir("");
         registry.setCronExpression(new CronExpression("* * * * * ? 2099")); // not for a long time.
+        registry.setInitialAndOnErrorCronExpression(new CronExpression("* * * * * ? 2099")); // not for a long time.
         return registry;
     }
 
@@ -389,7 +415,8 @@ public class LocalTransformServiceRegistryConfigTest extends TransformServiceReg
     public void testAdditionAndRemovalOfTEngines() throws Exception
     {
         CronExpression origCronExpression = registry.getCronExpression();
-        int origSchedulerDelaySeconds = registry.getSchedulerDelaySeconds();
+        CronExpression origInitialAndOnErrorCronExpression = registry.getInitialAndOnErrorCronExpression();
+
         String origPipelineConfigDir = registry.getPipelineConfigDir();
         Scheduler origScheduler = registry.getScheduler();
 
@@ -405,40 +432,59 @@ public class LocalTransformServiceRegistryConfigTest extends TransformServiceReg
             readConfigCount = 0;
 
             registry.setScheduler(null);
-            registry.setCronExpression(new CronExpression(("0/3 * * ? * * *"))); // every 3 seconds rather than 10 mins
-            registry.setSchedulerDelaySeconds(0); // This 0 seconds by default
+            registry.setInitialAndOnErrorCronExpression(new CronExpression(("0/2 * * ? * * *"))); // every 2 seconds rather than 10 seconds
+            registry.setCronExpression(new CronExpression(("0/4 * * ? * * *"))); // every 4 seconds rather than 10 mins
 
-            // Sleep until a 3 second boundary (or try to in order to make test more successful).
-            Thread.sleep(3000-System.currentTimeMillis()%3000);
+            // Sleep until a 6 second boundary, in order to make testing clearer.
+            // It avoids having to work out schedule offsets and extra quick runs that can otherwise take place.
+            Thread.sleep(4000-System.currentTimeMillis()%4000);
             startMs = System.currentTimeMillis();
+            registry.setMockSuccessReadingRemoteConfig(false);
             registry.afterPropertiesSet();
 
-            Thread.sleep(300); // Give it a chance to run the first time
-            assertEquals(getMs()+"The initial read should have taken place", 1, readConfigCount);
-            data = registry.assertDataChanged(data);
+            Thread.sleep(1000); // 1 seconds
+            data = registry.assertDataChanged(data, "There should have been a read after a few milliseconds that fails");
 
-            Thread.sleep(3000);
-            assertEquals(getMs()+"The 1st scheduled reads should have taken place", 2, readConfigCount);
-            data = registry.assertDataChanged(data);
+            Thread.sleep(2000); // 3 seconds
+            data = registry.assertDataChanged(data, "There should have been a read after 2 seconds that fails");
 
-            Thread.sleep(6000);
-            assertEquals(getMs()+"The 3rd scheduled reads should have taken place", 4, readConfigCount);
-            data = registry.assertDataChanged(data);
+            Thread.sleep(2000); // 5 seconds
+            data = registry.assertDataChanged(data, "There should have been a read after 4 seconds that fails");
 
-            registry.getScheduler().clear();
-            Thread.sleep(3000);
-            assertEquals(getMs()+"Scheduled reads should have stopped", 4, readConfigCount);
+            Thread.sleep(2000); // 7 seconds
+            data = registry.assertDataChanged(data, "There should have been a read after 6 seconds that fails");
+
+            // Should switch to normal 4s schedule after the next read, so the read at 12 seconds will be on that schedule.
+            // It is always possible that another quick one gets scheduled almost straight away after the next read.
+            registry.setMockSuccessReadingRemoteConfig(true);
+            Thread.sleep(2000); // 9 seconds
+            data = registry.assertDataChanged(data, "There should have been a read after 8 seconds that succeeds");
+
+            Thread.sleep(2000); // 11 seconds
+            data = registry.assertDataUnchanged(data, "There really should not have been a read until 12 seconds");
+
+            Thread.sleep(2000); // 13 seconds
+            data = registry.assertDataChanged(data, "There should have been a read after 12 seconds that succeeds");
+
+            // Should switch back to initial/error schedule after failure
+            registry.setMockSuccessReadingRemoteConfig(false);
+            Thread.sleep(4000); // 17 seconds
+            data = registry.assertDataChanged(data, "There should have been a read after 16 seconds that fails");
+
+            Thread.sleep(2000); // 19 seconds
+            data = registry.assertDataChanged(data, "There should have been a read after 18 seconds");
         }
         finally
         {
+            registry.setMockSuccessReadingRemoteConfig(true);
+
             // Reset scheduler properties just in case another tests needs them in future.
             // We don't start the scheduler with registry.afterPropertiesSet() as this is
             // really just mocked up version of the registry.
             registry.setCronExpression(origCronExpression);
-            registry.setSchedulerDelaySeconds(origSchedulerDelaySeconds);
+            registry.setInitialAndOnErrorCronExpression(origInitialAndOnErrorCronExpression);
             registry.setPipelineConfigDir(origPipelineConfigDir);
             registry.setScheduler(null);
-            // registry.afterPropertiesSet();
         }
     }
 }
