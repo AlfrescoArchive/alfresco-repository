@@ -479,7 +479,7 @@
             <value>${transform.misc.url}</value>
         </constructor-arg>
         <property name="startupRetryPeriodSeconds">
-            <value>${localTransformer.misc.startupRetryPeriodSeconds}</value>
+            <value>${transformer.misc.startupRetryPeriodSeconds}</value>
         </property>
     </bean>
 
