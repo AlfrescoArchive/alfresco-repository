@@ -58,7 +58,7 @@ public class LocalTransformServiceRegistry extends TransformServiceRegistryImpl 
 {
     private static final Log log = LogFactory.getLog(LocalTransformServiceRegistry.class);
 
-    private static final String LOCAL_TRANSFORMER = "localTransformer.";
+    private static final String LOCAL_TRANSFORMER = "localTransform.";
     private static final String URL = ".url";
     static final String STRICT_MIMETYPE_CHECK_WHITELIST_MIMETYPES = "transformer.strict.mimetype.check.whitelist.mimetypes";
 

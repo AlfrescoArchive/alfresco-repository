@@ -79,7 +79,7 @@ public class LocalTransformServiceRegistryConfigTest extends TransformServiceReg
         protected String getBaseUrlIfTesting(String name, String baseUrl)
         {
             return baseUrl == null
-                    ? getProperty(LOCAL_TRANSFORMER+name+URL, null)
+                    ? getProperty(LOCAL_TRANSFORM +name+URL, null)
                     : baseUrl;
         }
 
@@ -123,7 +123,7 @@ public class LocalTransformServiceRegistryConfigTest extends TransformServiceReg
     private static final String LOCAL_TRANSFORM_SERVICE_CONFIG_PIPELINE = "alfresco/local-transform-service-config-pipeline-test.json";
 
     private static final ObjectMapper JSON_OBJECT_MAPPER = new ObjectMapper();
-    private static final String LOCAL_TRANSFORMER = "localTransformer.";
+    private static final String LOCAL_TRANSFORM = "localTransform.";
     private static final String URL = ".url";
 
     private static Log log = LogFactory.getLog(LocalTransformServiceRegistry.class);
@@ -185,7 +185,7 @@ public class LocalTransformServiceRegistryConfigTest extends TransformServiceReg
     }
 
     /**
-     * Reads and loads localTransformers from LOCAL_TRANSFORM_SERVICE_CONFIG config file.
+     * Reads and loads localTransforms from LOCAL_TRANSFORM_SERVICE_CONFIG config file.
      * @return List<Transformer> list of local transformers.
      */
     private List<CombinedConfig.TransformerAndItsOrigin> retrieveLocalTransformerList ()
@@ -207,16 +207,16 @@ public class LocalTransformServiceRegistryConfigTest extends TransformServiceReg
     private void initTestData()
     {
         // Add JVM properties
-        System.setProperty(LOCAL_TRANSFORMER + "pdfrenderer" + URL, "http://localhost:8090/");
-        System.setProperty(LOCAL_TRANSFORMER + "imagemagick" + URL, "http://localhost:8091/");
-        System.setProperty(LOCAL_TRANSFORMER + "libreoffice" + URL, "http://localhost:8092/");
-        System.setProperty(LOCAL_TRANSFORMER + "tika" + URL, "http://localhost:8093/");
+        System.setProperty(LOCAL_TRANSFORM + "pdfrenderer" + URL, "http://localhost:8090/");
+        System.setProperty(LOCAL_TRANSFORM + "imagemagick" + URL, "http://localhost:8091/");
+        System.setProperty(LOCAL_TRANSFORM + "libreoffice" + URL, "http://localhost:8092/");
+        System.setProperty(LOCAL_TRANSFORM + "tika" + URL, "http://localhost:8093/");
 
         // Add alfresco-global properties
-        properties.setProperty(LOCAL_TRANSFORMER + "pdfrenderer" + URL, "http://localhost:8090/");
-        properties.setProperty(LOCAL_TRANSFORMER + "imagemagick" + URL, "http://localhost:8091/");
-        properties.setProperty(LOCAL_TRANSFORMER + "libreoffice" + URL, "http://localhost:8092/");
-        properties.setProperty(LOCAL_TRANSFORMER + "tika" + URL, "http://localhost:8093/");
+        properties.setProperty(LOCAL_TRANSFORM + "pdfrenderer" + URL, "http://localhost:8090/");
+        properties.setProperty(LOCAL_TRANSFORM + "imagemagick" + URL, "http://localhost:8091/");
+        properties.setProperty(LOCAL_TRANSFORM + "libreoffice" + URL, "http://localhost:8092/");
+        properties.setProperty(LOCAL_TRANSFORM + "tika" + URL, "http://localhost:8093/");
 
         // ImageMagick supported Source and Target List:
         imagemagickSupportedTransformation = new HashMap<>();
@@ -280,7 +280,7 @@ public class LocalTransformServiceRegistryConfigTest extends TransformServiceReg
 
     protected String getBaseUrl(Transformer transformer)
     {
-        return "localTransformer."+transformer.getTransformerName()+".url";
+        return LOCAL_TRANSFORM+transformer.getTransformerName()+".url";
     }
 
     @Test
@@ -390,25 +390,25 @@ public class LocalTransformServiceRegistryConfigTest extends TransformServiceReg
         {
             if(t.transformer.getTransformerPipeline() == null)
             {
-                assertNotNull(t.transformer.getTransformerName()+ " JVM property not set.", System.getProperty(LOCAL_TRANSFORMER + t.transformer.getTransformerName() + URL));
+                assertNotNull(t.transformer.getTransformerName()+ " JVM property not set.", System.getProperty(LOCAL_TRANSFORM + t.transformer.getTransformerName() + URL));
             }
         }
-        assertEquals("Unexpected pdfrenderer JVM property value", "http://localhost:8090/", System.getProperty(LOCAL_TRANSFORMER + "pdfrenderer" + URL));
-        assertEquals("Unexpected imagemagick JVM property value", "http://localhost:8091/", System.getProperty(LOCAL_TRANSFORMER + "imagemagick" + URL));
-        assertEquals("Unexpected libreoffice JVM property value", "http://localhost:8092/", System.getProperty(LOCAL_TRANSFORMER + "libreoffice" + URL));
-        assertEquals("Unexpected tika JVM property value", "http://localhost:8093/", System.getProperty(LOCAL_TRANSFORMER + "tika" + URL));
+        assertEquals("Unexpected pdfrenderer JVM property value", "http://localhost:8090/", System.getProperty(LOCAL_TRANSFORM + "pdfrenderer" + URL));
+        assertEquals("Unexpected imagemagick JVM property value", "http://localhost:8091/", System.getProperty(LOCAL_TRANSFORM + "imagemagick" + URL));
+        assertEquals("Unexpected libreoffice JVM property value", "http://localhost:8092/", System.getProperty(LOCAL_TRANSFORM + "libreoffice" + URL));
+        assertEquals("Unexpected tika JVM property value", "http://localhost:8093/", System.getProperty(LOCAL_TRANSFORM + "tika" + URL));
 
         for (CombinedConfig.TransformerAndItsOrigin t : transformerList)
         {
             if(t.transformer.getTransformerPipeline() == null)
             {
-                assertNotNull(t.transformer.getTransformerName()+ " alfresco-global property not set.", properties.getProperty(LOCAL_TRANSFORMER + t.transformer.getTransformerName() + URL));
+                assertNotNull(t.transformer.getTransformerName()+ " alfresco-global property not set.", properties.getProperty(LOCAL_TRANSFORM + t.transformer.getTransformerName() + URL));
             }
         }
-        assertEquals("Unexpected pdfrenderer alfresco-global property value", "http://localhost:8090/", properties.getProperty(LOCAL_TRANSFORMER + "pdfrenderer" + URL));
-        assertEquals("Unexpected imagemagick alfresco-global property value", "http://localhost:8091/", properties.getProperty(LOCAL_TRANSFORMER + "imagemagick" + URL));
-        assertEquals("Unexpected libreoffice alfresco-global property value", "http://localhost:8092/", properties.getProperty(LOCAL_TRANSFORMER + "libreoffice" + URL));
-        assertEquals("Unexpected tika alfresco-global property value", "http://localhost:8093/", properties.getProperty(LOCAL_TRANSFORMER + "tika" + URL));
+        assertEquals("Unexpected pdfrenderer alfresco-global property value", "http://localhost:8090/", properties.getProperty(LOCAL_TRANSFORM + "pdfrenderer" + URL));
+        assertEquals("Unexpected imagemagick alfresco-global property value", "http://localhost:8091/", properties.getProperty(LOCAL_TRANSFORM + "imagemagick" + URL));
+        assertEquals("Unexpected libreoffice alfresco-global property value", "http://localhost:8092/", properties.getProperty(LOCAL_TRANSFORM + "libreoffice" + URL));
+        assertEquals("Unexpected tika alfresco-global property value", "http://localhost:8093/", properties.getProperty(LOCAL_TRANSFORM + "tika" + URL));
     }
 
     @Test

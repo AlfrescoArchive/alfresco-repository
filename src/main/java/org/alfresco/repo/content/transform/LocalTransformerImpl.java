@@ -40,7 +40,7 @@ import java.util.Set;
  *
  * Instances are automatically created for transformers identified by alfresco/transform json files and returned from
  * T-Engines which are themselves identified by global properties or system properties the match the pattern
- * localTransformer.&lt;name>.url. The transforms take place in a separate process (typically a Docker container).
+ * localTransform.&lt;name>.url. The transforms take place in a separate process (typically a Docker container).
  */
 public class LocalTransformerImpl extends AbstractLocalTransformer
 {

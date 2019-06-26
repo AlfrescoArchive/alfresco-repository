@@ -42,7 +42,7 @@ import java.util.Set;
  * Transformer that passes a document through a pipeline of transformations to arrive at an target mimetype.
  *
  * Instances are automatically created for transformers identified by alfresco/transform json files and returned from
- * T-Engines which are themselves identified by global properties the match the pattern localTransformer.&lt;name>.url.
+ * T-Engines which are themselves identified by global properties the match the pattern localTransform.&lt;name>.url.
  * The transforms take place in a separate process (typically a Docker container).
  */
 public class LocalPipelineTransformer extends AbstractLocalTransformer
