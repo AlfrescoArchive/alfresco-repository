@@ -37,8 +37,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.StringJoiner;
 import java.util.TreeMap;
 import java.util.TreeSet;
+import java.util.regex.Pattern;
 
 import javax.management.JMException;
 import javax.management.MBeanAttributeInfo;
@@ -76,6 +78,7 @@ public class JmxDumpUtil
     private static final String INPUT_ARGUMENTS = "InputArguments";
 
     private static final String[] REDACTED_INPUTS = {"password","token","pwd"};
+    
     /**
      * Dumps a local or remote MBeanServer's entire object tree for support purposes. Nested arrays and CompositeData
      * objects in MBean attribute values are handled.
@@ -174,7 +177,13 @@ public class JmxDumpUtil
             String[] commandInputs = (String[]) attributes.get(INPUT_ARGUMENTS);
             if(commandInputs != null)
             {
-                attributes.put(INPUT_ARGUMENTS, cleanPasswordsFromInputArguments(commandInputs,REDACTED_INPUTS));
+                try 
+                {
+                    attributes.put(INPUT_ARGUMENTS, cleanPasswordsFromInputArguments(commandInputs,REDACTED_INPUTS));
+                } catch (IllegalArgumentException e) 
+                {
+                    attributes.put(INPUT_ARGUMENTS, commandInputs);
+                }
             }
         }
         tabulate(JmxDumpUtil.NAME_HEADER, JmxDumpUtil.VALUE_HEADER, attributes, out, 0);
@@ -191,10 +200,11 @@ public class JmxDumpUtil
      */
     static String[] cleanPasswordsFromInputArguments(String[] commandInputs, String[] redactedInputs)
     {
+        Pattern passwordRedactPattern = Pattern.compile(createPasswordFindRegexString(redactedInputs));
         List<String> cleanInputs = new ArrayList<String>();
         for (String input : commandInputs) 
         {
-            input = cleanPasswordFromInputArgument(input, redactedInputs);
+            input = cleanPasswordFromInputArgument(input, passwordRedactPattern);
             cleanInputs.add(input);
         }
         
@@ -216,15 +226,10 @@ public class JmxDumpUtil
      * @param redactedInputs String[]
      * @return password redacted string if input matches a string in redactedInputs, an un-altered string will be returned if it does not match.
      */
-    static String cleanPasswordFromInputArgument(String input, String[] redactedInputs)
+    static String cleanPasswordFromInputArgument(String input, Pattern redactedInputPattern)
     {
-        //Selects the whole string, if one of the redactedInputs are present. It will have two capture groups, group 1 is the proceeding token ie. "password=" and group 2 will be all characters following the = (the vaule/password).
-        String regex = createPasswordFindRegexString(redactedInputs); 
-
         //Replace the whole string with just capture group 1 to remove the desired value and concat the protected value.
-        String output = input.replaceAll(regex, "$1"+PROTECTED_VALUE);
-
-
+        String output = redactedInputPattern.matcher(input).replaceAll("$1"+PROTECTED_VALUE); //input.replaceAll(regex, "$1"+PROTECTED_VALUE);
         return output;
     }
 
@@ -257,32 +262,23 @@ public class JmxDumpUtil
      * @param argEndings Strings that will end the input argument you wish to select
      * @return Regex pattern for selecting the characters following the strings passed as argEndings
      */
-    static String createPasswordFindRegexString(String[] argEndings)
+    static String createPasswordFindRegexString(String[] argEndings) throws IllegalArgumentException
     {
         if(argEndings.length<1)
         {
-            //throw Exception e = new Exception();
+            IllegalArgumentException e = new IllegalArgumentException("Arguments are required");
+            throw e;
         }
 
-        //(?i)(.*(arg[0]=|arg[1]=|...|arg[n-1]=))((?<=arg[0]=|arg[1]=|...|arg[n-1]=).*+)
-        String part1 = "(?i)";
-        String part2 = "(.*(";
-        String part3 = "((?<=";
-        
-        part2 += escapeRegexMetaChars(argEndings[0]) + "="; //(.*(arg[0]=
-        part3 += escapeRegexMetaChars(argEndings[0]) + "="; //((?<=arg[0]=
+        StringJoiner argJoiner = new StringJoiner("|");
 
-        for (int i = 1; i < argEndings.length; i++) 
+        for (String argEnding : argEndings) 
         {
-            String arg = escapeRegexMetaChars(argEndings[i]);
-            part2 += "|" + arg + "="; //(.*(arg[0]=|arg[1]=arg[2]....|arg[n-1]=
-            part3 += "|" + arg + "="; //((?<=arg[0]=|arg[1]=|arg[2]...|arg[n-1]=
-        } 
+            argJoiner.add(escapeRegexMetaChars(argEnding)+"=");
+        }
 
-
-        part2 += "))"; //(.*(arg[0]=|arg[1]=|...|arg[n-1]=))
-        part3 += ").*+)"; //((?<=arg[0]=|arg[1]=|...|arg[n-1]=).*+)
-        String regex = part1 + part2 + part3;
+        String regex = String.format("%s%s%s%s%s", 
+                        "(?i)(.*(", argJoiner.toString(),"))((?<=",argJoiner.toString(), ").*+)");
         return regex;
     }
 
@@ -295,7 +291,7 @@ public class JmxDumpUtil
     static String escapeRegexMetaChars (String input)
     {
         String pattern = "(\\||\\?|\\*|\\+|\\.)";
-        String output = input.replaceAll(pattern, "\\\\"+"$1");
+        String output = input.replaceAll(pattern, "\\\\$1");
         return output;
     }
 

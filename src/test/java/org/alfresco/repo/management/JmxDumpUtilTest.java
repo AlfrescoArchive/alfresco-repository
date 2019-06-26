@@ -27,6 +27,8 @@ package org.alfresco.repo.management;
 
 import static org.junit.Assert.assertArrayEquals;
 
+import java.util.regex.Pattern;
+
 import org.alfresco.util.ApplicationContextHelper;
 import org.junit.Test;
 import org.springframework.context.ApplicationContext;
@@ -49,42 +51,32 @@ public class JmxDumpUtilTest extends TestCase
     @Test
     public void testCleanPasswordsFromInputArgument() throws Exception
     {
-        String[] argEndingsTypical = {"password", "token","pwd"};
+        Pattern pattern = Pattern.compile("(?i)(.*(password=|pwd=|token=))((?<=password=|pwd=|token=).*+)");
         String passwordArg = "-Ddb.password=I should be stars \"£$%^&*()@";
         String expected = "-Ddb.password="+JmxDumpUtil.PROTECTED_VALUE;
-        String actual = JmxDumpUtil.cleanPasswordFromInputArgument(passwordArg,argEndingsTypical);
+        String actual = JmxDumpUtil.cleanPasswordFromInputArgument(passwordArg,pattern);
         assertEquals("Expectected output: "+ expected +" Actual output: "+actual, expected, actual);
 
         passwordArg = "-Ddb.paSsword=@";
         expected = "-Ddb.paSsword="+JmxDumpUtil.PROTECTED_VALUE;
-        actual = JmxDumpUtil.cleanPasswordFromInputArgument(passwordArg, argEndingsTypical);
+        actual = JmxDumpUtil.cleanPasswordFromInputArgument(passwordArg, pattern);
         assertEquals("Expectected output: "+ expected +" Actual output: "+actual, expected, actual);
 
         passwordArg = "somePrefix.token=\"If i'm not replaced, something has gone very wrong\"";
         expected = "somePrefix.token="+JmxDumpUtil.PROTECTED_VALUE;
-        actual = JmxDumpUtil.cleanPasswordFromInputArgument(passwordArg, argEndingsTypical);
+        actual = JmxDumpUtil.cleanPasswordFromInputArgument(passwordArg, pattern);
         assertEquals("Expectected output: "+ expected +" Actual output: "+actual, expected, actual);
 
         passwordArg = "yetanotherpwd=";
         expected = "yetanotherpwd="+JmxDumpUtil.PROTECTED_VALUE;
-        actual = JmxDumpUtil.cleanPasswordFromInputArgument(passwordArg, argEndingsTypical);
+        actual = JmxDumpUtil.cleanPasswordFromInputArgument(passwordArg, pattern);
         assertEquals("Expectected output: "+ expected +" Actual output: "+actual, expected, actual);
 
         passwordArg = "AnyOtherArgument=\"I should still be here\"";
         expected = "AnyOtherArgument=\"I should still be here\"";
-        actual = JmxDumpUtil.cleanPasswordFromInputArgument(passwordArg, argEndingsTypical);
+        actual = JmxDumpUtil.cleanPasswordFromInputArgument(passwordArg, pattern);
         assertEquals("Expectected output :"+ expected +" Actual output :"+actual, expected, actual);
 
-        String[] argEndingsMeta = {"password","pass?"};
-        passwordArg = "AnyOtherPassword=\"I should still be here\"";
-        expected = "AnyOtherPassword="+JmxDumpUtil.PROTECTED_VALUE;
-        actual = JmxDumpUtil.cleanPasswordFromInputArgument(passwordArg, argEndingsMeta);
-        assertEquals("Expectected output :"+ expected +" Actual output :"+actual, expected, actual);
-
-        passwordArg = "AnyOtherPass?=\"I should still be here\"";
-        expected = "AnyOtherPass?="+JmxDumpUtil.PROTECTED_VALUE;
-        actual = JmxDumpUtil.cleanPasswordFromInputArgument(passwordArg, argEndingsMeta);
-        assertEquals("Expectected output :"+ expected +" Actual output :"+actual, expected, actual);
     }
     @Test
     public void testCleanPasswordsFromInputArguments() throws Exception
@@ -99,6 +91,9 @@ public class JmxDumpUtilTest extends TestCase
         expectedArray = new String[]{"-Ddb.port=1234", "-Ddb.user=alfresco", "-DtestArg=Test1234password"};
         actualArray = JmxDumpUtil.cleanPasswordsFromInputArguments(args, argEndingsTypical);
         assertArrayEquals("Expectected output:"+expectedArray+" Actual output:"+actualArray, expectedArray, actualArray);
+        
+        
+
     }
     @Test
     public void testCreatePasswordFindRegexString() throws Exception
@@ -111,9 +106,17 @@ public class JmxDumpUtilTest extends TestCase
         String[] argEndings2 = {"?", "\"£$%^&*"};
         expected = "(?i)(.*(\\?=|\"£$%^&\\*=))((?<=\\?=|\"£$%^&\\*=).*+)";
         actual = JmxDumpUtil.createPasswordFindRegexString(argEndings2);
-        assertEquals("Expectected output :"+expected+" Actual output :"+actual,expected, actual);
-
+        assertEquals("Expectected output :"+expected+" Actual output :"+actual,expected, actual);   
         
+        String[] emptyArgs = {};
+        try 
+        {
+            JmxDumpUtil.createPasswordFindRegexString(emptyArgs);
+            fail("expected exception was not occured.");
+        } catch(IllegalArgumentException e) 
+        {
+            
+        }
     }
     @Test
     public void testEscapeRegexMetaChars()
