@@ -127,7 +127,7 @@ public abstract class AbstractRenditionIntegrationTest extends BaseSpringTest
         System.setProperty("img.url", "http://localhost:8091/");
         System.setProperty("jodconverter.url", "http://localhost:8092/");
         System.setProperty("tika.url", "http://localhost:8093/");
-        System.setProperty("transformer.misc.url", "http://localhost:8094/");
+        System.setProperty("transform.misc.url", "http://localhost:8094/");
 
         // Use the docker images for transforms (local)
         System.setProperty("localTransform.pdfrenderer.url", "http://localhost:8090/");
@@ -212,7 +212,7 @@ public abstract class AbstractRenditionIntegrationTest extends BaseSpringTest
         System.clearProperty("img.url");
         System.clearProperty("jodconverter.url");
         System.clearProperty("tika.url");
-        System.clearProperty("transformer.misc.url");
+        System.clearProperty("transform.misc.url");
 
         System.clearProperty("localTransform.pdfrenderer.url");
         System.clearProperty("localTransform.imagemagick.url");
