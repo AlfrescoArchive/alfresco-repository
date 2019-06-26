@@ -229,7 +229,7 @@ public class JmxDumpUtil
     static String cleanPasswordFromInputArgument(String input, Pattern redactedInputPattern)
     {
         //Replace the whole string with just capture group 1 to remove the desired value and concat the protected value.
-        String output = redactedInputPattern.matcher(input).replaceAll("$1"+PROTECTED_VALUE); //input.replaceAll(regex, "$1"+PROTECTED_VALUE);
+        String output = redactedInputPattern.matcher(input).replaceAll("$1"+PROTECTED_VALUE);
         return output;
     }
 
