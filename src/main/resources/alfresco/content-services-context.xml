@@ -476,7 +476,7 @@
             <value>MiscellaneousTransformers</value>
         </constructor-arg>
         <constructor-arg>
-            <value>${transform.misc.url}</value>
+            <value>${transformer.misc.url}</value>
         </constructor-arg>
         <property name="startupRetryPeriodSeconds">
             <value>${transformer.misc.startupRetryPeriodSeconds}</value>
