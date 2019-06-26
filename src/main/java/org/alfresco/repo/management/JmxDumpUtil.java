@@ -202,7 +202,7 @@ public class JmxDumpUtil
     }
 
     /**
-     * Removes any characters the word/s provided in passwordArgs
+     * Removes any characters the word/s provided in redactedInputs
      * and replaces them with JmxDumpUtil.PROTECTED_VALUE
      * <p>
      * Example: 
