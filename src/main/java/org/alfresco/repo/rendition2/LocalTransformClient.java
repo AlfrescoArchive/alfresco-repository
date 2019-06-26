@@ -26,7 +26,7 @@
 package org.alfresco.repo.rendition2;
 
 import org.alfresco.model.ContentModel;
-import org.alfresco.repo.content.transform.LocalTransformer;
+import org.alfresco.repo.content.transform.LocalTransform;
 import org.alfresco.repo.content.transform.LocalTransformServiceRegistry;
 import org.alfresco.repo.security.authentication.AuthenticationUtil;
 import org.alfresco.service.cmr.repository.ContentReader;
@@ -46,7 +46,7 @@ import java.util.concurrent.Executors;
 
 /**
  * Requests rendition transforms take place using transforms available on the local machine (based on
- * {@link LocalTransformer}. The transform and consumption of the
+ * {@link LocalTransform}. The transform and consumption of the
  * resulting content is linked into a single operation that will take place at some point in the future on the local
  * machine.
  *

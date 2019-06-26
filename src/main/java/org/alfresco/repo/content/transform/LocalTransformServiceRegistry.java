@@ -50,7 +50,7 @@ import java.util.Set;
 
 /**
  * Implements {@link TransformServiceRegistry} providing a mechanism of validating if a local transformation
- * (based on {@link LocalTransformer} request is supported. It also extends this interface to provide a
+ * (based on {@link LocalTransform} request is supported. It also extends this interface to provide a
  * {@link #transform} method.
  * @author adavis
  */
@@ -64,7 +64,7 @@ public class LocalTransformServiceRegistry extends TransformServiceRegistryImpl 
 
     class LocalData extends TransformServiceRegistryImpl.Data
     {
-        private Map<String, LocalTransformer> localTransformers = new HashMap<>();
+        private Map<String, LocalTransform> localTransforms = new HashMap<>();
     }
 
     private String pipelineConfigDir;
@@ -158,14 +158,14 @@ public class LocalTransformServiceRegistry extends TransformServiceRegistryImpl 
         try
         {
             String name = transformer.getTransformerName();
-            Map<String, LocalTransformer> localTransformers = ((LocalData)data).localTransformers;
-            if (name == null || localTransformers.get(name) != null)
+            Map<String, LocalTransform> localTransforms = ((LocalData)data).localTransforms;
+            if (name == null || localTransforms.get(name) != null)
             {
                 throw new IllegalArgumentException("Local transformer names must exist and be unique (" + name + ")."+
                         " Read from "+readFrom);
             }
 
-            LocalTransformer localTransformer;
+            LocalTransform localTransform;
             List<TransformStep> pipeline = transformer.getTransformerPipeline();
             if (pipeline == null || pipeline.isEmpty())
             {
@@ -177,7 +177,7 @@ public class LocalTransformServiceRegistry extends TransformServiceRegistryImpl 
                             " Read from "+readFrom);
                 }
                 int startupRetryPeriodSeconds = getStartupRetryPeriodSeconds(name);
-                localTransformer = new LocalTransformerImpl(name, transformerDebug, mimetypeService,
+                localTransform = new LocalTransformImpl(name, transformerDebug, mimetypeService,
                          strictMimeTypeCheck, strictMimetypeExceptions, retryTransformOnDifferentMimeType,
                         this, baseUrl, startupRetryPeriodSeconds);
             }
@@ -191,21 +191,21 @@ public class LocalTransformServiceRegistry extends TransformServiceRegistryImpl 
                             " Read from "+readFrom);
                 }
 
-                localTransformer = new LocalPipelineTransformer(name, transformerDebug, mimetypeService,
+                localTransform = new LocalPipelineTransform(name, transformerDebug, mimetypeService,
                         strictMimeTypeCheck, strictMimetypeExceptions, retryTransformOnDifferentMimeType,
                         this);
                 for (int i=0; i < transformerCount; i++)
                 {
                     TransformStep intermediateTransformerStep = pipeline.get(i);
                     String intermediateTransformerName = intermediateTransformerStep.getTransformerName();
-                    if (name == null || localTransformers.get(name) != null)
+                    if (name == null || localTransforms.get(name) != null)
                     {
                         throw new IllegalArgumentException("Local pipeline transformer " + name +
                                 " did not specified an intermediate transformer name."+
                                 " Read from "+readFrom);
                     }
 
-                    LocalTransformer intermediateTransformer = localTransformers.get(intermediateTransformerName);
+                    LocalTransform intermediateTransformer = localTransforms.get(intermediateTransformerName);
                     if (intermediateTransformer == null)
                     {
                         throw new IllegalArgumentException("Local pipeline transformer " + name +
@@ -234,10 +234,10 @@ public class LocalTransformServiceRegistry extends TransformServiceRegistryImpl 
                                     " Read from "+readFrom);
                         }
                     }
-                    ((LocalPipelineTransformer)localTransformer).addIntermediateTransformer(intermediateTransformer, targetMimetype);
+                    ((LocalPipelineTransform) localTransform).addIntermediateTransformer(intermediateTransformer, targetMimetype);
                 }
             }
-            localTransformers.put(name, localTransformer);
+            localTransforms.put(name, localTransform);
             super.register(data, transformer, baseUrl, readFrom);
         }
         catch (IllegalArgumentException e)
@@ -411,15 +411,15 @@ public class LocalTransformServiceRegistry extends TransformServiceRegistryImpl 
         String sourceMimetype = reader.getMimetype();
         String targetMimetype = writer.getMimetype();
         long sourceSizeInBytes = reader.getSize();
-        LocalTransformer localTransformer = getLocalTransformer(actualOptions, renditionName, sourceMimetype, targetMimetype, sourceSizeInBytes);
-        localTransformer.transform(reader, writer, actualOptions, renditionName, sourceNodeRef);
+        LocalTransform localTransform = getLocalTransform(actualOptions, renditionName, sourceMimetype, targetMimetype, sourceSizeInBytes);
+        localTransform.transform(reader, writer, actualOptions, renditionName, sourceNodeRef);
     }
 
-    public LocalTransformer getLocalTransformer(Map<String, String> actualOptions, String renditionName,
-                                                String sourceMimetype, String targetMimetype, long sourceSizeInBytes)
+    public LocalTransform getLocalTransform(Map<String, String> actualOptions, String renditionName,
+                                            String sourceMimetype, String targetMimetype, long sourceSizeInBytes)
     {
         String name = getTransformerName(sourceMimetype, sourceSizeInBytes, targetMimetype, actualOptions, renditionName);
-        Map<String, LocalTransformer> localTransformers = ((LocalData)data).localTransformers;
-        return localTransformers.get(name);
+        Map<String, LocalTransform> localTransforms = ((LocalData)data).localTransforms;
+        return localTransforms.get(name);
     }
 }

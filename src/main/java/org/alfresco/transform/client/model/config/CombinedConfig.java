@@ -82,16 +82,16 @@ public class CombinedConfig
 
     private final Log log;
     private Map<String, ArrayNode> allTransformOptions = new HashMap<>();
-    private List<TransformerNodeAndItsOrigin> allTransforms = new ArrayList<>();
+    private List<TransformNodeAndItsOrigin> allTransforms = new ArrayList<>();
     private ObjectMapper jsonObjectMapper = new ObjectMapper();
 
-    static class TransformerNodeAndItsOrigin
+    static class TransformNodeAndItsOrigin
     {
         final ObjectNode node;
         final String baseUrl;
         final String readFrom;
 
-        TransformerNodeAndItsOrigin(ObjectNode node, String baseUrl, String readFrom)
+        TransformNodeAndItsOrigin(ObjectNode node, String baseUrl, String readFrom)
         {
             this.node = node;
             this.baseUrl = baseUrl;
@@ -99,15 +99,15 @@ public class CombinedConfig
         }
     }
 
-    static class TransformerAndItsOrigin
+    static class TransformAndItsOrigin
     {
-        final Transformer transformer;
+        final Transformer transform;
         final String baseUrl;
         final String readFrom;
 
-        TransformerAndItsOrigin(Transformer transformer, String baseUrl, String readFrom)
+        TransformAndItsOrigin(Transformer transform, String baseUrl, String readFrom)
         {
-            this.transformer = transformer;
+            this.transform = transform;
             this.baseUrl = baseUrl;
             this.readFrom = readFrom;
         }
@@ -336,7 +336,7 @@ public class CombinedConfig
             {
                 if (transformer.isObject())
                 {
-                    allTransforms.add(new TransformerNodeAndItsOrigin((ObjectNode)transformer, baseUrl, readFrom));
+                    allTransforms.add(new TransformNodeAndItsOrigin((ObjectNode)transformer, baseUrl, readFrom));
                 }
             }
         }
@@ -344,17 +344,17 @@ public class CombinedConfig
 
     public void register(TransformServiceRegistryImpl.Data data, TransformServiceRegistryImpl registry) throws IOException
     {
-        List<TransformerAndItsOrigin> transformers = getTransformers();
-        transformers.forEach(t->registry.register(data, t.transformer, t.baseUrl, t.readFrom));
+        List<TransformAndItsOrigin> transformers = getTransforms();
+        transformers.forEach(t->registry.register(data, t.transform, t.baseUrl, t.readFrom));
     }
 
-    public List<TransformerAndItsOrigin> getTransformers() throws IOException
+    public List<TransformAndItsOrigin> getTransforms() throws IOException
     {
-        List<TransformerAndItsOrigin> transformers = new ArrayList<>();
+        List<TransformAndItsOrigin> transforms = new ArrayList<>();
 
         // After all json input has been loaded build the output with the options in place.
         ArrayNode transformersNode = jsonObjectMapper.createArrayNode();
-        for (TransformerNodeAndItsOrigin entity : allTransforms)
+        for (TransformNodeAndItsOrigin entity : allTransforms)
         {
             transformersNode.add(entity.node);
 
@@ -403,8 +403,8 @@ public class CombinedConfig
 
                 try
                 {
-                    Transformer transformer = jsonObjectMapper.convertValue(entity.node, Transformer.class);
-                    transformers.add(new TransformerAndItsOrigin(transformer, entity.baseUrl, entity.readFrom));
+                    Transformer transform = jsonObjectMapper.convertValue(entity.node, Transformer.class);
+                    transforms.add(new TransformAndItsOrigin(transform, entity.baseUrl, entity.readFrom));
                 }
                 catch (IllegalArgumentException e)
                 {
@@ -423,24 +423,24 @@ public class CombinedConfig
             log.trace("Combined config:\n"+jsonObjectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(transformersNode));
         }
 
-        transformers = sortTransformers(transformers);
-        return transformers;
+        transforms = sortTransformers(transforms);
+        return transforms;
     }
 
     // Sort transformers so there are no forward references, if that is possible.
-    private List<TransformerAndItsOrigin> sortTransformers(List<TransformerAndItsOrigin> original)
+    private List<TransformAndItsOrigin> sortTransformers(List<TransformAndItsOrigin> original)
     {
-        List<TransformerAndItsOrigin> transformers = new ArrayList<>(original.size());
-        List<TransformerAndItsOrigin> todo = new ArrayList<>(original.size());
+        List<TransformAndItsOrigin> transformers = new ArrayList<>(original.size());
+        List<TransformAndItsOrigin> todo = new ArrayList<>(original.size());
         Set<String> transformerNames = new HashSet<>();
         boolean added;
         do
         {
             added = false;
-            for (TransformerAndItsOrigin entry : original)
+            for (TransformAndItsOrigin entry : original)
             {
-                String name = entry.transformer.getTransformerName();
-                List<TransformStep> pipeline = entry.transformer.getTransformerPipeline();
+                String name = entry.transform.getTransformerName();
+                List<TransformStep> pipeline = entry.transform.getTransformerPipeline();
                 boolean addEntry = true;
                 if (pipeline != null && !pipeline.isEmpty())
                 {

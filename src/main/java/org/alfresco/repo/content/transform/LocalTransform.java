@@ -34,7 +34,7 @@ import java.util.Map;
 /**
  * Interface of a local transformer using flat transform options.
  */
-public interface LocalTransformer
+public interface LocalTransform
 {
     void transform(ContentReader reader, ContentWriter writer, Map<String, String> transformOptions,
                    String renditionName, NodeRef sourceNodeRef)

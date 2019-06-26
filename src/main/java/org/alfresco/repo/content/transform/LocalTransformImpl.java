@@ -42,18 +42,18 @@ import java.util.Set;
  * T-Engines which are themselves identified by global properties or system properties the match the pattern
  * localTransform.&lt;name>.url. The transforms take place in a separate process (typically a Docker container).
  */
-public class LocalTransformerImpl extends AbstractLocalTransformer
+public class LocalTransformImpl extends AbstractLocalTransform
 {
     private RemoteTransformerClient remoteTransformerClient;
 
     private boolean available = false;
 
-    public LocalTransformerImpl(String name, TransformerDebug transformerDebug,
-                                MimetypeService mimetypeService, boolean strictMimeTypeCheck,
-                                Map<String, Set<String>> strictMimetypeExceptions,
-                                boolean retryTransformOnDifferentMimeType,
-                                LocalTransformServiceRegistry localTransformServiceRegistry, String baseUrl,
-                                int startupRetryPeriodSeconds)
+    public LocalTransformImpl(String name, TransformerDebug transformerDebug,
+                              MimetypeService mimetypeService, boolean strictMimeTypeCheck,
+                              Map<String, Set<String>> strictMimetypeExceptions,
+                              boolean retryTransformOnDifferentMimeType,
+                              LocalTransformServiceRegistry localTransformServiceRegistry, String baseUrl,
+                              int startupRetryPeriodSeconds)
     {
         super(name, transformerDebug, mimetypeService, strictMimeTypeCheck, strictMimetypeExceptions,
                 retryTransformOnDifferentMimeType, localTransformServiceRegistry);

@@ -45,21 +45,21 @@ import java.util.Set;
  * T-Engines which are themselves identified by global properties the match the pattern localTransform.&lt;name>.url.
  * The transforms take place in a separate process (typically a Docker container).
  */
-public class LocalPipelineTransformer extends AbstractLocalTransformer
+public class LocalPipelineTransform extends AbstractLocalTransform
 {
     private final List<IntermediateTransformer> transformers = new ArrayList<>();
 
     private class IntermediateTransformer
     {
-        LocalTransformer intermediateTransformer;
+        LocalTransform intermediateTransformer;
         String targetMimetype;
     }
 
-    public LocalPipelineTransformer(String name, TransformerDebug transformerDebug,
-                                    MimetypeService mimetypeService, boolean strictMimeTypeCheck,
-                                    Map<String, Set<String>> strictMimetypeExceptions,
-                                    boolean retryTransformOnDifferentMimeType,
-                                    LocalTransformServiceRegistry localTransformServiceRegistry)
+    public LocalPipelineTransform(String name, TransformerDebug transformerDebug,
+                                  MimetypeService mimetypeService, boolean strictMimeTypeCheck,
+                                  Map<String, Set<String>> strictMimetypeExceptions,
+                                  boolean retryTransformOnDifferentMimeType,
+                                  LocalTransformServiceRegistry localTransformServiceRegistry)
     {
         super(name, transformerDebug, mimetypeService, strictMimeTypeCheck, strictMimetypeExceptions,
                 retryTransformOnDifferentMimeType, localTransformServiceRegistry);
@@ -71,7 +71,7 @@ public class LocalPipelineTransformer extends AbstractLocalTransformer
         return true;
     }
 
-    public void addIntermediateTransformer(LocalTransformer intermediateTransformer, String targetMimetype)
+    public void addIntermediateTransformer(LocalTransform intermediateTransformer, String targetMimetype)
     {
         IntermediateTransformer transformer = new IntermediateTransformer();
         transformer.intermediateTransformer = intermediateTransformer;

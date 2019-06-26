@@ -40,9 +40,9 @@ import java.util.Set;
 /**
  * Abstract supper class for local transformer using flat transform options.
  */
-public abstract class AbstractLocalTransformer implements LocalTransformer
+public abstract class AbstractLocalTransform implements LocalTransform
 {
-    protected static final Log log = LogFactory.getLog(LocalTransformer.class);
+    protected static final Log log = LogFactory.getLog(LocalTransform.class);
 
     protected final String name;
     protected final MimetypeService mimetypeService;
@@ -54,10 +54,10 @@ public abstract class AbstractLocalTransformer implements LocalTransformer
     private final boolean retryTransformOnDifferentMimeType;
     private final static ThreadLocal<Integer> depth = ThreadLocal.withInitial(()->0);
 
-    AbstractLocalTransformer(String name, TransformerDebug transformerDebug,
-                             MimetypeService mimetypeService, boolean strictMimeTypeCheck,
-                             Map<String, Set<String>> strictMimetypeExceptions, boolean retryTransformOnDifferentMimeType,
-                             LocalTransformServiceRegistry localTransformServiceRegistry)
+    AbstractLocalTransform(String name, TransformerDebug transformerDebug,
+                           MimetypeService mimetypeService, boolean strictMimeTypeCheck,
+                           Map<String, Set<String>> strictMimetypeExceptions, boolean retryTransformOnDifferentMimeType,
+                           LocalTransformServiceRegistry localTransformServiceRegistry)
     {
         this.name = name;
         this.transformerDebug = transformerDebug;
@@ -223,9 +223,9 @@ public abstract class AbstractLocalTransformer implements LocalTransformer
                     reader.setMimetype(differentType);
                     long sourceSizeInBytes = reader.getSize();
 
-                    LocalTransformer localTransformer = localTransformServiceRegistry.getLocalTransformer(
+                    LocalTransform localTransform = localTransformServiceRegistry.getLocalTransform(
                             transformOptions, renditionName, differentType, targetMimetype, sourceSizeInBytes);
-                    if (localTransformer == null)
+                    if (localTransform == null)
                     {
                         transformerDebug.debug("          Failed", e);
                         throw new ContentIOException("Content conversion failed: \n" +
@@ -238,7 +238,7 @@ public abstract class AbstractLocalTransformer implements LocalTransformer
                                 e
                         );
                     }
-                    localTransformer.transform(reader, writer, transformOptions, renditionName, sourceNodeRef);
+                    localTransform.transform(reader, writer, transformOptions, renditionName, sourceNodeRef);
                 }
                 else
                 {
