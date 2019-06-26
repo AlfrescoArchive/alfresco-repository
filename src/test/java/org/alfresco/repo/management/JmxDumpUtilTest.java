@@ -49,51 +49,83 @@ public class JmxDumpUtilTest extends TestCase
     @Test
     public void testCleanPasswordsFromInputArgument() throws Exception
     {
+        String[] argEndingsTypical = {"password", "token","pwd"};
         String passwordArg = "-Ddb.password=I should be stars \"£$%^&*()@";
         String expected = "-Ddb.password="+JmxDumpUtil.PROTECTED_VALUE;
-        String actual = JmxDumpUtil.cleanPasswordFromInputArgument(passwordArg);
-        assertEquals("Expectected output: "+expected+" Actual output: "+actual,expected, actual);
+        String actual = JmxDumpUtil.cleanPasswordFromInputArgument(passwordArg,argEndingsTypical);
+        assertEquals("Expectected output: "+ expected +" Actual output: "+actual, expected, actual);
 
         passwordArg = "-Ddb.paSsword=@";
         expected = "-Ddb.paSsword="+JmxDumpUtil.PROTECTED_VALUE;
-        actual = JmxDumpUtil.cleanPasswordFromInputArgument(passwordArg);
-        assertEquals("Expectected output: "+expected+" Actual output: "+actual,expected, actual);
+        actual = JmxDumpUtil.cleanPasswordFromInputArgument(passwordArg, argEndingsTypical);
+        assertEquals("Expectected output: "+ expected +" Actual output: "+actual, expected, actual);
 
         passwordArg = "somePrefix.token=\"If i'm not replaced, something has gone very wrong\"";
         expected = "somePrefix.token="+JmxDumpUtil.PROTECTED_VALUE;
-        actual = JmxDumpUtil.cleanPasswordFromInputArgument(passwordArg);
-        assertEquals("Expectected output: "+expected+" Actual output: "+actual,expected, actual);
+        actual = JmxDumpUtil.cleanPasswordFromInputArgument(passwordArg, argEndingsTypical);
+        assertEquals("Expectected output: "+ expected +" Actual output: "+actual, expected, actual);
 
         passwordArg = "yetanotherpwd=";
         expected = "yetanotherpwd="+JmxDumpUtil.PROTECTED_VALUE;
-        actual = JmxDumpUtil.cleanPasswordFromInputArgument(passwordArg);
-        assertEquals("Expectected output: "+expected+" Actual output: "+actual,expected, actual);
+        actual = JmxDumpUtil.cleanPasswordFromInputArgument(passwordArg, argEndingsTypical);
+        assertEquals("Expectected output: "+ expected +" Actual output: "+actual, expected, actual);
 
         passwordArg = "AnyOtherArgument=\"I should still be here\"";
         expected = "AnyOtherArgument=\"I should still be here\"";
-        actual = JmxDumpUtil.cleanPasswordFromInputArgument(passwordArg);
-        assertEquals("Expectected output :"+expected+" Actual output :"+actual,expected, actual);
+        actual = JmxDumpUtil.cleanPasswordFromInputArgument(passwordArg, argEndingsTypical);
+        assertEquals("Expectected output :"+ expected +" Actual output :"+actual, expected, actual);
+
+        String[] argEndingsMeta = {"password","pass?"};
+        passwordArg = "AnyOtherPassword=\"I should still be here\"";
+        expected = "AnyOtherPassword="+JmxDumpUtil.PROTECTED_VALUE;
+        actual = JmxDumpUtil.cleanPasswordFromInputArgument(passwordArg, argEndingsMeta);
+        assertEquals("Expectected output :"+ expected +" Actual output :"+actual, expected, actual);
+
+        passwordArg = "AnyOtherPass?=\"I should still be here\"";
+        expected = "AnyOtherPass?="+JmxDumpUtil.PROTECTED_VALUE;
+        actual = JmxDumpUtil.cleanPasswordFromInputArgument(passwordArg, argEndingsMeta);
+        assertEquals("Expectected output :"+ expected +" Actual output :"+actual, expected, actual);
     }
     @Test
     public void testCleanPasswordsFromInputArguments() throws Exception
     {
+        String[] argEndingsTypical = {"password", "token","pwd"};
         String[] args = {"-Ddb.password=alfresco", "-Ddb.user=alfresco", "-DtestToken=asdoij3ifiej22244ojpgkmkfpsi3j55643pojpdjoismvi4563625mposvsd"};
         String[] expectedArray = {"-Ddb.password="+JmxDumpUtil.PROTECTED_VALUE, "-Ddb.user=alfresco", "-DtestToken="+JmxDumpUtil.PROTECTED_VALUE};
-        String[] actualArray = JmxDumpUtil.cleanPasswordsFromInputArguments(args);
+        String[] actualArray = JmxDumpUtil.cleanPasswordsFromInputArguments(args, argEndingsTypical);
         assertArrayEquals("Expectected output:"+expectedArray+" Actual output:"+actualArray,expectedArray,actualArray);
 
         args = new String[]{"-Ddb.port=1234", "-Ddb.user=alfresco", "-DtestArg=Test1234password"};
         expectedArray = new String[]{"-Ddb.port=1234", "-Ddb.user=alfresco", "-DtestArg=Test1234password"};
-        actualArray = JmxDumpUtil.cleanPasswordsFromInputArguments(args);
+        actualArray = JmxDumpUtil.cleanPasswordsFromInputArguments(args, argEndingsTypical);
         assertArrayEquals("Expectected output:"+expectedArray+" Actual output:"+actualArray, expectedArray, actualArray);
     }
     @Test
     public void testCreatePasswordFindRegexString() throws Exception
     {
-        String[] argEndings = {"password", "any old ending :D", "token="};
-        String expected = "(?i)(?<=(password=))|(?<=(any old ending :D=))|(?<=(token=)).++";
+        String[] argEndings = {"password", "any old ending :D", "token"};
+        String expected = "(?i)(.*(password=|any old ending :D=|token=))((?<=password=|any old ending :D=|token=).*+)";
         String actual = JmxDumpUtil.createPasswordFindRegexString(argEndings);
         assertEquals("Expectected output :"+expected+" Actual output :"+actual,expected, actual);
+
+        String[] argEndings2 = {"?", "\"£$%^&*"};
+        expected = "(?i)(.*(\\?=|\"£$%^&\\*=))((?<=\\?=|\"£$%^&\\*=).*+)";
+        actual = JmxDumpUtil.createPasswordFindRegexString(argEndings2);
+        assertEquals("Expectected output :"+expected+" Actual output :"+actual,expected, actual);
+
         
+    }
+    @Test
+    public void testEscapeRegexMetaChars()
+    {
+        String input = "|?*+.";
+        String expected = "\\|\\?\\*\\+\\.";
+        String actual = JmxDumpUtil.escapeRegexMetaChars(input);
+        assertEquals("Expectected output :" + expected + " Actual output :" + actual, expected, actual);
+
+        input = "Let's.Add++,*complexity?!\"";
+        expected = "Let's\\.Add\\+\\+,\\*complexity\\?!\"";
+        actual = JmxDumpUtil.escapeRegexMetaChars(input);
+        assertEquals("Expectected output :" + expected + " Actual output :" + actual, expected, actual);
     }
 }
