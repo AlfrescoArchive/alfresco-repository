@@ -214,11 +214,11 @@ public class JmxDumpUtil
      * 
      * @param input String
      * @param redactedInputs String[]
-     * @return password redacted string
+     * @return password redacted string if input matches a string in redactedInputs, an un-altered string will be returned if it does not match.
      */
     static String cleanPasswordFromInputArgument(String input, String[] redactedInputs)
     {
-        //Selects the whole string, if one of the key words are preset with two groups, group 1 is the proceeding token ie. "password=" and group 2 will be all characters following the =.
+        //Selects the whole string, if one of the redactedInputs are present. It will have two capture groups, group 1 is the proceeding token ie. "password=" and group 2 will be all characters following the = (the vaule/password).
         String regex = createPasswordFindRegexString(redactedInputs); 
 
         //Replace the whole string with just capture group 1 to remove the desired value and concat the protected value.
