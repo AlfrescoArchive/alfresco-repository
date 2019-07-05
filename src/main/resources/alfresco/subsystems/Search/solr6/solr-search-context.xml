@@ -58,6 +58,7 @@
                 <entry key="solr-cmis" value="cmis" />
                 <entry key="fts-alfresco" value="afts" />
                 <entry key="solr-fts-alfresco" value="afts" />
+                <entry key="solr-mlt" value="getSimilar" />
             </map>
         </property>
         <property name="storeMappings">
