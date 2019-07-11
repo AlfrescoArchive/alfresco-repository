@@ -84,6 +84,12 @@
                 <artifactId>jsoup</artifactId>
                 <version>1.12.1</version>
             </dependency>
+            <!-- upgrade cxf libraries -->
+            <dependency>
+                <groupId>org.apache.cxf</groupId>
+                <artifactId>cxf-rt-frontend-jaxws</artifactId>
+                <version>${dependency.cxf.version}</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 
