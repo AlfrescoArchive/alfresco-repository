@@ -15,11 +15,11 @@ branches:
   only:
     - master
     - /support\/.*/
+    - fix/REPO-4504_Upgrade_cxf-rt-transports-http_6.1
 
 stages:
   - test
   - release
-  - fix/REPO-4504_Upgrade_cxf-rt-transports-http_6.1
 
 install: travis_retry mvn install -DskipTests=true -Dmaven.javadoc.skip=true -B -V
 
