@@ -61,6 +61,8 @@
         <dependency.keycloak.version>3.4.3.Final</dependency.keycloak.version>
         <dependency.jboss.logging.version>3.3.1.Final</dependency.jboss.logging.version>
         <dependency.pdfbox.version>2.0.15</dependency.pdfbox.version>
+        <dependency.cxf.version>3.3.2</dependency.cxf.version>
+
     </properties>
 
     <dependencyManagement>
@@ -81,6 +83,12 @@
                 <groupId>org.jsoup</groupId>
                 <artifactId>jsoup</artifactId>
                 <version>1.12.1</version>
+            </dependency>
+            <!-- upgrade cxf libraries -->
+            <dependency>
+                <groupId>org.apache.cxf</groupId>
+                <artifactId>cxf-rt-frontend-jaxws</artifactId>
+                <version>${dependency.cxf.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
