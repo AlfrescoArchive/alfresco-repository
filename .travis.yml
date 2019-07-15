@@ -15,7 +15,7 @@ branches:
   only:
     - master
     - /support\/.*/
-    - fix/REPO-450_Upgrade_cxf-rt-transports-http_6.1
+    - fix/REPO-4504_Upgrade_cxf-rt-transports-http_6.1
 
 stages:
   - test
