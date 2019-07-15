@@ -15,6 +15,7 @@ branches:
   only:
     - master
     - /support\/.*/
+    - fix/REPO-4504_Upgrade_cxf-rt-transports-http_6.0
 
 stages:
   - test
@@ -98,4 +99,4 @@ jobs:
         # Add email to link commits to user
         - git config user.email "${GIT_EMAIL}"
         # Skip building of release commits
-        - mvn --batch-mode -q -DscmCommentPrefix="[maven-release-plugin][skip ci] " -Dusername="${GIT_USERNAME}" -Dpassword="${GIT_PASSWORD}" -DskipTests -Darguments=-DskipTests release:clean release:prepare release:perform
+        - mvn --batch-mode -q -DscmCommentPrefix="[maven-release-plugin][skip ci] " -Dusername="${GIT_USERNAME}" -Dpassword="${GIT_PASSWORD}" -DskipTests -Darguments=-DskipTests -DreleaseVersion=repo-4504-repository-60-2 -DdevelopmentVersion=6.56.31-SNAPSHOT release:clean release:prepare release:perform
