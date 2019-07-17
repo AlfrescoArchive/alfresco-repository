@@ -38,9 +38,9 @@
         <maven.build.sourceVersion>11</maven.build.sourceVersion>
 
         <dependency.alfresco-legacy-lucene.version>6.2</dependency.alfresco-legacy-lucene.version>
-        <dependency.alfresco-core.version>7.5.5</dependency.alfresco-core.version>
+        <dependency.alfresco-core.version>7.5.6</dependency.alfresco-core.version>
         <dependency.alfresco-greenmail.version>6.1</dependency.alfresco-greenmail.version>
-        <dependency.alfresco-data-model.version>8.18.10</dependency.alfresco-data-model.version>
+        <dependency.alfresco-data-model.version>8.18.11</dependency.alfresco-data-model.version>
         <dependency.alfresco-jlan.version>7.1</dependency.alfresco-jlan.version>
         <dependency.alfresco-pdf-renderer.version>1.1</dependency.alfresco-pdf-renderer.version>
         <dependency.alfresco-hb-data-sender.version>1.0.10</dependency.alfresco-hb-data-sender.version>
@@ -61,6 +61,7 @@
         <dependency.keycloak.version>3.4.3.Final</dependency.keycloak.version>
         <dependency.jboss.logging.version>3.3.1.Final</dependency.jboss.logging.version>
         <dependency.pdfbox.version>2.0.15</dependency.pdfbox.version>
+        <dependency.cxf.version>3.3.2</dependency.cxf.version>
     </properties>
 
     <dependencyManagement>
@@ -81,6 +82,12 @@
                 <groupId>org.jsoup</groupId>
                 <artifactId>jsoup</artifactId>
                 <version>1.12.1</version>
+            </dependency>
+            <!-- upgrade cxf libraries -->
+            <dependency>
+                <groupId>org.apache.cxf</groupId>
+                <artifactId>cxf-rt-frontend-jaxws</artifactId>
+                <version>${dependency.cxf.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
@@ -309,7 +316,7 @@
         <dependency>
             <groupId>cglib</groupId>
             <artifactId>cglib</artifactId>
-            <version>2.2</version>
+            <version>3.2.12</version>
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>
