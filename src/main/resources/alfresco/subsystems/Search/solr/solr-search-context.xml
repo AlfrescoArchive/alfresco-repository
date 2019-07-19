@@ -220,6 +220,20 @@
             <ref bean="search.solrQueryHTTPCLient" />
         </property>
     </bean>
+
+    <bean id="search.solr.mlt" class="org.alfresco.repo.search.impl.solr.SolrQueryLanguage" >
+        <property name="factories">
+            <list>
+                <ref bean="search.indexerAndSearcherFactory" />
+            </list>
+        </property>
+        <property name="name">
+            <value>solr-mlt</value>
+        </property>
+        <property name="solrQueryHTTPClient">
+            <ref bean="search.solrQueryHTTPCLient" />
+        </property>
+    </bean>
  
     <bean id="search.indexerAndSearcherFactory" class="org.alfresco.repo.service.StoreRedirectorProxyFactory">
         <property name="proxyInterface">

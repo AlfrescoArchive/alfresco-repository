@@ -214,7 +214,7 @@ public class SolrQueryHTTPClientTest
         client.buildUrlParameters(params, true, encoder, urlBuilder, true);
         String url = urlBuilder.toString();
         assertNotNull(url);
-        assertTrue(url.contains("qf={http://www.alfresco.org/model/content/1.0}content^500.0,{http://www.alfresco.org/model/content/1.0}title"));
+        assertTrue(url.contains("qf=%7Bhttp%3A%2F%2Fwww.alfresco.org%2Fmodel%2Fcontent%2F1.0%7Dcontent%5E500.0%2C%7Bhttp%3A%2F%2Fwww.alfresco.org%2Fmodel%2Fcontent%2F1.0%7Dtitle"));
         assertTrue(url.contains("docId=id1"));
         assertTrue(url.contains("&shards=shard1,shard2&originalShards=shard1,shard2"));
     }

@@ -566,19 +566,23 @@ public class SolrQueryHTTPClient extends AbstractSolrQueryHTTPClient implements 
         }
         catch (UnsupportedEncodingException e)
         {
-            throw new LuceneQueryParserException("", e);
+            s_logger.error(e.getMessage(),e);
+            throw new LuceneQueryParserException(e.getMessage(), e);
         }
         catch (HttpException e)
         {
-            throw new LuceneQueryParserException("", e);
+            s_logger.error(e.getMessage(),e);
+            throw new LuceneQueryParserException(e.getMessage(), e);
         }
         catch (IOException e)
         {
-            throw new LuceneQueryParserException("", e);
+            s_logger.error(e.getMessage(),e);
+            throw new LuceneQueryParserException(e.getMessage(), e);
         }
         catch (JSONException e)
         {
-            throw new LuceneQueryParserException("", e);
+            s_logger.error(e.getMessage(),e);
+            throw new LuceneQueryParserException(e.getMessage(), e);
         }
     }
 
@@ -603,7 +607,7 @@ public class SolrQueryHTTPClient extends AbstractSolrQueryHTTPClient implements 
         url.append("&").append(SearchParameters.ALTERNATIVE_DICTIONARY).append("=").append(alternativeDictionary);
         for(String paramName : searchParameters.getExtraParameters().keySet())
         {
-            url.append("&").append(paramName).append("=").append(searchParameters.getExtraParameters().get(paramName));
+            url.append("&").append(paramName).append("=").append(encoder.encode(searchParameters.getExtraParameters().get(paramName), "UTF-8"));
         }
         StringBuffer sortBuffer = buildSortParameters(searchParameters, encoder);
         url.append(sortBuffer);
