@@ -117,7 +117,7 @@ public class ChainingUserRegistrySynchronizer extends AbstractLifecycleBean
             "ChainingUserRegistrySynchronizer");
 
     /** The time this lock will persist for in the database (now only 2 minutes but refreshed at regular intervals). */
-    public static final long LOCK_TTL = 1000 * 60 * 2;
+    private static final long LOCK_TTL = 1000 * 60 * 2;
 
     /** The path in the attribute service below which we persist attributes. */
     public static final String ROOT_ATTRIBUTE_PATH = ".ChainingUserRegistrySynchronizer";
