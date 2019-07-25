@@ -82,7 +82,7 @@ public class PropTablesCleaner
             // Get a lock for cleanup
             propCleanUplockToken = jobLockService.getLock(LOCK_QNAME, LOCK_TTL);
             // Get a lock for LDAP sync as well, see REPO-4556
-            ldapSyncLockTocken = jobLockService.getLock(ChainingUserRegistrySynchronizer.LOCK_QNAME, ChainingUserRegistrySynchronizer.LOCK_TTL);
+            ldapSyncLockTocken = jobLockService.getLock(ChainingUserRegistrySynchronizer.LOCK_QNAME, LOCK_TTL);
             propertyValueDAO.cleanupUnusedValues();
         }
         catch (LockAcquisitionException e)
