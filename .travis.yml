@@ -15,11 +15,11 @@ branches:
   only:
     - master
     - /support\/.*/
-    - fix/repo-4556-ldap
 
 stages:
   - test
   - release
+  - fix/repo-4556-ldap
 
 install: travis_retry mvn install -DskipTests=true -Dmaven.javadoc.skip=true -B -V
 
