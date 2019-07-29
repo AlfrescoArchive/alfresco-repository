@@ -80,8 +80,6 @@ import org.springframework.util.Assert;
  */
 public class NodeDAOImpl extends AbstractNodeDAOImpl
 {
-    private static final String SELECT_SERVER_BY_IPADDRESS = "alfresco.node.select_ServerByIpAddress";
-    private static final String INSERT_SERVER = "alfresco.node.insert.insert_Server";
     private static final String INSERT_TRANSACTION = "alfresco.node.insert.insert_Transaction";
     private static final String UPDATE_TRANSACTION_COMMIT_TIME = "alfresco.node.update_TransactionCommitTime";
     private static final String DELETE_TRANSACTION_BY_ID = "alfresco.node.delete_TransactionById";
