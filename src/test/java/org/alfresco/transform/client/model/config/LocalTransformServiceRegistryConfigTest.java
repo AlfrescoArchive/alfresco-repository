@@ -84,16 +84,14 @@ public class LocalTransformServiceRegistryConfigTest extends TransformServiceReg
         }
 
         @Override
-        protected TransformServiceRegistryImpl.Data readConfig() throws IOException
+        protected void readConfig() throws IOException
         {
             readConfigCount++;
-            data = createData();
-            boolean mockSuccessReadingRemoteConfig = getMockSuccessReadingRemoteConfig();
+             boolean mockSuccessReadingRemoteConfig = getMockSuccessReadingRemoteConfig();
             lastReadSucceed = mockSuccessReadingRemoteConfig;
-            setSuccessReadingConfig(data, mockSuccessReadingRemoteConfig);
+            setSuccessReadingConfig(mockSuccessReadingRemoteConfig);
             System.out.println(getMs() + "readConfig() success="+mockSuccessReadingRemoteConfig+" reads="+readConfigCount);
-            return data;
-        }
+         }
 
         public Data assertDataChanged(Data data, String msg)
         {

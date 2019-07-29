@@ -103,6 +103,11 @@ public abstract class TransformServiceRegistryImpl implements TransformServiceRe
 
     protected boolean enabled = true;
     protected Data data;
+    private ThreadLocal<Data> threadData = ThreadLocal.withInitial(() ->
+    {
+        return data;
+    });
+
     private ObjectMapper jsonObjectMapper;
     private Scheduler scheduler;
     private CronExpression cronExpression;
@@ -200,26 +205,30 @@ public abstract class TransformServiceRegistryImpl implements TransformServiceRe
 
     protected void readConfigAndReplace()
     {
-        boolean successReadingRemoteConfig;
+        boolean successReadingConfig;
         Log log = getLog();
         log.debug("Config read started");
+        Data originalData = getData();
         try
         {
-            Data data = readConfig();
-            successReadingRemoteConfig = data.successReadingConfig;
+            Data data = createData();
+            threadData.set(data);
+            readConfig();
+            successReadingConfig = data.successReadingConfig;
             setData(data);
             log.debug("Config read finished "+getCounts());
         }
         catch (Exception e)
         {
-            successReadingRemoteConfig = false;
+            setData(originalData);
+            successReadingConfig = false;
             log.error("Config read failed. "+e.getMessage(), e);
         }
 
         // Switch schedule sequence if we were on the normal schedule and we now have problems or if
         // we are on the initial/error schedule and there were no errors.
-        if (normalCronSchedule && !successReadingRemoteConfig ||
-            !normalCronSchedule && successReadingRemoteConfig)
+        if (normalCronSchedule && !successReadingConfig ||
+            !normalCronSchedule && successReadingConfig)
         {
             normalCronSchedule = !normalCronSchedule;
             if (scheduler != null)
@@ -243,18 +252,21 @@ public abstract class TransformServiceRegistryImpl implements TransformServiceRe
         }
     }
 
-    protected abstract Data readConfig() throws IOException;
+    protected abstract void readConfig() throws IOException;
 
     private synchronized void setData(Data data)
     {
         this.data = data;
+        threadData.set(data);
     }
 
     protected synchronized Data getData()
     {
+        Data data = threadData.get();
         if (data == null)
         {
             data = createData();
+            setData(data);
         }
         return data;
     }
@@ -264,8 +276,9 @@ public abstract class TransformServiceRegistryImpl implements TransformServiceRe
         return new Data();
     }
 
-    protected void setSuccessReadingConfig(Data data, boolean successReadingConfig)
+    protected void setSuccessReadingConfig(boolean successReadingConfig)
     {
+        Data data = getData();
         data.successReadingConfig = successReadingConfig;
     }
 
@@ -287,14 +300,15 @@ public abstract class TransformServiceRegistryImpl implements TransformServiceRe
 
     protected abstract Log getLog();
 
-    public void register(Data data, Reader reader, String readFrom) throws IOException
+    public void register(Reader reader, String readFrom) throws IOException
     {
         List<Transformer> transformers = jsonObjectMapper.readValue(reader, new TypeReference<List<Transformer>>(){});
-        transformers.forEach(t -> register(data, t, null, readFrom));
+        transformers.forEach(t -> register(t, null, readFrom));
     }
 
-    protected void register(Data data, Transformer transformer, String baseUrl, String readFrom)
+    protected void register(Transformer transformer, String baseUrl, String readFrom)
     {
+        Data data = getData();
         data.transformerCount++;
         transformer.getSupportedSourceAndTargetList().forEach(
             e -> data.transformers.computeIfAbsent(e.getSourceMediaType(),
@@ -365,7 +379,6 @@ public abstract class TransformServiceRegistryImpl implements TransformServiceRe
         {
             renditionName = null;
         }
-
 
         Data data = getData();
         List<SupportedTransform> transformListBySize = renditionName == null ? null

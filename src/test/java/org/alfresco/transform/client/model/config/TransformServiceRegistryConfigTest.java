@@ -93,9 +93,8 @@ public class TransformServiceRegistryConfigTest
         TransformServiceRegistryImpl registry = new TransformServiceRegistryImpl()
         {
             @Override
-            protected Data readConfig() throws IOException
+            protected void readConfig() throws IOException
             {
-                return createData(); // Empty config
             }
 
             @Override
@@ -182,7 +181,7 @@ public class TransformServiceRegistryConfigTest
                         new SupportedSourceAndTarget(XLS, TXT, 1024000)));
 
         registry = buildTransformServiceRegistryImpl();
-        registry.register(registry.getData(), transformer, getBaseUrl(transformer), getClass().getName());
+        registry.register(transformer, getBaseUrl(transformer), getClass().getName());
 
         assertTrue(registry.isSupported(XLS, 1024, TXT, Collections.emptyMap(), null));
         assertTrue(registry.isSupported(XLS, 1024000, TXT, null, null));
@@ -223,7 +222,7 @@ public class TransformServiceRegistryConfigTest
         registry = buildTransformServiceRegistryImpl();
         for (Transformer transformer : transformers)
         {
-            registry.register(registry.getData(), transformer, getBaseUrl(transformer), getClass().getName());
+            registry.register(transformer, getBaseUrl(transformer), getClass().getName());
         }
     }
 
@@ -257,7 +256,7 @@ public class TransformServiceRegistryConfigTest
     {
         CombinedConfig combinedConfig = new CombinedConfig(log);
         combinedConfig.addLocalConfig(path);
-        combinedConfig.register(registry.getData(), registry);
+        combinedConfig.register(registry);
     }
 
     @Test
@@ -364,7 +363,7 @@ public class TransformServiceRegistryConfigTest
 
         try (Reader reader = new BufferedReader(new FileReader(tempFile)))
         {
-            registry.register(registry.getData(), reader, getClass().getName());
+            registry.register(reader, getClass().getName());
             // Check the count of transforms supported
             assertEquals("The number of UNIQUE source to target mimetypes transforms has changed. Config change?",
                     42, countSupportedTransforms(true));
@@ -671,7 +670,7 @@ public class TransformServiceRegistryConfigTest
                         new SupportedSourceAndTarget(DOC, GIF, 102400),
                         new SupportedSourceAndTarget(MSG, GIF, -1)));
 
-        registry.register(registry.getData(), transformer, getBaseUrl(transformer), getClass().getName());
+        registry.register(transformer, getBaseUrl(transformer), getClass().getName());
 
         assertSupported(DOC, 1024, GIF, null, "doclib", "");
         assertSupported(MSG, 1024, GIF, null, "doclib", "");

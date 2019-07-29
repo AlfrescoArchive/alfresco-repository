@@ -241,7 +241,6 @@ public class CombinedConfig
 
     private void addJsonSource(JsonNode jsonNode, String baseUrl, String readFrom) throws IOException
     {
-        this.jsonObjectMapper = jsonObjectMapper;
         JsonNode transformOptions = jsonNode.get(TRANSFORM_OPTIONS);
         if (transformOptions != null && transformOptions.isObject())
         {
@@ -272,10 +271,10 @@ public class CombinedConfig
         }
     }
 
-    public void register(TransformServiceRegistryImpl.Data data, TransformServiceRegistryImpl registry) throws IOException
+    public void register(TransformServiceRegistryImpl registry) throws IOException
     {
         List<TransformAndItsOrigin> transformers = getTransforms();
-        transformers.forEach(t->registry.register(data, t.transform, t.baseUrl, t.readFrom));
+        transformers.forEach(t->registry.register(t.transform, t.baseUrl, t.readFrom));
     }
 
     public List<TransformAndItsOrigin> getTransforms() throws IOException

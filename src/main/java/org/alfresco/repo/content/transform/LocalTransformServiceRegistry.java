@@ -130,20 +130,24 @@ public class LocalTransformServiceRegistry extends TransformServiceRegistryImpl 
     }
 
     @Override
-    protected Data readConfig() throws IOException
+    protected void readConfig() throws IOException
     {
-        Data data = createData();
         CombinedConfig combinedConfig = new CombinedConfig(getLog());
         List<String> urls = getTEngineUrls();
         boolean successReadingConfig = combinedConfig.addRemoteConfig(urls, "T-Engine");
-        setSuccessReadingConfig(data, successReadingConfig);
+        setSuccessReadingConfig(successReadingConfig);
         combinedConfig.addLocalConfig("alfresco/transforms");
         if (!pipelineConfigDir.isBlank())
         {
             combinedConfig.addLocalConfig(pipelineConfigDir);
         }
-        combinedConfig.register(data, this);
-        return data;
+        combinedConfig.register(this);
+    }
+
+    @Override
+    protected synchronized LocalData getData()
+    {
+        return (LocalData)super.getData();
     }
 
     @Override
@@ -153,12 +157,13 @@ public class LocalTransformServiceRegistry extends TransformServiceRegistryImpl 
     }
 
     @Override
-    protected void register(Data data, Transformer transformer, String baseUrl, String readFrom)
+    protected void register(Transformer transformer, String baseUrl, String readFrom)
     {
         try
         {
             String name = transformer.getTransformerName();
-            Map<String, LocalTransform> localTransforms = ((LocalData)data).localTransforms;
+            LocalData data = getData();
+            Map<String, LocalTransform> localTransforms = data.localTransforms;
             if (name == null || localTransforms.get(name) != null)
             {
                 throw new IllegalArgumentException("Local transformer names must exist and be unique (" + name + ")."+
@@ -238,7 +243,7 @@ public class LocalTransformServiceRegistry extends TransformServiceRegistryImpl 
                 }
             }
             localTransforms.put(name, localTransform);
-            super.register(data, transformer, baseUrl, readFrom);
+            super.register(transformer, baseUrl, readFrom);
         }
         catch (IllegalArgumentException e)
         {
@@ -419,7 +424,8 @@ public class LocalTransformServiceRegistry extends TransformServiceRegistryImpl 
                                             String sourceMimetype, String targetMimetype, long sourceSizeInBytes)
     {
         String name = getTransformerName(sourceMimetype, sourceSizeInBytes, targetMimetype, actualOptions, renditionName);
-        Map<String, LocalTransform> localTransforms = ((LocalData)data).localTransforms;
+        LocalData data = getData();
+        Map<String, LocalTransform> localTransforms = data.localTransforms;
         return localTransforms.get(name);
     }
 }

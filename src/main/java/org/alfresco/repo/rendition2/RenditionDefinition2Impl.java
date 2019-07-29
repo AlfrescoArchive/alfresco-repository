@@ -42,18 +42,12 @@ public class RenditionDefinition2Impl implements RenditionDefinition2
     public RenditionDefinition2Impl(String renditionName, String targetMimetype, Map<String, String> transformOptions,
                                     RenditionDefinitionRegistry2Impl registry)
     {
-        this(renditionName, targetMimetype, transformOptions, registry, registry == null ? null : registry.getData());
-    }
-
-    RenditionDefinition2Impl(String renditionName, String targetMimetype, Map<String, String> transformOptions,
-                                    RenditionDefinitionRegistry2Impl registry, RenditionDefinitionRegistry2Impl.Data data)
-    {
         this.renditionName = renditionName;
         this.targetMimetype = targetMimetype;
         this.transformOptions = transformOptions;
         if (registry != null)
         {
-            registry.register(data, this);
+            registry.register(this);
         }
     }
 

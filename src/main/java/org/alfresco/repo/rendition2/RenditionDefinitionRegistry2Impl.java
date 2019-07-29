@@ -109,7 +109,24 @@ public class RenditionDefinitionRegistry2Impl implements RenditionDefinitionRegi
     private String renditionConfigDir;
     private String timeoutDefault;
     private Data data;
+    private ThreadLocal<Data> threadData = ThreadLocal.withInitial(() ->
+    {
+        return data;
+    });
     private ObjectMapper jsonObjectMapper = new ObjectMapper();
+    private ConfigFileFinder configFileFinder;
+
+    public RenditionDefinitionRegistry2Impl()
+    {
+        configFileFinder = new ConfigFileFinder(jsonObjectMapper)
+        {
+            @Override
+            protected void readJson(JsonNode jsonNode, String readFromMessage, String baseUrl) throws IOException
+            {
+                addJsonSource(jsonNode, readFromMessage);
+            }
+        };
+    }
 
     public void setTransformServiceRegistry(TransformServiceRegistry transformServiceRegistry)
     {
@@ -131,45 +148,36 @@ public class RenditionDefinitionRegistry2Impl implements RenditionDefinitionRegi
     private synchronized void setData(Data data)
     {
         this.data = data;
+        threadData.set(data);
     }
 
-    synchronized Data getData()
+    protected synchronized Data getData()
     {
+        Data data = threadData.get();
         if (data == null)
         {
             data = createData();
+            setData(data);
         }
         return data;
     }
 
-    private Data createData()
+    protected Data createData()
     {
         return new Data();
     }
 
-    Data readConfig() throws IOException
+    void readConfig() throws IOException
     {
-        Data data = createData();
-        ConfigFileFinder configFileFinder = new ConfigFileFinder(jsonObjectMapper)
-        {
-            @Override
-            protected void readJson(JsonNode jsonNode, String readFromMessage, String baseUrl) throws IOException
-            {
-                addJsonSource(data, jsonNode, readFromMessage);
-            }
-        };
-
         configFileFinder.readFiles("alfresco/renditions", log);
         if (renditionConfigDir != null && !renditionConfigDir.isBlank())
         {
             configFileFinder.readFiles(renditionConfigDir, log);
         }
-        return data;
     }
 
-    private void addJsonSource(Data data, JsonNode jsonNode, String readFromMessage) throws IOException
+    private void addJsonSource(JsonNode jsonNode, String readFromMessage) throws IOException
     {
-        this.jsonObjectMapper = jsonObjectMapper;
         try
         {
             JsonNode renditions = jsonNode.get("renditions");
@@ -178,13 +186,16 @@ public class RenditionDefinitionRegistry2Impl implements RenditionDefinitionRegi
                 for (JsonNode rendition : renditions)
                 {
                     RenditionDef def = jsonObjectMapper.convertValue(rendition, RenditionDef.class);
-                    System.out.println("def "+def.renditionName+" "+(def.options == null ? "null" : ""+def.options.size()));
                     Map<String, String> map = new HashMap<>();
                     if (def.options != null)
                     {
                         def.options.forEach(o -> map.put(o.name, o.value));
                     }
-                    new RenditionDefinition2Impl(def.renditionName, def.targetMediaType, map, this, data);
+                    if (!map.containsKey(RenditionDefinition2.TIMEOUT))
+                    {
+                        map.put(RenditionDefinition2.TIMEOUT, timeoutDefault);
+                    }
+                    new RenditionDefinition2Impl(def.renditionName, def.targetMediaType, map, this);
                 }
             }
         }
@@ -207,29 +218,19 @@ public class RenditionDefinitionRegistry2Impl implements RenditionDefinitionRegi
 
     public void register(RenditionDefinition2 renditionDefinition)
     {
-        Data data = getData();
-        register(data, renditionDefinition);
-    }
-
-    public void register(Data data, RenditionDefinition2 renditionDefinition)
-    {
         String renditionName = renditionDefinition.getRenditionName();
         RenditionDefinition2 original = getDefinition(renditionName);
         if (original != null)
         {
             throw new IllegalArgumentException("RenditionDefinition "+renditionName+" was already registered.");
         }
+        Data data = getData();
         data.renditionDefinitions.put(renditionName, renditionDefinition);
     }
 
     public void unregister(String renditionName)
     {
         Data data = getData();
-        unregister(data, renditionName);
-    }
-
-    public void unregister(Data data, String renditionName)
-    {
         if (data.renditionDefinitions.remove(renditionName) == null)
         {
             throw new IllegalArgumentException("RenditionDefinition "+renditionName+" was not registered.");
