@@ -167,13 +167,14 @@ public class RenditionDefinitionRegistry2Impl implements RenditionDefinitionRegi
         return new Data();
     }
 
-    void readConfig() throws IOException
+    boolean readConfig() throws IOException
     {
-        configFileFinder.readFiles("alfresco/renditions", log);
+        boolean successReadingConfig = configFileFinder.readFiles("alfresco/renditions", log);
         if (renditionConfigDir != null && !renditionConfigDir.isBlank())
         {
-            configFileFinder.readFiles(renditionConfigDir, log);
+            successReadingConfig &= configFileFinder.readFiles(renditionConfigDir, log);
         }
+        return successReadingConfig;
     }
 
     private void addJsonSource(JsonNode jsonNode, String readFromMessage) throws IOException

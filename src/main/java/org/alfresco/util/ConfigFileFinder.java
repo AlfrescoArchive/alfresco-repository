@@ -25,7 +25,9 @@
  */
 package org.alfresco.util;
 
+import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.logging.Log;
@@ -60,62 +62,71 @@ public abstract class ConfigFileFinder
         this.jsonObjectMapper = jsonObjectMapper;
     }
 
-    public void readFiles(String path, Log log) throws IOException
+    public boolean readFiles(String path, Log log)
     {
-        boolean somethingRead = false;
-        final File jarFile = new File(getClass().getProtectionDomain().getCodeSource().getLocation().getPath());
-        if (jarFile.isFile())
+        boolean successReadingConfig = true;
+        try
         {
-            JarFile jar = new JarFile(jarFile);
-            Enumeration<JarEntry> entries = jar.entries(); // gives ALL entries in jar
-            String prefix = path + "/";
-            List<String> names = new ArrayList<>();
-            while (entries.hasMoreElements())
+            boolean somethingRead = false;
+            final File jarFile = new File(getClass().getProtectionDomain().getCodeSource().getLocation().getPath());
+            if (jarFile.isFile())
             {
-                final String name = entries.nextElement().getName();
-                if (name.startsWith(prefix) && name.length() > prefix.length())
+                Enumeration<JarEntry> entries = new JarFile(jarFile).entries(); // gives ALL entries in jar
+                String prefix = path + "/";
+                List<String> names = new ArrayList<>();
+                while (entries.hasMoreElements())
                 {
-                    names.add(name);
-                }
-            }
-            Collections.sort(names);
-            for (String name : names)
-            {
-                somethingRead = true;
-                readFile(new InputStreamReader(getResourceAsStream(name)),"resource", name, null, log);
-            }
-
-            jar.close();
-        }
-        else
-        {
-            URL url = getClass().getClassLoader().getResource(path);
-            if (url != null)
-            {
-                File root = new File(url.getPath());
-                String rootPath = root.getPath();
-                if (root.isDirectory())
-                {
-                    File[] files = root.listFiles();
-                    Arrays.sort(files, (file1, file2) -> file1.getName().compareTo(file2.getName()));
-                    for (File file: files)
+                    final String name = entries.nextElement().getName();
+                    if (name.startsWith(prefix) && name.length() > prefix.length())
                     {
-                        somethingRead = true;
-                        readFile(new FileReader(file), "file", file.getPath(), null, log);
+                        names.add(name);
                     }
                 }
-                else
+                Collections.sort(names);
+                for (String name : names)
                 {
                     somethingRead = true;
-                    readFile(new FileReader(root), "file", rootPath, null, log);
+                    successReadingConfig &= readFile(new InputStreamReader(getResourceAsStream(name)),"resource", name, null, log);
+                }
+
+                new JarFile(jarFile).close();
+            }
+            else
+            {
+                URL url = getClass().getClassLoader().getResource(path);
+                if (url != null)
+                {
+                    File root = new File(url.getPath());
+                    String rootPath = root.getPath();
+                    if (root.isDirectory())
+                    {
+                        File[] files = root.listFiles();
+                        Arrays.sort(files, (file1, file2) -> file1.getName().compareTo(file2.getName()));
+                        for (File file: files)
+                        {
+                            somethingRead = true;
+                            successReadingConfig &= readFile(new FileReader(file), "file", file.getPath(), null, log);
+                        }
+                    }
+                    else
+                    {
+                        somethingRead = true;
+                        successReadingConfig = readFile(new FileReader(root), "file", rootPath, null, log);
+                    }
                 }
             }
-        }
 
-        if (!somethingRead)
-        {
-            log.warn("No config read from "+path);
+            if (!somethingRead)
+            {
+                log.warn("No config read from "+path);
+            }
         }
+        catch (IOException e)
+        {
+            log.error("Error reading from "+path);
+            successReadingConfig = false;
+        }
+        return successReadingConfig;
     }
 
     private InputStream getResourceAsStream(String resource)
@@ -124,21 +135,31 @@ public abstract class ConfigFileFinder
         return in == null ? getClass().getResourceAsStream(resource) : in;
     }
 
-    public void readFile(Reader reader, String readFrom, String path, String baseUrl, Log log) throws IOException
+    public boolean readFile(Reader reader, String readFrom, String path, String baseUrl, Log log)
     {
         // At the moment it is assumed the file is Json, but that does not need to be the case.
         // We have the path including extension.
-        JsonNode jsonNode = jsonObjectMapper.readValue(reader, new TypeReference<JsonNode>() {});
-        String readFromMessage = readFrom+' '+path;
-        if (log.isTraceEnabled())
+        boolean successReadingConfig = true;
+        try
         {
-            log.trace(readFromMessage+" config is: "+jsonNode);
+            JsonNode jsonNode = jsonObjectMapper.readValue(reader, new TypeReference<JsonNode>() {});
+            String readFromMessage = readFrom + ' ' + path;
+            if (log.isTraceEnabled())
+            {
+                log.trace(readFromMessage + " config is: " + jsonNode);
+            }
+            else
+            {
+                log.debug(readFromMessage + " config read");
+            }
+            readJson(jsonNode, readFromMessage, baseUrl);
         }
-        else
+        catch (Exception e)
         {
-            log.debug(readFromMessage+" config read");
+            log.error("Error reading "+path);
+            successReadingConfig = false;
         }
-        readJson(jsonNode, readFromMessage, baseUrl);
+        return successReadingConfig;
     }
 
     protected abstract void readJson(JsonNode jsonNode, String readFromMessage, String baseUrl) throws IOException;

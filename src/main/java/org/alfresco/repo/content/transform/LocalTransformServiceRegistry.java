@@ -130,18 +130,18 @@ public class LocalTransformServiceRegistry extends TransformServiceRegistryImpl 
     }
 
     @Override
-    protected void readConfig() throws IOException
+    protected boolean readConfig() throws IOException
     {
         CombinedConfig combinedConfig = new CombinedConfig(getLog());
         List<String> urls = getTEngineUrls();
         boolean successReadingConfig = combinedConfig.addRemoteConfig(urls, "T-Engine");
-        setSuccessReadingConfig(successReadingConfig);
-        combinedConfig.addLocalConfig("alfresco/transforms");
+        successReadingConfig &= combinedConfig.addLocalConfig("alfresco/transforms");
         if (!pipelineConfigDir.isBlank())
         {
-            combinedConfig.addLocalConfig(pipelineConfigDir);
+            successReadingConfig &= combinedConfig.addLocalConfig(pipelineConfigDir);
         }
         combinedConfig.register(this);
+        return successReadingConfig;
     }
 
     @Override

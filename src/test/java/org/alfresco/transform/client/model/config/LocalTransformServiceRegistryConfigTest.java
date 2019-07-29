@@ -61,7 +61,6 @@ public class LocalTransformServiceRegistryConfigTest extends TransformServiceReg
 {
     private class TestLocalTransformServiceRegistry extends LocalTransformServiceRegistry
     {
-        private boolean lastReadSucceed = false;
         private boolean mockSuccessReadingRemoteConfig = true;
 
         public synchronized boolean getMockSuccessReadingRemoteConfig()
@@ -84,13 +83,12 @@ public class LocalTransformServiceRegistryConfigTest extends TransformServiceReg
         }
 
         @Override
-        protected void readConfig() throws IOException
+        protected boolean readConfig() throws IOException
         {
             readConfigCount++;
-             boolean mockSuccessReadingRemoteConfig = getMockSuccessReadingRemoteConfig();
-            lastReadSucceed = mockSuccessReadingRemoteConfig;
-            setSuccessReadingConfig(mockSuccessReadingRemoteConfig);
+            boolean mockSuccessReadingRemoteConfig = getMockSuccessReadingRemoteConfig();
             System.out.println(getMs() + "readConfig() success="+mockSuccessReadingRemoteConfig+" reads="+readConfigCount);
+            return mockSuccessReadingRemoteConfig;
          }
 
         public Data assertDataChanged(Data data, String msg)

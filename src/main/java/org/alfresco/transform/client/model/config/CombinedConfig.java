@@ -234,9 +234,9 @@ public class CombinedConfig
         return message;
     }
 
-    public void addLocalConfig(String path) throws IOException
+    public boolean addLocalConfig(String path) throws IOException
     {
-        configFileFinder.readFiles(path, log);
+        return configFileFinder.readFiles(path, log);
     }
 
     private void addJsonSource(JsonNode jsonNode, String baseUrl, String readFrom) throws IOException

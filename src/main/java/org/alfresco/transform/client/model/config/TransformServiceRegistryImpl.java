@@ -68,7 +68,6 @@ public abstract class TransformServiceRegistryImpl implements TransformServiceRe
         private int transformerCount = 0;
         private int transformCount = 0;
         boolean firstTime = true;
-        boolean successReadingConfig = true;
     }
 
     static class SupportedTransform
@@ -208,22 +207,21 @@ public abstract class TransformServiceRegistryImpl implements TransformServiceRe
         boolean successReadingConfig;
         Log log = getLog();
         log.debug("Config read started");
-        Data originalData = getData();
+        Data data = getData();
         try
         {
-            Data data = createData();
-            threadData.set(data);
-            readConfig();
-            successReadingConfig = data.successReadingConfig;
-            setData(data);
-            log.debug("Config read finished "+getCounts());
+            Data newData = createData();
+            threadData.set(newData);
+            successReadingConfig = readConfig();
+            data = newData;
+            log.debug("Config read finished "+getCounts()+(successReadingConfig ? "" : ". Config replaced but there were problems"));
         }
         catch (Exception e)
         {
-            setData(originalData);
             successReadingConfig = false;
             log.error("Config read failed. "+e.getMessage(), e);
         }
+        setData(data);
 
         // Switch schedule sequence if we were on the normal schedule and we now have problems or if
         // we are on the initial/error schedule and there were no errors.
@@ -252,7 +250,7 @@ public abstract class TransformServiceRegistryImpl implements TransformServiceRe
         }
     }
 
-    protected abstract void readConfig() throws IOException;
+    protected abstract boolean readConfig() throws IOException;
 
     private synchronized void setData(Data data)
     {
@@ -274,12 +272,6 @@ public abstract class TransformServiceRegistryImpl implements TransformServiceRe
     protected Data createData()
     {
         return new Data();
-    }
-
-    protected void setSuccessReadingConfig(boolean successReadingConfig)
-    {
-        Data data = getData();
-        data.successReadingConfig = successReadingConfig;
     }
 
     public void setEnabled(boolean enabled)

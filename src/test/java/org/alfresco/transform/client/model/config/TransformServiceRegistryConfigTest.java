@@ -93,8 +93,9 @@ public class TransformServiceRegistryConfigTest
         TransformServiceRegistryImpl registry = new TransformServiceRegistryImpl()
         {
             @Override
-            protected void readConfig() throws IOException
+            protected boolean readConfig() throws IOException
             {
+                return true;
             }
 
             @Override
