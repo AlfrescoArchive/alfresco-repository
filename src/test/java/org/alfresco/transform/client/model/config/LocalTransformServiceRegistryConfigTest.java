@@ -90,7 +90,7 @@ public class LocalTransformServiceRegistryConfigTest extends TransformServiceReg
             data = createData();
             boolean mockSuccessReadingRemoteConfig = getMockSuccessReadingRemoteConfig();
             lastReadSucceed = mockSuccessReadingRemoteConfig;
-            setSuccessReadingRemoteConfig(data, mockSuccessReadingRemoteConfig);
+            setSuccessReadingConfig(data, mockSuccessReadingRemoteConfig);
             System.out.println(getMs() + "readConfig() success="+mockSuccessReadingRemoteConfig+" reads="+readConfigCount);
             return data;
         }

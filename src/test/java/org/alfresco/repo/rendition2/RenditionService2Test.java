@@ -44,10 +44,14 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
+import java.io.IOException;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
+import static junit.framework.TestCase.assertTrue;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyInt;
@@ -82,7 +86,7 @@ public class RenditionService2Test
     @Mock private RuleService ruleService;
 
     private NodeRef nodeRef = new NodeRef("workspace://spacesStore/test-id");
-    private static final String IMGPREVIEW = "imgpreview";
+    private static final String TEST_RENDITION = "testRendition";
     private static final String JPEG = "image/jpeg";
     private String contentUrl = "test-content-url";
 
@@ -95,7 +99,7 @@ public class RenditionService2Test
         Map<String, String> options = new HashMap<>();
         options.put("width", "960");
         options.put("height", "1024");
-        new RenditionDefinition2Impl(IMGPREVIEW, JPEG, options, renditionDefinitionRegistry2);
+        new RenditionDefinition2Impl(TEST_RENDITION, JPEG, options, renditionDefinitionRegistry2);
 
         when(nodeService.exists(nodeRef)).thenReturn(true);
         when(nodeService.getProperty(nodeRef, ContentModel.PROP_CONTENT)).thenReturn(contentData);
@@ -138,20 +142,20 @@ public class RenditionService2Test
     public void disabled()
     {
         renditionService2.setEnabled(false);
-        renditionService2.render(nodeRef, IMGPREVIEW);
+        renditionService2.render(nodeRef, TEST_RENDITION);
     }
 
     @Test(expected = RenditionService2Exception.class)
     public void thumbnailsDisabled()
     {
         renditionService2.setThumbnailsEnabled(false);
-        renditionService2.render(nodeRef, IMGPREVIEW);
+        renditionService2.render(nodeRef, TEST_RENDITION);
     }
 
     @Test
     public void useLocalTransform()
     {
-        renditionService2.render(nodeRef, IMGPREVIEW);
+        renditionService2.render(nodeRef, TEST_RENDITION);
         verify(transformClient, times(1)).transform(any(), any(), anyString(), anyInt());
     }
 
@@ -159,19 +163,31 @@ public class RenditionService2Test
     public void noTransform()
     {
         doThrow(UnsupportedOperationException.class).when(transformClient).checkSupported(any(), any(), any(), anyLong(), any());
-        renditionService2.render(nodeRef, IMGPREVIEW);
+        renditionService2.render(nodeRef, TEST_RENDITION);
     }
 
     @Test(expected = RenditionService2PreventedException.class)
     public void checkSourceNodeForPreventionClass()
     {
         when(renditionPreventionRegistry.isContentClassRegistered((QName)any())).thenReturn(true);
-        renditionService2.render(nodeRef, IMGPREVIEW);
+        renditionService2.render(nodeRef, TEST_RENDITION);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void noDefinition()
     {
         renditionService2.render(nodeRef, "doesNotExist");
+    }
+
+    @Test
+    public void definitionExists() throws IOException
+    {
+        renditionDefinitionRegistry2.readConfig();
+
+        Set<String> renditionNames = renditionDefinitionRegistry2.getRenditionNames();
+        for (String name: new String[] {"medium", "doclib", "imgpreview", "avatar", "avatar32", "webpreview", "pdf"})
+        {
+            assertTrue("Expected rendition "+name, renditionNames.contains(name));
+        }
     }
 }

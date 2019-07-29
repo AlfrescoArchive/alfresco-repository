@@ -25,9 +25,15 @@
  */
 package org.alfresco.repo.rendition2;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.alfresco.transform.client.model.config.TransformServiceRegistry;
+import org.alfresco.util.ConfigFileFinder;
 import org.alfresco.util.Pair;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
+import java.io.IOException;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -41,15 +47,151 @@ import java.util.Set;
  */
 public class RenditionDefinitionRegistry2Impl implements RenditionDefinitionRegistry2
 {
-    private TransformServiceRegistry transformServiceRegistry;
+    private static final Log log = LogFactory.getLog(RenditionDefinitionRegistry2Impl.class);
 
-    private final Map<String, RenditionDefinition2> renditionDefinitions = new HashMap();
-    private final Map<String, Set<Pair<String, Long>>> renditionsFor = new HashMap<>();
+    static class Data
+    {
+        Map<String, RenditionDefinition2> renditionDefinitions = new HashMap();
+        Map<String, Set<Pair<String, Long>>> renditionsFor = new HashMap<>();
+        private int count = 0;
+        boolean firstTime = true;
+    }
+
+    private static class RenditionDef
+    {
+        private String renditionName;
+        private String targetMediaType;
+        private Set<RenditionOpt> options;
+
+        public void setRenditionName(String renditionName)
+        {
+            this.renditionName = renditionName;
+        }
+
+        public void setTargetMediaType(String targetMediaType)
+        {
+            this.targetMediaType = targetMediaType;
+        }
+
+        public void setOptions(Set<RenditionOpt> options)
+        {
+            this.options = options;
+        }
+    }
+
+    private static class RenditionOpt
+    {
+        private String name;
+        private String value;
+
+        public String getName()
+        {
+            return name;
+        }
+
+        public void setName(String name)
+        {
+            this.name = name;
+        }
+
+        public String getValue()
+        {
+            return value;
+        }
+
+        public void setValue(String value)
+        {
+            this.value = value;
+        }
+    }
+
+    private TransformServiceRegistry transformServiceRegistry;
+    private String renditionConfigDir;
+    private String timeoutDefault;
+    private Data data;
+    private ObjectMapper jsonObjectMapper = new ObjectMapper();
 
     public void setTransformServiceRegistry(TransformServiceRegistry transformServiceRegistry)
     {
         this.transformServiceRegistry = transformServiceRegistry;
-        renditionsFor.clear();
+        Data data = getData();
+        data.renditionsFor.clear();
+    }
+
+    public void setRenditionConfigDir(String renditionConfigDir)
+    {
+        this.renditionConfigDir = renditionConfigDir;
+    }
+
+    public void setTimeoutDefault(String timeoutDefault)
+    {
+        this.timeoutDefault = timeoutDefault;
+    }
+
+    private synchronized void setData(Data data)
+    {
+        this.data = data;
+    }
+
+    synchronized Data getData()
+    {
+        if (data == null)
+        {
+            data = createData();
+        }
+        return data;
+    }
+
+    private Data createData()
+    {
+        return new Data();
+    }
+
+    Data readConfig() throws IOException
+    {
+        Data data = createData();
+        ConfigFileFinder configFileFinder = new ConfigFileFinder(jsonObjectMapper)
+        {
+            @Override
+            protected void readJson(JsonNode jsonNode, String readFromMessage, String baseUrl) throws IOException
+            {
+                addJsonSource(data, jsonNode, readFromMessage);
+            }
+        };
+
+        configFileFinder.readFiles("alfresco/renditions", log);
+        if (renditionConfigDir != null && !renditionConfigDir.isBlank())
+        {
+            configFileFinder.readFiles(renditionConfigDir, log);
+        }
+        return data;
+    }
+
+    private void addJsonSource(Data data, JsonNode jsonNode, String readFromMessage) throws IOException
+    {
+        this.jsonObjectMapper = jsonObjectMapper;
+        try
+        {
+            JsonNode renditions = jsonNode.get("renditions");
+            if (renditions != null && renditions.isArray())
+            {
+                for (JsonNode rendition : renditions)
+                {
+                    RenditionDef def = jsonObjectMapper.convertValue(rendition, RenditionDef.class);
+                    System.out.println("def "+def.renditionName+" "+(def.options == null ? "null" : ""+def.options.size()));
+                    Map<String, String> map = new HashMap<>();
+                    if (def.options != null)
+                    {
+                        def.options.forEach(o -> map.put(o.name, o.value));
+                    }
+                    new RenditionDefinition2Impl(def.renditionName, def.targetMediaType, map, this, data);
+                }
+            }
+        }
+        catch (IllegalArgumentException e)
+        {
+            log.error("Error reading "+readFromMessage+" "+e.getMessage());
+        }
     }
 
     /**
@@ -65,18 +207,30 @@ public class RenditionDefinitionRegistry2Impl implements RenditionDefinitionRegi
 
     public void register(RenditionDefinition2 renditionDefinition)
     {
+        Data data = getData();
+        register(data, renditionDefinition);
+    }
+
+    public void register(Data data, RenditionDefinition2 renditionDefinition)
+    {
         String renditionName = renditionDefinition.getRenditionName();
         RenditionDefinition2 original = getDefinition(renditionName);
         if (original != null)
         {
             throw new IllegalArgumentException("RenditionDefinition "+renditionName+" was already registered.");
         }
-        renditionDefinitions.put(renditionName, renditionDefinition);
+        data.renditionDefinitions.put(renditionName, renditionDefinition);
     }
 
     public void unregister(String renditionName)
     {
-        if (renditionDefinitions.remove(renditionName) == null)
+        Data data = getData();
+        unregister(data, renditionName);
+    }
+
+    public void unregister(Data data, String renditionName)
+    {
+        if (data.renditionDefinitions.remove(renditionName) == null)
         {
             throw new IllegalArgumentException("RenditionDefinition "+renditionName+" was not registered.");
         }
@@ -85,20 +239,21 @@ public class RenditionDefinitionRegistry2Impl implements RenditionDefinitionRegi
     @Override
     public Set<String> getRenditionNames()
     {
-        return renditionDefinitions.keySet();
+        return getData().renditionDefinitions.keySet();
     }
 
     @Override
     public Set<String> getRenditionNamesFrom(String sourceMimetype, long size)
     {
         Set<Pair<String, Long>> renditionNamesWithMaxSize;
-        synchronized (renditionsFor)
+        Data data = getData();
+        synchronized (data.renditionsFor)
         {
-            renditionNamesWithMaxSize = renditionsFor.get(sourceMimetype);
+            renditionNamesWithMaxSize = data.renditionsFor.get(sourceMimetype);
             if (renditionNamesWithMaxSize == null)
             {
                 renditionNamesWithMaxSize = getRenditionNamesWithMaxSize(sourceMimetype);
-                renditionsFor.put(sourceMimetype, renditionNamesWithMaxSize);
+                data.renditionsFor.put(sourceMimetype, renditionNamesWithMaxSize);
             }
         }
 
@@ -125,7 +280,8 @@ public class RenditionDefinitionRegistry2Impl implements RenditionDefinitionRegi
     private Set<Pair<String,Long>> getRenditionNamesWithMaxSize(String sourceMimetype)
     {
         Set<Pair<String,Long>> renditions = new HashSet();
-        for (Map.Entry<String, RenditionDefinition2> entry : renditionDefinitions.entrySet())
+        Data data = getData();
+        for (Map.Entry<String, RenditionDefinition2> entry : data.renditionDefinitions.entrySet())
         {
             RenditionDefinition2 renditionDefinition2 = entry.getValue();
             String targetMimetype = renditionDefinition2.getTargetMimetype();
@@ -145,6 +301,7 @@ public class RenditionDefinitionRegistry2Impl implements RenditionDefinitionRegi
     @Override
     public RenditionDefinition2 getRenditionDefinition(String renditionName)
     {
-        return renditionDefinitions.get(renditionName);
+        Data data = getData();
+        return data.renditionDefinitions.get(renditionName);
     }
 }

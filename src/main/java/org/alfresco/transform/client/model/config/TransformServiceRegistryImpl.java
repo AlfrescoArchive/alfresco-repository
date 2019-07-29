@@ -68,7 +68,7 @@ public abstract class TransformServiceRegistryImpl implements TransformServiceRe
         private int transformerCount = 0;
         private int transformCount = 0;
         boolean firstTime = true;
-        boolean successReadingRemoteConfig = true;
+        boolean successReadingConfig = true;
     }
 
     static class SupportedTransform
@@ -200,13 +200,13 @@ public abstract class TransformServiceRegistryImpl implements TransformServiceRe
 
     protected void readConfigAndReplace()
     {
-        boolean successReadingRemoteConfig = true;
+        boolean successReadingRemoteConfig;
         Log log = getLog();
         log.debug("Config read started");
         try
         {
             Data data = readConfig();
-            successReadingRemoteConfig = data.successReadingRemoteConfig;
+            successReadingRemoteConfig = data.successReadingConfig;
             setData(data);
             log.debug("Config read finished "+getCounts());
         }
@@ -264,9 +264,9 @@ public abstract class TransformServiceRegistryImpl implements TransformServiceRe
         return new Data();
     }
 
-    protected void setSuccessReadingRemoteConfig(Data data, boolean successReadingRemoteConfig)
+    protected void setSuccessReadingConfig(Data data, boolean successReadingConfig)
     {
-        data.successReadingRemoteConfig = successReadingRemoteConfig;
+        data.successReadingConfig = successReadingConfig;
     }
 
     public void setEnabled(boolean enabled)
