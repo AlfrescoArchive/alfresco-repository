@@ -42,7 +42,7 @@ import org.quartz.TriggerBuilder;
 import org.quartz.impl.StdSchedulerFactory;
 
 /**
- * Used to schedule reading of config via a {@link ConfigFileFinder}. The config is assumed to change from time to time.
+ * Used to schedule reading of config. The config is assumed to change from time to time.
  * Initially or on error the reading frequency is high but slower once no problems are reported.
  *
  * @author adavis

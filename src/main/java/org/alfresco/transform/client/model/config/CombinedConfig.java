@@ -112,7 +112,34 @@ public class CombinedConfig
             @Override
             protected void readJson(JsonNode jsonNode, String readFromMessage, String baseUrl) throws IOException
             {
-                addJsonSource(jsonNode, baseUrl, readFromMessage);
+                JsonNode transformOptions = jsonNode.get(TRANSFORM_OPTIONS);
+                if (transformOptions != null && transformOptions.isObject())
+                {
+                    Iterator<Map.Entry<String, JsonNode>> iterator = transformOptions.fields();
+                    while (iterator.hasNext())
+                    {
+                        Map.Entry<String, JsonNode> entry = iterator.next();
+
+                        JsonNode options = entry.getValue();
+                        if (options.isArray())
+                        {
+                            String optionsName = entry.getKey();
+                            allTransformOptions.put(optionsName, (ArrayNode)options);
+                        }
+                    }
+                }
+
+                JsonNode transformers = jsonNode.get(TRANSFORMERS);
+                if (transformers != null && transformers.isArray())
+                {
+                    for (JsonNode transformer : transformers)
+                    {
+                        if (transformer.isObject())
+                        {
+                            allTransforms.add(new TransformNodeAndItsOrigin((ObjectNode)transformer, baseUrl, readFromMessage));
+                        }
+                    }
+                }
             }
         };
     }
@@ -237,38 +264,6 @@ public class CombinedConfig
     public boolean addLocalConfig(String path) throws IOException
     {
         return configFileFinder.readFiles(path, log);
-    }
-
-    private void addJsonSource(JsonNode jsonNode, String baseUrl, String readFrom) throws IOException
-    {
-        JsonNode transformOptions = jsonNode.get(TRANSFORM_OPTIONS);
-        if (transformOptions != null && transformOptions.isObject())
-        {
-            Iterator<Map.Entry<String, JsonNode>> iterator = transformOptions.fields();
-            while (iterator.hasNext())
-            {
-                Map.Entry<String, JsonNode> entry = iterator.next();
-
-                JsonNode options = entry.getValue();
-                if (options.isArray())
-                {
-                    String optionsName = entry.getKey();
-                    allTransformOptions.put(optionsName, (ArrayNode)options);
-                }
-            }
-        }
-
-        JsonNode transformers = jsonNode.get(TRANSFORMERS);
-        if (transformers != null && transformers.isArray())
-        {
-            for (JsonNode transformer : transformers)
-            {
-                if (transformer.isObject())
-                {
-                    allTransforms.add(new TransformNodeAndItsOrigin((ObjectNode)transformer, baseUrl, readFrom));
-                }
-            }
-        }
     }
 
     public void register(TransformServiceRegistryImpl registry) throws IOException

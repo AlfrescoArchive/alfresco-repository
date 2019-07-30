@@ -62,7 +62,7 @@ public class LocalTransformServiceRegistryConfigTest extends TransformServiceReg
     private class TestLocalTransformServiceRegistry extends LocalTransformServiceRegistry
     {
         private boolean mockSuccessReadingConfig = true;
-        LocalData dummyData = (LocalData)createData();
+        LocalData dummyData = new LocalData();
 
         public synchronized boolean getMockSuccessReadingConfig()
         {
@@ -87,7 +87,7 @@ public class LocalTransformServiceRegistryConfigTest extends TransformServiceReg
         public boolean readConfig() throws IOException
         {
             readConfigCount++;
-            dummyData = (LocalData)createData();
+            dummyData = new LocalData();
             boolean mockSuccessReadingRemoteConfig = getMockSuccessReadingConfig();
             System.out.println(getMs() + "readConfig() success="+mockSuccessReadingRemoteConfig+" reads="+readConfigCount);
             return mockSuccessReadingRemoteConfig;
@@ -423,18 +423,11 @@ public class LocalTransformServiceRegistryConfigTest extends TransformServiceReg
         CronExpression origInitialAndOnErrorCronExpression = registry.getInitialAndOnErrorCronExpression();
 
         String origPipelineConfigDir = registry.getPipelineConfigDir();
-        Scheduler origScheduler = registry.getScheduler();
-
-        if (origScheduler != null)
-        {
-            origScheduler.clear();
-        }
 
         try
         {
             readConfigCount = 0;
 
-            registry.setScheduler(null);
             registry.setInitialAndOnErrorCronExpression(new CronExpression(("0/2 * * ? * * *"))); // every 2 seconds rather than 10 seconds
             registry.setCronExpression(new CronExpression(("0/4 * * ? * * *"))); // every 4 seconds rather than 10 mins
 
@@ -488,7 +481,6 @@ public class LocalTransformServiceRegistryConfigTest extends TransformServiceReg
             registry.setCronExpression(origCronExpression);
             registry.setInitialAndOnErrorCronExpression(origInitialAndOnErrorCronExpression);
             registry.setPipelineConfigDir(origPipelineConfigDir);
-            registry.setScheduler(null);
         }
     }
 }

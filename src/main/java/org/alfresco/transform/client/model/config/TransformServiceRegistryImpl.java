@@ -81,26 +81,16 @@ public abstract class TransformServiceRegistryImpl implements TransformServiceRe
         }
     }
 
-    private ConfigScheduler<Data> configScheduler;
     protected boolean enabled = true;
     private ObjectMapper jsonObjectMapper;
-    private Scheduler scheduler;
     private CronExpression cronExpression;
     private CronExpression initialAndOnErrorCronExpression;
+
+    private ConfigScheduler<Data> configScheduler;
 
     public void setJsonObjectMapper(ObjectMapper jsonObjectMapper)
     {
         this.jsonObjectMapper = jsonObjectMapper;
-    }
-
-    public synchronized Scheduler getScheduler()
-    {
-        return scheduler;
-    }
-
-    public synchronized void setScheduler(Scheduler scheduler)
-    {
-        this.scheduler = scheduler;
     }
 
     public CronExpression getCronExpression()
@@ -136,13 +126,13 @@ public abstract class TransformServiceRegistryImpl implements TransformServiceRe
         configScheduler.scheduleIfEnabled();
     }
 
-    @Override
-    public abstract boolean readConfig() throws IOException;
-
     public synchronized Data getData()
     {
-        return configScheduler.getData();
+        return configScheduler == null ? createData() : configScheduler.getData();
     }
+
+    @Override
+    public abstract boolean readConfig() throws IOException;
 
     @Override
     public Data createData()

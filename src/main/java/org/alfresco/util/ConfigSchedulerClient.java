@@ -36,9 +36,9 @@ public interface ConfigSchedulerClient<Data>
 {
     boolean readConfig() throws IOException;
 
+    Data createData();
+
     String getCounts();
 
     boolean isEnabled();
-
-    Data createData();
 }

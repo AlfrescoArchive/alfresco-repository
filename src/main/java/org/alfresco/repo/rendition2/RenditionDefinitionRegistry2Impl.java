@@ -28,10 +28,16 @@ package org.alfresco.repo.rendition2;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.alfresco.transform.client.model.config.TransformServiceRegistry;
+import org.alfresco.transform.client.model.config.TransformServiceRegistryImpl;
 import org.alfresco.util.ConfigFileFinder;
+import org.alfresco.util.ConfigScheduler;
+import org.alfresco.util.ConfigSchedulerClient;
 import org.alfresco.util.Pair;
+import org.alfresco.util.PropertyCheck;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.quartz.CronExpression;
+import org.springframework.beans.factory.InitializingBean;
 
 import java.io.IOException;
 import java.util.Collections;
@@ -45,7 +51,7 @@ import java.util.Set;
  *
  * @author adavis
  */
-public class RenditionDefinitionRegistry2Impl implements RenditionDefinitionRegistry2
+public class RenditionDefinitionRegistry2Impl implements RenditionDefinitionRegistry2, ConfigSchedulerClient, InitializingBean
 {
     private static final Log log = LogFactory.getLog(RenditionDefinitionRegistry2Impl.class);
 
@@ -57,7 +63,7 @@ public class RenditionDefinitionRegistry2Impl implements RenditionDefinitionRegi
         boolean firstTime = true;
     }
 
-    private static class RenditionDef
+    static class RenditionDef
     {
         private String renditionName;
         private String targetMediaType;
@@ -79,7 +85,7 @@ public class RenditionDefinitionRegistry2Impl implements RenditionDefinitionRegi
         }
     }
 
-    private static class RenditionOpt
+    static class RenditionOpt
     {
         private String name;
         private String value;
@@ -108,25 +114,12 @@ public class RenditionDefinitionRegistry2Impl implements RenditionDefinitionRegi
     private TransformServiceRegistry transformServiceRegistry;
     private String renditionConfigDir;
     private String timeoutDefault;
-    private Data data;
-    private ThreadLocal<Data> threadData = ThreadLocal.withInitial(() ->
-    {
-        return data;
-    });
-    private ObjectMapper jsonObjectMapper = new ObjectMapper();
-    private ConfigFileFinder configFileFinder;
+    private ObjectMapper jsonObjectMapper;
+    private CronExpression cronExpression;
+    private CronExpression initialAndOnErrorCronExpression;
 
-    public RenditionDefinitionRegistry2Impl()
-    {
-        configFileFinder = new ConfigFileFinder(jsonObjectMapper)
-        {
-            @Override
-            protected void readJson(JsonNode jsonNode, String readFromMessage, String baseUrl) throws IOException
-            {
-                addJsonSource(jsonNode, readFromMessage);
-            }
-        };
-    }
+    private ConfigScheduler<Data> configScheduler;
+    private ConfigFileFinder configFileFinder;
 
     public void setTransformServiceRegistry(TransformServiceRegistry transformServiceRegistry)
     {
@@ -145,29 +138,87 @@ public class RenditionDefinitionRegistry2Impl implements RenditionDefinitionRegi
         this.timeoutDefault = timeoutDefault;
     }
 
-    private synchronized void setData(Data data)
+    public void setJsonObjectMapper(ObjectMapper jsonObjectMapper)
     {
-        this.data = data;
-        threadData.set(data);
+        this.jsonObjectMapper = jsonObjectMapper;
     }
 
-    protected synchronized Data getData()
+    public CronExpression getCronExpression()
     {
-        Data data = threadData.get();
-        if (data == null)
+        return cronExpression;
+    }
+
+    public void setCronExpression(CronExpression cronExpression)
+    {
+        this.cronExpression = cronExpression;
+    }
+
+    public CronExpression getInitialAndOnErrorCronExpression()
+    {
+        return initialAndOnErrorCronExpression;
+    }
+
+    public void setInitialAndOnErrorCronExpression(CronExpression initialAndOnErrorCronExpression)
+    {
+        this.initialAndOnErrorCronExpression = initialAndOnErrorCronExpression;
+    }
+
+    @Override
+    public void afterPropertiesSet() throws Exception
+    {
+        PropertyCheck.mandatory(this, "transformServiceRegistry", transformServiceRegistry);
+        PropertyCheck.mandatory(this, "renditionConfigDir", renditionConfigDir);
+        PropertyCheck.mandatory(this, "timeoutDefault", timeoutDefault);
+        PropertyCheck.mandatory(this, "jsonObjectMapper", jsonObjectMapper);
+        PropertyCheck.mandatory(this, "cronExpression", cronExpression);
+        PropertyCheck.mandatory(this, "initialAndOnErrorCronExpression", initialAndOnErrorCronExpression);
+
+        configFileFinder = new ConfigFileFinder(jsonObjectMapper)
         {
-            data = createData();
-            setData(data);
-        }
-        return data;
+            @Override
+            protected void readJson(JsonNode jsonNode, String readFromMessage, String baseUrl) throws IOException
+            {
+                try
+                {
+                    JsonNode renditions = jsonNode.get("renditions");
+                    if (renditions != null && renditions.isArray())
+                    {
+                        for (JsonNode rendition : renditions)
+                        {
+                            RenditionDef def = jsonObjectMapper.convertValue(rendition, RenditionDef.class);
+                            Map<String, String> map = new HashMap<>();
+                            if (def.options != null)
+                            {
+                                def.options.forEach(o -> map.put(o.name, o.value));
+                            }
+                            if (!map.containsKey(RenditionDefinition2.TIMEOUT))
+                            {
+                                map.put(RenditionDefinition2.TIMEOUT, timeoutDefault);
+                            }
+                            new RenditionDefinition2Impl(def.renditionName, def.targetMediaType, map,
+                                    RenditionDefinitionRegistry2Impl.this);
+                        }
+                    }
+                }
+                catch (IllegalArgumentException e)
+                {
+                    log.error("Error reading "+readFromMessage+" "+e.getMessage());
+                }
+            }
+        };
+
+        configScheduler = new ConfigScheduler<Data>(this, log,
+                cronExpression, initialAndOnErrorCronExpression);
+        configScheduler.scheduleIfEnabled();
     }
 
-    protected Data createData()
+    public synchronized Data getData()
     {
-        return new Data();
+        return configScheduler.getData();
     }
 
-    boolean readConfig() throws IOException
+    @Override
+    public boolean readConfig() throws IOException
     {
         boolean successReadingConfig = configFileFinder.readFiles("alfresco/renditions", log);
         if (renditionConfigDir != null && !renditionConfigDir.isBlank())
@@ -177,33 +228,23 @@ public class RenditionDefinitionRegistry2Impl implements RenditionDefinitionRegi
         return successReadingConfig;
     }
 
-    private void addJsonSource(JsonNode jsonNode, String readFromMessage) throws IOException
+    @Override
+    public Data createData()
     {
-        try
-        {
-            JsonNode renditions = jsonNode.get("renditions");
-            if (renditions != null && renditions.isArray())
-            {
-                for (JsonNode rendition : renditions)
-                {
-                    RenditionDef def = jsonObjectMapper.convertValue(rendition, RenditionDef.class);
-                    Map<String, String> map = new HashMap<>();
-                    if (def.options != null)
-                    {
-                        def.options.forEach(o -> map.put(o.name, o.value));
-                    }
-                    if (!map.containsKey(RenditionDefinition2.TIMEOUT))
-                    {
-                        map.put(RenditionDefinition2.TIMEOUT, timeoutDefault);
-                    }
-                    new RenditionDefinition2Impl(def.renditionName, def.targetMediaType, map, this);
-                }
-            }
-        }
-        catch (IllegalArgumentException e)
-        {
-            log.error("Error reading "+readFromMessage+" "+e.getMessage());
-        }
+        return new Data();
+    }
+
+    @Override
+    public String getCounts()
+    {
+        Data data = getData();
+        return "("+data.count+")";
+    }
+
+    @Override
+    public boolean isEnabled()
+    {
+        return true;
     }
 
     /**

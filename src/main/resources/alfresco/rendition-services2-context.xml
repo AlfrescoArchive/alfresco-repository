@@ -147,10 +147,15 @@
 
     <!-- Rendition Definition Registry 2 -->
     <bean id="renditionDefinitionRegistry2" class="org.alfresco.repo.rendition2.RenditionDefinitionRegistry2Impl">
+        <property name="jsonObjectMapper" ref="renditionDefinitionRegistry2JsonObjectMapper" />
         <property name="transformServiceRegistry" ref="transformServiceRegistry" />
         <property name="renditionConfigDir" value="${rendition.config.dir}" />
         <property name="timeoutDefault" value="${system.thumbnail.definition.default.timeoutMs}" />
+        <property name="cronExpression" value="${rendition.config.cronExpression}"></property>
+        <property name="initialAndOnErrorCronExpression" value="${rendition.config.initialAndOnError.cronExpression}"></property>
     </bean>
+
+    <bean id="renditionDefinitionRegistry2JsonObjectMapper" class="com.fasterxml.jackson.databind.ObjectMapper" />
 
     <!-- Process raw content update events -->
     <bean id="renditionEventProcessor" class="org.alfresco.repo.rendition2.RenditionEventProcessor">
