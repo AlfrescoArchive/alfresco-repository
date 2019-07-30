@@ -42,18 +42,9 @@ CREATE TABLE alf_transaction
 );
 CREATE INDEX idx_alf_txn_ctms ON alf_transaction (commit_time_ms, id);
 
---  Migrate the data from t_alf_transaction to the new alf_transaction
---FOREACH t_alf_node.id system.upgrade.alf_node_deleted_type.batchsize
-INSERT INTO alf_transaction
-(id, version, change_txn_id, commit_time_ms)
-(
-    SELECT
-       id, version, change_txn_id, commit_time_ms
-    FROM
-       t_alf_transaction
-    where
-       id >= ${LOWERBOUND} AND id <= ${UPPERBOUND}
-);
+-- TODO Batch migration of t_alf_transaction to alf_transaction. Alfreso script creator?
+--FOREACH t_alf_transaction.id system.upgrade.alf_node_deleted_type.batchsize
+
 -- DROP old table t_alf_transaction
 DROP TABLE t_alf_transaction;
 
