@@ -27,21 +27,12 @@ package org.alfresco.transform.client.model.config;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.alfresco.util.ConfigScheduler;
+import org.alfresco.util.ConfigSchedulerClient;
 import org.alfresco.util.PropertyCheck;
 import org.apache.commons.logging.Log;
 import org.quartz.CronExpression;
-import org.quartz.CronScheduleBuilder;
-import org.quartz.CronTrigger;
-import org.quartz.Job;
-import org.quartz.JobBuilder;
-import org.quartz.JobDataMap;
-import org.quartz.JobDetail;
-import org.quartz.JobExecutionContext;
-import org.quartz.JobExecutionException;
 import org.quartz.Scheduler;
-import org.quartz.SchedulerException;
-import org.quartz.TriggerBuilder;
-import org.quartz.impl.StdSchedulerFactory;
 import org.springframework.beans.factory.InitializingBean;
 
 import java.io.IOException;
@@ -59,7 +50,8 @@ import static org.alfresco.repo.rendition2.RenditionDefinition2.TIMEOUT;
 /**
  * Used by clients to work out if a transformation is supported by the Transform Service.
  */
-public abstract class TransformServiceRegistryImpl implements TransformServiceRegistry, InitializingBean
+public abstract class TransformServiceRegistryImpl implements TransformServiceRegistry,
+        ConfigSchedulerClient, InitializingBean
 {
     public static class Data
     {
@@ -89,29 +81,12 @@ public abstract class TransformServiceRegistryImpl implements TransformServiceRe
         }
     }
 
-    public static class TransformServiceRegistryJob implements Job
-    {
-        @Override
-        public void execute(JobExecutionContext context) throws JobExecutionException
-        {
-            JobDataMap dataMap = context.getJobDetail().getJobDataMap();
-            TransformServiceRegistryImpl registry = (TransformServiceRegistryImpl)dataMap.get("registry");
-            registry.readConfigAndReplace();
-        }
-    }
-
+    private ConfigScheduler<Data> configScheduler;
     protected boolean enabled = true;
-    protected Data data;
-    private ThreadLocal<Data> threadData = ThreadLocal.withInitial(() ->
-    {
-        return data;
-    });
-
     private ObjectMapper jsonObjectMapper;
     private Scheduler scheduler;
     private CronExpression cronExpression;
     private CronExpression initialAndOnErrorCronExpression;
-    private boolean normalCronSchedule;
 
     public void setJsonObjectMapper(ObjectMapper jsonObjectMapper)
     {
@@ -151,127 +126,41 @@ public abstract class TransformServiceRegistryImpl implements TransformServiceRe
     @Override
     public void afterPropertiesSet() throws Exception
     {
-        if (jsonObjectMapper == null)
-        {
-            throw new IllegalStateException("jsonObjectMapper has not been set");
-        }
+        PropertyCheck.mandatory(this, "jsonObjectMapper", jsonObjectMapper);
         PropertyCheck.mandatory(this, "cronExpression", cronExpression);
         PropertyCheck.mandatory(this, "initialAndOnErrorCronExpression", initialAndOnErrorCronExpression);
 
-        setData(null);
-        if (enabled)
-        {
-            schedule();
-        }
-    }
-
-    private synchronized void schedule()
-    {
-        // Don't do an initial readConfigAndReplace() as the first scheduled read can be done almost instantly and
-        // there is little point doing two in the space of a few seconds. If however the scheduler is already running
-        // we do need to run it (this is only from test cases).
-        if (scheduler == null)
-        {
-            StdSchedulerFactory sf = new StdSchedulerFactory();
-            String jobName = getClass().getName()+"Job";
-            try
-            {
-                scheduler = sf.getScheduler();
-
-                JobDetail job = JobBuilder.newJob()
-                        .withIdentity(jobName)
-                        .ofType(TransformServiceRegistryJob.class)
-                        .build();
-                job.getJobDataMap().put("registry", this);
-                CronExpression cronExpression = normalCronSchedule ? this.cronExpression : initialAndOnErrorCronExpression;
-                CronTrigger trigger = TriggerBuilder.newTrigger()
-                        .withIdentity(jobName+"Trigger", Scheduler.DEFAULT_GROUP)
-                        .withSchedule(CronScheduleBuilder.cronSchedule(cronExpression))
-                        .build();
-                scheduler.startDelayed(0);
-                scheduler.scheduleJob(job, trigger);
-            }
-            catch (SchedulerException e)
-            {
-                getLog().error("Failed to start "+jobName+" "+e.getMessage());
-            }
-        }
-        else
-        {
-            readConfigAndReplace();
-        }
-    }
-
-    protected void readConfigAndReplace()
-    {
-        boolean successReadingConfig;
         Log log = getLog();
-        log.debug("Config read started");
-        Data data = getData();
-        try
-        {
-            Data newData = createData();
-            threadData.set(newData);
-            successReadingConfig = readConfig();
-            data = newData;
-            log.debug("Config read finished "+getCounts()+(successReadingConfig ? "" : ". Config replaced but there were problems"));
-        }
-        catch (Exception e)
-        {
-            successReadingConfig = false;
-            log.error("Config read failed. "+e.getMessage(), e);
-        }
-        setData(data);
-
-        // Switch schedule sequence if we were on the normal schedule and we now have problems or if
-        // we are on the initial/error schedule and there were no errors.
-        if (normalCronSchedule && !successReadingConfig ||
-            !normalCronSchedule && successReadingConfig)
-        {
-            normalCronSchedule = !normalCronSchedule;
-            if (scheduler != null)
-            {
-                try
-                {
-                    CronExpression cronExpression = normalCronSchedule ? this.cronExpression : initialAndOnErrorCronExpression;
-                    scheduler.clear();
-                    scheduler = null;
-                    schedule();
-                }
-                catch (SchedulerException e)
-                {
-                    getLog().error("Problem stopping scheduler for transformer configuration "+e.getMessage());
-                }
-            }
-            else
-            {
-                System.out.println("Switch schedule "+normalCronSchedule+" WITHOUT new schedule");
-            }
-        }
+        configScheduler = new ConfigScheduler<Data>(this, log,
+                cronExpression, initialAndOnErrorCronExpression);
+        configScheduler.scheduleIfEnabled();
     }
 
-    protected abstract boolean readConfig() throws IOException;
+    @Override
+    public abstract boolean readConfig() throws IOException;
 
-    private synchronized void setData(Data data)
+    public synchronized Data getData()
     {
-        this.data = data;
-        threadData.set(data);
+        return configScheduler.getData();
     }
 
-    protected synchronized Data getData()
-    {
-        Data data = threadData.get();
-        if (data == null)
-        {
-            data = createData();
-            setData(data);
-        }
-        return data;
-    }
-
-    protected Data createData()
+    @Override
+    public Data createData()
     {
         return new Data();
+    }
+
+    @Override
+    public String getCounts()
+    {
+        Data data = getData();
+        return "("+data.transformerCount+":"+data.transformCount+")";
+    }
+
+    @Override
+    public boolean isEnabled()
+    {
+        return enabled;
     }
 
     public void setEnabled(boolean enabled)
@@ -308,11 +197,6 @@ public abstract class TransformServiceRegistryImpl implements TransformServiceRe
                 k -> new ArrayList<>()).add(
                     new SupportedTransform(data, transformer.getTransformerName(),
                             transformer.getTransformOptions(), e.getMaxSourceSizeBytes(), e.getPriority())));
-    }
-
-    protected String getCounts()
-    {
-        return "("+getData().transformerCount+":"+getData().transformCount+")";
     }
 
     @Override

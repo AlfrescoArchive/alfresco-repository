@@ -62,7 +62,7 @@ public class LocalTransformServiceRegistry extends TransformServiceRegistryImpl 
     private static final String URL = ".url";
     static final String STRICT_MIMETYPE_CHECK_WHITELIST_MIMETYPES = "transformer.strict.mimetype.check.whitelist.mimetypes";
 
-    class LocalData extends TransformServiceRegistryImpl.Data
+    public class LocalData extends TransformServiceRegistryImpl.Data
     {
         private Map<String, LocalTransform> localTransforms = new HashMap<>();
     }
@@ -130,7 +130,7 @@ public class LocalTransformServiceRegistry extends TransformServiceRegistryImpl 
     }
 
     @Override
-    protected boolean readConfig() throws IOException
+    public boolean readConfig() throws IOException
     {
         CombinedConfig combinedConfig = new CombinedConfig(getLog());
         List<String> urls = getTEngineUrls();
@@ -145,13 +145,13 @@ public class LocalTransformServiceRegistry extends TransformServiceRegistryImpl 
     }
 
     @Override
-    protected synchronized LocalData getData()
+    public synchronized LocalData getData()
     {
         return (LocalData)super.getData();
     }
 
     @Override
-    protected Data createData()
+    public Data createData()
     {
         return new LocalData();
     }

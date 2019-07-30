@@ -33,6 +33,7 @@ import org.apache.log4j.LogManager;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.quartz.CronExpression;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -93,7 +94,7 @@ public class TransformServiceRegistryConfigTest
         TransformServiceRegistryImpl registry = new TransformServiceRegistryImpl()
         {
             @Override
-            protected boolean readConfig() throws IOException
+            public boolean readConfig() throws IOException
             {
                 return true;
             }
@@ -105,6 +106,9 @@ public class TransformServiceRegistryConfigTest
             }
         };
         registry.setJsonObjectMapper(JSON_OBJECT_MAPPER);
+        registry.setCronExpression(new CronExpression("* * * * * ? 2099")); // not for a long time.
+        registry.setInitialAndOnErrorCronExpression(new CronExpression("* * * * * ? 2099")); // not for a long time.
+        registry.afterPropertiesSet();
         return registry;
     }
 

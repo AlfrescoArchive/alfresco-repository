@@ -25,9 +25,7 @@
  */
 package org.alfresco.util;
 
-import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.logging.Log;
@@ -49,7 +47,7 @@ import java.util.jar.JarFile;
 
 /**
  * Used to find configuration files as resources from the jar file or from some external location. The path supplied
- * to {@link #readFiles(String, Log)} may be a directory name.
+ * to {@link #readFiles(String, Log)} may be a directory name. Normally used by ConfigScheduler.
  *
  * @author adavis
  */
