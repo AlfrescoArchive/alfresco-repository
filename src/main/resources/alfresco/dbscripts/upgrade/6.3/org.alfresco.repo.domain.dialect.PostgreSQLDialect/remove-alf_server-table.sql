@@ -3,6 +3,7 @@
 -- Database:   PostgreSQL
 -- Since:      V6.3
 -- Author:     David Edwards
+-- Author:     Alex Mukha
 --
 -- Please contact support@alfresco.com if you need assistance with the upgrade.
 --
