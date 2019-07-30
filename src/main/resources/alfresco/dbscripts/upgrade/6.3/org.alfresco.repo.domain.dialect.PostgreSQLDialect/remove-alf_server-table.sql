@@ -48,7 +48,7 @@ INSERT INTO alf_transaction
 (id, version, change_txn_id, commit_time_ms)
 (
     SELECT
-       id, version, (CASE WHEN node_deleted THEN ${DELETED_TYPE_ID} ELSE server_id END), change_txn_id, commit_time_ms
+       id, version, change_txn_id, commit_time_ms
     FROM
        t_alf_transaction
     where
