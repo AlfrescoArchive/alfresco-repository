@@ -8,6 +8,16 @@
 -- Please contact support@alfresco.com if you need assistance with the upgrade.
 --
 
+SET FOREIGN_KEY_CHECKS=0;
+
+alter table alf_transaction
+    drop index fk_alf_txn_svr,
+    drop column server_id;
+
+drop table alf_server;
+
+SET FOREIGN_KEY_CHECKS=1;
+
 --
 -- Record script finish
 --
