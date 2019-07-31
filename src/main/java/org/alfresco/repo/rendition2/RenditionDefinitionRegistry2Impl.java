@@ -214,7 +214,7 @@ public class RenditionDefinitionRegistry2Impl implements RenditionDefinitionRegi
 
     public synchronized Data getData()
     {
-        return configScheduler.getData();
+        return configScheduler == null ? createData() : configScheduler.getData();
     }
 
     @Override
