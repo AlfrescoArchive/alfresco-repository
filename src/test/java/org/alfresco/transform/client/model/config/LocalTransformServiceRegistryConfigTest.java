@@ -421,7 +421,6 @@ public class LocalTransformServiceRegistryConfigTest extends TransformServiceReg
     {
         CronExpression origCronExpression = registry.getCronExpression();
         CronExpression origInitialAndOnErrorCronExpression = registry.getInitialAndOnErrorCronExpression();
-
         String origPipelineConfigDir = registry.getPipelineConfigDir();
 
         try
@@ -430,6 +429,7 @@ public class LocalTransformServiceRegistryConfigTest extends TransformServiceReg
 
             registry.setInitialAndOnErrorCronExpression(new CronExpression(("0/2 * * ? * * *"))); // every 2 seconds rather than 10 seconds
             registry.setCronExpression(new CronExpression(("0/4 * * ? * * *"))); // every 4 seconds rather than 10 mins
+            registry.clearScheduler();
 
             // Sleep until a 6 second boundary, in order to make testing clearer.
             // It avoids having to work out schedule offsets and extra quick runs that can otherwise take place.
@@ -474,13 +474,10 @@ public class LocalTransformServiceRegistryConfigTest extends TransformServiceReg
         finally
         {
             registry.setMockSuccessReadingConfig(true);
-
-            // Reset scheduler properties just in case another tests needs them in future.
-            // We don't start the scheduler with registry.afterPropertiesSet() as this is
-            // really just mocked up version of the registry.
             registry.setCronExpression(origCronExpression);
             registry.setInitialAndOnErrorCronExpression(origInitialAndOnErrorCronExpression);
             registry.setPipelineConfigDir(origPipelineConfigDir);
+            registry.clearScheduler();
         }
     }
 }

@@ -107,6 +107,16 @@ public abstract class ConfigScheduler<Data>
         threadData.remove(); // we need to pick up the initial value next time (whatever the data value is at that point)
     }
 
+    public synchronized void clearScheduler() throws SchedulerException
+    {
+        clearData();
+        if (scheduler != null)
+        {
+            scheduler.clear();
+            scheduler = null;
+        }
+    }
+
     public void schedule(boolean enabled, Log log, CronExpression cronExpression, CronExpression initialAndOnErrorCronExpression)
     {
         this.log = log;
@@ -116,11 +126,6 @@ public abstract class ConfigScheduler<Data>
         try
         {
             clearData();
-            if (scheduler != null)
-            {
-                scheduler.clear();
-                scheduler = null;
-            }
 
             if (enabled && log != null && cronExpression != null && initialAndOnErrorCronExpression != null)
             {

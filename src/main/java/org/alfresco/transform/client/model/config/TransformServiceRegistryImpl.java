@@ -31,6 +31,7 @@ import org.alfresco.util.ConfigScheduler;
 import org.alfresco.util.PropertyCheck;
 import org.apache.commons.logging.Log;
 import org.quartz.CronExpression;
+import org.quartz.SchedulerException;
 import org.springframework.beans.factory.InitializingBean;
 
 import java.io.IOException;
@@ -148,6 +149,11 @@ public abstract class TransformServiceRegistryImpl implements TransformServiceRe
     public synchronized Data getData()
     {
         return configScheduler.getData();
+    }
+
+    public void clearScheduler() throws SchedulerException
+    {
+        configScheduler.clearScheduler();
     }
 
     public abstract boolean readConfig() throws IOException;
