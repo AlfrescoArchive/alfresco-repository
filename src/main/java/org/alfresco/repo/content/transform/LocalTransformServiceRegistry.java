@@ -401,7 +401,7 @@ public class LocalTransformServiceRegistry extends TransformServiceRegistryImpl 
         if (getFirstTime())
         {
             setFirstTime(false);
-            transformerDebug.debug("Local transforms "+getCounts()+" are " + (enabled ? "enabled" : "disabled"));
+            transformerDebug.debug("Local transforms "+getData()+" are " + (enabled ? "enabled" : "disabled"));
         }
 
         return enabled

@@ -73,13 +73,39 @@ public class ConfigScheduler<Data>
     protected Data data;
     private ThreadLocal<Data> threadData = ThreadLocal.withInitial(() -> data);
 
-    public ConfigScheduler(ConfigSchedulerClient<Data> client, Log log,
+    private ConfigScheduler(ConfigSchedulerClient<Data> client, Log log,
                            CronExpression cronExpression, CronExpression initialAndOnErrorCronExpression)
     {
         this.client = client;
         this.log = log;
         this.cronExpression = cronExpression;
         this.initialAndOnErrorCronExpression = initialAndOnErrorCronExpression;
+    }
+
+    public static ConfigScheduler createAndSchedule(ConfigScheduler previousConfigScheduler,
+                                         ConfigSchedulerClient client, Log log,
+                           CronExpression cronExpression, CronExpression initialAndOnErrorCronExpression) throws Exception
+    {
+        if (previousConfigScheduler != null)
+        {
+            previousConfigScheduler.clear();
+        }
+        ConfigScheduler configScheduler = new ConfigScheduler(client, log, cronExpression, initialAndOnErrorCronExpression);
+        configScheduler.scheduleIfEnabled();
+        return configScheduler;
+    }
+
+    public synchronized void clear()
+    {
+        try
+        {
+            setData(null);
+            scheduler.clear();
+        }
+        catch (SchedulerException e)
+        {
+            log.warn("Failed to clear scheduler "+e.getMessage());
+        }
     }
 
     public synchronized Data getData()
@@ -160,7 +186,7 @@ public class ConfigScheduler<Data>
             Data newData = client.createData();
             threadData.set(newData);
             successReadingConfig = client.readConfig();
-            log.debug("Config read finished "+client.getCounts()+
+            log.debug("Config read finished "+client+
                     (successReadingConfig ? "" : ". Config replaced but there were problems"));
         }
         catch (Exception e)

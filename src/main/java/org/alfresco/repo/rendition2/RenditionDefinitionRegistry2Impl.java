@@ -28,7 +28,6 @@ package org.alfresco.repo.rendition2;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.alfresco.transform.client.model.config.TransformServiceRegistry;
-import org.alfresco.transform.client.model.config.TransformServiceRegistryImpl;
 import org.alfresco.util.ConfigFileFinder;
 import org.alfresco.util.ConfigScheduler;
 import org.alfresco.util.ConfigSchedulerClient;
@@ -60,7 +59,12 @@ public class RenditionDefinitionRegistry2Impl implements RenditionDefinitionRegi
         Map<String, RenditionDefinition2> renditionDefinitions = new HashMap();
         Map<String, Set<Pair<String, Long>>> renditionsFor = new HashMap<>();
         private int count = 0;
-        boolean firstTime = true;
+
+        @Override
+        public String toString()
+        {
+            return "("+count+")";
+        }
     }
 
     static class RenditionDef
@@ -119,7 +123,39 @@ public class RenditionDefinitionRegistry2Impl implements RenditionDefinitionRegi
     private CronExpression initialAndOnErrorCronExpression;
 
     private ConfigScheduler<Data> configScheduler;
-    private ConfigFileFinder configFileFinder;
+    private ConfigFileFinder configFileFinder = new ConfigFileFinder(jsonObjectMapper)
+    {
+        @Override
+        protected void readJson(JsonNode jsonNode, String readFromMessage, String baseUrl) throws IOException
+        {
+            try
+            {
+                JsonNode renditions = jsonNode.get("renditions");
+                if (renditions != null && renditions.isArray())
+                {
+                    for (JsonNode rendition : renditions)
+                    {
+                        RenditionDef def = jsonObjectMapper.convertValue(rendition, RenditionDef.class);
+                        Map<String, String> map = new HashMap<>();
+                        if (def.options != null)
+                        {
+                            def.options.forEach(o -> map.put(o.name, o.value));
+                        }
+                        if (!map.containsKey(RenditionDefinition2.TIMEOUT))
+                        {
+                            map.put(RenditionDefinition2.TIMEOUT, timeoutDefault);
+                        }
+                        new RenditionDefinition2Impl(def.renditionName, def.targetMediaType, map,
+                                RenditionDefinitionRegistry2Impl.this);
+                    }
+                }
+            }
+            catch (IllegalArgumentException e)
+            {
+                log.error("Error reading "+readFromMessage+" "+e.getMessage());
+            }
+        }
+    };
 
     public void setTransformServiceRegistry(TransformServiceRegistry transformServiceRegistry)
     {
@@ -173,43 +209,7 @@ public class RenditionDefinitionRegistry2Impl implements RenditionDefinitionRegi
         PropertyCheck.mandatory(this, "cronExpression", cronExpression);
         PropertyCheck.mandatory(this, "initialAndOnErrorCronExpression", initialAndOnErrorCronExpression);
 
-        configFileFinder = new ConfigFileFinder(jsonObjectMapper)
-        {
-            @Override
-            protected void readJson(JsonNode jsonNode, String readFromMessage, String baseUrl) throws IOException
-            {
-                try
-                {
-                    JsonNode renditions = jsonNode.get("renditions");
-                    if (renditions != null && renditions.isArray())
-                    {
-                        for (JsonNode rendition : renditions)
-                        {
-                            RenditionDef def = jsonObjectMapper.convertValue(rendition, RenditionDef.class);
-                            Map<String, String> map = new HashMap<>();
-                            if (def.options != null)
-                            {
-                                def.options.forEach(o -> map.put(o.name, o.value));
-                            }
-                            if (!map.containsKey(RenditionDefinition2.TIMEOUT))
-                            {
-                                map.put(RenditionDefinition2.TIMEOUT, timeoutDefault);
-                            }
-                            new RenditionDefinition2Impl(def.renditionName, def.targetMediaType, map,
-                                    RenditionDefinitionRegistry2Impl.this);
-                        }
-                    }
-                }
-                catch (IllegalArgumentException e)
-                {
-                    log.error("Error reading "+readFromMessage+" "+e.getMessage());
-                }
-            }
-        };
-
-        configScheduler = new ConfigScheduler<Data>(this, log,
-                cronExpression, initialAndOnErrorCronExpression);
-        configScheduler.scheduleIfEnabled();
+        configScheduler = ConfigScheduler.createAndSchedule(configScheduler, this, log, cronExpression, initialAndOnErrorCronExpression);
     }
 
     public synchronized Data getData()
@@ -232,13 +232,6 @@ public class RenditionDefinitionRegistry2Impl implements RenditionDefinitionRegi
     public Data createData()
     {
         return new Data();
-    }
-
-    @Override
-    public String getCounts()
-    {
-        Data data = getData();
-        return "("+data.count+")";
     }
 
     @Override

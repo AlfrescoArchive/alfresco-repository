@@ -38,7 +38,5 @@ public interface ConfigSchedulerClient<Data>
 
     Data createData();
 
-    String getCounts();
-
     boolean isEnabled();
 }

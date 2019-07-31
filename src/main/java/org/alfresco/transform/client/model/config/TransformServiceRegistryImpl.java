@@ -60,6 +60,12 @@ public abstract class TransformServiceRegistryImpl implements TransformServiceRe
         private int transformerCount = 0;
         private int transformCount = 0;
         boolean firstTime = true;
+
+        @Override
+        public String toString()
+        {
+            return "("+transformerCount+":"+transformCount+")";
+        }
     }
 
     static class SupportedTransform
@@ -121,9 +127,8 @@ public abstract class TransformServiceRegistryImpl implements TransformServiceRe
         PropertyCheck.mandatory(this, "initialAndOnErrorCronExpression", initialAndOnErrorCronExpression);
 
         Log log = getLog();
-        configScheduler = new ConfigScheduler<Data>(this, log,
+        configScheduler = ConfigScheduler.createAndSchedule(configScheduler, this, log,
                 cronExpression, initialAndOnErrorCronExpression);
-        configScheduler.scheduleIfEnabled();
     }
 
     public synchronized Data getData()
@@ -138,13 +143,6 @@ public abstract class TransformServiceRegistryImpl implements TransformServiceRe
     public Data createData()
     {
         return new Data();
-    }
-
-    @Override
-    public String getCounts()
-    {
-        Data data = getData();
-        return "("+data.transformerCount+":"+data.transformCount+")";
     }
 
     @Override
