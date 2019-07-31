@@ -30,7 +30,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.alfresco.transform.client.model.config.TransformServiceRegistry;
 import org.alfresco.util.ConfigFileFinder;
 import org.alfresco.util.ConfigScheduler;
-import org.alfresco.util.ConfigSchedulerClient;
 import org.alfresco.util.Pair;
 import org.alfresco.util.PropertyCheck;
 import org.apache.commons.logging.Log;
@@ -50,7 +49,7 @@ import java.util.Set;
  *
  * @author adavis
  */
-public class RenditionDefinitionRegistry2Impl implements RenditionDefinitionRegistry2, ConfigSchedulerClient, InitializingBean
+public class RenditionDefinitionRegistry2Impl implements RenditionDefinitionRegistry2, InitializingBean
 {
     private static final Log log = LogFactory.getLog(RenditionDefinitionRegistry2Impl.class);
 
@@ -122,7 +121,20 @@ public class RenditionDefinitionRegistry2Impl implements RenditionDefinitionRegi
     private CronExpression cronExpression;
     private CronExpression initialAndOnErrorCronExpression;
 
-    private ConfigScheduler<Data> configScheduler = ConfigScheduler.createDataOnlyInstance(this);
+    private ConfigScheduler<Data> configScheduler = new ConfigScheduler(this)
+    {
+        @Override
+        public boolean readConfig() throws IOException
+        {
+            return RenditionDefinitionRegistry2Impl.this.readConfig();
+        }
+
+        @Override
+        public Object createData()
+        {
+            return RenditionDefinitionRegistry2Impl.this.createData();
+        }
+    };
     private ConfigFileFinder configFileFinder;
 
     public void setTransformServiceRegistry(TransformServiceRegistry transformServiceRegistry)
@@ -208,7 +220,12 @@ public class RenditionDefinitionRegistry2Impl implements RenditionDefinitionRegi
                 }
             }
         };
-        configScheduler = ConfigScheduler.createAndSchedule(configScheduler, this, true, log, cronExpression, initialAndOnErrorCronExpression);
+        configScheduler.schedule(true, log, cronExpression, initialAndOnErrorCronExpression);
+    }
+
+    public Data createData()
+    {
+        return new Data();
     }
 
     public synchronized Data getData()
@@ -216,7 +233,6 @@ public class RenditionDefinitionRegistry2Impl implements RenditionDefinitionRegi
         return configScheduler.getData();
     }
 
-    @Override
     public boolean readConfig() throws IOException
     {
         boolean successReadingConfig = configFileFinder.readFiles("alfresco/renditions", log);
@@ -225,12 +241,6 @@ public class RenditionDefinitionRegistry2Impl implements RenditionDefinitionRegi
             successReadingConfig &= configFileFinder.readFiles(renditionConfigDir, log);
         }
         return successReadingConfig;
-    }
-
-    @Override
-    public Data createData()
-    {
-        return new Data();
     }
 
     public boolean isEnabled()

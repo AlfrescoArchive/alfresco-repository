@@ -28,7 +28,6 @@ package org.alfresco.transform.client.model.config;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.alfresco.util.ConfigScheduler;
-import org.alfresco.util.ConfigSchedulerClient;
 import org.alfresco.util.PropertyCheck;
 import org.apache.commons.logging.Log;
 import org.quartz.CronExpression;
@@ -49,8 +48,7 @@ import static org.alfresco.repo.rendition2.RenditionDefinition2.TIMEOUT;
 /**
  * Used by clients to work out if a transformation is supported by the Transform Service.
  */
-public abstract class TransformServiceRegistryImpl implements TransformServiceRegistry,
-        ConfigSchedulerClient, InitializingBean
+public abstract class TransformServiceRegistryImpl implements TransformServiceRegistry, InitializingBean
 {
     public static class Data
     {
@@ -91,7 +89,20 @@ public abstract class TransformServiceRegistryImpl implements TransformServiceRe
     private CronExpression cronExpression;
     private CronExpression initialAndOnErrorCronExpression;
 
-    private ConfigScheduler<Data> configScheduler = ConfigScheduler.createDataOnlyInstance(this);
+    private ConfigScheduler<Data> configScheduler = new ConfigScheduler(this)
+    {
+        @Override
+        public boolean readConfig() throws IOException
+        {
+            return TransformServiceRegistryImpl.this.readConfig();
+        }
+
+        @Override
+        public Object createData()
+        {
+            return TransformServiceRegistryImpl.this.createData();
+        }
+    };
 
     public void setJsonObjectMapper(ObjectMapper jsonObjectMapper)
     {
@@ -126,8 +137,12 @@ public abstract class TransformServiceRegistryImpl implements TransformServiceRe
         PropertyCheck.mandatory(this, "initialAndOnErrorCronExpression", initialAndOnErrorCronExpression);
 
         Log log = getLog();
-        configScheduler = ConfigScheduler.createAndSchedule(configScheduler, this, enabled, log,
-                cronExpression, initialAndOnErrorCronExpression);
+        configScheduler.schedule(enabled, log, cronExpression, initialAndOnErrorCronExpression);
+    }
+
+    public Data createData()
+    {
+        return new Data();
     }
 
     public synchronized Data getData()
@@ -135,14 +150,7 @@ public abstract class TransformServiceRegistryImpl implements TransformServiceRe
         return configScheduler.getData();
     }
 
-    @Override
     public abstract boolean readConfig() throws IOException;
-
-    @Override
-    public Data createData()
-    {
-        return new Data();
-    }
 
     public boolean isEnabled()
     {

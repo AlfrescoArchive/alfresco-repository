@@ -41,13 +41,15 @@ import org.quartz.SchedulerException;
 import org.quartz.TriggerBuilder;
 import org.quartz.impl.StdSchedulerFactory;
 
+import java.io.IOException;
+
 /**
  * Used to schedule reading of config. The config is assumed to change from time to time.
  * Initially or on error the reading frequency is high but slower once no problems are reported.
  *
  * @author adavis
  */
-public class ConfigScheduler<Data>
+public abstract class ConfigScheduler<Data>
 {
     public static final String CONFIG_SCHEDULER = "configScheduler";
 
@@ -62,11 +64,10 @@ public class ConfigScheduler<Data>
         }
     }
 
-    private final ConfigSchedulerClient<Data> client;
-    private final Log log;
-    private boolean enabled;
-    private final CronExpression cronExpression;
-    private final CronExpression initialAndOnErrorCronExpression;
+    private final String jobName;
+    private Log log;
+    private CronExpression cronExpression;
+    private CronExpression initialAndOnErrorCronExpression;
 
     private Scheduler scheduler;
     private boolean normalCronSchedule;
@@ -74,66 +75,21 @@ public class ConfigScheduler<Data>
     protected Data data;
     private ThreadLocal<Data> threadData = ThreadLocal.withInitial(() -> data);
 
-    private ConfigScheduler(ConfigSchedulerClient<Data> client, boolean enabled, Log log,
-                            CronExpression cronExpression, CronExpression initialAndOnErrorCronExpression)
+    public ConfigScheduler(Object client)
     {
-        this.client = client;
-        this.enabled = enabled;
-        this.log = log;
-        this.cronExpression = cronExpression;
-        this.initialAndOnErrorCronExpression = initialAndOnErrorCronExpression;
+        jobName = client.getClass().getName()+"Job";
     }
 
-    public static ConfigScheduler createDataOnlyInstance(ConfigSchedulerClient client)
-    {
-        return createAndSchedule(null, client, false, null, null, null);
-    }
+    public abstract boolean readConfig() throws IOException;
 
-    public static ConfigScheduler createAndSchedule(ConfigScheduler previousConfigScheduler,
-                                                    ConfigSchedulerClient client, boolean enabled, Log log,
-                                                    CronExpression cronExpression, CronExpression initialAndOnErrorCronExpression)
-    {
-        if (previousConfigScheduler != null)
-        {
-            previousConfigScheduler.clear();
-        }
-        ConfigScheduler configScheduler = new ConfigScheduler(client, enabled, log, cronExpression, initialAndOnErrorCronExpression);
-        if (log != null && cronExpression != null && initialAndOnErrorCronExpression != null)
-        {
-            try
-            {
-                configScheduler.scheduleIfEnabled();
-            }
-            catch (Exception e)
-            {
-                log.error("Error scheduling "+e.getMessage());
-            }
-        }
-        return configScheduler;
-    }
-
-    public synchronized void clear()
-    {
-        try
-        {
-            setData(null);
-            if (scheduler != null)
-            {
-                scheduler.clear();
-            }
-        }
-        catch (SchedulerException e)
-        {
-            log.warn("Failed to clear scheduler "+e.getMessage());
-        }
-    }
+    public abstract Data createData();
 
     public synchronized Data getData()
     {
         Data data = threadData.get();
         if (data == null)
         {
-            data = client.createData();
+            data = createData();
             setData(data);
         }
         return data;
@@ -145,12 +101,29 @@ public class ConfigScheduler<Data>
         threadData.set(data);
     }
 
-    public void scheduleIfEnabled() throws Exception
+    public void schedule(boolean enabled, Log log, CronExpression cronExpression, CronExpression initialAndOnErrorCronExpression)
     {
-        setData(null);
-        if (enabled)
+        this.log = log;
+        this.cronExpression = cronExpression;
+        this.initialAndOnErrorCronExpression = initialAndOnErrorCronExpression;
+
+        try
         {
-            schedule();
+            // The tests call this many times so we also need to clear any previous data.
+            setData(null);
+            if (scheduler != null)
+            {
+                scheduler.clear();
+            }
+
+            if (enabled && log != null && cronExpression != null && initialAndOnErrorCronExpression != null)
+            {
+                schedule();
+            }
+        }
+        catch (Exception e)
+        {
+            log.error("Error scheduling "+e.getMessage());
         }
     }
 
@@ -162,7 +135,6 @@ public class ConfigScheduler<Data>
         if (scheduler == null)
         {
             StdSchedulerFactory sf = new StdSchedulerFactory();
-            String jobName = client.getClass().getName()+"Job";
             try
             {
                 scheduler = sf.getScheduler();
@@ -203,10 +175,11 @@ public class ConfigScheduler<Data>
         Data data = getData();
         try
         {
-            Data newData = client.createData();
+            Data newData = createData();
             threadData.set(newData);
-            successReadingConfig = client.readConfig();
-            log.debug("Config read finished "+client+
+            successReadingConfig = readConfig();
+            data = newData;
+            log.debug("Config read finished "+data+
                     (successReadingConfig ? "" : ". Config replaced but there were problems"));
         }
         catch (Exception e)
@@ -218,8 +191,8 @@ public class ConfigScheduler<Data>
 
         // Switch schedule sequence if we were on the normal schedule and we now have problems or if
         // we are on the initial/error schedule and there were no errors.
-        if (normalCronSchedule && !successReadingConfig ||
-                !normalCronSchedule && successReadingConfig)
+        if ( normalCronSchedule && !successReadingConfig ||
+            !normalCronSchedule && successReadingConfig)
         {
             normalCronSchedule = !normalCronSchedule;
             if (scheduler != null)
