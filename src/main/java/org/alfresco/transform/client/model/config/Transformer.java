@@ -26,7 +26,7 @@
 package org.alfresco.transform.client.model.config;
 
 import java.util.List;
-import org.alfresco.transform.client.model.config.TransformServiceRegistry;
+import java.util.Set;
 
 /**
  * Represents a set of transformations supported by the Transform Service or Local Transform Service Registry that
@@ -54,21 +54,21 @@ public class Transformer
 {
     private String transformerName;
     private List<TransformStep> transformerPipeline;
-    private List<TransformOption> transformOptions;
+    private Set<TransformOption> transformOptions;
     private List<SupportedSourceAndTarget> supportedSourceAndTargetList;
 
     public Transformer()
     {
     }
 
-    public Transformer(String transformerName, List<TransformOption> transformOptions, List<SupportedSourceAndTarget> supportedSourceAndTargetList)
+    public Transformer(String transformerName, Set<TransformOption> transformOptions, List<SupportedSourceAndTarget> supportedSourceAndTargetList)
     {
         setTransformerName(transformerName);
         setTransformOptions(transformOptions);
         setSupportedSourceAndTargetList(supportedSourceAndTargetList);
     }
 
-    public Transformer(String transformerName, List<TransformStep> transformerPipeline, List<TransformOption> transformOptions, List<SupportedSourceAndTarget> supportedSourceAndTargetList)
+    public Transformer(String transformerName, List<TransformStep> transformerPipeline, Set<TransformOption> transformOptions, List<SupportedSourceAndTarget> supportedSourceAndTargetList)
     {
         this(transformerName, transformOptions, supportedSourceAndTargetList);
         setTransformerPipeline(transformerPipeline);
@@ -94,12 +94,12 @@ public class Transformer
         this.transformerPipeline = transformerPipeline;
     }
 
-    public List<TransformOption> getTransformOptions()
+    public Set<TransformOption> getTransformOptions()
     {
         return transformOptions;
     }
 
-    public void setTransformOptions(List<TransformOption> transformOptions)
+    public void setTransformOptions(Set<TransformOption> transformOptions)
     {
         this.transformOptions = transformOptions;
     }
