@@ -69,5 +69,5 @@ INSERT INTO alf_applied_patch
   VALUES
   (
     'patch.db-V6.3-remove-alf_server-table', 'Remove alf_server table',
-    0, 13000, -1, 13001, null, 'UNKNOWN', ${TRUE}, ${TRUE}, 'Script completed'
+    0, 14000, -1, 14001, null, 'UNKNOWN', ${TRUE}, ${TRUE}, 'Script completed'
   );

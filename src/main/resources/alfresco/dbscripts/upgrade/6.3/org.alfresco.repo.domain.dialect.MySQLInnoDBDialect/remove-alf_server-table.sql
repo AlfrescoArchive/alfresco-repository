@@ -10,11 +10,11 @@
 
 SET FOREIGN_KEY_CHECKS=0;
 
-alter table alf_transaction
-    drop index fk_alf_txn_svr,
-    drop column server_id;
-
 drop table alf_server;
+
+alter table alf_transaction
+    drop foreign key fk_alf_txn_svr,
+    drop column server_id;
 
 SET FOREIGN_KEY_CHECKS=1;
 
@@ -27,5 +27,5 @@ INSERT INTO alf_applied_patch
   VALUES
   (
     'patch.db-V6.3-remove-alf_server-table', 'Remove alf_server table',
-    0, 13000, -1, 13001, null, 'UNKNOWN', ${TRUE}, ${TRUE}, 'Script completed'
+    0, 14000, -1, 14001, null, 'UNKNOWN', ${TRUE}, ${TRUE}, 'Script completed'
   );
