@@ -64,7 +64,7 @@
         <dependency.activemq.version>5.15.9</dependency.activemq.version>
         <dependency.pdfbox.version>2.0.16</dependency.pdfbox.version>
         <dependency.cxf.version>3.3.2</dependency.cxf.version>
-        <dependency.transform.model>1.0.2.4-SNAPSHOT</dependency.transform.model>
+        <dependency.transform.model>1.0.2.3</dependency.transform.model>
     </properties>
 
     <dependencyManagement>
