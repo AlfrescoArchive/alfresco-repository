@@ -25,6 +25,7 @@
  */
 package org.alfresco.repo.rendition2;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.alfresco.model.ContentModel;
 import org.alfresco.repo.policy.BehaviourFilter;
 import org.alfresco.repo.policy.PolicyComponent;
@@ -38,11 +39,13 @@ import org.alfresco.service.cmr.repository.NodeService;
 import org.alfresco.service.cmr.rule.RuleService;
 import org.alfresco.service.namespace.QName;
 import org.alfresco.service.transaction.TransactionService;
+import org.alfresco.transform.client.model.config.TransformServiceRegistryImpl;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+import org.quartz.CronExpression;
 
 import java.io.IOException;
 import java.util.Date;
@@ -72,6 +75,8 @@ import static org.mockito.Mockito.when;
 @RunWith(MockitoJUnitRunner.class)
 public class RenditionService2Test
 {
+    private static final ObjectMapper JSON_OBJECT_MAPPER = new ObjectMapper();;
+
     private RenditionService2Impl renditionService2;
     private RenditionDefinitionRegistry2Impl renditionDefinitionRegistry2;
 
@@ -84,6 +89,7 @@ public class RenditionService2Test
     @Mock private PolicyComponent policyComponent;
     @Mock private BehaviourFilter behaviourFilter;
     @Mock private RuleService ruleService;
+    @Mock private TransformServiceRegistryImpl transformServiceRegistry;
 
     private NodeRef nodeRef = new NodeRef("workspace://spacesStore/test-id");
     private static final String TEST_RENDITION = "testRendition";
@@ -95,11 +101,12 @@ public class RenditionService2Test
     {
         renditionService2 = new RenditionService2Impl();
         renditionDefinitionRegistry2 = new RenditionDefinitionRegistry2Impl();
-
-        Map<String, String> options = new HashMap<>();
-        options.put("width", "960");
-        options.put("height", "1024");
-        new RenditionDefinition2Impl(TEST_RENDITION, JPEG, options, renditionDefinitionRegistry2);
+        renditionDefinitionRegistry2.setTransformServiceRegistry(transformServiceRegistry);
+        renditionDefinitionRegistry2.setRenditionConfigDir("");
+        renditionDefinitionRegistry2.setTimeoutDefault("120000");
+        renditionDefinitionRegistry2.setJsonObjectMapper(JSON_OBJECT_MAPPER);
+        renditionDefinitionRegistry2.setCronExpression(new CronExpression("* * * * * ? 2099")); // not for a long time.
+        renditionDefinitionRegistry2.setInitialAndOnErrorCronExpression(new CronExpression("* * * * * ? 2099")); // not for a long time.
 
         when(nodeService.exists(nodeRef)).thenReturn(true);
         when(nodeService.getProperty(nodeRef, ContentModel.PROP_CONTENT)).thenReturn(contentData);
@@ -119,7 +126,14 @@ public class RenditionService2Test
         renditionService2.setEnabled(true);
         renditionService2.setThumbnailsEnabled(true);
         renditionService2.setRenditionRequestSheduler(new RenditionRequestSchedulerMock());
+
+        renditionDefinitionRegistry2.afterPropertiesSet();
         renditionService2.afterPropertiesSet();
+
+        Map<String, String> options = new HashMap<>();
+        options.put("width", "960");
+        options.put("height", "1024");
+        new RenditionDefinition2Impl(TEST_RENDITION, JPEG, options, renditionDefinitionRegistry2);
     }
 
     private class RenditionRequestSchedulerMock extends PostTxnCallbackScheduler

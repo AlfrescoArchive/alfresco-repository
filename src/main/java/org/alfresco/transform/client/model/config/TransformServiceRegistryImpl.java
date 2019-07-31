@@ -32,7 +32,6 @@ import org.alfresco.util.ConfigSchedulerClient;
 import org.alfresco.util.PropertyCheck;
 import org.apache.commons.logging.Log;
 import org.quartz.CronExpression;
-import org.quartz.Scheduler;
 import org.springframework.beans.factory.InitializingBean;
 
 import java.io.IOException;
@@ -92,7 +91,7 @@ public abstract class TransformServiceRegistryImpl implements TransformServiceRe
     private CronExpression cronExpression;
     private CronExpression initialAndOnErrorCronExpression;
 
-    private ConfigScheduler<Data> configScheduler;
+    private ConfigScheduler<Data> configScheduler = ConfigScheduler.createDataOnlyInstance();
 
     public void setJsonObjectMapper(ObjectMapper jsonObjectMapper)
     {
@@ -133,7 +132,7 @@ public abstract class TransformServiceRegistryImpl implements TransformServiceRe
 
     public synchronized Data getData()
     {
-        return configScheduler == null ? createData() : configScheduler.getData();
+        return configScheduler.getData();
     }
 
     @Override

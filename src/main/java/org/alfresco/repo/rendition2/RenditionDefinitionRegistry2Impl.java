@@ -122,46 +122,12 @@ public class RenditionDefinitionRegistry2Impl implements RenditionDefinitionRegi
     private CronExpression cronExpression;
     private CronExpression initialAndOnErrorCronExpression;
 
-    private ConfigScheduler<Data> configScheduler;
-    private ConfigFileFinder configFileFinder = new ConfigFileFinder(jsonObjectMapper)
-    {
-        @Override
-        protected void readJson(JsonNode jsonNode, String readFromMessage, String baseUrl) throws IOException
-        {
-            try
-            {
-                JsonNode renditions = jsonNode.get("renditions");
-                if (renditions != null && renditions.isArray())
-                {
-                    for (JsonNode rendition : renditions)
-                    {
-                        RenditionDef def = jsonObjectMapper.convertValue(rendition, RenditionDef.class);
-                        Map<String, String> map = new HashMap<>();
-                        if (def.options != null)
-                        {
-                            def.options.forEach(o -> map.put(o.name, o.value));
-                        }
-                        if (!map.containsKey(RenditionDefinition2.TIMEOUT))
-                        {
-                            map.put(RenditionDefinition2.TIMEOUT, timeoutDefault);
-                        }
-                        new RenditionDefinition2Impl(def.renditionName, def.targetMediaType, map,
-                                RenditionDefinitionRegistry2Impl.this);
-                    }
-                }
-            }
-            catch (IllegalArgumentException e)
-            {
-                log.error("Error reading "+readFromMessage+" "+e.getMessage());
-            }
-        }
-    };
+    private ConfigScheduler<Data> configScheduler = ConfigScheduler.createDataOnlyInstance();
+    private ConfigFileFinder configFileFinder;
 
     public void setTransformServiceRegistry(TransformServiceRegistry transformServiceRegistry)
     {
         this.transformServiceRegistry = transformServiceRegistry;
-        Data data = getData();
-        data.renditionsFor.clear();
     }
 
     public void setRenditionConfigDir(String renditionConfigDir)
@@ -209,12 +175,45 @@ public class RenditionDefinitionRegistry2Impl implements RenditionDefinitionRegi
         PropertyCheck.mandatory(this, "cronExpression", cronExpression);
         PropertyCheck.mandatory(this, "initialAndOnErrorCronExpression", initialAndOnErrorCronExpression);
 
+        configFileFinder = new ConfigFileFinder(jsonObjectMapper)
+        {
+            @Override
+            protected void readJson(JsonNode jsonNode, String readFromMessage, String baseUrl) throws IOException
+            {
+                try
+                {
+                    JsonNode renditions = jsonNode.get("renditions");
+                    if (renditions != null && renditions.isArray())
+                    {
+                        for (JsonNode rendition : renditions)
+                        {
+                            RenditionDef def = jsonObjectMapper.convertValue(rendition, RenditionDef.class);
+                            Map<String, String> map = new HashMap<>();
+                            if (def.options != null)
+                            {
+                                def.options.forEach(o -> map.put(o.name, o.value));
+                            }
+                            if (!map.containsKey(RenditionDefinition2.TIMEOUT))
+                            {
+                                map.put(RenditionDefinition2.TIMEOUT, timeoutDefault);
+                            }
+                            new RenditionDefinition2Impl(def.renditionName, def.targetMediaType, map,
+                                    RenditionDefinitionRegistry2Impl.this);
+                        }
+                    }
+                }
+                catch (IllegalArgumentException e)
+                {
+                    log.error("Error reading "+readFromMessage+" "+e.getMessage());
+                }
+            }
+        };
         configScheduler = ConfigScheduler.createAndSchedule(configScheduler, this, log, cronExpression, initialAndOnErrorCronExpression);
     }
 
     public synchronized Data getData()
     {
-        return configScheduler == null ? createData() : configScheduler.getData();
+        return configScheduler.getData();
     }
 
     @Override

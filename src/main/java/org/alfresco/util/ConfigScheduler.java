@@ -82,16 +82,31 @@ public class ConfigScheduler<Data>
         this.initialAndOnErrorCronExpression = initialAndOnErrorCronExpression;
     }
 
+    public static ConfigScheduler createDataOnlyInstance()
+    {
+        return createAndSchedule(null, null, null, null, null);
+    }
+
     public static ConfigScheduler createAndSchedule(ConfigScheduler previousConfigScheduler,
-                                         ConfigSchedulerClient client, Log log,
-                           CronExpression cronExpression, CronExpression initialAndOnErrorCronExpression) throws Exception
+                                                    ConfigSchedulerClient client, Log log,
+                                                    CronExpression cronExpression, CronExpression initialAndOnErrorCronExpression)
     {
         if (previousConfigScheduler != null)
         {
             previousConfigScheduler.clear();
         }
         ConfigScheduler configScheduler = new ConfigScheduler(client, log, cronExpression, initialAndOnErrorCronExpression);
-        configScheduler.scheduleIfEnabled();
+        if (log != null && cronExpression != null && initialAndOnErrorCronExpression != null)
+        {
+            try
+            {
+                configScheduler.scheduleIfEnabled();
+            }
+            catch (Exception e)
+            {
+                log.error("Error scheduling "+e.getMessage());
+            }
+        }
         return configScheduler;
     }
 
@@ -100,7 +115,10 @@ public class ConfigScheduler<Data>
         try
         {
             setData(null);
-            scheduler.clear();
+            if (scheduler != null)
+            {
+                scheduler.clear();
+            }
         }
         catch (SchedulerException e)
         {
