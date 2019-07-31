@@ -101,6 +101,12 @@ public abstract class ConfigScheduler<Data>
         threadData.set(data);
     }
 
+    private synchronized void clearData()
+    {
+        this.data = null;
+        threadData.remove(); // we need to pick up the initial value next time (whatever the data value is at that point)
+    }
+
     public void schedule(boolean enabled, Log log, CronExpression cronExpression, CronExpression initialAndOnErrorCronExpression)
     {
         this.log = log;
@@ -109,8 +115,7 @@ public abstract class ConfigScheduler<Data>
 
         try
         {
-            // The tests call this many times so we also need to clear any previous data.
-            setData(null);
+            clearData();
             if (scheduler != null)
             {
                 scheduler.clear();
