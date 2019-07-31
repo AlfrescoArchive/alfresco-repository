@@ -64,6 +64,7 @@ public class ConfigScheduler<Data>
 
     private final ConfigSchedulerClient<Data> client;
     private final Log log;
+    private boolean enabled;
     private final CronExpression cronExpression;
     private final CronExpression initialAndOnErrorCronExpression;
 
@@ -73,29 +74,30 @@ public class ConfigScheduler<Data>
     protected Data data;
     private ThreadLocal<Data> threadData = ThreadLocal.withInitial(() -> data);
 
-    private ConfigScheduler(ConfigSchedulerClient<Data> client, Log log,
-                           CronExpression cronExpression, CronExpression initialAndOnErrorCronExpression)
+    private ConfigScheduler(ConfigSchedulerClient<Data> client, boolean enabled, Log log,
+                            CronExpression cronExpression, CronExpression initialAndOnErrorCronExpression)
     {
         this.client = client;
+        this.enabled = enabled;
         this.log = log;
         this.cronExpression = cronExpression;
         this.initialAndOnErrorCronExpression = initialAndOnErrorCronExpression;
     }
 
-    public static ConfigScheduler createDataOnlyInstance()
+    public static ConfigScheduler createDataOnlyInstance(ConfigSchedulerClient client)
     {
-        return createAndSchedule(null, null, null, null, null);
+        return createAndSchedule(null, client, false, null, null, null);
     }
 
     public static ConfigScheduler createAndSchedule(ConfigScheduler previousConfigScheduler,
-                                                    ConfigSchedulerClient client, Log log,
+                                                    ConfigSchedulerClient client, boolean enabled, Log log,
                                                     CronExpression cronExpression, CronExpression initialAndOnErrorCronExpression)
     {
         if (previousConfigScheduler != null)
         {
             previousConfigScheduler.clear();
         }
-        ConfigScheduler configScheduler = new ConfigScheduler(client, log, cronExpression, initialAndOnErrorCronExpression);
+        ConfigScheduler configScheduler = new ConfigScheduler(client, enabled, log, cronExpression, initialAndOnErrorCronExpression);
         if (log != null && cronExpression != null && initialAndOnErrorCronExpression != null)
         {
             try
@@ -146,7 +148,7 @@ public class ConfigScheduler<Data>
     public void scheduleIfEnabled() throws Exception
     {
         setData(null);
-        if (client.isEnabled())
+        if (enabled)
         {
             schedule();
         }

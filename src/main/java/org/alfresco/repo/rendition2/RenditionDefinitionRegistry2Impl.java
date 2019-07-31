@@ -122,7 +122,7 @@ public class RenditionDefinitionRegistry2Impl implements RenditionDefinitionRegi
     private CronExpression cronExpression;
     private CronExpression initialAndOnErrorCronExpression;
 
-    private ConfigScheduler<Data> configScheduler = ConfigScheduler.createDataOnlyInstance();
+    private ConfigScheduler<Data> configScheduler = ConfigScheduler.createDataOnlyInstance(this);
     private ConfigFileFinder configFileFinder;
 
     public void setTransformServiceRegistry(TransformServiceRegistry transformServiceRegistry)
@@ -208,7 +208,7 @@ public class RenditionDefinitionRegistry2Impl implements RenditionDefinitionRegi
                 }
             }
         };
-        configScheduler = ConfigScheduler.createAndSchedule(configScheduler, this, log, cronExpression, initialAndOnErrorCronExpression);
+        configScheduler = ConfigScheduler.createAndSchedule(configScheduler, this, true, log, cronExpression, initialAndOnErrorCronExpression);
     }
 
     public synchronized Data getData()
@@ -233,7 +233,6 @@ public class RenditionDefinitionRegistry2Impl implements RenditionDefinitionRegi
         return new Data();
     }
 
-    @Override
     public boolean isEnabled()
     {
         return true;

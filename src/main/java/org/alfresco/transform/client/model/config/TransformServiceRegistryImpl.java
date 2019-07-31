@@ -91,7 +91,7 @@ public abstract class TransformServiceRegistryImpl implements TransformServiceRe
     private CronExpression cronExpression;
     private CronExpression initialAndOnErrorCronExpression;
 
-    private ConfigScheduler<Data> configScheduler = ConfigScheduler.createDataOnlyInstance();
+    private ConfigScheduler<Data> configScheduler = ConfigScheduler.createDataOnlyInstance(this);
 
     public void setJsonObjectMapper(ObjectMapper jsonObjectMapper)
     {
@@ -126,7 +126,7 @@ public abstract class TransformServiceRegistryImpl implements TransformServiceRe
         PropertyCheck.mandatory(this, "initialAndOnErrorCronExpression", initialAndOnErrorCronExpression);
 
         Log log = getLog();
-        configScheduler = ConfigScheduler.createAndSchedule(configScheduler, this, log,
+        configScheduler = ConfigScheduler.createAndSchedule(configScheduler, this, enabled, log,
                 cronExpression, initialAndOnErrorCronExpression);
     }
 
@@ -144,7 +144,6 @@ public abstract class TransformServiceRegistryImpl implements TransformServiceRe
         return new Data();
     }
 
-    @Override
     public boolean isEnabled()
     {
         return enabled;

@@ -37,6 +37,4 @@ public interface ConfigSchedulerClient<Data>
     boolean readConfig() throws IOException;
 
     Data createData();
-
-    boolean isEnabled();
 }
