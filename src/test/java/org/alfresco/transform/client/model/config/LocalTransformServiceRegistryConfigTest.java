@@ -91,10 +91,10 @@ public class LocalTransformServiceRegistryConfigTest extends TransformServiceReg
             boolean mockSuccessReadingRemoteConfig = getMockSuccessReadingConfig();
             System.out.println(getMs() + "readConfig() success="+mockSuccessReadingRemoteConfig+" reads="+readConfigCount);
             return mockSuccessReadingRemoteConfig;
-         }
+        }
 
-         @Override
-         public synchronized LocalData getData()
+        @Override
+        public synchronized LocalData getData()
          {
              return dummyData;
          }

@@ -119,6 +119,7 @@ public abstract class ConfigScheduler<Data>
             if (scheduler != null)
             {
                 scheduler.clear();
+                scheduler = null;
             }
 
             if (enabled && log != null && cronExpression != null && initialAndOnErrorCronExpression != null)
