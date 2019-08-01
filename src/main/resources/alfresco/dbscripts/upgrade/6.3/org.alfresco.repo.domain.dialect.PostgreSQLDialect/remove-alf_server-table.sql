@@ -15,8 +15,6 @@ DROP INDEX idx_alf_txn_ctms;
 -- DROP the constraints alf_transaction
 ALTER TABLE alf_transaction DROP CONSTRAINT fk_alf_txn_svr;
 
-
-
 -- Rename existing alf_transaction to t_alf_transaction
 ALTER TABLE alf_transaction RENAME TO t_alf_transaction;
 
@@ -32,7 +30,6 @@ CREATE TABLE alf_transaction
 CREATE INDEX idx_alf_txn_ctms ON alf_transaction (commit_time_ms, id);
 
 
--- Migrate the data from t_alf_transaction to the new alf_transaction
 --FOREACH t_alf_transaction.id system.upgrade.alf_server_deleted.batchsize
 INSERT INTO alf_transaction
 (id, version, change_txn_id, commit_time_ms)
@@ -49,15 +46,9 @@ INSERT INTO alf_transaction
 ALTER TABLE alf_node 
    DROP CONSTRAINT fk_alf_node_txn, 
    ADD CONSTRAINT fk_alf_node_txn FOREIGN KEY (transaction_id) 
-   REFERENCES alf_transaction (id) MATCH SIMPLE
-   ON UPDATE NO ACTION
-   ON DELETE NO ACTION;
+   REFERENCES alf_transaction (id);
 
-
--- DROP old table t_alf_transaction
 DROP TABLE t_alf_transaction;
-
--- DROP alf_server table
 DROP TABLE alf_server;
 
 --
