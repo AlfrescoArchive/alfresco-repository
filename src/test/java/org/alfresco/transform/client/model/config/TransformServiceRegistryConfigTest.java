@@ -106,8 +106,7 @@ public class TransformServiceRegistryConfigTest
             }
         };
         registry.setJsonObjectMapper(JSON_OBJECT_MAPPER);
-        registry.setCronExpression(new CronExpression("* * * * * ? 2099")); // not for a long time.
-        registry.setInitialAndOnErrorCronExpression(new CronExpression("* * * * * ? 2099")); // not for a long time.
+        registry.setCronExpression(null); // just read once
         registry.afterPropertiesSet();
         return registry;
     }

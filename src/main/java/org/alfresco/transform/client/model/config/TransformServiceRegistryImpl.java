@@ -134,11 +134,13 @@ public abstract class TransformServiceRegistryImpl implements TransformServiceRe
     public void afterPropertiesSet() throws Exception
     {
         PropertyCheck.mandatory(this, "jsonObjectMapper", jsonObjectMapper);
-        PropertyCheck.mandatory(this, "cronExpression", cronExpression);
-        PropertyCheck.mandatory(this, "initialAndOnErrorCronExpression", initialAndOnErrorCronExpression);
+        if (cronExpression != null)
+        {
+            PropertyCheck.mandatory(this, "initialAndOnErrorCronExpression", initialAndOnErrorCronExpression);
+        }
 
         Log log = getLog();
-        configScheduler.schedule(enabled, log, cronExpression, initialAndOnErrorCronExpression);
+        configScheduler.run(enabled, log, cronExpression, initialAndOnErrorCronExpression);
     }
 
     public Data createData()
@@ -149,11 +151,6 @@ public abstract class TransformServiceRegistryImpl implements TransformServiceRe
     public synchronized Data getData()
     {
         return configScheduler.getData();
-    }
-
-    public void clearScheduler() throws SchedulerException
-    {
-        configScheduler.clearScheduler();
     }
 
     public abstract boolean readConfig() throws IOException;

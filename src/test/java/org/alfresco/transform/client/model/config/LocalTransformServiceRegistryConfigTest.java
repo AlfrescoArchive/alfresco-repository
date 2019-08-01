@@ -159,8 +159,7 @@ public class LocalTransformServiceRegistryConfigTest extends TransformServiceReg
         registry.setTransformerDebug(transformerDebug);
         registry.setMimetypeService(mimetypeMap);
         registry.setPipelineConfigDir("");
-        registry.setCronExpression(new CronExpression("* * * * * ? 2099")); // not for a long time.
-        registry.setInitialAndOnErrorCronExpression(new CronExpression("* * * * * ? 2099")); // not for a long time.
+        registry.setCronExpression(null); // just read it one
         registry.afterPropertiesSet();
         return registry;
     }
@@ -429,7 +428,6 @@ public class LocalTransformServiceRegistryConfigTest extends TransformServiceReg
 
             registry.setInitialAndOnErrorCronExpression(new CronExpression(("0/2 * * ? * * *"))); // every 2 seconds rather than 10 seconds
             registry.setCronExpression(new CronExpression(("0/4 * * ? * * *"))); // every 4 seconds rather than 10 mins
-            registry.clearScheduler();
 
             // Sleep until a 6 second boundary, in order to make testing clearer.
             // It avoids having to work out schedule offsets and extra quick runs that can otherwise take place.
@@ -477,7 +475,6 @@ public class LocalTransformServiceRegistryConfigTest extends TransformServiceReg
             registry.setCronExpression(origCronExpression);
             registry.setInitialAndOnErrorCronExpression(origInitialAndOnErrorCronExpression);
             registry.setPipelineConfigDir(origPipelineConfigDir);
-            registry.clearScheduler();
         }
     }
 }

@@ -27,11 +27,14 @@ package org.alfresco.repo.rendition2;
 
 import org.alfresco.repo.content.transform.LocalTransformServiceRegistry;
 import org.alfresco.transform.client.model.config.TransformServiceRegistry;
+import org.alfresco.transform.client.model.config.TransformServiceRegistryImpl;
+import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.quartz.CronExpression;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.HashMap;
@@ -67,6 +70,7 @@ public class LocalTransformServiceRegistryIntegrationTest extends AbstractRendit
         AbstractRenditionIntegrationTest.after();
     }
 
+    @Override
     @Before
     public void setUp() throws Exception
     {

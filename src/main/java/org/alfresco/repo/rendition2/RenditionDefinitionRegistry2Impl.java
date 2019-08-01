@@ -184,9 +184,10 @@ public class RenditionDefinitionRegistry2Impl implements RenditionDefinitionRegi
         PropertyCheck.mandatory(this, "renditionConfigDir", renditionConfigDir);
         PropertyCheck.mandatory(this, "timeoutDefault", timeoutDefault);
         PropertyCheck.mandatory(this, "jsonObjectMapper", jsonObjectMapper);
-        PropertyCheck.mandatory(this, "cronExpression", cronExpression);
-        PropertyCheck.mandatory(this, "initialAndOnErrorCronExpression", initialAndOnErrorCronExpression);
-
+        if (cronExpression != null)
+        {
+            PropertyCheck.mandatory(this, "initialAndOnErrorCronExpression", initialAndOnErrorCronExpression);
+        }
         configFileFinder = new ConfigFileFinder(jsonObjectMapper)
         {
             @Override
@@ -220,7 +221,7 @@ public class RenditionDefinitionRegistry2Impl implements RenditionDefinitionRegi
                 }
             }
         };
-        configScheduler.schedule(true, log, cronExpression, initialAndOnErrorCronExpression);
+        configScheduler.run(true, log, cronExpression, initialAndOnErrorCronExpression);
     }
 
     public Data createData()
