@@ -8,19 +8,6 @@
 -- Please contact support@alfresco.com if you need assistance with the upgrade.
 --
 
--- ASSIGN:SYSTEM_NS_ID=id
-SELECT id FROM alf_namespace WHERE uri = 'http://www.alfresco.org/model/system/1.0';
-
--- ASSIGN:NEXT_ID=id
-SELECT nextVal('alf_qname_seq') AS id;
-
-
-INSERT INTO alf_qname (id, version, ns_id, local_name) VALUES (${NEXT_ID}, 0, ${SYSTEM_NS_ID}, 'deleted');         -- (optional)
-
-
--- ASSIGN:DELETED_TYPE_ID=id
-SELECT id FROM alf_qname WHERE ns_id = ${SYSTEM_NS_ID} AND local_name = 'deleted';
-
 -- DROP the indexes
 DROP INDEX fk_alf_txn_svr;
 DROP INDEX idx_alf_txn_ctms;
