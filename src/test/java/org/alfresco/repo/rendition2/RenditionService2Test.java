@@ -105,7 +105,7 @@ public class RenditionService2Test
         renditionDefinitionRegistry2.setRenditionConfigDir("");
         renditionDefinitionRegistry2.setTimeoutDefault("120000");
         renditionDefinitionRegistry2.setJsonObjectMapper(JSON_OBJECT_MAPPER);
-        renditionDefinitionRegistry2.setCronExpression(null); // just read it one
+        renditionDefinitionRegistry2.setCronExpression(null); // just read it once
 
         when(nodeService.exists(nodeRef)).thenReturn(true);
         when(nodeService.getProperty(nodeRef, ContentModel.PROP_CONTENT)).thenReturn(contentData);

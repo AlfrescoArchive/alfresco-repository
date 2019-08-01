@@ -159,7 +159,7 @@ public class LocalTransformServiceRegistryConfigTest extends TransformServiceReg
         registry.setTransformerDebug(transformerDebug);
         registry.setMimetypeService(mimetypeMap);
         registry.setPipelineConfigDir("");
-        registry.setCronExpression(null); // just read it one
+        registry.setCronExpression(null); // just read it once
         registry.afterPropertiesSet();
         return registry;
     }
