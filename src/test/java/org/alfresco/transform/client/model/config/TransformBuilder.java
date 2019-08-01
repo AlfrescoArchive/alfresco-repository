@@ -31,12 +31,12 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * Helper class that builds a {@link Transformer} given the source and target types and a pipeline of Transformers
+ * Helper class that builds a {@link InlineTransformer} given the source and target types and a pipeline of Transformers
  * for creating intermediary content.
  */
 public class TransformBuilder
 {
-    public Transformer buildPipeLine(String name, List<SupportedSourceAndTarget> sourceAndTargetList,
+    public InlineTransformer buildPipeLine(String name, Set<SupportedSourceAndTarget> sourceAndTargetList,
                                      List<ChildTransformer> transformerList)
     {
         Set<TransformOption> options = new HashSet<>(transformerList.size());
@@ -49,6 +49,6 @@ public class TransformBuilder
                         options.add(new TransformOptionGroup(t.isRequired(), t.getTransformer().getTransformOptions()));
                     }
                 });
-        return new Transformer(name, options, sourceAndTargetList);
+        return new InlineTransformer(name, options, sourceAndTargetList);
     }
 }

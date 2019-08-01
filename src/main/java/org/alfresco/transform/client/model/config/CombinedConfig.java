@@ -101,11 +101,11 @@ public class CombinedConfig
 
     static class TransformAndItsOrigin
     {
-        final Transformer transform;
+        final InlineTransformer transform;
         final String baseUrl;
         final String readFrom;
 
-        TransformAndItsOrigin(Transformer transform, String baseUrl, String readFrom)
+        TransformAndItsOrigin(InlineTransformer transform, String baseUrl, String readFrom)
         {
             this.transform = transform;
             this.baseUrl = baseUrl;
@@ -403,7 +403,7 @@ public class CombinedConfig
 
                 try
                 {
-                    Transformer transform = jsonObjectMapper.convertValue(entity.node, Transformer.class);
+                    InlineTransformer transform = jsonObjectMapper.convertValue(entity.node, InlineTransformer.class);
                     transforms.add(new TransformAndItsOrigin(transform, entity.baseUrl, entity.readFrom));
                 }
                 catch (IllegalArgumentException e)

@@ -82,7 +82,7 @@ public class TransformServiceRegistryConfigTest
 
     private TransformServiceRegistryImpl registry;
     protected TransformBuilder builder;
-    protected Transformer transformer;
+    protected InlineTransformer transformer;
 
     @Before
     public void setUp() throws Exception
@@ -179,9 +179,9 @@ public class TransformServiceRegistryConfigTest
 
     private void assertTransformOptions(Set<TransformOption> transformOptions) throws Exception
     {
-        transformer = new Transformer("name",
+        transformer = new InlineTransformer("name",
                 transformOptions,
-                Arrays.asList(
+                Set.of(
                         new SupportedSourceAndTarget(DOC, TXT, -1),
                         new SupportedSourceAndTarget(XLS, TXT, 1024000)));
 
@@ -194,14 +194,14 @@ public class TransformServiceRegistryConfigTest
         assertTrue(registry.isSupported(DOC, 1024001, TXT, null, null));
     }
 
-    protected String getBaseUrl(Transformer transformer)
+    protected String getBaseUrl(InlineTransformer transformer)
     {
         return null;
     }
 
     private void assertTransformerName(String sourceMimetype, long sourceSizeInBytes, String targetMimetype,
                                        Map<String, String> actualOptions, String expectedTransformerName,
-                                       Transformer... transformers) throws Exception
+                                       InlineTransformer... transformers) throws Exception
     {
         buildAndPopulateRegistry(transformers);
         String transformerName = registry.getTransformerName(sourceMimetype, sourceSizeInBytes, targetMimetype, actualOptions, null);
@@ -216,16 +216,16 @@ public class TransformServiceRegistryConfigTest
 
     private void assertSupported(String sourceMimetype, long sourceSizeInBytes, String targetMimetype,
                                  Map<String, String> actualOptions, String unsupportedMsg,
-                                 Transformer... transformers) throws Exception
+                                 InlineTransformer... transformers) throws Exception
     {
         buildAndPopulateRegistry(transformers);
         assertSupported(sourceMimetype, sourceSizeInBytes, targetMimetype, actualOptions, null, unsupportedMsg);
     }
 
-    private void buildAndPopulateRegistry(Transformer[] transformers)  throws Exception
+    private void buildAndPopulateRegistry(InlineTransformer[] transformers)  throws Exception
     {
         registry = buildTransformServiceRegistryImpl();
-        for (Transformer transformer : transformers)
+        for (InlineTransformer transformer : transformers)
         {
             registry.register(registry.getData(), transformer, getBaseUrl(transformer), getClass().getName());
         }
@@ -267,57 +267,56 @@ public class TransformServiceRegistryConfigTest
     @Test
     public void testReadWriteJson() throws IOException
     {
-        Transformer libreoffice = new Transformer("libreoffice",
+        InlineTransformer libreoffice = new InlineTransformer("libreoffice",
                 null, // there are no options
-                Arrays.asList(
+                Set.of(
                         new SupportedSourceAndTarget(DOC, PDF, -1),
                         new SupportedSourceAndTarget(XLS, PDF, 1024000),
                         new SupportedSourceAndTarget(PPT, PDF, -1),
                         new SupportedSourceAndTarget(MSG, PDF, -1)));
 
-        Transformer pdfrenderer = new Transformer("pdfrenderer",
-                Stream.of(
+        InlineTransformer pdfrenderer = new InlineTransformer("pdfrenderer",
+                Set.of(
                         new TransformOptionValue(false, "page"),
                         new TransformOptionValue(false, "width"),
                         new TransformOptionValue(false, "height"),
                         new TransformOptionValue(false, "allowPdfEnlargement"),
-                        new TransformOptionValue(false, "maintainPdfAspectRatio")).collect(Collectors.toSet()),
-                Arrays.asList(
+                        new TransformOptionValue(false, "maintainPdfAspectRatio")),
+                Set.of(
                         new SupportedSourceAndTarget(PDF, PNG, -1)));
 
-        Transformer tika = new Transformer("tika",
-                Stream.of(
+        InlineTransformer tika = new InlineTransformer("tika",
+                Set.of(
                         new TransformOptionValue(false, "transform"),
                         new TransformOptionValue(false, "includeContents"),
                         new TransformOptionValue(false, "notExtractBookmarksText"),
                         new TransformOptionValue(false, "targetMimetype"),
-                        new TransformOptionValue(false, "targetEncoding")).collect(Collectors.toSet()),
-                Arrays.asList(
+                        new TransformOptionValue(false, "targetEncoding")),
+                Set.of(
                         new SupportedSourceAndTarget(PDF, TXT, -1),
                         new SupportedSourceAndTarget(DOC, TXT, -1),
                         new SupportedSourceAndTarget(XLS, TXT, 1024000),
                         new SupportedSourceAndTarget(PPT, TXT, -1),
                         new SupportedSourceAndTarget(MSG, TXT, -1)));
 
-        Transformer imagemagick = new Transformer("imagemagick",
-                Stream.of(
+        InlineTransformer imagemagick = new InlineTransformer("imagemagick",
+                Set.of(
                         new TransformOptionValue(false, "alphaRemove"),
                         new TransformOptionValue(false, "autoOrient"),
-                        new TransformOptionGroup(false, Stream.of(
+                        new TransformOptionGroup(false, Set.of(
                                 new TransformOptionValue(false, "cropGravity"),
                                 new TransformOptionValue(false, "cropWidth"),
                                 new TransformOptionValue(false, "cropHeight"),
                                 new TransformOptionValue(false, "cropPercentage"),
                                 new TransformOptionValue(false, "cropXOffset"),
-                                new TransformOptionValue(false, "cropYOffset")).collect(Collectors.toSet())),
-                        new TransformOptionGroup(false, Stream.of(
+                                new TransformOptionValue(false, "cropYOffset"))),
+                        new TransformOptionGroup(false, Set.of(
                                 new TransformOptionValue(false, "thumbnail"),
                                 new TransformOptionValue(false, "resizeHeight"),
                                 new TransformOptionValue(false, "resizeWidth"),
                                 new TransformOptionValue(false, "resizePercentage"),
-                                new TransformOptionValue(false, "maintainAspectRatio")).collect(Collectors.toSet()))).collect(
-                        Collectors.toSet()),
-                Arrays.asList(
+                                new TransformOptionValue(false, "maintainAspectRatio")))),
+                Set.of(
                         new SupportedSourceAndTarget(GIF, GIF, -1),
                         new SupportedSourceAndTarget(GIF, JPEG, -1),
                         new SupportedSourceAndTarget(GIF, PNG, -1),
@@ -338,8 +337,8 @@ public class TransformServiceRegistryConfigTest
                         new SupportedSourceAndTarget(TIFF, PNG, -1),
                         new SupportedSourceAndTarget(TIFF, TIFF, -1)));
 
-        Transformer officeToImage = builder.buildPipeLine("transformer1",
-                Arrays.asList(
+        InlineTransformer officeToImage = builder.buildPipeLine("transformer1",
+                Set.of(
                         new SupportedSourceAndTarget(DOC, GIF, -1),
                         new SupportedSourceAndTarget(DOC, JPEG, -1),
                         new SupportedSourceAndTarget(DOC, PNG, -1),
@@ -361,7 +360,7 @@ public class TransformServiceRegistryConfigTest
                         new ChildTransformer(false, pdfrenderer),  // to png
                         new ChildTransformer(true, imagemagick))); // to other image formats
 
-        List<Transformer> transformers1 = Arrays.asList(libreoffice, tika, pdfrenderer, imagemagick, officeToImage);
+        List<InlineTransformer> transformers1 = Arrays.asList(libreoffice, tika, pdfrenderer, imagemagick, officeToImage);
 
         File tempFile = File.createTempFile("test", ".json");
         ObjectMapper objectMapper = new ObjectMapper();
@@ -714,12 +713,12 @@ public class TransformServiceRegistryConfigTest
     @Test
     public void testSupported() throws Exception
     {
-        transformer = new Transformer("name",
+        transformer = new InlineTransformer("name",
                 Set.of(
                         new TransformOptionValue(false, "page"),
                         new TransformOptionValue(false, "width"),
                         new TransformOptionValue(false, "height")),
-                Arrays.asList(
+                Set.of(
                         new SupportedSourceAndTarget(DOC, GIF, 102400),
                         new SupportedSourceAndTarget(DOC, JPEG, -1),
                         new SupportedSourceAndTarget(MSG, GIF, -1)));
@@ -740,12 +739,12 @@ public class TransformServiceRegistryConfigTest
     public void testCache()
     {
         // Note: transformNames are an alias for a set of actualOptions and the target mimetpe. The source mimetype may change.
-        transformer = new Transformer("name",
+        transformer = new InlineTransformer("name",
                 Set.of(
                         new TransformOptionValue(false, "page"),
                         new TransformOptionValue(false, "width"),
                         new TransformOptionValue(false, "height")),
-                Arrays.asList(
+                Set.of(
                         new SupportedSourceAndTarget(DOC, GIF, 102400),
                         new SupportedSourceAndTarget(MSG, GIF, -1)));
 
@@ -766,16 +765,16 @@ public class TransformServiceRegistryConfigTest
     @Test
     public void testGetTransformerName() throws Exception
     {
-        Transformer t1 = new Transformer("transformer1", null,
-                Arrays.asList(new SupportedSourceAndTarget(MSG, GIF, 100, 50)));
-        Transformer t2 = new Transformer("transformer2", null,
-                Arrays.asList(new SupportedSourceAndTarget(MSG, GIF, 200, 60)));
-        Transformer t3 = new Transformer("transformer3", null,
-                Arrays.asList(new SupportedSourceAndTarget(MSG, GIF, 200, 40)));
-        Transformer t4 = new Transformer("transformer4", null,
-                Arrays.asList(new SupportedSourceAndTarget(MSG, GIF, -1, 100)));
-        Transformer t5 = new Transformer("transformer5", null,
-                Arrays.asList(new SupportedSourceAndTarget(MSG, GIF, -1, 80)));
+       InlineTransformer t1 = new InlineTransformer("transformer1", null,
+                Set.of(new SupportedSourceAndTarget(MSG, GIF, 100, 50)));
+       InlineTransformer t2 = new InlineTransformer("transformer2", null,
+                Set.of(new SupportedSourceAndTarget(MSG, GIF, 200, 60)));
+       InlineTransformer t3 = new InlineTransformer("transformer3", null,
+                Set.of(new SupportedSourceAndTarget(MSG, GIF, 200, 40)));
+       InlineTransformer t4 = new InlineTransformer("transformer4", null,
+                Set.of(new SupportedSourceAndTarget(MSG, GIF, -1, 100)));
+       InlineTransformer t5 = new InlineTransformer("transformer5", null,
+                Set.of(new SupportedSourceAndTarget(MSG, GIF, -1, 80)));
 
         Map<String, String> actualOptions = null;
 
@@ -797,28 +796,28 @@ public class TransformServiceRegistryConfigTest
     @Test
     public void testMultipleTransformers() throws Exception
     {
-        Transformer transformer1 = new Transformer("transformer1",
+       InlineTransformer transformer1 = new InlineTransformer("transformer1",
                 Set.of(
                         new TransformOptionValue(false, "page"),
                         new TransformOptionValue(false, "width"),
                         new TransformOptionValue(false, "height")),
-                Arrays.asList(
+                Set.of(
                         new SupportedSourceAndTarget(DOC, GIF, 102400),
                         new SupportedSourceAndTarget(DOC, JPEG, -1),
                         new SupportedSourceAndTarget(MSG, GIF, -1)));
 
-        Transformer transformer2 = new Transformer("transformer2",
+       InlineTransformer transformer2 = new InlineTransformer("transformer2",
                 Set.of(
                         new TransformOptionValue(false, "opt1"),
                         new TransformOptionValue(false, "opt2")),
-                Arrays.asList(
+                Set.of(
                         new SupportedSourceAndTarget(PDF, GIF, -1),
                         new SupportedSourceAndTarget(PPT, JPEG, -1)));
 
-        Transformer transformer3 = new Transformer("transformer3",
+       InlineTransformer transformer3 = new InlineTransformer("transformer3",
                 Set.of(
                         new TransformOptionValue(false, "opt1")),
-                Arrays.asList(
+                Set.of(
                         new SupportedSourceAndTarget(DOC, GIF, -1)));
 
         Map<String, String> actualOptions = null;
@@ -844,18 +843,18 @@ public class TransformServiceRegistryConfigTest
     @Test
     public void testPipeline() throws Exception
     {
-        Transformer transformer1 = new Transformer("transformer1",
+        InlineTransformer transformer1 = new InlineTransformer("transformer1",
                 null, // there are no options
-                Arrays.asList(
+                Set.of(
                         new SupportedSourceAndTarget(DOC, PDF, -1),
                         new SupportedSourceAndTarget(MSG, PDF, -1)));
 
-        Transformer transformer2 = new Transformer("transformer2",
+        InlineTransformer transformer2 = new InlineTransformer("transformer2",
                 Set.of(
                         new TransformOptionValue(false, "page"),
                         new TransformOptionValue(false, "width"),
                         new TransformOptionValue(false, "height")),
-                Arrays.asList(
+                Set.of(
                         new SupportedSourceAndTarget(PDF, GIF, -1),
                         new SupportedSourceAndTarget(PDF, JPEG, -1)));
 
@@ -881,10 +880,10 @@ public class TransformServiceRegistryConfigTest
         assertSupported(DOC, 1024, GIF, buildActualOptions("page, width, startPage"), null);
     }
 
-    private void buildPipelineTransformer(Transformer transformer1, Transformer transformer2)
+    private void buildPipelineTransformer(InlineTransformer transformer1, InlineTransformer transformer2)
     {
         transformer = builder.buildPipeLine("transformer1",
-                Arrays.asList(
+                Set.of(
                         new SupportedSourceAndTarget(DOC, GIF, -1),
                         new SupportedSourceAndTarget(DOC, JPEG, -1),
                         new SupportedSourceAndTarget(MSG, GIF, -1)),

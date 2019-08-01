@@ -49,11 +49,14 @@ import java.io.Reader;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import org.springframework.http.converter.json.Jackson2ObjectMapperFactoryBean;
 
 import static org.alfresco.repo.rendition2.RenditionDefinition2.TIMEOUT;
 
@@ -290,11 +293,11 @@ public abstract class TransformServiceRegistryImpl implements TransformServiceRe
 
     public void register(Data data, Reader reader, String readFrom) throws IOException
     {
-        List<Transformer> transformers = jsonObjectMapper.readValue(reader, new TypeReference<List<Transformer>>(){});
+        List<InlineTransformer> transformers = jsonObjectMapper.readValue(reader, new TypeReference<List<InlineTransformer>>(){});
         transformers.forEach(t -> register(data, t, null, readFrom));
     }
 
-    protected void register(Data data, Transformer transformer, String baseUrl, String readFrom)
+    protected void register(Data data, InlineTransformer transformer, String baseUrl, String readFrom)
     {
         data.transformerCount++;
         transformer.getSupportedSourceAndTargetList().forEach(
@@ -304,6 +307,7 @@ public abstract class TransformServiceRegistryImpl implements TransformServiceRe
                     new SupportedTransform(data, transformer.getTransformerName(),
                             transformer.getTransformOptions(), e.getMaxSourceSizeBytes(), e.getPriority())));
     }
+
 
     protected String getCounts()
     {
