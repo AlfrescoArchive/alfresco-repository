@@ -10,11 +10,11 @@
 
 SET FOREIGN_KEY_CHECKS=0;
 
-drop table alf_server;
+DROP TABLE alf_server;
 
-alter table alf_transaction
-    drop foreign key fk_alf_txn_svr,
-    drop column server_id;
+ALTER TABLE alf_transaction
+    DROP FOREIGN KEY fk_alf_txn_svr,
+    DROP COLUMN server_id;
 
 SET FOREIGN_KEY_CHECKS=1;
 
