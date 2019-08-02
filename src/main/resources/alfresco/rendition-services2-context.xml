@@ -164,6 +164,6 @@
         <property name="transactionService" ref="transactionService" />
     </bean>
 
-<!-- The definitions are read from YAML files (possibly added to a volume via k8 ConfigMaps) -->
+<!-- The definitions are read from json files (possibly added to a volume via k8 ConfigMaps) -->
 
 </beans>

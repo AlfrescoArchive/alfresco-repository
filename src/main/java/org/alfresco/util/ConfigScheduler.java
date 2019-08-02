@@ -109,17 +109,25 @@ public abstract class ConfigScheduler<Data>
 
     private synchronized void clearData()
     {
-        this.data = null;
+        this.data = null;    // as run() should only be called multiple times in testing, it is okay to discard the
+                             // previous data, as there should be no other Threads trying to read it, unless they are
+                             // left over from previous tests.
         threadData.remove(); // we need to pick up the initial value next time (whatever the data value is at that point)
     }
 
+    /**
+     * This method should only be called once in production on startup generally from Spring afterPropertiesSet methods.
+     * In testing it is allowed to call this method multiple times, but in that case it is recommended to pass in a
+     * null cronExpression (or a cronExpression such as a date in the past) so the scheduler is not started. If this is
+     * done, the config is still read, but before the method returns.
+     */
     public void run(boolean enabled, Log log, CronExpression cronExpression, CronExpression initialAndOnErrorCronExpression)
     {
         clearPreviousSchedule();
+        clearData();
         if (enabled)
         {
             this.log = log == null ? ConfigScheduler.defaultLog : log;
-            clearData();
             Date now = new Date();
             if (cronExpression != null &&
                 initialAndOnErrorCronExpression != null &&
