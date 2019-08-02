@@ -565,17 +565,17 @@ public class TransformServiceRegistryConfigTest
     public void testOptionalGroups()
     {
         TransformOptionGroup transformOptionGroup =
-                new TransformOptionGroup(true, Stream.of(
+                new TransformOptionGroup(true, Set.of(
                         new TransformOptionValue(false, "1"),
                         new TransformOptionValue(true, "2"),
-                        new TransformOptionGroup(false, Stream.of(
+                        new TransformOptionGroup(false, Set.of(
                                 new TransformOptionValue(false, "3.1"),
                                 new TransformOptionValue(false, "3.2"),
-                                new TransformOptionValue(false, "3.3")).collect(Collectors.toSet())),
-                        new TransformOptionGroup(false, Stream.of( // OPTIONAL
+                                new TransformOptionValue(false, "3.3"))),
+                        new TransformOptionGroup(false, Set.of( // OPTIONAL
                                 new TransformOptionValue(false, "4.1"),
                                 new TransformOptionValue(true, "4.2"),
-                                new TransformOptionValue(false, "4.3")).collect(Collectors.toSet()))).collect(Collectors.toSet()));
+                                new TransformOptionValue(false, "4.3")))));
 
         assertAddToPossibleOptions(transformOptionGroup, "",  "1, 2", "2");
         assertAddToPossibleOptions(transformOptionGroup, "1", "1, 2", "2");
@@ -589,17 +589,17 @@ public class TransformServiceRegistryConfigTest
     public void testRequiredGroup()
     {
         TransformOptionGroup transformOptionGroup =
-                new TransformOptionGroup(true, Stream.of(
+                new TransformOptionGroup(true, Set.of(
                         new TransformOptionValue(false, "1"),
                         new TransformOptionValue(true, "2"),
-                        new TransformOptionGroup(false, Stream.of(
+                        new TransformOptionGroup(false, Set.of(
                                 new TransformOptionValue(false, "3.1"),
                                 new TransformOptionValue(false, "3.2"),
-                                new TransformOptionValue(false, "3.3")).collect(Collectors.toSet())),
-                        new TransformOptionGroup(true, Stream.of( // REQUIRED
+                                new TransformOptionValue(false, "3.3"))),
+                        new TransformOptionGroup(true, Set.of( // REQUIRED
                                 new TransformOptionValue(false, "4.1"),
                                 new TransformOptionValue(true, "4.2"),
-                                new TransformOptionValue(false, "4.3")).collect(Collectors.toSet()))).collect(Collectors.toSet()));
+                                new TransformOptionValue(false, "4.3")))));
 
         assertAddToPossibleOptions(transformOptionGroup, "",  "1, 2, 4.1, 4.2, 4.3", "2, 4.2");
         assertAddToPossibleOptions(transformOptionGroup, "1", "1, 2, 4.1, 4.2, 4.3", "2, 4.2");
