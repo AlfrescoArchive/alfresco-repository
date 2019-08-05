@@ -2,7 +2,7 @@
     <modelVersion>4.0.0</modelVersion>
     <artifactId>alfresco-repository</artifactId>
     <name>Alfresco Repository</name>
-    <version>7.87-SNAPSHOT</version>
+    <version>7.97-SNAPSHOT</version>
     <packaging>jar</packaging>
 
     <parent>
@@ -40,7 +40,7 @@
         <dependency.alfresco-legacy-lucene.version>6.2</dependency.alfresco-legacy-lucene.version>
         <dependency.alfresco-core.version>7.19</dependency.alfresco-core.version>
         <dependency.alfresco-greenmail.version>6.1</dependency.alfresco-greenmail.version>
-        <dependency.alfresco-data-model.version>8.44</dependency.alfresco-data-model.version>
+        <dependency.alfresco-data-model.version>8.46</dependency.alfresco-data-model.version>
         <dependency.alfresco-jlan.version>7.1</dependency.alfresco-jlan.version>
         <dependency.alfresco-pdf-renderer.version>1.1</dependency.alfresco-pdf-renderer.version>
         <dependency.alfresco-hb-data-sender.version>1.0.11</dependency.alfresco-hb-data-sender.version>
@@ -64,6 +64,7 @@
         <dependency.activemq.version>5.15.9</dependency.activemq.version>
         <dependency.pdfbox.version>2.0.16</dependency.pdfbox.version>
         <dependency.cxf.version>3.3.2</dependency.cxf.version>
+        <dependency.jackson.version>2.9.9</dependency.jackson.version>
         <dependency.transform.model.version>1.0.2.5</dependency.transform.model.version>
     </properties>
 
@@ -153,11 +154,6 @@
             <version>1.4</version>
         </dependency>
         <dependency>
-            <groupId>org.apache.camel</groupId>
-            <artifactId>camel-jackson</artifactId>
-            <version>2.23.1</version>
-        </dependency>
-        <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-compress</artifactId>
             <version>1.18</version>
@@ -170,7 +166,7 @@
         <dependency>
             <groupId>commons-codec</groupId>
             <artifactId>commons-codec</artifactId>
-            <version>1.12</version>
+            <version>1.13</version>
         </dependency>
         <dependency>
             <groupId>commons-beanutils</groupId>
@@ -549,6 +545,12 @@
             <groupId>javax.transaction</groupId>
             <artifactId>jta</artifactId>
             <version>1.1</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+            <version>${dependency.jackson.version}</version>
         </dependency>
 
         <!-- Spring Surf -->
