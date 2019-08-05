@@ -478,7 +478,6 @@ public class TransformServiceRegistryConfigTest
         assertTrue("cropGravity should be required as it is set", cropGravity.isRequired());
         assertFalse("cropWidth should be optional as required is not set", cropWidth.isRequired());
 
-        // TODO assertSupported uses Set instead of HashMap
         // Check a supported transform for each transformer.
         assertSupported(DOC,1234, GIF,  null, null, "");
         assertSupported(DOC,1234, PNG,  null, null, "");

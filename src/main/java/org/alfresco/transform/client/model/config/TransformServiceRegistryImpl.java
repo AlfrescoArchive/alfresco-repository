@@ -184,7 +184,7 @@ public abstract class TransformServiceRegistryImpl implements TransformServiceRe
 
     public void register(Reader reader, String readFrom) throws IOException
     {
-        List<InlineTransformer> transformers = jsonObjectMapper.readValue(reader, new TypeReference<List<Transformer>>(){});
+        List<InlineTransformer> transformers = jsonObjectMapper.readValue(reader, new TypeReference<List<InlineTransformer>>(){});
         transformers.forEach(t -> register(t, null, readFrom));
     }
 
