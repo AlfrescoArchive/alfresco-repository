@@ -15,7 +15,6 @@ branches:
   only:
     - master
     - /support\/.*/
-    - fix/REPO-4463_Postgres_11_61
 
 stages:
   - test
