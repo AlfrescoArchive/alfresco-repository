@@ -33,6 +33,7 @@ import org.apache.log4j.LogManager;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.quartz.CronExpression;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -40,14 +41,18 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Reader;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentMap;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -78,7 +83,7 @@ public class TransformServiceRegistryConfigTest
 
     private TransformServiceRegistryImpl registry;
     protected TransformBuilder builder;
-    protected Transformer transformer;
+    protected InlineTransformer transformer;
 
     @Before
     public void setUp() throws Exception
@@ -93,9 +98,9 @@ public class TransformServiceRegistryConfigTest
         TransformServiceRegistryImpl registry = new TransformServiceRegistryImpl()
         {
             @Override
-            protected Data readConfig() throws IOException
+            public boolean readConfig() throws IOException
             {
-                return createData(); // Empty config
+                return true;
             }
 
             @Override
@@ -105,6 +110,8 @@ public class TransformServiceRegistryConfigTest
             }
         };
         registry.setJsonObjectMapper(JSON_OBJECT_MAPPER);
+        registry.setCronExpression(null); // just read once
+        registry.afterPropertiesSet();
         return registry;
     }
 
@@ -173,16 +180,16 @@ public class TransformServiceRegistryConfigTest
         }
     }
 
-    private void assertTransformOptions(List<TransformOption> transformOptions) throws Exception
+    private void assertTransformOptions(Set<TransformOption> transformOptions) throws Exception
     {
-        transformer = new Transformer("name",
+        transformer = new InlineTransformer("name",
                 transformOptions,
-                Arrays.asList(
+                Set.of(
                         new SupportedSourceAndTarget(DOC, TXT, -1),
                         new SupportedSourceAndTarget(XLS, TXT, 1024000)));
 
         registry = buildTransformServiceRegistryImpl();
-        registry.register(registry.getData(), transformer, getBaseUrl(transformer), getClass().getName());
+        registry.register(transformer, getBaseUrl(transformer), getClass().getName());
 
         assertTrue(registry.isSupported(XLS, 1024, TXT, Collections.emptyMap(), null));
         assertTrue(registry.isSupported(XLS, 1024000, TXT, null, null));
@@ -190,14 +197,14 @@ public class TransformServiceRegistryConfigTest
         assertTrue(registry.isSupported(DOC, 1024001, TXT, null, null));
     }
 
-    protected String getBaseUrl(Transformer transformer)
+    protected String getBaseUrl(InlineTransformer transformer)
     {
         return null;
     }
 
     private void assertTransformerName(String sourceMimetype, long sourceSizeInBytes, String targetMimetype,
                                        Map<String, String> actualOptions, String expectedTransformerName,
-                                       Transformer... transformers) throws Exception
+                                       InlineTransformer... transformers) throws Exception
     {
         buildAndPopulateRegistry(transformers);
         String transformerName = registry.getTransformerName(sourceMimetype, sourceSizeInBytes, targetMimetype, actualOptions, null);
@@ -212,18 +219,18 @@ public class TransformServiceRegistryConfigTest
 
     private void assertSupported(String sourceMimetype, long sourceSizeInBytes, String targetMimetype,
                                  Map<String, String> actualOptions, String unsupportedMsg,
-                                 Transformer... transformers) throws Exception
+                                 InlineTransformer... transformers) throws Exception
     {
         buildAndPopulateRegistry(transformers);
         assertSupported(sourceMimetype, sourceSizeInBytes, targetMimetype, actualOptions, null, unsupportedMsg);
     }
 
-    private void buildAndPopulateRegistry(Transformer[] transformers)  throws Exception
+    private void buildAndPopulateRegistry(InlineTransformer[] transformers)  throws Exception
     {
         registry = buildTransformServiceRegistryImpl();
-        for (Transformer transformer : transformers)
+        for (InlineTransformer transformer : transformers)
         {
-            registry.register(registry.getData(), transformer, getBaseUrl(transformer), getClass().getName());
+            registry.register(transformer, getBaseUrl(transformer), getClass().getName());
         }
     }
 
@@ -257,62 +264,62 @@ public class TransformServiceRegistryConfigTest
     {
         CombinedConfig combinedConfig = new CombinedConfig(log);
         combinedConfig.addLocalConfig(path);
-        combinedConfig.register(registry.getData(), registry);
+        combinedConfig.register(registry);
     }
 
     @Test
     public void testReadWriteJson() throws IOException
     {
-        Transformer libreoffice = new Transformer("libreoffice",
+        InlineTransformer libreoffice = new InlineTransformer("libreoffice",
                 null, // there are no options
-                Arrays.asList(
+                Set.of(
                         new SupportedSourceAndTarget(DOC, PDF, -1),
                         new SupportedSourceAndTarget(XLS, PDF, 1024000),
                         new SupportedSourceAndTarget(PPT, PDF, -1),
                         new SupportedSourceAndTarget(MSG, PDF, -1)));
 
-        Transformer pdfrenderer = new Transformer("pdfrenderer",
-                Arrays.asList(
+        InlineTransformer pdfrenderer = new InlineTransformer("pdfrenderer",
+                Set.of(
                         new TransformOptionValue(false, "page"),
                         new TransformOptionValue(false, "width"),
                         new TransformOptionValue(false, "height"),
                         new TransformOptionValue(false, "allowPdfEnlargement"),
                         new TransformOptionValue(false, "maintainPdfAspectRatio")),
-                Arrays.asList(
+                Set.of(
                         new SupportedSourceAndTarget(PDF, PNG, -1)));
 
-        Transformer tika = new Transformer("tika",
-                Arrays.asList(
+        InlineTransformer tika = new InlineTransformer("tika",
+                Set.of(
                         new TransformOptionValue(false, "transform"),
                         new TransformOptionValue(false, "includeContents"),
                         new TransformOptionValue(false, "notExtractBookmarksText"),
                         new TransformOptionValue(false, "targetMimetype"),
                         new TransformOptionValue(false, "targetEncoding")),
-                Arrays.asList(
+                Set.of(
                         new SupportedSourceAndTarget(PDF, TXT, -1),
                         new SupportedSourceAndTarget(DOC, TXT, -1),
                         new SupportedSourceAndTarget(XLS, TXT, 1024000),
                         new SupportedSourceAndTarget(PPT, TXT, -1),
                         new SupportedSourceAndTarget(MSG, TXT, -1)));
 
-        Transformer imagemagick = new Transformer("imagemagick",
-                Arrays.asList(
+        InlineTransformer imagemagick = new InlineTransformer("imagemagick",
+                Set.of(
                         new TransformOptionValue(false, "alphaRemove"),
                         new TransformOptionValue(false, "autoOrient"),
-                        new TransformOptionGroup(false, Arrays.asList(
+                        new TransformOptionGroup(false, Set.of(
                                 new TransformOptionValue(false, "cropGravity"),
                                 new TransformOptionValue(false, "cropWidth"),
                                 new TransformOptionValue(false, "cropHeight"),
                                 new TransformOptionValue(false, "cropPercentage"),
                                 new TransformOptionValue(false, "cropXOffset"),
                                 new TransformOptionValue(false, "cropYOffset"))),
-                        new TransformOptionGroup(false, Arrays.asList(
+                        new TransformOptionGroup(false, Set.of(
                                 new TransformOptionValue(false, "thumbnail"),
                                 new TransformOptionValue(false, "resizeHeight"),
                                 new TransformOptionValue(false, "resizeWidth"),
                                 new TransformOptionValue(false, "resizePercentage"),
                                 new TransformOptionValue(false, "maintainAspectRatio")))),
-                Arrays.asList(
+                Set.of(
                         new SupportedSourceAndTarget(GIF, GIF, -1),
                         new SupportedSourceAndTarget(GIF, JPEG, -1),
                         new SupportedSourceAndTarget(GIF, PNG, -1),
@@ -333,8 +340,8 @@ public class TransformServiceRegistryConfigTest
                         new SupportedSourceAndTarget(TIFF, PNG, -1),
                         new SupportedSourceAndTarget(TIFF, TIFF, -1)));
 
-        Transformer officeToImage = builder.buildPipeLine("transformer1",
-                Arrays.asList(
+        InlineTransformer officeToImage = builder.buildPipeLine("transformer1",
+                Set.of(
                         new SupportedSourceAndTarget(DOC, GIF, -1),
                         new SupportedSourceAndTarget(DOC, JPEG, -1),
                         new SupportedSourceAndTarget(DOC, PNG, -1),
@@ -356,7 +363,7 @@ public class TransformServiceRegistryConfigTest
                         new ChildTransformer(false, pdfrenderer),  // to png
                         new ChildTransformer(true, imagemagick))); // to other image formats
 
-        List<Transformer> transformers1 = Arrays.asList(libreoffice, tika, pdfrenderer, imagemagick, officeToImage);
+        List<InlineTransformer> transformers1 = Arrays.asList(libreoffice, tika, pdfrenderer, imagemagick, officeToImage);
 
         File tempFile = File.createTempFile("test", ".json");
         ObjectMapper objectMapper = new ObjectMapper();
@@ -364,7 +371,7 @@ public class TransformServiceRegistryConfigTest
 
         try (Reader reader = new BufferedReader(new FileReader(tempFile)))
         {
-            registry.register(registry.getData(), reader, getClass().getName());
+            registry.register(reader, getClass().getName());
             // Check the count of transforms supported
             assertEquals("The number of UNIQUE source to target mimetypes transforms has changed. Config change?",
                     42, countSupportedTransforms(true));
@@ -430,13 +437,35 @@ public class TransformServiceRegistryConfigTest
         List<TransformServiceRegistryImpl.SupportedTransform> supportedTransforms = transformsToWord.get(GIF);
         TransformServiceRegistryImpl.SupportedTransform supportedTransform = supportedTransforms.get(0);
 
-        TransformOptionGroup imagemagick = (TransformOptionGroup)supportedTransform.transformOptions.transformOptions.get(0);
-        TransformOptionGroup pdf         = (TransformOptionGroup)supportedTransform.transformOptions.transformOptions.get(1);
+        Set<TransformOption> transformOptionsSet = supportedTransform.transformOptions.getTransformOptions();
+        System.out.println("Nothing");
 
-        TransformOptionValue alphaRemove = (TransformOptionValue)imagemagick.transformOptions.get(0);
-        TransformOptionGroup crop = (TransformOptionGroup)imagemagick.transformOptions.get(4);
-        TransformOptionValue cropGravity = (TransformOptionValue)crop.transformOptions.get(0);
-        TransformOptionValue cropWidth = (TransformOptionValue)crop.transformOptions.get(1);
+        Iterator<TransformOption> iterator = transformOptionsSet.iterator();
+        assertTrue("Expected transform values", iterator.hasNext());
+        // Because Set is unordered we don't know which TransformOptionGroup we retrieve
+        TransformOptionGroup transformOptions1 = (TransformOptionGroup)iterator.next();
+
+        assertTrue("Expected transform values", iterator.hasNext());
+        TransformOptionGroup transformOptions2 = (TransformOptionGroup)iterator.next();
+
+        TransformOptionGroup imagemagick;
+        TransformOptionGroup pdf;
+
+        if(containsTransformOptionValueName(transformOptions1, "alphaRemove"))
+        {
+            imagemagick = transformOptions1;
+            pdf = transformOptions2;
+        }
+        else
+        {
+            imagemagick = transformOptions2;
+            pdf = transformOptions1;
+        }
+
+        TransformOptionValue alphaRemove = (TransformOptionValue)retrieveTransformOptionByPropertyName(imagemagick, "alphaRemove", "TransformOptionValue");
+        TransformOptionGroup crop = (TransformOptionGroup)retrieveTransformOptionByPropertyName(imagemagick, "crop", "TransformOptionGroup");
+        TransformOptionValue cropGravity = (TransformOptionValue)retrieveTransformOptionByPropertyName(crop, "cropGravity", "TransformOptionValue");
+        TransformOptionValue cropWidth = (TransformOptionValue)retrieveTransformOptionByPropertyName(crop, "cropWidth", "TransformOptionValue");
 
         assertTrue("The holding group should be required", supportedTransform.transformOptions.isRequired());
         assertFalse("imagemagick should be optional as it is not set", imagemagick.isRequired());
@@ -464,6 +493,56 @@ public class TransformServiceRegistryConfigTest
         assertSupported(DOC,1234, PNG, actualOptions, null, "");
     }
 
+    private TransformOption retrieveTransformOptionByPropertyName (TransformOptionGroup transformOptionGroup, String propertyName, String propertyType)
+    {
+        Iterator<TransformOption> iterator = transformOptionGroup.getTransformOptions().iterator();
+
+        List<TransformOption> transformOptionsList = new ArrayList<>();
+        while(iterator.hasNext())
+        {
+            transformOptionsList.add(iterator.next());
+        }
+
+        for (TransformOption t : transformOptionsList)
+        {
+            if (t instanceof TransformOptionValue)
+            {
+                TransformOptionValue value = (TransformOptionValue) t;
+                if (propertyType.equalsIgnoreCase("TransformOptionValue"))
+                {
+                    if (value.getName().equalsIgnoreCase(propertyName))
+                        return value;
+                }
+                else
+                {
+                    if (value.getName().contains(propertyName))
+                        return transformOptionGroup;
+                }
+            }
+            else
+            {
+                TransformOption result = retrieveTransformOptionByPropertyName((TransformOptionGroup)t, propertyName, propertyType);
+                if (result != null)
+                    return result;
+            }
+        }
+        return null;
+    }
+
+    private boolean containsTransformOptionValueName (TransformOptionGroup transformOptionGroup, String propertyName)
+    {
+        if (retrieveTransformOptionByPropertyName(transformOptionGroup, propertyName, "TransformOptionValue") != null)
+            return true;
+        return false;
+    }
+
+    private boolean containsTransformOptionGroupeName (TransformOptionGroup transformOptionGroup, String propertyName)
+    {
+        if (retrieveTransformOptionByPropertyName(transformOptionGroup, propertyName, "TransformOptionGroup") != null)
+            return true;
+        return false;
+    }
+
     protected int getExpectedTransformsForTestJsonPipeline()
     {
         return 4;
@@ -488,14 +567,14 @@ public class TransformServiceRegistryConfigTest
     public void testOptionalGroups()
     {
         TransformOptionGroup transformOptionGroup =
-                new TransformOptionGroup(true, Arrays.asList(
+                new TransformOptionGroup(true, Set.of(
                         new TransformOptionValue(false, "1"),
                         new TransformOptionValue(true, "2"),
-                        new TransformOptionGroup(false, Arrays.asList(
+                        new TransformOptionGroup(false, Set.of(
                                 new TransformOptionValue(false, "3.1"),
                                 new TransformOptionValue(false, "3.2"),
                                 new TransformOptionValue(false, "3.3"))),
-                        new TransformOptionGroup(false, Arrays.asList( // OPTIONAL
+                        new TransformOptionGroup(false, Set.of( // OPTIONAL
                                 new TransformOptionValue(false, "4.1"),
                                 new TransformOptionValue(true, "4.2"),
                                 new TransformOptionValue(false, "4.3")))));
@@ -512,14 +591,14 @@ public class TransformServiceRegistryConfigTest
     public void testRequiredGroup()
     {
         TransformOptionGroup transformOptionGroup =
-                new TransformOptionGroup(true, Arrays.asList(
+                new TransformOptionGroup(true, Set.of(
                         new TransformOptionValue(false, "1"),
                         new TransformOptionValue(true, "2"),
-                        new TransformOptionGroup(false, Arrays.asList(
+                        new TransformOptionGroup(false, Set.of(
                                 new TransformOptionValue(false, "3.1"),
                                 new TransformOptionValue(false, "3.2"),
                                 new TransformOptionValue(false, "3.3"))),
-                        new TransformOptionGroup(true, Arrays.asList( // REQUIRED
+                        new TransformOptionGroup(true, Set.of( // REQUIRED
                                 new TransformOptionValue(false, "4.1"),
                                 new TransformOptionValue(true, "4.2"),
                                 new TransformOptionValue(false, "4.3")))));
@@ -535,49 +614,49 @@ public class TransformServiceRegistryConfigTest
     public void testNesstedGrpups()
     {
         TransformOptionGroup transformOptionGroup =
-                new TransformOptionGroup(false, Arrays.asList(
-                        new TransformOptionGroup(false, Arrays.asList(
+                new TransformOptionGroup(false, Set.of(
+                        new TransformOptionGroup(false, Set.of(
                                 new TransformOptionValue(false, "1"),
-                                new TransformOptionGroup(false, Arrays.asList(
+                                new TransformOptionGroup(false, Set.of(
                                         new TransformOptionValue(false, "1.2"),
-                                        new TransformOptionGroup(false, Arrays.asList(
+                                        new TransformOptionGroup(false, Set.of(
                                                 new TransformOptionValue(false, "1.2.3"))))))),
-                        new TransformOptionGroup(false, Arrays.asList(
+                        new TransformOptionGroup(false, Set.of(
                                 new TransformOptionValue(false, "2"),
-                                new TransformOptionGroup(false, Arrays.asList(
+                                new TransformOptionGroup(false, Set.of(
                                         new TransformOptionValue(false, "2.2"),
-                                        new TransformOptionGroup(false, Arrays.asList(
-                                                new TransformOptionGroup(false, Arrays.asList(
+                                        new TransformOptionGroup(false, Set.of(
+                                                new TransformOptionGroup(false, Set.of(
                                                         new TransformOptionValue(false, "2.2.1.2"))))))))),
-                        new TransformOptionGroup(false, Arrays.asList(
+                        new TransformOptionGroup(false, Set.of(
                                 new TransformOptionValue(true, "3"), // REQUIRED
-                                new TransformOptionGroup(false, Arrays.asList(
-                                        new TransformOptionGroup(false, Arrays.asList(
-                                                new TransformOptionGroup(false, Arrays.asList(
+                                new TransformOptionGroup(false, Set.of(
+                                        new TransformOptionGroup(false, Set.of(
+                                                new TransformOptionGroup(false, Set.of(
                                                         new TransformOptionValue(false, "3.1.1.2"))))))))),
-                        new TransformOptionGroup(false, Arrays.asList(
+                        new TransformOptionGroup(false, Set.of(
                                 new TransformOptionValue(false, "4"),
-                                new TransformOptionGroup(true, Arrays.asList( // REQUIRED
-                                        new TransformOptionGroup(false, Arrays.asList(
-                                                new TransformOptionGroup(false, Arrays.asList(
+                                new TransformOptionGroup(true, Set.of( // REQUIRED
+                                        new TransformOptionGroup(false, Set.of(
+                                                new TransformOptionGroup(false, Set.of(
                                                         new TransformOptionValue(false, "4.1.1.2"))))))))),
-                        new TransformOptionGroup(false, Arrays.asList(
+                        new TransformOptionGroup(false, Set.of(
                                 new TransformOptionValue(false, "5"),
-                                new TransformOptionGroup(false, Arrays.asList(
-                                        new TransformOptionGroup(true, Arrays.asList( // REQUIRED
-                                                new TransformOptionGroup(false, Arrays.asList(
+                                new TransformOptionGroup(false, Set.of(
+                                        new TransformOptionGroup(true, Set.of( // REQUIRED
+                                                new TransformOptionGroup(false, Set.of(
                                                         new TransformOptionValue(false, "5.1.1.2"))))))))),
-                        new TransformOptionGroup(false, Arrays.asList(
+                        new TransformOptionGroup(false, Set.of(
                                 new TransformOptionValue(false, "6"),
-                                new TransformOptionGroup(false, Arrays.asList(
-                                        new TransformOptionGroup(false, Arrays.asList(
-                                                new TransformOptionGroup(true, Arrays.asList( // REQUIRED
+                                new TransformOptionGroup(false, Set.of(
+                                        new TransformOptionGroup(false, Set.of(
+                                                new TransformOptionGroup(true, Set.of( // REQUIRED
                                                         new TransformOptionValue(false, "6.1.1.2"))))))))),
-                        new TransformOptionGroup(false, Arrays.asList(
+                        new TransformOptionGroup(false, Set.of(
                                 new TransformOptionValue(false, "7"),
-                                new TransformOptionGroup(false, Arrays.asList(
-                                        new TransformOptionGroup(false, Arrays.asList(
-                                                new TransformOptionGroup(false, Arrays.asList(
+                                new TransformOptionGroup(false, Set.of(
+                                        new TransformOptionGroup(false, Set.of(
+                                                new TransformOptionGroup(false, Set.of(
                                                         new TransformOptionValue(true, "7.1.1.2"))))))))) // REQUIRED
                 ));
 
@@ -621,7 +700,7 @@ public class TransformServiceRegistryConfigTest
     @Test
     public void testNoActualOptions()  throws Exception
     {
-        assertTransformOptions(Arrays.asList(
+        assertTransformOptions(Set.of(
                 new TransformOptionValue(false, "option1"),
                 new TransformOptionValue(false, "option2")));
     }
@@ -629,19 +708,19 @@ public class TransformServiceRegistryConfigTest
     @Test
     public void testNoTrasformOptions()  throws Exception
     {
-        assertTransformOptions(Collections.emptyList());
+        assertTransformOptions(Collections.emptySet());
         assertTransformOptions(null);
     }
 
     @Test
     public void testSupported() throws Exception
     {
-        transformer = new Transformer("name",
-                Arrays.asList(
+        transformer = new InlineTransformer("name",
+                Set.of(
                         new TransformOptionValue(false, "page"),
                         new TransformOptionValue(false, "width"),
                         new TransformOptionValue(false, "height")),
-                Arrays.asList(
+                Set.of(
                         new SupportedSourceAndTarget(DOC, GIF, 102400),
                         new SupportedSourceAndTarget(DOC, JPEG, -1),
                         new SupportedSourceAndTarget(MSG, GIF, -1)));
@@ -662,16 +741,16 @@ public class TransformServiceRegistryConfigTest
     public void testCache()
     {
         // Note: transformNames are an alias for a set of actualOptions and the target mimetpe. The source mimetype may change.
-        transformer = new Transformer("name",
-                Arrays.asList(
+        transformer = new InlineTransformer("name",
+                Set.of(
                         new TransformOptionValue(false, "page"),
                         new TransformOptionValue(false, "width"),
                         new TransformOptionValue(false, "height")),
-                Arrays.asList(
+                Set.of(
                         new SupportedSourceAndTarget(DOC, GIF, 102400),
                         new SupportedSourceAndTarget(MSG, GIF, -1)));
 
-        registry.register(registry.getData(), transformer, getBaseUrl(transformer), getClass().getName());
+        registry.register(transformer, getBaseUrl(transformer), getClass().getName());
 
         assertSupported(DOC, 1024, GIF, null, "doclib", "");
         assertSupported(MSG, 1024, GIF, null, "doclib", "");
@@ -688,16 +767,16 @@ public class TransformServiceRegistryConfigTest
     @Test
     public void testGetTransformerName() throws Exception
     {
-        Transformer t1 = new Transformer("transformer1", null,
-                Arrays.asList(new SupportedSourceAndTarget(MSG, GIF, 100, 50)));
-        Transformer t2 = new Transformer("transformer2", null,
-                Arrays.asList(new SupportedSourceAndTarget(MSG, GIF, 200, 60)));
-        Transformer t3 = new Transformer("transformer3", null,
-                Arrays.asList(new SupportedSourceAndTarget(MSG, GIF, 200, 40)));
-        Transformer t4 = new Transformer("transformer4", null,
-                Arrays.asList(new SupportedSourceAndTarget(MSG, GIF, -1, 100)));
-        Transformer t5 = new Transformer("transformer5", null,
-                Arrays.asList(new SupportedSourceAndTarget(MSG, GIF, -1, 80)));
+       InlineTransformer t1 = new InlineTransformer("transformer1", null,
+                Set.of(new SupportedSourceAndTarget(MSG, GIF, 100, 50)));
+       InlineTransformer t2 = new InlineTransformer("transformer2", null,
+                Set.of(new SupportedSourceAndTarget(MSG, GIF, 200, 60)));
+       InlineTransformer t3 = new InlineTransformer("transformer3", null,
+                Set.of(new SupportedSourceAndTarget(MSG, GIF, 200, 40)));
+       InlineTransformer t4 = new InlineTransformer("transformer4", null,
+                Set.of(new SupportedSourceAndTarget(MSG, GIF, -1, 100)));
+       InlineTransformer t5 = new InlineTransformer("transformer5", null,
+                Set.of(new SupportedSourceAndTarget(MSG, GIF, -1, 80)));
 
         Map<String, String> actualOptions = null;
 
@@ -719,28 +798,28 @@ public class TransformServiceRegistryConfigTest
     @Test
     public void testMultipleTransformers() throws Exception
     {
-        Transformer transformer1 = new Transformer("transformer1",
-                Arrays.asList(
+       InlineTransformer transformer1 = new InlineTransformer("transformer1",
+                Set.of(
                         new TransformOptionValue(false, "page"),
                         new TransformOptionValue(false, "width"),
                         new TransformOptionValue(false, "height")),
-                Arrays.asList(
+                Set.of(
                         new SupportedSourceAndTarget(DOC, GIF, 102400),
                         new SupportedSourceAndTarget(DOC, JPEG, -1),
                         new SupportedSourceAndTarget(MSG, GIF, -1)));
 
-        Transformer transformer2 = new Transformer("transformer2",
-                Arrays.asList(
+       InlineTransformer transformer2 = new InlineTransformer("transformer2",
+                Set.of(
                         new TransformOptionValue(false, "opt1"),
                         new TransformOptionValue(false, "opt2")),
-                Arrays.asList(
+                Set.of(
                         new SupportedSourceAndTarget(PDF, GIF, -1),
                         new SupportedSourceAndTarget(PPT, JPEG, -1)));
 
-        Transformer transformer3 = new Transformer("transformer3",
-                Arrays.asList(
+       InlineTransformer transformer3 = new InlineTransformer("transformer3",
+                Set.of(
                         new TransformOptionValue(false, "opt1")),
-                Arrays.asList(
+                Set.of(
                         new SupportedSourceAndTarget(DOC, GIF, -1)));
 
         Map<String, String> actualOptions = null;
@@ -766,18 +845,18 @@ public class TransformServiceRegistryConfigTest
     @Test
     public void testPipeline() throws Exception
     {
-        Transformer transformer1 = new Transformer("transformer1",
+        InlineTransformer transformer1 = new InlineTransformer("transformer1",
                 null, // there are no options
-                Arrays.asList(
+                Set.of(
                         new SupportedSourceAndTarget(DOC, PDF, -1),
                         new SupportedSourceAndTarget(MSG, PDF, -1)));
 
-        Transformer transformer2 = new Transformer("transformer2",
-                Arrays.asList(
+        InlineTransformer transformer2 = new InlineTransformer("transformer2",
+                Set.of(
                         new TransformOptionValue(false, "page"),
                         new TransformOptionValue(false, "width"),
                         new TransformOptionValue(false, "height")),
-                Arrays.asList(
+                Set.of(
                         new SupportedSourceAndTarget(PDF, GIF, -1),
                         new SupportedSourceAndTarget(PDF, JPEG, -1)));
 
@@ -794,7 +873,7 @@ public class TransformServiceRegistryConfigTest
         assertSupported(DOC, 1024, GIF, buildActualOptions("page, width, startPage"), "startPage is not an option");
 
         // Add options to the first transformer
-        transformer1.setTransformOptions(Arrays.asList(
+        transformer1.setTransformOptions(Set.of(
                 new TransformOptionValue(false, "startPage"),
                 new TransformOptionValue(false, "endPage")));
         buildPipelineTransformer(transformer1, transformer2);
@@ -803,10 +882,10 @@ public class TransformServiceRegistryConfigTest
         assertSupported(DOC, 1024, GIF, buildActualOptions("page, width, startPage"), null);
     }
 
-    private void buildPipelineTransformer(Transformer transformer1, Transformer transformer2)
+    private void buildPipelineTransformer(InlineTransformer transformer1, InlineTransformer transformer2)
     {
         transformer = builder.buildPipeLine("transformer1",
-                Arrays.asList(
+                Set.of(
                         new SupportedSourceAndTarget(DOC, GIF, -1),
                         new SupportedSourceAndTarget(DOC, JPEG, -1),
                         new SupportedSourceAndTarget(MSG, GIF, -1)),

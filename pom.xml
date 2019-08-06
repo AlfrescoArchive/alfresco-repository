@@ -2,7 +2,7 @@
     <modelVersion>4.0.0</modelVersion>
     <artifactId>alfresco-repository</artifactId>
     <name>Alfresco Repository</name>
-    <version>7.91-SNAPSHOT</version>
+    <version>7.99-SNAPSHOT</version>
     <packaging>jar</packaging>
 
     <parent>
@@ -38,9 +38,9 @@
         <maven.build.sourceVersion>11</maven.build.sourceVersion>
 
         <dependency.alfresco-legacy-lucene.version>6.2</dependency.alfresco-legacy-lucene.version>
-        <dependency.alfresco-core.version>7.19</dependency.alfresco-core.version>
+        <dependency.alfresco-core.version>7.20</dependency.alfresco-core.version>
         <dependency.alfresco-greenmail.version>6.1</dependency.alfresco-greenmail.version>
-        <dependency.alfresco-data-model.version>8.45</dependency.alfresco-data-model.version>
+        <dependency.alfresco-data-model.version>8.46</dependency.alfresco-data-model.version>
         <dependency.alfresco-jlan.version>7.1</dependency.alfresco-jlan.version>
         <dependency.alfresco-pdf-renderer.version>1.1</dependency.alfresco-pdf-renderer.version>
         <dependency.alfresco-hb-data-sender.version>1.0.11</dependency.alfresco-hb-data-sender.version>
@@ -52,8 +52,8 @@
         <dependency.poi.version>4.0.1</dependency.poi.version>
         <dependency.webscripts.version>7.8</dependency.webscripts.version>
         <dependency.opencmis.version>1.0.0</dependency.opencmis.version>
-        <dependency.activiti-engine.version>5.22.0</dependency.activiti-engine.version>
-        <dependency.activiti.version>5.22.0</dependency.activiti.version>
+        <dependency.activiti-engine.version>5.23.0-RC1</dependency.activiti-engine.version>
+        <dependency.activiti.version>5.23.0-RC1</dependency.activiti.version>
         <dependency.postgresql.version>42.2.6</dependency.postgresql.version>
         <dependency.mysql.version>5.1.47</dependency.mysql.version>
         <dependency.mariadb.version>2.2.5</dependency.mariadb.version>
@@ -64,6 +64,8 @@
         <dependency.activemq.version>5.15.9</dependency.activemq.version>
         <dependency.pdfbox.version>2.0.16</dependency.pdfbox.version>
         <dependency.cxf.version>3.3.2</dependency.cxf.version>
+        <dependency.jackson.version>2.9.9</dependency.jackson.version>
+        <dependency.transform.model.version>1.0.2.5</dependency.transform.model.version>
     </properties>
 
     <dependencyManagement>
@@ -545,6 +547,12 @@
             <version>1.1</version>
         </dependency>
 
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+            <version>${dependency.jackson.version}</version>
+        </dependency>
+
         <!-- Spring Surf -->
         <dependency>
             <groupId>org.alfresco.surf</groupId>
@@ -978,6 +986,13 @@
                     <artifactId>slf4j-log4j12</artifactId>
                 </exclusion>
             </exclusions>
+        </dependency>
+
+        <!-- Transform dependencies -->
+        <dependency>
+            <groupId>org.alfresco</groupId>
+            <artifactId>alfresco-transform-model</artifactId>
+            <version>${dependency.transform.model.version}</version>
         </dependency>
 
         <!-- Test dependencies -->
