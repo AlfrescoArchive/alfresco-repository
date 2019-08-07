@@ -57,12 +57,11 @@ public class RenditionDefinitionRegistry2Impl implements RenditionDefinitionRegi
     {
         Map<String, RenditionDefinition2> renditionDefinitions = new HashMap();
         Map<String, Set<Pair<String, Long>>> renditionsFor = new HashMap<>();
-        private int count = 0;
 
         @Override
         public String toString()
         {
-            return "("+count+")";
+            return "(renditions: "+renditionDefinitions.size()+")";
         }
     }
 
