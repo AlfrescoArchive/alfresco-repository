@@ -68,6 +68,11 @@ public abstract class ConfigFileFinder
         return fileCount;
     }
 
+    public void setFileCount(int fileCount)
+    {
+        this.fileCount = fileCount;
+    }
+
     public boolean readFiles(String path, Log log)
     {
         AtomicBoolean successReadingConfig = new AtomicBoolean(true);
@@ -123,7 +128,7 @@ public abstract class ConfigFileFinder
             {
                 final String name = entries.nextElement().getName();
                 if ((name.startsWith(prefix) && name.length() > prefix.length()) ||
-                        (name.equals(path)))
+                    (name.equals(path)))
                 {
                     names.add(name);
                 }

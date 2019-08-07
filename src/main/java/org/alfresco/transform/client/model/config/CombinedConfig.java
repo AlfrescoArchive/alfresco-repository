@@ -273,8 +273,9 @@ public class CombinedConfig
 
     public void register(TransformServiceRegistryImpl registry) throws IOException
     {
-        registry.getData().setTEngineCount(tEngineCount);
-        registry.getData().setFileCount(configFileFinder.getFileCount());
+        TransformServiceRegistryImpl.Data data = registry.getData();
+        data.setTEngineCount(tEngineCount);
+        data.setFileCount(configFileFinder.getFileCount());
         List<TransformAndItsOrigin> transformers = getTransforms();
         transformers.forEach(t->registry.register(t.transform, t.baseUrl, t.readFrom));
     }
