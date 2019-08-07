@@ -53,7 +53,7 @@
         <dependency.webscripts.version>7.8</dependency.webscripts.version>
         <dependency.opencmis.version>1.0.0</dependency.opencmis.version>
         <dependency.activiti-engine.version>5.22.0</dependency.activiti-engine.version>
-        <dependency.activiti.version>5.22.0</dependency.activiti.version>
+        <dependency.activiti.version>7.0.0.GA</dependency.activiti.version>
         <dependency.postgresql.version>42.2.6</dependency.postgresql.version>
         <dependency.mysql.version>5.1.47</dependency.mysql.version>
         <dependency.mariadb.version>2.2.5</dependency.mariadb.version>
