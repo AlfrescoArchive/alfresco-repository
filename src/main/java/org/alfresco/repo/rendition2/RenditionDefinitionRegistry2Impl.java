@@ -193,6 +193,7 @@ public class RenditionDefinitionRegistry2Impl implements RenditionDefinitionRegi
         PropertyCheck.mandatory(this, "transformServiceRegistry", transformServiceRegistry);
         PropertyCheck.mandatory(this, "timeoutDefault", timeoutDefault);
         PropertyCheck.mandatory(this, "jsonObjectMapper", jsonObjectMapper);
+        // If we have a cronExpression it indicates that we will schedule reading.
         if (cronExpression != null)
         {
             PropertyCheck.mandatory(this, "initialAndOnErrorCronExpression", initialAndOnErrorCronExpression);
