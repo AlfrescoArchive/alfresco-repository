@@ -162,7 +162,7 @@ public abstract class TransformServiceRegistryImpl implements TransformServiceRe
         return new Data();
     }
 
-    public synchronized Data getData()
+    public Data getData()
     {
         return configScheduler.getData();
     }
