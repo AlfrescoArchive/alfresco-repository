@@ -55,11 +55,10 @@ import java.util.Set;
  * transformer has a list of node options. The idea of this code is that it replaces the references with the
  * actual node options that have been separated out into their own section.<p>
  *
- * The T-Router and T-Engines return the format with the node option separated into their own section. Pipeline
- * definitions used by the LocalTransformServiceRegistry may use node reference options defined in the json
- * returned by T-Engines.  with the actual definitions from the node options
- * reference section. It also combines multiple json sources into a single jsonNode structure that can be parsed as
- * before.
+ * The T-Router and T-Engines return the format with the node option separated into their own section. Pipeline and
+ * Failover definitions used by the LocalTransformServiceRegistry may use node reference options defined in the json
+ * returned by T-Engines, with the actual definitions from the node options reference section. It also combines multiple
+ * json sources into a single jsonNode structure that can be parsed as before.
  */
 public class CombinedConfig
 {
@@ -373,20 +372,32 @@ public class CombinedConfig
             {
                 String name = entry.transform.getTransformerName();
                 List<TransformStep> pipeline = entry.transform.getTransformerPipeline();
+                Set<String> referencedTransformerNames = new HashSet<>();
                 boolean addEntry = true;
-                if (pipeline != null && !pipeline.isEmpty())
+                if (pipeline != null)
                 {
                     for (TransformStep step : pipeline)
                     {
                         String stepName = step.getTransformerName();
-                        if (!transformerNames.contains(stepName))
-                        {
-                            todo.add(entry);
-                            addEntry = false;
-                            break;
-                        }
+                        referencedTransformerNames.add(stepName);
                     }
                 }
+                List<String> failover = entry.transform.getTransformerFailover();
+                if (failover != null)
+                {
+                    referencedTransformerNames.addAll(failover);
+                }
+
+                for (String referencedTransformerName : referencedTransformerNames)
+                {
+                    if (!transformerNames.contains(referencedTransformerName))
+                    {
+                        todo.add(entry);
+                        addEntry = false;
+                        break;
+                    }
+                }
+
                 if (addEntry)
                 {
                     transformers.add(entry);

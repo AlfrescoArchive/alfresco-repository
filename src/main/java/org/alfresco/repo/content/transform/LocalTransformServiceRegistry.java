@@ -41,7 +41,6 @@ import org.springframework.beans.factory.InitializingBean;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -172,9 +171,14 @@ public class LocalTransformServiceRegistry extends TransformServiceRegistryImpl 
 
             LocalTransform localTransform;
             List<TransformStep> pipeline = transformer.getTransformerPipeline();
-            List<TransformStep> failover = Collections.EMPTY_LIST; // TODO ... = transformer.getTransformerFailover();
+            List<String> failover = transformer.getTransformerFailover();
             boolean isPipeline = pipeline != null && !pipeline.isEmpty();
             boolean isFailover = failover != null && !failover.isEmpty();
+            if (isPipeline && isFailover)
+            {
+                throw new IllegalArgumentException("Local transformer " + name +
+                        " cannot have pipeline and failover sections. Read from "+readFrom);
+            }
             if (!isPipeline && !isFailover)
             {
                 baseUrl = getBaseUrlIfTesting(name, baseUrl);
@@ -258,10 +262,9 @@ public class LocalTransformServiceRegistry extends TransformServiceRegistryImpl 
                 localTransform = new LocalFailoverTransform(name, transformerDebug, mimetypeService,
                         strictMimeTypeCheck, strictMimetypeExceptions, retryTransformOnDifferentMimeType,
                         this);
-                for (int i=0; i < transformerCount; i++)
+
+                for (String transformerStepName : failover)
                 {
-                    TransformStep transformStep = failover.get(i);
-                    String transformerStepName = transformStep.getTransformerName();
                     if (name == null || localTransforms.get(name) != null)
                     {
                         throw new IllegalArgumentException("Local failover transformer " + name +
