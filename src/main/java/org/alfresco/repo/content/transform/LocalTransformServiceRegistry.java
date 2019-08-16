@@ -41,6 +41,7 @@ import org.springframework.beans.factory.InitializingBean;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -171,7 +172,10 @@ public class LocalTransformServiceRegistry extends TransformServiceRegistryImpl 
 
             LocalTransform localTransform;
             List<TransformStep> pipeline = transformer.getTransformerPipeline();
-            if (pipeline == null || pipeline.isEmpty())
+            List<TransformStep> failover = Collections.EMPTY_LIST; // TODO ... = transformer.getTransformerFailover();
+            boolean isPipeline = pipeline != null && !pipeline.isEmpty();
+            boolean isFailover = failover != null && !failover.isEmpty();
+            if (!isPipeline && !isFailover)
             {
                 baseUrl = getBaseUrlIfTesting(name, baseUrl);
                 if (baseUrl == null)
@@ -185,7 +189,7 @@ public class LocalTransformServiceRegistry extends TransformServiceRegistryImpl 
                          strictMimeTypeCheck, strictMimetypeExceptions, retryTransformOnDifferentMimeType,
                         this, baseUrl, startupRetryPeriodSeconds);
             }
-            else
+            else if (isPipeline)
             {
                 int transformerCount = pipeline.size();
                 if (transformerCount <= 1)
@@ -205,7 +209,7 @@ public class LocalTransformServiceRegistry extends TransformServiceRegistryImpl 
                     if (name == null || localTransforms.get(name) != null)
                     {
                         throw new IllegalArgumentException("Local pipeline transformer " + name +
-                                " did not specified an intermediate transformer name."+
+                                " did not specified a known intermediate transformer name."+
                                 " Read from "+readFrom);
                     }
 
@@ -239,6 +243,42 @@ public class LocalTransformServiceRegistry extends TransformServiceRegistryImpl 
                         }
                     }
                     ((LocalPipelineTransform) localTransform).addIntermediateTransformer(intermediateTransformer, targetMimetype);
+                }
+            }
+            else // if (isFailover)
+            {
+                int transformerCount = failover.size();
+                if (transformerCount <= 1)
+                {
+                    throw new IllegalArgumentException("Local failover transformer " + name +
+                            " must have more than one transformer defined."+
+                            " Read from "+readFrom);
+                }
+
+                localTransform = new LocalFailoverTransform(name, transformerDebug, mimetypeService,
+                        strictMimeTypeCheck, strictMimetypeExceptions, retryTransformOnDifferentMimeType,
+                        this);
+                for (int i=0; i < transformerCount; i++)
+                {
+                    TransformStep transformStep = failover.get(i);
+                    String transformerStepName = transformStep.getTransformerName();
+                    if (name == null || localTransforms.get(name) != null)
+                    {
+                        throw new IllegalArgumentException("Local failover transformer " + name +
+                                " did not specified a known transformer name."+
+                                " Read from "+readFrom);
+                    }
+
+                    LocalTransform stepTransformer = localTransforms.get(transformerStepName);
+                    if (stepTransformer == null)
+                    {
+                        throw new IllegalArgumentException("Local failover transformer " + name +
+                                " specified an intermediate transformer " +
+                                transformerStepName + " that has not been defined."+
+                                " Read from "+readFrom);
+                    }
+
+                    ((LocalFailoverTransform) localTransform).addStepTransformer(stepTransformer);
                 }
             }
             localTransforms.put(name, localTransform);
