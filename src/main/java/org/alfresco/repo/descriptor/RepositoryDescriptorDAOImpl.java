@@ -224,7 +224,7 @@ public class RepositoryDescriptorDAOImpl implements DescriptorDAO
                         ContentModel.PROP_SYS_VERSION_EDITION);
                 if (value == null)
                 {
-                    this.nodeService.setProperty(
+                    this.nodeService.setContentProperty(
                             currentDescriptorNodeRef,
                             ContentModel.PROP_SYS_VERSION_EDITION,
                             new ContentData(null, null, 0L, null));

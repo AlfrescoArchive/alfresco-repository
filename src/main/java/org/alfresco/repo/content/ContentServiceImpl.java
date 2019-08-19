@@ -48,6 +48,7 @@ import org.alfresco.repo.content.transform.TransformerDebug;
 import org.alfresco.repo.content.transform.UnimportantTransformException;
 import org.alfresco.repo.content.transform.UnsupportedTransformationException;
 import org.alfresco.repo.node.NodeServicePolicies;
+import org.alfresco.repo.node.db.DbNodeServiceImpl;
 import org.alfresco.repo.policy.ClassPolicyDelegate;
 import org.alfresco.repo.policy.JavaBehaviour;
 import org.alfresco.repo.policy.PolicyComponent;
@@ -997,7 +998,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
             {
                 // set the full content property
                 ContentData contentData = writer.getContentData();
-                nodeService.setProperty(nodeRef, propertyQName, contentData);
+                nodeService.setContentProperty(nodeRef, propertyQName, contentData);
                 // done
                 if (logger.isDebugEnabled())
                 {

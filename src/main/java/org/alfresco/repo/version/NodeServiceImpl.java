@@ -475,6 +475,12 @@ public class NodeServiceImpl implements NodeService, VersionModel
         throw new UnsupportedOperationException(MSG_UNSUPPORTED);
     }
 
+    public void setContentProperty(NodeRef nodeRef, QName qame, Serializable value) throws InvalidNodeRefException
+    {
+        // This operation is not supported for a version store
+        throw new UnsupportedOperationException(MSG_UNSUPPORTED);
+    }
+
     /**
      * @throws UnsupportedOperationException always
      */

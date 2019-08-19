@@ -64,6 +64,7 @@ import org.alfresco.service.cmr.dictionary.AspectDefinition;
 import org.alfresco.service.cmr.dictionary.AssociationDefinition;
 import org.alfresco.service.cmr.dictionary.ChildAssociationDefinition;
 import org.alfresco.service.cmr.dictionary.ClassDefinition;
+import org.alfresco.service.cmr.dictionary.DataTypeDefinition;
 import org.alfresco.service.cmr.dictionary.InvalidAspectException;
 import org.alfresco.service.cmr.dictionary.InvalidTypeException;
 import org.alfresco.service.cmr.dictionary.PropertyDefinition;
@@ -71,6 +72,7 @@ import org.alfresco.service.cmr.dictionary.TypeDefinition;
 import org.alfresco.service.cmr.repository.AssociationExistsException;
 import org.alfresco.service.cmr.repository.AssociationRef;
 import org.alfresco.service.cmr.repository.ChildAssociationRef;
+import org.alfresco.service.cmr.repository.ContentData;
 import org.alfresco.service.cmr.repository.InvalidChildAssociationRefException;
 import org.alfresco.service.cmr.repository.InvalidNodeRefException;
 import org.alfresco.service.cmr.repository.InvalidStoreRefException;
@@ -1597,11 +1599,25 @@ public class DbNodeServiceImpl extends AbstractNodeServiceImpl implements Extens
      * 
      */
     @Extend(traitAPI=NodeServiceTrait.class,extensionAPI=NodeServiceExtension.class)
-    public void setProperty(NodeRef nodeRef, QName qname, Serializable value) throws InvalidNodeRefException
+    public void setProperty(NodeRef nodeRef, QName qname, Serializable value)
     {
         ParameterCheck.mandatory("nodeRef", nodeRef);
         ParameterCheck.mandatory("qname", qname);
-        
+
+        if (isContentProperty(qname, value))
+        {
+            throw new InvalidTypeException("The node's content can't be updated via NodeService directly: \n" +
+                    "   node: " + nodeRef + "\n" +
+                    "   property name: " + qname.getLocalName(), qname);
+        }
+        setPropertyInternal(nodeRef, qname, value);
+    }
+
+    private void setPropertyInternal(NodeRef nodeRef, QName qname, Serializable value) throws InvalidNodeRefException
+    {
+        ParameterCheck.mandatory("nodeRef", nodeRef);
+        ParameterCheck.mandatory("qname", qname);
+
         // The UUID cannot be explicitly changed
         if (qname.equals(ContentModel.PROP_NODE_UUID))
         {
@@ -1610,28 +1626,49 @@ public class DbNodeServiceImpl extends AbstractNodeServiceImpl implements Extens
 
         // get the node
         Pair<Long, NodeRef> nodePair = getNodePairNotNull(nodeRef);
-        
+
         // Invoke policy behaviour
         invokeBeforeUpdateNode(nodeRef);
-        
+
         // cm:name special handling
         setPropertiesCommonWork(
-                    nodePair,
-                    Collections.singletonMap(qname, value));
+                nodePair,
+                Collections.singletonMap(qname, value));
 
         // Add the property and all required defaults
         boolean changed = addAspectsAndProperties(
-                    nodePair, null,
-                    null, null,
-                    null, Collections.singletonMap(qname, value), false);
-        
+                nodePair, null,
+                null, null,
+                null, Collections.singletonMap(qname, value), false);
+
         if (changed)
         {
             // Invoke policy behaviour
             invokeOnUpdateNode(nodeRef);
         }
     }
-    
+
+    /**
+     * Internal API to update node's content. Unlike {@link #setProperty} and similar this method is not restricted for content updates.
+     * This is primarily intended to be used by trusted services.
+     */
+    @Extend(traitAPI=NodeServiceTrait.class,extensionAPI=NodeServiceExtension.class)
+    public void setContentProperty(NodeRef nodeRef, QName qname, Serializable value) throws InvalidNodeRefException
+    {
+        setPropertyInternal(nodeRef, qname, value);
+    }
+
+    private boolean isContentProperty(QName propertyQName, Serializable propValue)
+    {
+        if (propValue instanceof ContentData)
+        {
+            return true;
+        }
+
+        PropertyDefinition contentPropDef = dictionaryService.getProperty(propertyQName);
+        return contentPropDef != null && contentPropDef.getDataType().getName().equals(DataTypeDefinition.CONTENT);
+    }
+
     /**
      * Ensures that all required properties are present on the node and copies the
      * property values to the <code>Node</code>.

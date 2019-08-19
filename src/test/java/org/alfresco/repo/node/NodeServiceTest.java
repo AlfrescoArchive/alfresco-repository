@@ -79,6 +79,7 @@ import org.alfresco.repo.security.permissions.AccessDeniedException;
 import org.alfresco.repo.template.PropertyConverter;
 import org.alfresco.repo.transaction.RetryingTransactionHelper.RetryingTransactionCallback;
 import org.alfresco.service.ServiceRegistry;
+import org.alfresco.service.cmr.dictionary.InvalidTypeException;
 import org.alfresco.service.cmr.repository.AssociationRef;
 import org.alfresco.service.cmr.repository.ChildAssociationRef;
 import org.alfresco.service.cmr.repository.ContentData;
@@ -1939,6 +1940,7 @@ public class NodeServiceTest
                     QName.createQName(GUID.generate()),
                     ContentModel.TYPE_CONTENT).getChildRef();
 
+            // Should be possible to add content via contentService
             ContentWriter contentWriter = contentService.getWriter(nodeRef, ContentModel.PROP_CONTENT, true);
             contentWriter.setMimetype("text/plain");
             contentWriter.setEncoding("UTF-8");
@@ -1969,12 +1971,21 @@ public class NodeServiceTest
                     QName.createQName(GUID.generate()),
                     ContentModel.TYPE_CONTENT).getChildRef();
 
-            // This should not be allowed
-            nodeService.setProperty(nodeRef, ContentModel.PROP_CONTENT, contentProp1);
-            ContentReader contentReader = contentService.getReader(nodeRef, ContentModel.PROP_CONTENT);
-            return contentReader.getContentString();
-        }, userName2);
+            try
+            {
+                nodeService.setProperty(nodeRef, ContentModel.PROP_CONTENT, contentProp1);
+                fail("Should not be possible to call setProperty directly");
+            }
+            catch (InvalidTypeException ite)
+            {
+                // expected
+            }
 
-        assertNotEquals("The content should not be copied to a different node.", content, content2);
+            // TODO add tests for other update property methods in Node Service
+
+            ContentReader contentReader = contentService.getReader(nodeRef, ContentModel.PROP_CONTENT);
+            assertNull("The second node should not have any content (all attempts should fail", contentReader);
+            return null;
+        }, userName2);
     }
 }

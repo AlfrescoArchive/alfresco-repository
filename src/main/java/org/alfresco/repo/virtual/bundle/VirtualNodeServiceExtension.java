@@ -1421,6 +1421,14 @@ public class VirtualNodeServiceExtension extends VirtualSpringBeanExtension<Node
     }
 
     @Override
+    public void setContentProperty(NodeRef nodeRef, QName qname, Serializable value) throws InvalidNodeRefException
+    {
+        getTrait().setContentProperty(materializeIfPossible(nodeRef),
+                qname,
+                value);
+    }
+
+    @Override
     public void removeProperty(NodeRef nodeRef, QName qname) throws InvalidNodeRefException
     {
         getTrait().removeProperty(materializeIfPossible(nodeRef),
