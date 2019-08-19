@@ -485,6 +485,7 @@ public interface NodeService
      * @param value the value of the property
      * @throws InvalidNodeRefException if the node could not be found
      */
+    @Auditable(parameters = {"nodeRef", "qname", "value"})
     public void setContentProperty(NodeRef nodeRef, QName qname, Serializable value) throws InvalidNodeRefException;
 
     /**
