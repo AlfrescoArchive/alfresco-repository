@@ -27,6 +27,7 @@ package org.alfresco.repo.node;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
@@ -47,11 +48,11 @@ import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 
+import org.alfresco.jlan.server.filesys.PermissionDeniedException;
 import org.alfresco.model.ContentModel;
 import org.alfresco.repo.cache.SimpleCache;
 import org.alfresco.repo.cache.TransactionalCache;
 import org.alfresco.repo.cache.TransactionalCache.ValueHolder;
-import org.alfresco.repo.domain.dialect.Dialect;
 import org.alfresco.repo.domain.node.Node;
 import org.alfresco.repo.domain.node.NodeDAO;
 import org.alfresco.repo.domain.node.NodeEntity;
@@ -74,10 +75,16 @@ import org.alfresco.repo.policy.JavaBehaviour;
 import org.alfresco.repo.policy.Policy;
 import org.alfresco.repo.policy.PolicyComponent;
 import org.alfresco.repo.security.authentication.AuthenticationUtil;
+import org.alfresco.repo.security.permissions.AccessDeniedException;
+import org.alfresco.repo.template.PropertyConverter;
 import org.alfresco.repo.transaction.RetryingTransactionHelper.RetryingTransactionCallback;
 import org.alfresco.service.ServiceRegistry;
 import org.alfresco.service.cmr.repository.AssociationRef;
 import org.alfresco.service.cmr.repository.ChildAssociationRef;
+import org.alfresco.service.cmr.repository.ContentData;
+import org.alfresco.service.cmr.repository.ContentReader;
+import org.alfresco.service.cmr.repository.ContentService;
+import org.alfresco.service.cmr.repository.ContentWriter;
 import org.alfresco.service.cmr.repository.DuplicateChildNodeNameException;
 import org.alfresco.service.cmr.repository.InvalidNodeRefException;
 import org.alfresco.service.cmr.repository.MLText;
@@ -86,6 +93,10 @@ import org.alfresco.service.cmr.repository.NodeRef.Status;
 import org.alfresco.service.cmr.repository.NodeService;
 import org.alfresco.service.cmr.repository.Path;
 import org.alfresco.service.cmr.repository.StoreRef;
+import org.alfresco.service.cmr.repository.datatype.DefaultTypeConverter;
+import org.alfresco.service.cmr.security.MutableAuthenticationService;
+import org.alfresco.service.cmr.security.PermissionService;
+import org.alfresco.service.cmr.security.PersonService;
 import org.alfresco.service.namespace.NamespaceService;
 import org.alfresco.service.namespace.QName;
 import org.alfresco.service.namespace.RegexQNamePattern;
@@ -132,6 +143,9 @@ public class NodeServiceTest
     
     private static ServiceRegistry serviceRegistry;
     private static NodeService nodeService;
+    private static PersonService personService;
+    private static ContentService contentService;
+    private static PermissionService permissionService;
     private static NodeDAO nodeDAO;
     private static TransactionService txnService;
     private static PolicyComponent policyComponent;
@@ -152,6 +166,9 @@ public class NodeServiceTest
 
         serviceRegistry = (ServiceRegistry) APP_CONTEXT_INIT.getApplicationContext().getBean(ServiceRegistry.SERVICE_REGISTRY);
         nodeService = serviceRegistry.getNodeService();
+        personService = serviceRegistry.getPersonService();
+        contentService = serviceRegistry.getContentService();
+        permissionService = serviceRegistry.getPermissionService();
         nodeDAO = (NodeDAO) APP_CONTEXT_INIT.getApplicationContext().getBean("nodeDAO");
         txnService = serviceRegistry.getTransactionService();
         policyComponent = (PolicyComponent) APP_CONTEXT_INIT.getApplicationContext().getBean("policyComponent");
@@ -1875,5 +1892,89 @@ public class NodeServiceTest
         Long singleLinkCRC2 = (Long)nodeService.getProperty(nodeRef7, ContentModel.PROP_CASCADE_CRC);
         assertFalse(doubleLinkCRC2.equals(singleLinkCRC2));
         
+    }
+
+    /**
+     * See MNT-20850
+     */
+    @Test
+    public void testUpdateContentPermission()
+    {
+        NodeRef workspaceRootNodeRef = nodeService.getRootNode(StoreRef.STORE_REF_WORKSPACE_SPACESSTORE);
+        String content = "Some content";
+        String userName1 = GUID.generate();
+        String userName2 = GUID.generate();
+        HashMap<QName, Serializable> properties = new HashMap<QName, Serializable>();
+        properties.put(ContentModel.PROP_USERNAME, userName1);
+        personService.createPerson(properties);
+        properties.put(ContentModel.PROP_USERNAME, userName2);
+        personService.createPerson(properties);
+
+        Map<QName, Serializable> props = new HashMap<QName, Serializable>(3);
+        props.put(ContentModel.PROP_NAME, GUID.generate());
+        NodeRef folder1 = nodeService.createNode(
+                workspaceRootNodeRef,
+                ContentModel.ASSOC_CHILDREN,
+                QName.createQName(NAMESPACE, GUID.generate()),
+                ContentModel.TYPE_FOLDER,
+                props).getChildRef();
+
+        props.put(ContentModel.PROP_NAME, GUID.generate());
+        NodeRef folder2 = nodeService.createNode(
+                workspaceRootNodeRef,
+                ContentModel.ASSOC_CHILDREN,
+                QName.createQName(NAMESPACE, GUID.generate()),
+                ContentModel.TYPE_FOLDER,
+                props).getChildRef();
+
+        permissionService.setPermission(folder1, userName1, PermissionService.ALL_PERMISSIONS, true);
+        permissionService.setInheritParentPermissions(folder1, false);
+        permissionService.setPermission(folder2, userName2, PermissionService.ALL_PERMISSIONS, true);
+        permissionService.setInheritParentPermissions(folder2, false);
+
+        ContentData contentProp1 = AuthenticationUtil.runAs(() -> {
+            NodeRef nodeRef = nodeService.createNode(
+                    folder1,
+                    ContentModel.ASSOC_CONTAINS,
+                    QName.createQName(GUID.generate()),
+                    ContentModel.TYPE_CONTENT).getChildRef();
+
+            ContentWriter contentWriter = contentService.getWriter(nodeRef, ContentModel.PROP_CONTENT, true);
+            contentWriter.setMimetype("text/plain");
+            contentWriter.setEncoding("UTF-8");
+            contentWriter.putContent(content);
+
+            try
+            {
+                AuthenticationUtil.runAs(() -> {
+                    ContentReader contentReader = contentService.getReader(nodeRef, ContentModel.PROP_CONTENT);
+                    fail("The content of node1 should not be readable by user 2");
+                    return null;
+                }, userName2);
+            }
+            catch (Exception e)
+            {
+                // expected
+                assertTrue("The AccessDeniedException should be thrown.", e instanceof AccessDeniedException);
+            }
+
+            return DefaultTypeConverter.INSTANCE.convert(ContentData.class, nodeService.getProperty(nodeRef, ContentModel.PROP_CONTENT));
+        }, userName1);
+
+        String content2 = AuthenticationUtil.runAs(() ->
+        {
+            NodeRef nodeRef = nodeService.createNode(
+                    folder2,
+                    ContentModel.ASSOC_CONTAINS,
+                    QName.createQName(GUID.generate()),
+                    ContentModel.TYPE_CONTENT).getChildRef();
+
+            // This should not be allowed
+            nodeService.setProperty(nodeRef, ContentModel.PROP_CONTENT, contentProp1);
+            ContentReader contentReader = contentService.getReader(nodeRef, ContentModel.PROP_CONTENT);
+            return contentReader.getContentString();
+        }, userName2);
+
+        assertNotEquals("The content should not be copied to a different node.", content, content2);
     }
 }
