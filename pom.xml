@@ -1299,13 +1299,7 @@
                             <workingDirectory>${project.build.directory}</workingDirectory>
                             <systemPropertyVariables>
                                 <alfresco-pdf-renderer.exe>${alfresco-pdf-renderer.exe}</alfresco-pdf-renderer.exe>
-
-                                <!-- Database related properties -->
-                                <db.url>${db.url}</db.url>
-                                <db.driver>${db.driver}</db.driver>
-                                <db.name>${db.name}</db.name>
-                                <db.username>${db.username}</db.username>
-                                <db.password>${db.password}</db.password>
+                                
                                 <dir.root>${dir.root}</dir.root>
                                 <img.exe>${img.exe}</img.exe>
                                 <!-- BDE-91 -->
