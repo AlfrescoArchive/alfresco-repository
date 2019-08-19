@@ -475,7 +475,18 @@ public interface NodeService
      */
     @Auditable(parameters = {"nodeRef", "qname", "value"})
     public void setProperty(NodeRef nodeRef, QName qname, Serializable value) throws InvalidNodeRefException;
-    
+
+    /**
+     * Internal API to update node's content. Unlike {@link #setProperty} and similar this method is not restricted for content updates.
+     * This is primarily intended to be used by trusted services.
+     *
+     * @param nodeRef a reference to an existing node
+     * @param qname the fully qualified name of the property
+     * @param value the value of the property
+     * @throws InvalidNodeRefException if the node could not be found
+     */
+    public void setContentProperty(NodeRef nodeRef, QName qname, Serializable value) throws InvalidNodeRefException;
+
     /**
      * Removes a property value completely.
      * 
