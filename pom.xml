@@ -992,6 +992,10 @@
                     <groupId>org.slf4j</groupId>
                     <artifactId>slf4j-log4j12</artifactId>
                 </exclusion>
+                <exclusion>
+                	<groupId>org.apache.geronimo.specs</groupId>
+                	<artifactId>geronimo-jta_1.0.1B_spec</artifactId>
+                </exclusion>
             </exclusions>
         </dependency>
         <dependency>
@@ -1021,6 +1025,10 @@
                 <exclusion>
                     <groupId>org.slf4j</groupId>
                     <artifactId>slf4j-log4j12</artifactId>
+                </exclusion>
+                <exclusion>
+                	<groupId>org.apache.geronimo.specs</groupId>
+                	<artifactId>geronimo-jta_1.0.1B_spec</artifactId>
                 </exclusion>
             </exclusions>
         </dependency>
