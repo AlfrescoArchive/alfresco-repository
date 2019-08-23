@@ -1,0 +1,184 @@
+{
+  "transformers": [
+    {
+      "transformerName": "pdfToImageViaPng",
+      "transformerPipeline" : [
+        {"transformerName": "pdfrenderer", "targetMediaType": "image/png"},
+        {"transformerName": "imagemagick"}
+      ],
+      "supportedSourceAndTargetList": [
+        {"sourceMediaType": "application/pdf",  "targetMediaType": "image/gif" },
+        {"sourceMediaType": "application/pdf",  "targetMediaType": "image/jpeg"},
+        {"sourceMediaType": "application/pdf",  "targetMediaType": "image/png" },
+        {"sourceMediaType": "application/pdf",  "targetMediaType": "image/tiff"}
+      ],
+      "transformOptions": [
+        "pdfRendererOptions",
+        "imageMagickOptions"
+      ]
+    },
+    {
+      "transformerName": "iWorksToImageViaJpg",
+      "transformerPipeline" : [
+        {"transformerName": "appleIWorks", "targetMediaType": "image/jpeg"},
+        {"transformerName": "imagemagick"}
+      ],
+      "supportedSourceAndTargetList": [
+        {"sourceMediaType": "application/vnd.apple.keynote",  "targetMediaType": "image/gif" },
+        {"sourceMediaType": "application/vnd.apple.keynote",  "targetMediaType": "image/jpeg"},
+        {"sourceMediaType": "application/vnd.apple.keynote",  "targetMediaType": "image/png" },
+        {"sourceMediaType": "application/vnd.apple.keynote",  "targetMediaType": "image/tiff"},
+
+        {"sourceMediaType": "application/vnd.apple.numbers",  "targetMediaType": "image/gif" },
+        {"sourceMediaType": "application/vnd.apple.numbers",  "targetMediaType": "image/jpeg"},
+        {"sourceMediaType": "application/vnd.apple.numbers",  "targetMediaType": "image/png" },
+        {"sourceMediaType": "application/vnd.apple.numbers",  "targetMediaType": "image/tiff"},
+
+        {"sourceMediaType": "application/vnd.apple.pages",    "targetMediaType": "image/gif" },
+        {"sourceMediaType": "application/vnd.apple.pages",    "targetMediaType": "image/jpeg"},
+        {"sourceMediaType": "application/vnd.apple.pages",    "targetMediaType": "image/png" },
+        {"sourceMediaType": "application/vnd.apple.pages",    "targetMediaType": "image/tiff"}
+      ],
+      "transformOptions": [
+        "imageMagickOptions"
+      ]
+    },
+    {
+      "transformerName": "outlookMsg2Image",
+      "transformerPipeline" : [
+        {"transformerName": "tika",           "targetMediaType": "text/plain"},
+        {"transformerName": "textToImageViaPdf"}
+      ],
+      "supportedSourceAndTargetList": [
+        {"sourceMediaType": "application/vnd.ms-outlook",  "targetMediaType": "image/gif" },
+        {"sourceMediaType": "application/vnd.ms-outlook",  "targetMediaType": "image/jpeg"},
+        {"sourceMediaType": "application/vnd.ms-outlook",  "targetMediaType": "image/png" },
+        {"sourceMediaType": "application/vnd.ms-outlook",  "targetMediaType": "image/tiff"}
+      ],
+      "transformOptions": [
+        "tikaOptions",
+        "pdfRendererOptions",
+        "imageMagickOptions"
+      ]
+    },
+    {
+      "transformerName": "rfc822ToPdf",
+      "transformerPipeline" : [
+        {"transformerName": "rfc822",                       "targetMediaType": "text/plain"},
+        {"transformerName": "libreoffice"}
+      ],
+      "supportedSourceAndTargetList": [
+        {"sourceMediaType": "message/rfc822",               "targetMediaType": "application/pdf" }
+      ],
+      "transformOptions": [
+      ]
+    },
+    {
+      "transformerName": "rfc822ToImage",
+      "transformerPipeline" : [
+        {"transformerName": "rfc822",                       "targetMediaType": "text/plain"},
+        {"transformerName": "textToImageViaPdf"}
+      ],
+      "supportedSourceAndTargetList": [
+        {"sourceMediaType": "message/rfc822",                   "targetMediaType": "image/gif" },
+        {"sourceMediaType": "message/rfc822",                   "targetMediaType": "image/jpeg"},
+        {"sourceMediaType": "message/rfc822",                   "targetMediaType": "image/tiff"},
+        {"sourceMediaType": "message/rfc822",                   "targetMediaType": "image/png" }
+      ],
+      "transformOptions": [
+        "pdfRendererOptions",
+        "imageMagickOptions"
+      ]
+    },
+    {
+      "transformerName": "textToImageViaPdf",
+      "transformerPipeline" : [
+        {"transformerName": "libreoffice",                  "targetMediaType": "application/pdf"},
+        {"transformerName": "pdfToImageViaPng"}
+      ],
+      "supportedSourceAndTargetList": [
+        {"sourceMediaType": "text/plain",                   "targetMediaType": "image/gif" },
+        {"sourceMediaType": "text/plain",                   "targetMediaType": "image/jpeg"},
+        {"sourceMediaType": "text/plain",                   "targetMediaType": "image/tiff"},
+        {"sourceMediaType": "text/plain",                   "targetMediaType": "image/png" }
+      ],
+      "transformOptions": [
+        "pdfRendererOptions",
+        "imageMagickOptions"
+      ]
+    },
+    {
+      "transformerName": "otherTextToImageViaPdf",
+      "transformerPipeline" : [
+        {"transformerName": "libreoffice",                    "targetMediaType": "application/pdf"},
+        {"transformerName": "pdfToImageViaPng"}
+      ],
+      "supportedSourceAndTargetList": [
+        {"sourceMediaType": "text/csv",                     "targetMediaType": "image/gif" },
+        {"sourceMediaType": "text/csv",                     "targetMediaType": "image/jpeg"},
+        {"sourceMediaType": "text/csv",                     "targetMediaType": "image/tiff"},
+        {"sourceMediaType": "text/csv",                     "targetMediaType": "image/png" },
+
+        {"sourceMediaType": "application/dita+xml",         "targetMediaType": "image/gif" },
+        {"sourceMediaType": "application/dita+xml",         "targetMediaType": "image/jpeg"},
+        {"sourceMediaType": "application/dita+xml",         "targetMediaType": "image/tiff"},
+        {"sourceMediaType": "application/dita+xml",         "targetMediaType": "image/png" },
+
+        {"sourceMediaType": "text/xml",                     "targetMediaType": "image/gif" },
+        {"sourceMediaType": "text/xml",                     "targetMediaType": "image/jpeg"},
+        {"sourceMediaType": "text/xml",                     "targetMediaType": "image/tiff"},
+        {"sourceMediaType": "text/xml",                     "targetMediaType": "image/png" }
+      ],
+      "transformOptions": [
+        "pdfRendererOptions",
+        "imageMagickOptions"
+      ]
+    },
+    {
+      "transformerName": "htmlToPdfViaOdt",
+      "transformerPipeline" : [
+        {"transformerName": "libreoffice",                  "targetMediaType": "application/vnd.oasis.opendocument.text"},
+        {"transformerName": "libreoffice"}
+      ],
+      "supportedSourceAndTargetList": [
+        {"sourceMediaType": "text/html",                    "targetMediaType": "application/pdf" }
+      ],
+      "transformOptions": [
+      ]
+    },
+    {
+      "transformerName": "htmlToImageViaPdf",
+      "transformerPipeline" : [
+        {"transformerName": "htmlToPdfViaOdt",                  "targetMediaType": "application/pdf"},
+        {"transformerName": "pdfToImageViaPng"}
+      ],
+      "supportedSourceAndTargetList": [
+        {"sourceMediaType": "text/html",                     "targetMediaType": "image/gif" },
+        {"sourceMediaType": "text/html",                     "targetMediaType": "image/jpeg"},
+        {"sourceMediaType": "text/html",                     "targetMediaType": "image/tiff"},
+        {"sourceMediaType": "text/html",                     "targetMediaType": "image/png" }
+      ],
+      "transformOptions": [
+        "pdfRendererOptions",
+        "imageMagickOptions"
+      ]
+    },
+    {
+      "transformerName": "archiveToText",
+      "transformerPipeline" : [
+        {"transformerName": "htmlToPdfViaOdt",                  "targetMediaType": "application/pdf"},
+        {"transformerName": "pdfToImageViaPng"}
+      ],
+      "supportedSourceAndTargetList": [
+        {"sourceMediaType": "application/java-archive",                     "targetMediaType": "text/plain" },
+        {"sourceMediaType": "application/x-cpio",                           "targetMediaType": "text/plain"},
+        {"sourceMediaType": "application/x-tar",                            "targetMediaType": "text/plain"},
+        {"sourceMediaType": "application/zip",                              "targetMediaType": "text/plain" }
+      ],
+      "transformOptions": [
+        "tikaOptions"
+      ]
+    }
+
+  ]
+}
