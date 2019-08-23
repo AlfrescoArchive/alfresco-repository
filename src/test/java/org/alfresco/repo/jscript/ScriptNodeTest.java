@@ -678,6 +678,68 @@ public class ScriptNodeTest
         NODE_SERVICE.removeProperty(newNode2, ContentModel.PROP_CONTENT);
     }
     
+    /**
+     * Test associations related script api, after the permissions checks have been pushed to the NodeService level (MNT-20833).
+     */
+    @Test 
+    public void testCreateRemoveAssociation() throws Exception
+    {
+        Repository repositoryHelper = (Repository) APP_CONTEXT_INIT.getApplicationContext().getBean("repositoryHelper");
+        NodeRef companyHome = repositoryHelper.getCompanyHome();
+
+        AuthenticationUtil.setFullyAuthenticatedUser(USER_ONE_NAME);
+        NodeRef newNode1 = testNodes.createNode(companyHome, "theTestFolder", ContentModel.TYPE_FOLDER, AuthenticationUtil.getFullyAuthenticatedUser()); 
+        NodeRef newNode2 = testNodes.createNode(companyHome, "theTestContent", ContentModel.TYPE_CONTENT, AuthenticationUtil.getFullyAuthenticatedUser()); 
+        
+        // Give USER_TWO READ permission similar to the Consumer role
+        PERMISSION_SERVICE.setPermission(newNode1, USER_TWO_NAME, PermissionService.READ, true);
+        PERMISSION_SERVICE.setPermission(newNode2, USER_TWO_NAME, PermissionService.READ, true);
+        
+        AuthenticationUtil.setFullyAuthenticatedUser(USER_TWO_NAME);
+        ScriptNode sourceScriptNode = SEARCH_SCRIPT.findNode(newNode1);
+        assertNotNull(sourceScriptNode);
+        ScriptNode targetScriptNode = SEARCH_SCRIPT.findNode(newNode2);
+        assertNotNull(targetScriptNode);
+        
+        // Create associations
+        String assocType = "cm:contains";
+        try
+        {
+            sourceScriptNode.createAssociation(targetScriptNode, assocType);
+            fail("Creating associations without write permission on source is not allowed.");
+        }
+        catch (AccessDeniedException ade)
+        {
+            // expected
+        }
+        
+        // Give USER_TWO WRITE permission to be able to successfully create an association from sourceScriptNode to targetScriptNode
+        AuthenticationUtil.setFullyAuthenticatedUser(USER_ONE_NAME);
+        PERMISSION_SERVICE.setPermission(newNode1, USER_TWO_NAME, PermissionService.WRITE, true);
+        
+        AuthenticationUtil.setFullyAuthenticatedUser(USER_TWO_NAME);
+        assertTrue(sourceScriptNode.hasPermission(PermissionService.WRITE_PROPERTIES));
+        assertNotNull(sourceScriptNode.createAssociation(targetScriptNode, assocType));
+        
+        // Remove associations
+        try
+        {
+            sourceScriptNode.removeAssociation(targetScriptNode, assocType);
+            fail("Removing associations without delete permission on source is not allowed.");
+        }
+        catch (AccessDeniedException ade)
+        {
+            // expected
+        }
+        
+        // Give USER_TWO DELETE permission to be able to successfully remove an association from sourceScriptNode to targetScriptNode
+        AuthenticationUtil.setFullyAuthenticatedUser(USER_ONE_NAME);
+        PERMISSION_SERVICE.setPermission(newNode1, USER_TWO_NAME, PermissionService.DELETE, true);
+        
+        AuthenticationUtil.setFullyAuthenticatedUser(USER_TWO_NAME);
+        sourceScriptNode.removeAssociation(targetScriptNode, assocType);
+    }
+    
     @Test
     public void testCreateFolderPath()
     {
