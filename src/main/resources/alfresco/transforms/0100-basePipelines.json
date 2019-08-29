@@ -18,6 +18,23 @@
       ]
     },
     {
+      "transformerName": "aiToImageViaPng",
+      "transformerPipeline" : [
+        {"transformerName": "pdfrenderer", "targetMediaType": "image/png"},
+        {"transformerName": "imagemagick"}
+      ],
+      "supportedSourceAndTargetList": [
+        {"sourceMediaType": "application/illustrator",  "targetMediaType": "image/gif" },
+        {"sourceMediaType": "application/illustrator",  "targetMediaType": "image/jpeg"},
+        {"sourceMediaType": "application/illustrator",  "targetMediaType": "image/png" },
+        {"sourceMediaType": "application/illustrator",  "targetMediaType": "image/tiff"}
+      ],
+      "transformOptions": [
+        "pdfRendererOptions",
+        "imageMagickOptions"
+      ]
+    },
+    {
       "transformerName": "iWorksToImageViaJpg",
       "transformerPipeline" : [
         {"transformerName": "appleIWorks", "targetMediaType": "image/jpeg"},
@@ -62,6 +79,19 @@
       ]
     },
     {
+      "transformerName": "outlookMsg2Pdf",
+      "transformerPipeline" : [
+        {"transformerName": "tika",           "targetMediaType": "text/plain"},
+        {"transformerName": "libreoffice"}
+      ],
+      "supportedSourceAndTargetList": [
+        {"sourceMediaType": "application/vnd.ms-outlook",  "targetMediaType": "application/pdf" }
+      ],
+      "transformOptions": [
+        "tikaOptions"
+      ]
+    },
+    {
       "transformerName": "rfc822ToPdf",
       "transformerPipeline" : [
         {"transformerName": "rfc822",                       "targetMediaType": "text/plain"},
@@ -100,29 +130,12 @@
         {"sourceMediaType": "text/plain",                   "targetMediaType": "image/gif" },
         {"sourceMediaType": "text/plain",                   "targetMediaType": "image/jpeg"},
         {"sourceMediaType": "text/plain",                   "targetMediaType": "image/tiff"},
-        {"sourceMediaType": "text/plain",                   "targetMediaType": "image/png" }
-      ],
-      "transformOptions": [
-        "pdfRendererOptions",
-        "imageMagickOptions"
-      ]
-    },
-    {
-      "transformerName": "otherTextToImageViaPdf",
-      "transformerPipeline" : [
-        {"transformerName": "libreoffice",                    "targetMediaType": "application/pdf"},
-        {"transformerName": "pdfToImageViaPng"}
-      ],
-      "supportedSourceAndTargetList": [
+        {"sourceMediaType": "text/plain",                   "targetMediaType": "image/png" },
+
         {"sourceMediaType": "text/csv",                     "targetMediaType": "image/gif" },
         {"sourceMediaType": "text/csv",                     "targetMediaType": "image/jpeg"},
         {"sourceMediaType": "text/csv",                     "targetMediaType": "image/tiff"},
         {"sourceMediaType": "text/csv",                     "targetMediaType": "image/png" },
-
-        {"sourceMediaType": "application/dita+xml",         "targetMediaType": "image/gif" },
-        {"sourceMediaType": "application/dita+xml",         "targetMediaType": "image/jpeg"},
-        {"sourceMediaType": "application/dita+xml",         "targetMediaType": "image/tiff"},
-        {"sourceMediaType": "application/dita+xml",         "targetMediaType": "image/png" },
 
         {"sourceMediaType": "text/xml",                     "targetMediaType": "image/gif" },
         {"sourceMediaType": "text/xml",                     "targetMediaType": "image/jpeg"},
@@ -162,23 +175,6 @@
         "pdfRendererOptions",
         "imageMagickOptions"
       ]
-    },
-    {
-      "transformerName": "archiveToText",
-      "transformerPipeline" : [
-        {"transformerName": "htmlToPdfViaOdt",                  "targetMediaType": "application/pdf"},
-        {"transformerName": "pdfToImageViaPng"}
-      ],
-      "supportedSourceAndTargetList": [
-        {"sourceMediaType": "application/java-archive",                     "targetMediaType": "text/plain" },
-        {"sourceMediaType": "application/x-cpio",                           "targetMediaType": "text/plain"},
-        {"sourceMediaType": "application/x-tar",                            "targetMediaType": "text/plain"},
-        {"sourceMediaType": "application/zip",                              "targetMediaType": "text/plain" }
-      ],
-      "transformOptions": [
-        "tikaOptions"
-      ]
     }
-
   ]
 }

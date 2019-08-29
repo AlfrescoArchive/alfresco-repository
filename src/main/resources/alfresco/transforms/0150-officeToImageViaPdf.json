@@ -44,8 +44,6 @@
         {"sourceMediaType": "application/vnd.ms-outlook",  "targetMediaType": "image/tiff"},
 
 
-
-
         {"sourceMediaType": "application/vnd.ms-word.document.macroenabled.12",  "targetMediaType": "image/gif" },
         {"sourceMediaType": "application/vnd.ms-word.document.macroenabled.12",  "targetMediaType": "image/jpeg"},
         {"sourceMediaType": "application/vnd.ms-word.document.macroenabled.12",  "targetMediaType": "image/png" },
@@ -85,7 +83,6 @@
         {"sourceMediaType": "application/vnd.oasis.opendocument.text",  "targetMediaType": "image/jpeg"},
         {"sourceMediaType": "application/vnd.oasis.opendocument.text",  "targetMediaType": "image/png" },
         {"sourceMediaType": "application/vnd.oasis.opendocument.text",  "targetMediaType": "image/tiff"},
-
 
         {"sourceMediaType": "application/vnd.oasis.opendocument.text-template",  "targetMediaType": "image/gif" },
         {"sourceMediaType": "application/vnd.oasis.opendocument.text-template",  "targetMediaType": "image/jpeg"},
