@@ -223,7 +223,7 @@ public class ImporterActionExecuterTest
         ContentData contentData = (ContentData) nodeService.getProperty(zipFileNodeRef, ContentModel.PROP_CONTENT);
         ContentData newContentData = ContentData.setMimetype(contentData, MimetypeMap.MIMETYPE_ZIP);
 
-        nodeService.setProperty(zipFileNodeRef, ContentModel.PROP_CONTENT, newContentData);
+        nodeService.setContentProperty(zipFileNodeRef, ContentModel.PROP_CONTENT, newContentData);
     }
 
     private Action createAction(NodeRef nodeRef, String actionDefinitionName, NodeRef targetNodeRef)
