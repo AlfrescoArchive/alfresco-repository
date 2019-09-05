@@ -2313,7 +2313,7 @@ public class TransferServiceImplTest extends BaseAlfrescoSpringTest
                 nodeService.setProperty(ctx.contentNodeRef, ContentModel.PROP_TITLE, CONTENT_TITLE);   
                 nodeService.setProperty(ctx.contentNodeRef, ContentModel.PROP_NAME, name);
                 ContentData cd = new ContentData(null, null, 0, null);
-                nodeService.setProperty(ctx.contentNodeRef, ContentModel.PROP_CONTENT, cd);
+                nodeService.setContentProperty(ctx.contentNodeRef, ContentModel.PROP_CONTENT, cd);
 
                 if(!transferService.targetExists(targetName))
                 {
@@ -2472,7 +2472,7 @@ public class TransferServiceImplTest extends BaseAlfrescoSpringTest
             public Void execute() throws Throwable
             {
                 ContentData cd = new ContentData(null, null, 0, null);
-                nodeService.setProperty(testContext.contentNodeRef, ContentModel.PROP_CONTENT, cd);         
+                nodeService.setContentProperty(testContext.contentNodeRef, ContentModel.PROP_CONTENT, cd);
                 return null;
             }
         };
