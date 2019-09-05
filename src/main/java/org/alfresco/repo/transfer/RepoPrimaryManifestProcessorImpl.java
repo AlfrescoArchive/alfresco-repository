@@ -880,7 +880,7 @@ public class RepoPrimaryManifestProcessorImpl extends AbstractManifestProcessorB
             {
                 log.debug("content data is null or empty:" + nodeToUpdate);
                 ContentData cd = new ContentData(null, null, 0, null);
-                nodeService.setProperty(nodeToUpdate, contentEntry.getKey(), cd);
+                nodeService.setContentProperty(nodeToUpdate, contentEntry.getKey(), cd);
                 contentUpdated = true;
             }
             else
