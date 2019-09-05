@@ -413,7 +413,9 @@ public class DbNodeServiceImpl extends AbstractNodeServiceImpl implements Extens
                     Collections.<QName>emptySet(),
                     properties,
                     true,
-                    false);
+                    false,
+                    false
+                );
         
         Map<QName, Serializable> propertiesAfter = nodeDAO.getNodeProperties(childNodePair.getFirst());
         
@@ -464,7 +466,7 @@ public class DbNodeServiceImpl extends AbstractNodeServiceImpl implements Extens
             Map<QName, Serializable> extraProperties,
             boolean overwriteExistingProperties)
     {
-        return addAspectsAndProperties(nodePair, classQName, null, existingAspects, existingProperties, extraAspects, extraProperties, overwriteExistingProperties, true);
+        return addAspectsAndProperties(nodePair, classQName, null, existingAspects, existingProperties, extraAspects, extraProperties, overwriteExistingProperties, true, false);
     }
     
     private boolean addAspectsAndPropertiesAssoc(
@@ -476,7 +478,7 @@ public class DbNodeServiceImpl extends AbstractNodeServiceImpl implements Extens
             Map<QName, Serializable> extraProperties,
             boolean overwriteExistingProperties)
     {
-        return addAspectsAndProperties(nodePair, null, assocTypeQName, existingAspects, existingProperties, extraAspects, extraProperties, overwriteExistingProperties, true);
+        return addAspectsAndProperties(nodePair, null, assocTypeQName, existingAspects, existingProperties, extraAspects, extraProperties, overwriteExistingProperties, true, false);
     }
     
     private boolean addAspectsAndProperties(
@@ -488,7 +490,8 @@ public class DbNodeServiceImpl extends AbstractNodeServiceImpl implements Extens
                 Set<QName> extraAspects,
                 Map<QName, Serializable> extraProperties,
                 boolean overwriteExistingProperties,
-                boolean invokeOnUpdateProperties)
+                boolean invokeOnUpdateProperties,
+                boolean ignoreContentPropertyRestrictions)
     {
         ParameterCheck.mandatory("nodePair", nodePair);
 
@@ -551,7 +554,20 @@ public class DbNodeServiceImpl extends AbstractNodeServiceImpl implements Extens
         allClassQNames.addAll(missingAspects);
         Map<QName, Serializable> missingProperties = getMissingProperties(existingProperties, allClassQNames);
         missingProperties.putAll(extraProperties);
-        
+
+        if (!ignoreContentPropertyRestrictions)
+        {
+            for (QName propQname : missingProperties.keySet())
+            {
+                if (isContentProperty(propQname, missingProperties.get(propQname)))
+                {
+                    throw new InvalidTypeException("The node's content can't be updated via NodeService directly: \n" +
+                            "   node: " + nodeRef + "\n" +
+                            "   property name: " + propQname.getLocalName(), propQname);
+                }
+            }
+        }
+
         // Bulk-add the properties
         boolean changedProperties = false;
         if (overwriteExistingProperties)
@@ -1601,19 +1617,10 @@ public class DbNodeServiceImpl extends AbstractNodeServiceImpl implements Extens
     @Extend(traitAPI=NodeServiceTrait.class,extensionAPI=NodeServiceExtension.class)
     public void setProperty(NodeRef nodeRef, QName qname, Serializable value)
     {
-        ParameterCheck.mandatory("nodeRef", nodeRef);
-        ParameterCheck.mandatory("qname", qname);
-
-        if (isContentProperty(qname, value))
-        {
-            throw new InvalidTypeException("The node's content can't be updated via NodeService directly: \n" +
-                    "   node: " + nodeRef + "\n" +
-                    "   property name: " + qname.getLocalName(), qname);
-        }
-        setPropertyInternal(nodeRef, qname, value);
+        setPropertyInternal(nodeRef, qname, value, false);
     }
 
-    private void setPropertyInternal(NodeRef nodeRef, QName qname, Serializable value) throws InvalidNodeRefException
+    private void setPropertyInternal(NodeRef nodeRef, QName qname, Serializable value, boolean ignoreContentPropertyRestrictions) throws InvalidNodeRefException
     {
         ParameterCheck.mandatory("nodeRef", nodeRef);
         ParameterCheck.mandatory("qname", qname);
@@ -1637,9 +1644,9 @@ public class DbNodeServiceImpl extends AbstractNodeServiceImpl implements Extens
 
         // Add the property and all required defaults
         boolean changed = addAspectsAndProperties(
-                nodePair, null,
+                nodePair, null, null,
                 null, null,
-                null, Collections.singletonMap(qname, value), false);
+                null, Collections.singletonMap(qname, value), false, true, ignoreContentPropertyRestrictions);
 
         if (changed)
         {
@@ -1655,7 +1662,14 @@ public class DbNodeServiceImpl extends AbstractNodeServiceImpl implements Extens
     @Extend(traitAPI=NodeServiceTrait.class,extensionAPI=NodeServiceExtension.class)
     public void setContentProperty(NodeRef nodeRef, QName qname, Serializable value) throws InvalidNodeRefException
     {
-        setPropertyInternal(nodeRef, qname, value);
+        ParameterCheck.mandatory("nodeRef", nodeRef);
+        ParameterCheck.mandatory("qname", qname);
+        if (!isContentProperty(qname, value))
+        {
+            throw new IllegalArgumentException("The property " + qname.getLocalName() + " is not a content property");
+        }
+
+        setPropertyInternal(nodeRef, qname, value, true);
     }
 
     private boolean isContentProperty(QName propertyQName, Serializable propValue)

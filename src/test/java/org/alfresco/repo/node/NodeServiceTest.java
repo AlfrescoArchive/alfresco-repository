@@ -1974,17 +1974,54 @@ public class NodeServiceTest
             try
             {
                 nodeService.setProperty(nodeRef, ContentModel.PROP_CONTENT, contentProp1);
-                fail("Should not be possible to call setProperty directly");
+                fail("Should not be possible to call setProperty directly to set content");
             }
             catch (InvalidTypeException ite)
             {
                 // expected
             }
 
-            // TODO add tests for other update property methods in Node Service
+            try
+            {
+                Map<QName, Serializable> testProps = new HashMap<>();
+                testProps.put(ContentModel.PROP_CONTENT, contentProp1);
+                nodeService.setProperties(nodeRef, testProps);
+                fail("Should not be possible to call setProperties directly to set content");
+            }
+            catch (InvalidTypeException ite)
+            {
+                // expected
+            }
+
+            try
+            {
+                Map<QName, Serializable> testProps = new HashMap<>();
+                testProps.put(ContentModel.PROP_CONTENT, contentProp1);
+                nodeService.addAspect(nodeRef, ContentModel.ASPECT_OWNABLE, testProps);
+                fail("Should not be possible to call addAspect directly to set content");
+            }
+            catch (InvalidTypeException ite)
+            {
+                // expected
+            }
+
+            try
+            {
+                Map<QName, Serializable> testProps = new HashMap<>();
+                testProps.put(ContentModel.PROP_CONTENT, contentProp1);
+                nodeService.createNode(folder2,
+                        ContentModel.ASSOC_CONTAINS,
+                        QName.createQName(GUID.generate()),
+                        ContentModel.TYPE_CONTENT, testProps);
+                fail("Should not be possible to call createNode directly to set content");
+            }
+            catch (InvalidTypeException ite)
+            {
+                // expected
+            }
 
             ContentReader contentReader = contentService.getReader(nodeRef, ContentModel.PROP_CONTENT);
-            assertNull("The second node should not have any content (all attempts should fail", contentReader);
+            assertNull("The second node should not have any content (all attempts should fail)", contentReader);
             return null;
         }, userName2);
     }
