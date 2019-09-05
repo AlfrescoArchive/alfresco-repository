@@ -4072,7 +4072,7 @@ public class ScriptNode implements Scopeable, NamespacePrefixResolverProvider
         {
             mimetype = mimetype.toLowerCase();
             this.contentData = ContentData.setMimetype(this.contentData, mimetype);
-            services.getNodeService().setProperty(nodeRef, this.property, this.contentData);
+            services.getNodeService().setContentProperty(nodeRef, this.property, this.contentData);
             updateContentData(false);
         }
         
