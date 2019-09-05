@@ -777,7 +777,7 @@ public class MultilingualContentServiceImpl implements MultilingualContentServic
                     translationOfContentData.getSize(),
                     translationOfContentData.getEncoding(),
                     translationOfContentData.getLocale());
-            nodeService.setProperty(newTranslationNodeRef, ContentModel.PROP_CONTENT, newTranslationContentData);
+            nodeService.setContentProperty(newTranslationNodeRef, ContentModel.PROP_CONTENT, newTranslationContentData);
         }
 
         // set it empty

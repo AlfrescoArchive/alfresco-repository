@@ -500,7 +500,7 @@ public class ContentNetworkFile extends NodeRefNetworkFile
                 nodeService.removeAspect(contentNodeRef, ContentModel.ASPECT_NO_CONTENT);
                 try
                 {
-                    nodeService.setProperty( contentNodeRef, ContentModel.PROP_CONTENT, contentData);
+                    nodeService.setContentProperty( contentNodeRef, ContentModel.PROP_CONTENT, contentData);
                 }
                 catch (ContentQuotaException qe)
                 {

@@ -2228,7 +2228,7 @@ public class ContentDiskDriver2 extends  AlfrescoDiskDriver implements ExtendedD
                 }
             }
             
-            nodeService.setProperty(targetNodeRef, ContentModel.PROP_CONTENT, prop);
+            nodeService.setContentProperty(targetNodeRef, ContentModel.PROP_CONTENT, prop);
         }
         else
         {

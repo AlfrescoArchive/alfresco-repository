@@ -770,8 +770,8 @@ public class CifsHelper
             String mimetype = mimetypeService.guessMimetype(newName);
             newContentData = ContentData.setMimetype(newContentData, mimetype);
 
-            nodeService.setProperty(tempNodeRef, ContentModel.PROP_CONTENT, newContentData);
-            nodeService.setProperty(nodeToMoveRef, ContentModel.PROP_CONTENT, oldContentData);
+            nodeService.setContentProperty(tempNodeRef, ContentModel.PROP_CONTENT, newContentData);
+            nodeService.setContentProperty(nodeToMoveRef, ContentModel.PROP_CONTENT, oldContentData);
         }
     }
     

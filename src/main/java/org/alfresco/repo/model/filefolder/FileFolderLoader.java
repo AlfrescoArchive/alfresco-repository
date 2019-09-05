@@ -279,7 +279,7 @@ public class FileFolderLoader
                     {
                         // Just use the URL
                         ContentData contentData = reader.getContentData();
-                        nodeService.setProperty(fileNodeRef, ContentModel.PROP_CONTENT, contentData);
+                        nodeService.setContentProperty(fileNodeRef, ContentModel.PROP_CONTENT, contentData);
                     }
                     // Store the description, if required
                     if (descriptionCount > 0)

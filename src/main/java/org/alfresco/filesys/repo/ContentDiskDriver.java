@@ -3810,7 +3810,7 @@ public class ContentDiskDriver extends AlfrescoTxDiskDriver implements DiskInter
         ContentData content = (ContentData) nodeService.getProperty(fromNode, ContentModel.PROP_CONTENT);
         if ( newName != null)
             content = ContentData.setMimetype( content, mimetypeService.guessMimetype( newName));
-        nodeService.setProperty(toNode, ContentModel.PROP_CONTENT, content);
+        nodeService.setContentProperty(toNode, ContentModel.PROP_CONTENT, content);
     }
     
     
@@ -4001,7 +4001,7 @@ public class ContentDiskDriver extends AlfrescoTxDiskDriver implements DiskInter
                 logger.debug("set new mimetype to:" + mimetype);
             }
             ContentData replacement = ContentData.setMimetype(content, mimetype);
-            nodeService.setProperty(toNode, ContentModel.PROP_CONTENT, replacement);
+            nodeService.setContentProperty(toNode, ContentModel.PROP_CONTENT, replacement);
         }
 
         // Extract metadata pending change for ALF-5082

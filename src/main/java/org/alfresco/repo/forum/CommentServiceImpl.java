@@ -507,7 +507,8 @@ public class CommentServiceImpl extends AbstractLifecycleBean implements Comment
         }
 
         NodeRef postNode = nodeService.createNode(topicNode, ContentModel.ASSOC_CONTAINS, ContentModel.ASSOC_CONTAINS, ForumModel.TYPE_POST).getChildRef();
-        nodeService.setProperty(postNode, ContentModel.PROP_CONTENT, new ContentData(null, MimetypeMap.MIMETYPE_TEXT_PLAIN, 0L, null));
+        //TODO: Refactor and remove setContentProperty and use only writer
+        nodeService.setContentProperty(postNode, ContentModel.PROP_CONTENT, new ContentData(null, MimetypeMap.MIMETYPE_TEXT_PLAIN, 0L, null));
         nodeService.setProperty(postNode, ContentModel.PROP_TITLE, title);
         ContentWriter writer = contentService.getWriter(postNode, ContentModel.PROP_CONTENT, true);
         writer.setMimetype(MimetypeMap.MIMETYPE_HTML);

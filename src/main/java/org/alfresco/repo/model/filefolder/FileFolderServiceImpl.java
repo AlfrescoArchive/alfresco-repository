@@ -1231,7 +1231,7 @@ public class FileFolderServiceImpl extends AbstractBaseCopyService implements Fi
                     if (!targetMimetype.equalsIgnoreCase(newMimetype))
                     {
                         contentData = ContentData.setMimetype(contentData, newMimetype);
-                        nodeService.setProperty(targetNodeRef, ContentModel.PROP_CONTENT, contentData);
+                        nodeService.setContentProperty(targetNodeRef, ContentModel.PROP_CONTENT, contentData);
                     }
                 }
             }

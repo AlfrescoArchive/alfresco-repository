@@ -1625,7 +1625,7 @@ public class AlfrescoCmisServiceImpl extends AbstractCmisService implements Alfr
             public Void execute() throws Throwable
             {
 
-                connector.getNodeService().setProperty(nodeRef, ContentModel.PROP_CONTENT, null);
+                connector.getNodeService().setContentProperty(nodeRef, ContentModel.PROP_CONTENT, null);
 
 //              connector.createVersion(nodeRef, VersionType.MINOR, "Delete content");
 

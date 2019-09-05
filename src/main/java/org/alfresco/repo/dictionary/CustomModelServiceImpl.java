@@ -1204,7 +1204,7 @@ public class CustomModelServiceImpl implements CustomModelService
             {
                 final NodeRef newNodeRef = createDownloadTypeNode(newName);
                 Serializable content = nodeService.getProperty(modelNodeRef, ContentModel.PROP_CONTENT);
-                nodeService.setProperty(newNodeRef, ContentModel.PROP_CONTENT, content);
+                nodeService.setContentProperty(newNodeRef, ContentModel.PROP_CONTENT, content);
 
                return newNodeRef;
             }
