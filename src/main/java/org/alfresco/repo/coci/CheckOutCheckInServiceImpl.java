@@ -602,7 +602,7 @@ public class CheckOutCheckInServiceImpl implements CheckOutCheckInService,Extens
                         contentData.getEncoding());
             }
             // Set the content url value onto the working copy
-            nodeService.setProperty(
+            nodeService.setContentProperty(
                     workingCopyNodeRef, 
                     ContentModel.PROP_CONTENT, 
                     contentData);
