@@ -4064,7 +4064,7 @@ public class ScriptNode implements Scopeable, NamespacePrefixResolverProvider
         public void setEncoding(String encoding)
         {
             this.contentData = ContentData.setEncoding(this.contentData, encoding);
-            services.getNodeService().setProperty(nodeRef, this.property, this.contentData);
+            services.getNodeService().setContentProperty(nodeRef, this.property, this.contentData);
             updateContentData(false);
         }
 
