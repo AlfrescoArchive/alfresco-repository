@@ -246,7 +246,7 @@ public class ContentStoreCleanerTest extends TestCase
             public ContentData execute() throws Throwable
             {
                 ContentData contentData = (ContentData) nodeService.getProperty(contentNodeRef, ContentModel.PROP_CONTENT);
-                nodeService.setProperty(contentNodeRef, ContentModel.PROP_CONTENT, contentData);
+                nodeService.setContentProperty(contentNodeRef, ContentModel.PROP_CONTENT, contentData);
                 // Done
                 return contentData;
             }
