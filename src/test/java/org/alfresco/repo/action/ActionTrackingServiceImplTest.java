@@ -130,20 +130,9 @@ public class ActionTrackingServiceImplTest extends TestCase
         this.rootNodeRef = this.nodeService.getRootNode(this.storeRef);
         
         // Create the node used for tests
-        this.nodeRef = this.nodeService.createNode(
-                this.rootNodeRef,
-                ContentModel.ASSOC_CHILDREN,
-                QName.createQName("{test}testnode"),
-                ContentModel.TYPE_CONTENT).getChildRef();
-        this.nodeService.setProperty(
-                this.nodeRef,
-                ContentModel.PROP_CONTENT,
-                new ContentData(null, MimetypeMap.MIMETYPE_TEXT_PLAIN, 0L, null));
-        this.folder = this.nodeService.createNode(
-                this.rootNodeRef,
-                ContentModel.ASSOC_CHILDREN,
-                QName.createQName("{test}testFolder"),
-                ContentModel.TYPE_FOLDER).getChildRef();
+        this.nodeRef = this.nodeService.createNode(this.rootNodeRef,ContentModel.ASSOC_CHILDREN,QName.createQName("{test}testnode"),ContentModel.TYPE_CONTENT).getChildRef();
+        this.nodeService.setContentProperty(this.nodeRef,ContentModel.PROP_CONTENT, new ContentData(null, MimetypeMap.MIMETYPE_TEXT_PLAIN, 0L, null));
+        this.folder = this.nodeService.createNode(this.rootNodeRef,ContentModel.ASSOC_CHILDREN,QName.createQName("{test}testFolder"),ContentModel.TYPE_FOLDER).getChildRef();
         
         txn.commit();
         
