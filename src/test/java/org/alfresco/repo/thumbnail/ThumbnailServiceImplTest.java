@@ -552,7 +552,7 @@ public class ThumbnailServiceImplTest extends BaseAlfrescoSpringTest
                 QName.createQName(NamespaceService.CONTENT_MODEL_1_0_URI, "transientThumbnail.transientThumbnail"),
                 ContentModel.TYPE_CONTENT, props).getChildRef();
         
-        secureNodeService.setProperty(testNode, ContentModel.PROP_CONTENT,
+        secureNodeService.setContentProperty(testNode, ContentModel.PROP_CONTENT,
                 new ContentData(null, TEST_FAILING_MIME_TYPE, 0L, null));
         // We don't need to write any content into this node, as our test transformer will fail immediately.
 
@@ -1064,7 +1064,7 @@ public class ThumbnailServiceImplTest extends BaseAlfrescoSpringTest
                 QName.createQName(NamespaceService.CONTENT_MODEL_1_0_URI, "quickCorrupt.pdf"),
                 ContentModel.TYPE_CONTENT, props).getChildRef();
 
-        secureNodeService.setProperty(node, ContentModel.PROP_CONTENT, new ContentData(null,
+        secureNodeService.setContentProperty(node, ContentModel.PROP_CONTENT, new ContentData(null,
                     MimetypeMap.MIMETYPE_PDF, 0L, null));
         ContentWriter writer = contentService.getWriter(node, ContentModel.PROP_CONTENT, true);
         writer.setMimetype(MimetypeMap.MIMETYPE_PDF);
