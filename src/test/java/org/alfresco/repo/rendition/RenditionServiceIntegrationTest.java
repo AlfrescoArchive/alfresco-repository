@@ -165,7 +165,7 @@ public class RenditionServiceIntegrationTest extends BaseAlfrescoSpringTest
         File pdfQuickFile = AbstractContentTransformerTest.loadQuickTestFile("pdf");
         assertNotNull("Failed to load required test file.", pdfQuickFile);
 
-        nodeService.setProperty(nodeWithDocContent, ContentModel.PROP_CONTENT, new ContentData(null,
+        nodeService.setContentProperty(nodeWithDocContent, ContentModel.PROP_CONTENT, new ContentData(null,
                     MimetypeMap.MIMETYPE_PDF, 0L, null));
         ContentWriter writer = contentService.getWriter(nodeWithDocContent, ContentModel.PROP_CONTENT, true);
         writer.setMimetype(MimetypeMap.MIMETYPE_PDF);
@@ -202,7 +202,7 @@ public class RenditionServiceIntegrationTest extends BaseAlfrescoSpringTest
     private void setImageContentOnNode(NodeRef nodeWithImage, String mimetypeImage, File imageFile)
     {
         assertTrue(imageFile.exists());
-        nodeService.setProperty(nodeWithImage, ContentModel.PROP_CONTENT, new ContentData(null,
+        nodeService.setContentProperty(nodeWithImage, ContentModel.PROP_CONTENT, new ContentData(null,
                     mimetypeImage, 0L, null));
         ContentWriter writer = contentService.getWriter(nodeWithImage, ContentModel.PROP_CONTENT, true);
         writer.setMimetype(mimetypeImage);
@@ -213,7 +213,7 @@ public class RenditionServiceIntegrationTest extends BaseAlfrescoSpringTest
     private NodeRef createFreeMarkerNode(NodeRef companyHome)
     {
         NodeRef fmNode = createContentNode(companyHome, "testFreeMarkerNode-" + GUID.generate());
-        nodeService.setProperty(fmNode, ContentModel.PROP_CONTENT, new ContentData(null,
+        nodeService.setContentProperty(fmNode, ContentModel.PROP_CONTENT, new ContentData(null,
                     MimetypeMap.MIMETYPE_TEXT_PLAIN, 0L, null));
 
         URL url = getClass().getResource(FM_TEMPLATE);
