@@ -187,7 +187,7 @@ public class RoutingContentServiceTest extends TestCase
         writer.setLocale(Locale.CHINESE);
         
         // set the content property manually
-        nodeService.setProperty(contentNodeRef, ContentModel.PROP_CONTENT, writer.getContentData());
+        nodeService.setContentProperty(contentNodeRef, ContentModel.PROP_CONTENT, writer.getContentData());
         
         // get the reader
         ContentReader reader = contentService.getReader(contentNodeRef, ContentModel.PROP_CONTENT);
@@ -243,7 +243,7 @@ public class RoutingContentServiceTest extends TestCase
         assertEquals(Locale.CHINESE, writer.getLocale());
 
         // now remove the content property from the node
-        nodeService.setProperty(contentNodeRef, ContentModel.PROP_CONTENT, null);
+        nodeService.setContentProperty(contentNodeRef, ContentModel.PROP_CONTENT, null);
         
         writer = contentService.getWriter(contentNodeRef, ContentModel.PROP_CONTENT, true);
         assertNull(writer.getMimetype());
@@ -271,7 +271,7 @@ public class RoutingContentServiceTest extends TestCase
     {
         // set the property, but with a null URL
         ContentData contentData = new ContentData(null, null, 0L, null);
-        nodeService.setProperty(contentNodeRef, ContentModel.PROP_CONTENT, contentData);
+        nodeService.setContentProperty(contentNodeRef, ContentModel.PROP_CONTENT, contentData);
 
         // get the reader
         ContentReader reader = contentService.getReader(contentNodeRef, ContentModel.PROP_CONTENT);
@@ -317,7 +317,7 @@ public class RoutingContentServiceTest extends TestCase
         
         // update the node with this new info 
         ContentData contentData = writer.getContentData();
-        nodeService.setProperty(contentNodeRef, ContentModel.PROP_CONTENT, contentData);
+        nodeService.setContentProperty(contentNodeRef, ContentModel.PROP_CONTENT, contentData);
         
         // delete the content
         tempFile.delete();
@@ -814,7 +814,7 @@ public class RoutingContentServiceTest extends TestCase
         assertEquals("Incorrect content", "STEP 1", readerStep1.getContentString());
         
         // Update the content
-        nodeService.setProperty(contentNodeRef, ContentModel.PROP_CONTENT, simpleWriter.getContentData());
+        nodeService.setContentProperty(contentNodeRef, ContentModel.PROP_CONTENT, simpleWriter.getContentData());
         ContentReader readerStep2 = contentService.getReader(contentNodeRef, ContentModel.PROP_CONTENT);
         assertEquals("Incorrect content", "STEP 2", readerStep2.getContentString());
         
@@ -832,7 +832,7 @@ public class RoutingContentServiceTest extends TestCase
         {
             public Void execute() throws Throwable
             {
-                nodeService.setProperty(contentNodeRef, ContentModel.PROP_CONTENT, simpleWriterData);
+                nodeService.setContentProperty(contentNodeRef, ContentModel.PROP_CONTENT, simpleWriterData);
                 throw new RuntimeException("aaa");
             }
         };
