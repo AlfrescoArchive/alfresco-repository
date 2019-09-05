@@ -117,7 +117,7 @@ public class ActionServiceImplTest extends BaseAlfrescoSpringTest
                 ContentModel.ASSOC_CHILDREN,
                 QName.createQName("{test}testnode"),
                 ContentModel.TYPE_CONTENT).getChildRef();
-        this.nodeService.setProperty(
+        this.nodeService.setContentProperty(
                 this.nodeRef,
                 ContentModel.PROP_CONTENT,
                 new ContentData(null, MimetypeMap.MIMETYPE_TEXT_PLAIN, 0L, null));
