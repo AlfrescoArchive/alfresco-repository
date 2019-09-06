@@ -50,10 +50,13 @@ import org.alfresco.repo.version.common.versionlabel.SerialVersionLabelPolicy;
 import org.alfresco.repo.version.traitextender.VersionServiceExtension;
 import org.alfresco.repo.version.traitextender.VersionServiceTrait;
 import org.alfresco.service.cmr.dictionary.AspectDefinition;
+import org.alfresco.service.cmr.dictionary.DataTypeDefinition;
+import org.alfresco.service.cmr.dictionary.PropertyDefinition;
 import org.alfresco.service.cmr.dictionary.TypeDefinition;
 import org.alfresco.service.cmr.repository.AspectMissingException;
 import org.alfresco.service.cmr.repository.AssociationRef;
 import org.alfresco.service.cmr.repository.ChildAssociationRef;
+import org.alfresco.service.cmr.repository.ContentData;
 import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.cmr.repository.StoreRef;
 import org.alfresco.service.cmr.security.PermissionService;
@@ -499,6 +502,21 @@ public class Version2ServiceImpl extends VersionServiceImpl implements VersionSe
         
         try
         {
+            // Remove content properties from node properties and set them separately via NodeService#setContentProperty
+            Map<QName, Serializable> nodeProps = nodeDetails.getProperties();
+            Map<QName, Serializable> contentProps = new HashMap<>(3);
+
+            for (QName propertyQName : nodeProps.keySet())
+            {
+                PropertyDefinition contentPropDef = dictionaryService.getProperty(propertyQName);
+                if (nodeProps.get(propertyQName) instanceof ContentData ||
+                        contentPropDef != null && contentPropDef.getDataType().getName().equals(DataTypeDefinition.CONTENT))
+                {
+                    contentProps.put(propertyQName, nodeProps.get(propertyQName));
+                }
+            }
+            nodeProps.keySet().removeAll(contentProps.keySet());
+
             // "copy" type and properties
             childAssocRef = this.dbNodeService.createNode(
                     versionHistoryRef, 
@@ -506,6 +524,12 @@ public class Version2ServiceImpl extends VersionServiceImpl implements VersionSe
                     QName.createQName(Version2Model.NAMESPACE_URI, Version2Model.CHILD_VERSIONS+"-"+versionNumber), // TODO - testing - note: all children (of a versioned node) will have the same version number, maybe replace with a version sequence of some sort 001-...00n
                     sourceTypeRef, 
                     nodeDetails.getProperties());
+
+            // Set content props separately
+            for (QName contentPropertyQName : contentProps.keySet())
+            {
+                nodeService.setContentProperty(childAssocRef.getChildRef(), contentPropertyQName, contentProps.get(contentPropertyQName));
+            }
 
             versionNodeRef = childAssocRef.getChildRef();
             
@@ -1132,14 +1156,34 @@ public class Version2ServiceImpl extends VersionServiceImpl implements VersionSe
                     newProps.put(prop, oldProps.get(prop));
                 }
             }
-            
-            this.nodeService.setProperties(nodeRef, newProps);
-                
-                //Restore forum properties
-                this.nodeService.addProperties(nodeRef, forumProps);
 
-                // Restore the type
-                this.nodeService.setType(nodeRef, newNodeTypeQName);
+            // Remove content properties from node properties and set them separately via NodeService#setContentProperty
+            Map<QName, Serializable> contentProps = new HashMap<>(3);
+
+            for (QName propertyQName : newProps.keySet())
+            {
+                PropertyDefinition contentPropDef = dictionaryService.getProperty(propertyQName);
+                if (newProps.get(propertyQName) instanceof ContentData ||
+                        contentPropDef != null && contentPropDef.getDataType().getName().equals(DataTypeDefinition.CONTENT))
+                {
+                    contentProps.put(propertyQName, newProps.get(propertyQName));
+                }
+            }
+            newProps.keySet().removeAll(contentProps.keySet());
+
+            this.nodeService.setProperties(nodeRef, newProps);
+
+            // Set content props separately
+            for (QName contentPropertyQName : contentProps.keySet())
+            {
+                nodeService.setContentProperty(nodeRef, contentPropertyQName, contentProps.get(contentPropertyQName));
+            }
+
+            //Restore forum properties
+            this.nodeService.addProperties(nodeRef, forumProps);
+
+            // Restore the type
+            this.nodeService.setType(nodeRef, newNodeTypeQName);
 
             Set<QName> aspectsToRemove = new HashSet<QName>(oldAspectQNames);
             aspectsToRemove.removeAll(newAspectQNames);
