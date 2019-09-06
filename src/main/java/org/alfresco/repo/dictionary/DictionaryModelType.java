@@ -666,7 +666,7 @@ public class DictionaryModelType implements ContentServicePolicies.OnContentUpda
                                         props.put(ContentModel.PROP_MODEL_PUBLISHED_DATE, modelDefinition.getPublishedDate());
                                         props.put(ContentModel.PROP_MODEL_VERSION, modelDefinition.getVersion());
                                        
-                                        nodeService.setProperties(nodeRef, props);
+                                        nodeService.addProperties(nodeRef, props);
                                         
                                         // Validate model against dictionary - could be new, unchanged or updated
                                         if (doValidation == true)
