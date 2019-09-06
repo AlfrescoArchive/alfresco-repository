@@ -28,6 +28,7 @@ package org.alfresco.repo.dictionary;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serializable;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -658,7 +659,7 @@ public class DictionaryModelType implements ContentServicePolicies.OnContentUpda
                                         ModelDefinition modelDefinition = compiledModel.getModelDefinition();
                                         
                                         // Update the meta data for the model
-                                        Map<QName, Serializable> props = nodeService.getProperties(nodeRef);
+                                        Map<QName, Serializable> props = new HashMap<>(5);
                                         props.put(ContentModel.PROP_MODEL_NAME, modelDefinition.getName());
                                         props.put(ContentModel.PROP_MODEL_DESCRIPTION, modelDefinition.getDescription(null));
                                         props.put(ContentModel.PROP_MODEL_AUTHOR, modelDefinition.getAuthor());
