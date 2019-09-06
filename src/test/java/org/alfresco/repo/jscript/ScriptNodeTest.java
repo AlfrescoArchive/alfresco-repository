@@ -620,7 +620,7 @@ public class ScriptNodeTest
         Repository repositoryHelper = (Repository) APP_CONTEXT_INIT.getApplicationContext().getBean("repositoryHelper");
         NodeRef companyHome = repositoryHelper.getCompanyHome();
 
-        NodeRef newNode1 = testNodes.createNode(companyHome, "theTestContent1", ContentModel.TYPE_CONTENT, AuthenticationUtil.getFullyAuthenticatedUser()); 
+        NodeRef newNode1 = testNodes.createNode(companyHome, GUID.generate(), ContentModel.TYPE_CONTENT, AuthenticationUtil.getFullyAuthenticatedUser());
 
         // test on content data
         ScriptNode sn = new ScriptNode(newNode1, SERVICE_REGISTRY);
@@ -641,7 +641,7 @@ public class ScriptNodeTest
         assertEquals(true, ContentData.hasContent(contentData));
 
         // test on ScriptContentData
-        NodeRef newNode2 = testNodes.createNode(companyHome, "theTestContent2.txt", ContentModel.TYPE_CONTENT, AuthenticationUtil.getFullyAuthenticatedUser()); 
+        NodeRef newNode2 = testNodes.createNode(companyHome, GUID.generate(), ContentModel.TYPE_CONTENT, AuthenticationUtil.getFullyAuthenticatedUser());
         ScriptNode sn2 = new ScriptNode(newNode2, SERVICE_REGISTRY);
         sn2.setScope(getScope());
 

@@ -1763,11 +1763,15 @@ public class ScriptNode implements Scopeable, NamespacePrefixResolverProvider
                 {
                     continue;
                 }
+
+                // content can't be set via nodeService#setProperties, use special method instead
+                this.nodeService.setContentProperty(this.nodeRef, qname, getValueConverter().convertValueForRepo(value));
+                continue;
             }
-            
+
             // perform the conversion from script wrapper object to repo serializable values
             value = getValueConverter().convertValueForRepo(value);
-            
+
             props.put(qname, value);
         }
         this.nodeService.setProperties(this.nodeRef, props);
