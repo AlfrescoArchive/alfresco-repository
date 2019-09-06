@@ -419,8 +419,6 @@ public class HomeFolderProviderSynchronizerTest
     {
         NodeRef parent = createFolder(parentPath);
         PropertyMap propertyMap = new PropertyMap();
-        propertyMap.put(ContentModel.PROP_CONTENT, new ContentData(null, "text/plain",
-                0L, "UTF-16", Locale.ENGLISH));
         propertyMap.put(ContentModel.PROP_NAME, name);
         NodeRef content = nodeService.createNode(
                 parent,
@@ -428,6 +426,8 @@ public class HomeFolderProviderSynchronizerTest
                 QName.createQName(NamespaceService.CONTENT_MODEL_1_0_URI, name),
                 ContentModel.TYPE_CONTENT,
                 propertyMap).getChildRef();
+        nodeService.setContentProperty(content, ContentModel.PROP_CONTENT, new ContentData(null, "text/plain",
+                0L, "UTF-16", Locale.ENGLISH));
         ContentWriter writer = contentService.getWriter(content, ContentModel.TYPE_CONTENT, true);
         writer.putContent("The cat sat on the mat.");
         
