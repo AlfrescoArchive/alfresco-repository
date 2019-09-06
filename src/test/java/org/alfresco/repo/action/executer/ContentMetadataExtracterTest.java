@@ -141,7 +141,13 @@ public class ContentMetadataExtracterTest extends BaseSpringTest
         props.put(ContentModel.PROP_TITLE, "");
         props.put(ContentModel.PROP_DESCRIPTION, null); // Wonder how this will
                                                         // be handled
+        //cannot use setProperties with content types
+        Map<QName,Serializable> contentProps = this.executer.removeContentTypes(props);
         this.nodeService.setProperties(this.nodeRef, props);
+        for (QName propQname : contentProps.keySet())
+        {
+            this.nodeService.setContentProperty(this.nodeRef, propQname, contentProps.get(propQname));
+        }
 
         // Execute the action
         ActionImpl action = new ActionImpl(null, ID, SetPropertyValueActionExecuter.NAME, null);
@@ -305,7 +311,14 @@ public class ContentMetadataExtracterTest extends BaseSpringTest
         props.put(ContentModel.PROP_AUTHOR, myCreator);
         props.put(ContentModel.PROP_TITLE, myTitle);
         props.remove(ContentModel.PROP_DESCRIPTION); // Allow this baby
+
+        //cannot use setProperties with content types
+        Map<QName,Serializable> contentProps = this.executer.removeContentTypes(props);
         this.nodeService.setProperties(this.nodeRef, props);
+        for (QName propQname : contentProps.keySet())
+        {
+            this.nodeService.setContentProperty(this.nodeRef, propQname, contentProps.get(propQname));
+        }
 
         // Execute the action
         ActionImpl action = new ActionImpl(null, ID, SetPropertyValueActionExecuter.NAME, null);
