@@ -26,6 +26,7 @@
 package org.alfresco.repo.model.ml.tools;
 
 import java.io.Serializable;
+import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 
@@ -139,7 +140,7 @@ public class MultilingualDocumentAspectTest extends AbstractMultilingualTestCase
         multilingualContentService.addTranslation(trans1, pivot, Locale.KOREAN);
 
         // modify the locale for the translation
-        Map<QName, Serializable> props = nodeService.getProperties(trans1);
+        Map<QName, Serializable> props = new HashMap<>(1);
         props.put(ContentModel.PROP_LOCALE, Locale.GERMAN);
         nodeService.setProperties(trans1, props);
 
@@ -148,7 +149,7 @@ public class MultilingualDocumentAspectTest extends AbstractMultilingualTestCase
         assertEquals("The pivot reference would not be changed in the mlContainer", Locale.FRENCH, nodeService.getProperty(mlContainer, ContentModel.PROP_LOCALE));
 
         // modify the locale for the pivot
-        props = nodeService.getProperties(pivot);
+        props = new HashMap<>(1);
         props.put(ContentModel.PROP_LOCALE, Locale.US);
         nodeService.setProperties(pivot, props);
 
@@ -170,7 +171,7 @@ public class MultilingualDocumentAspectTest extends AbstractMultilingualTestCase
         // 1. Try with redundant locale
 
         // modify the locale for the translation 2
-        Map<QName, Serializable> props = nodeService.getProperties(trans2);
+        Map<QName, Serializable> props = new HashMap<>(1);
         props.put(ContentModel.PROP_LOCALE, Locale.KOREAN);
 
         boolean exceptionCatched = false;
@@ -193,7 +194,7 @@ public class MultilingualDocumentAspectTest extends AbstractMultilingualTestCase
 
         // 2. Try with a non-redundant locale
 
-        props = nodeService.getProperties(trans2);
+        props = new HashMap<>(1);
         props.put(ContentModel.PROP_LOCALE, Locale.ITALIAN);
 
         exceptionCatched = false;
