@@ -426,12 +426,12 @@ public abstract class BaseNodeServiceTest extends BaseSpringTest
 
         // LEVEL 4
         properties.clear();
-        properties.put(PROP_QNAME_TEST_CONTENT, new ContentData(null, MimetypeMap.MIMETYPE_TEXT_PLAIN, 0L, null));
         properties.put(PROP_QNAME_TEST_TITLE, "node8");
         qname = QName.createQName(ns, "n6_p_n8");
         assoc = nodeService.createNode(n6, ASSOC_TYPE_QNAME_TEST_CHILDREN, qname, TYPE_QNAME_TEST_CONTENT, properties);
         ret.put(qname, assoc);
         NodeRef n8 = assoc.getChildRef();
+        nodeService.setContentProperty(n8, PROP_QNAME_TEST_CONTENT, new ContentData(null, MimetypeMap.MIMETYPE_TEXT_PLAIN, 0L, null));
 
         qname = QName.createQName(ns, "n7_n8");
         assoc = nodeService.addChild(n7, n8, ASSOC_TYPE_QNAME_TEST_CHILDREN, qname);
@@ -681,6 +681,7 @@ public abstract class BaseNodeServiceTest extends BaseSpringTest
             Serializable value = null;
             if (propertyTypeQName.equals(DataTypeDefinition.CONTENT))
             {
+                // skip, it is not possible to add content directly
                 value = new ContentData(null, MimetypeMap.EXTENSION_BINARY, 0L, "UTF-8");
             }
             else if (propertyTypeQName.equals(DataTypeDefinition.LOCALE))
@@ -960,15 +961,13 @@ public abstract class BaseNodeServiceTest extends BaseSpringTest
         {
             pageNumber++;
             QName renditionQName = makePageAssocName(pageNumber);
-            Map<QName, Serializable> properties = Collections.singletonMap(
-                    PROP_QNAME_TEST_RENDITION_PAGE_CONTENT,
-                    (Serializable) renditionContentPage);
-            nodeService.createNode(
+            NodeRef noderef = nodeService.createNode(
                     fileNodeRef,
                     ASSOC_TYPE_QNAME_TEST_RENDITION,
                     renditionQName,
                     TYPE_QNAME_TEST_RENDITION_PAGE,
-                    properties);
+                    null).getChildRef();
+            nodeService.setContentProperty(noderef, PROP_QNAME_TEST_RENDITION_PAGE_CONTENT, renditionContentPage);
         }
         
         // That's it for uploading.  Now we retrieve them.
@@ -1041,7 +1040,6 @@ public abstract class BaseNodeServiceTest extends BaseSpringTest
         // Create a normal node
         Map<QName, Serializable> properties = new HashMap<QName, Serializable>(5);
         // fill properties
-        fillProperties(TYPE_QNAME_TEST_CONTENT, properties);
         fillProperties(ASPECT_QNAME_TEST_TITLED, properties);
         
         // create node for real
@@ -1051,6 +1049,7 @@ public abstract class BaseNodeServiceTest extends BaseSpringTest
                 QName.createQName("MyContent"),
                 TYPE_QNAME_TEST_CONTENT,
                 properties).getChildRef();
+        nodeService.setContentProperty(nodeRef, TYPE_QNAME_TEST_CONTENT, new ContentData(null, MimetypeMap.EXTENSION_BINARY, 0L, "UTF-8"));
         
         // Modify name using the long string
         nodeService.setProperty(nodeRef, ContentModel.PROP_NAME, longString);
@@ -1064,7 +1063,6 @@ public abstract class BaseNodeServiceTest extends BaseSpringTest
     {
         Map<QName, Serializable> properties = new HashMap<QName, Serializable>(5);
         // fill properties
-        fillProperties(TYPE_QNAME_TEST_CONTENT, properties);
         fillProperties(ASPECT_QNAME_TEST_TITLED, properties);
         
         // create node for real
@@ -1075,6 +1073,7 @@ public abstract class BaseNodeServiceTest extends BaseSpringTest
                 TYPE_QNAME_TEST_CONTENT,
                 properties);
         NodeRef nodeRef = assocRef.getChildRef();
+        nodeService.setContentProperty(nodeRef, TYPE_QNAME_TEST_CONTENT, new ContentData(null, MimetypeMap.EXTENSION_BINARY, 0L, "UTF-8"));
         // check that the titled aspect is present
         assertTrue("Titled aspect not present",
                 nodeService.hasAspect(nodeRef, ASPECT_QNAME_TEST_TITLED));
@@ -1818,7 +1817,6 @@ public abstract class BaseNodeServiceTest extends BaseSpringTest
         QName qname = PROP_QNAME_CONTENT_VALUE;
         
         Map<QName, Serializable> properties = new HashMap<QName, Serializable>(17);
-        properties.put(PROP_QNAME_CONTENT_VALUE, contentData);
         properties.put(PROP_QNAME_SERIALIZABLE_VALUE, qname);
         // create node
         NodeRef nodeRef = nodeService.createNode(
@@ -1827,8 +1825,7 @@ public abstract class BaseNodeServiceTest extends BaseSpringTest
                 QName.createQName("pathA"),
                 ContentModel.TYPE_CONTAINER,
                 properties).getChildRef();
-        // persist
-//        flushAndClear();
+        nodeService.setContentProperty(nodeRef, PROP_QNAME_CONTENT_VALUE, contentData);
         
         // get the properties back
         Map<QName, Serializable> checkProperties = nodeService.getProperties(nodeRef);
@@ -2123,9 +2120,7 @@ public abstract class BaseNodeServiceTest extends BaseSpringTest
         properties.put(PROP_QNAME_DATE_VALUE, new Date());
         properties.put(PROP_QNAME_SERIALIZABLE_VALUE, "456");
         properties.put(PROP_QNAME_NODEREF_VALUE, rootNodeRef);
-        properties.put(PROP_QNAME_QNAME_VALUE, TYPE_QNAME_TEST_CONTENT);
         properties.put(PROP_QNAME_PATH_VALUE, pathProperty);
-        properties.put(PROP_QNAME_CONTENT_VALUE, new ContentData("url", "text/plain", 88L, "UTF-8"));
         properties.put(PROP_QNAME_CATEGORY_VALUE, cat);
         properties.put(PROP_QNAME_LOCALE_VALUE, Locale.CHINESE);
         properties.put(PROP_QNAME_NULL_VALUE, null);
@@ -2142,7 +2137,9 @@ public abstract class BaseNodeServiceTest extends BaseSpringTest
                 QName.createQName("pathA"),
                 TYPE_QNAME_TEST_MANY_PROPERTIES,
                 properties).getChildRef();
-        
+        nodeService.setContentProperty(nodeRef, TYPE_QNAME_TEST_CONTENT, new ContentData(null, MimetypeMap.EXTENSION_BINARY, 0L, "UTF-8"));
+        nodeService.setContentProperty(nodeRef, PROP_QNAME_CONTENT_VALUE, new ContentData("url", "text/plain", 88L, "UTF-8"));
+
         // get the properties back
         Map<QName, Serializable> checkProperties = nodeService.getProperties(nodeRef);
         // Check
@@ -2712,7 +2709,6 @@ public abstract class BaseNodeServiceTest extends BaseSpringTest
     private AssociationRef createAssociation(NodeRef sourceRef) throws Exception
     {
         Map<QName, Serializable> properties = new HashMap<QName, Serializable>(5);
-        fillProperties(TYPE_QNAME_TEST_CONTENT, properties);
         fillProperties(ASPECT_QNAME_TEST_TITLED, properties);
         
         if (sourceRef == null)
@@ -2724,6 +2720,7 @@ public abstract class BaseNodeServiceTest extends BaseSpringTest
                     TYPE_QNAME_TEST_CONTENT,
                     properties);
             sourceRef = childAssocRef.getChildRef();
+            nodeService.setContentProperty(sourceRef, TYPE_QNAME_TEST_CONTENT, new ContentData(null, MimetypeMap.EXTENSION_BINARY, 0L, "UTF-8"));
         }
         ChildAssociationRef childAssocRef = nodeService.createNode(
                 rootNodeRef,
@@ -2732,6 +2729,7 @@ public abstract class BaseNodeServiceTest extends BaseSpringTest
                 TYPE_QNAME_TEST_CONTENT,
                 properties);
         NodeRef targetRef = childAssocRef.getChildRef();
+        nodeService.setContentProperty(targetRef, TYPE_QNAME_TEST_CONTENT, new ContentData(null, MimetypeMap.EXTENSION_BINARY, 0L, "UTF-8"));
         
         AssociationRef assocRef = nodeService.createAssociation(
                 sourceRef,
@@ -2768,7 +2766,6 @@ public abstract class BaseNodeServiceTest extends BaseSpringTest
         
         // create another
         Map<QName, Serializable> properties = new HashMap<QName, Serializable>(5);
-        fillProperties(TYPE_QNAME_TEST_CONTENT, properties);
         fillProperties(ASPECT_QNAME_TEST_TITLED, properties);
         ChildAssociationRef childAssocRef = nodeService.createNode(
                 rootNodeRef,
@@ -2777,6 +2774,7 @@ public abstract class BaseNodeServiceTest extends BaseSpringTest
                 TYPE_QNAME_TEST_CONTENT,
                 properties);
         NodeRef anotherTargetRef = childAssocRef.getChildRef();
+        nodeService.setContentProperty(anotherTargetRef, TYPE_QNAME_TEST_CONTENT, new ContentData(null, MimetypeMap.EXTENSION_BINARY, 0L, "UTF-8"));
         AssociationRef anotherAssocRef = nodeService.createAssociation(
                 sourceRef,
                 anotherTargetRef,
