@@ -1748,6 +1748,7 @@ public class ScriptNode implements Scopeable, NamespacePrefixResolverProvider
     {
         // persist properties back to the node in the DB
         Map<QName, Serializable> props = new HashMap<QName, Serializable>(getProperties().size());
+        Serializable contentValue = null;
         for (String key : this.properties.keySet())
         {
             Serializable value = (Serializable) this.properties.get(key);
@@ -1763,9 +1764,8 @@ public class ScriptNode implements Scopeable, NamespacePrefixResolverProvider
                 {
                     continue;
                 }
-
-                // content can't be set via nodeService#setProperties, use special method instead
-                this.nodeService.setContentProperty(this.nodeRef, qname, getValueConverter().convertValueForRepo(value));
+                // treat content separately
+                contentValue = getValueConverter().convertValueForRepo(value);
                 continue;
             }
 
@@ -1775,6 +1775,12 @@ public class ScriptNode implements Scopeable, NamespacePrefixResolverProvider
             props.put(qname, value);
         }
         this.nodeService.setProperties(this.nodeRef, props);
+
+        // content can't be set via nodeService#setProperties, use special method instead
+        if (contentValue != null)
+        {
+            this.nodeService.setContentProperty(this.nodeRef, ContentModel.PROP_CONTENT, contentValue);
+        }
     }
     
     /**
