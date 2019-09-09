@@ -312,14 +312,14 @@ public class ContentStoreCleanerTest extends TestCase
 
                 // Make a new copy using the same ContentData
                 properties.put(ContentModel.PROP_NAME, (Serializable)"test2.txt");
-                properties.put(ContentModel.PROP_CONTENT, contentData);
                 contentNodeRef = nodeService.createNode(
                         rootNodeRef,
                         ContentModel.ASSOC_CHILDREN,
                         ContentModel.ASSOC_CHILDREN,
                         ContentModel.TYPE_CONTENT,
                         properties).getChildRef();
-                
+                nodeService.setContentProperty(contentNodeRef, ContentModel.PROP_CONTENT, contentData);
+
                 reader = contentService.getRawReader(contentData.getContentUrl());
                 assertNotNull(reader);
                 assertTrue("Content was cleaned before end of transaction", reader.exists());
