@@ -48,6 +48,7 @@ import org.alfresco.repo.transaction.RetryingTransactionHelper;
 import org.alfresco.repo.transaction.RetryingTransactionHelper.RetryingTransactionCallback;
 import org.alfresco.service.cmr.action.Action;
 import org.alfresco.service.cmr.coci.CheckOutCheckInService;
+import org.alfresco.service.cmr.dictionary.DictionaryService;
 import org.alfresco.service.cmr.lock.LockService;
 import org.alfresco.service.cmr.lock.LockType;
 import org.alfresco.service.cmr.rendition.CompositeRenditionDefinition;
@@ -2632,7 +2633,10 @@ public class RenditionServiceIntegrationTest extends BaseAlfrescoSpringTest
              hw.setRenditionLocationResolver(
                    (RenditionLocationResolver)ctx.getBean("renditionLocationResolver")
              );
-             
+             hw.setDictionaryService(
+                   (DictionaryService)ctx.getBean("dictionaryService")
+             );
+
              // Register
               ((ConfigurableApplicationContext) ctx).getBeanFactory().registerSingleton(
                    ENGINE_NAME, hw
