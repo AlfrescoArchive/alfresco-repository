@@ -19,6 +19,7 @@
       <property name="namespaceService" ref="NamespaceService"/>
       <property name="tenantService" ref="tenantService"/>
       <property name="tenantAdminService" ref="tenantAdminService"/>
+      <property name="dictionaryService" ref="dictionaryService"/>
    </bean>
    
    <bean id="workflowServiceImpl" class="org.alfresco.repo.workflow.WorkflowServiceImpl">
