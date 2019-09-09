@@ -311,6 +311,7 @@ public class OpenCmisQueryTest extends BaseCMISTest
         MLText desc0 = new MLText();
         desc0.addValue(Locale.ENGLISH, "Alfresco tutorial");
         desc0.addValue(Locale.US, "Alfresco tutorial");
+        properties0.put(ContentModel.PROP_CONTENT, new ContentData(null, "text/plain", 0L, "UTF-8", Locale.UK));
         properties0.put(ContentModel.PROP_DESCRIPTION, desc0);
         properties0.put(ContentModel.PROP_TITLE, desc0);
         properties0.put(ContentModel.PROP_NAME, "Alfresco Tutorial");
@@ -334,6 +335,7 @@ public class OpenCmisQueryTest extends BaseCMISTest
         MLText desc1 = new MLText();
         desc1.addValue(Locale.ENGLISH, "One");
         desc1.addValue(Locale.US, "One");
+        properties1.put(ContentModel.PROP_CONTENT, new ContentData(null, "text/plain", 0L, "UTF-8", Locale.UK));
         properties1.put(ContentModel.PROP_DESCRIPTION, desc1);
         properties1.put(ContentModel.PROP_TITLE, desc1);
         properties1.put(ContentModel.PROP_NAME, "AA%");
@@ -350,6 +352,7 @@ public class OpenCmisQueryTest extends BaseCMISTest
         MLText desc2 = new MLText();
         desc2.addValue(Locale.ENGLISH, "Two");
         desc2.addValue(Locale.US, "Two");
+        properties2.put(ContentModel.PROP_CONTENT, new ContentData(null, "text/plain", 0L, "UTF-8", Locale.UK));
         properties2.put(ContentModel.PROP_DESCRIPTION, desc2);
         properties2.put(ContentModel.PROP_TITLE, desc2);
         properties2.put(ContentModel.PROP_NAME, "BB_");
@@ -365,6 +368,7 @@ public class OpenCmisQueryTest extends BaseCMISTest
         MLText desc3 = new MLText();
         desc3.addValue(Locale.ENGLISH, "Three");
         desc3.addValue(Locale.US, "Three");
+        properties3.put(ContentModel.PROP_CONTENT, new ContentData(null, "text/plain", 0L, "UTF-8", Locale.UK));
         properties3.put(ContentModel.PROP_DESCRIPTION, desc3);
         properties3.put(ContentModel.PROP_TITLE, desc3);
         properties3.put(ContentModel.PROP_NAME, "CC\\");
@@ -381,6 +385,7 @@ public class OpenCmisQueryTest extends BaseCMISTest
         MLText desc4 = new MLText();
         desc4.addValue(Locale.ENGLISH, "Four");
         desc4.addValue(Locale.US, "Four");
+        properties4.put(ContentModel.PROP_CONTENT, new ContentData(null, "text/plain", 0L, "UTF-8", Locale.UK));
         properties4.put(ContentModel.PROP_DESCRIPTION, desc4);
         properties4.put(ContentModel.PROP_TITLE, desc4);
         properties4.put(ContentModel.PROP_NAME, "DD\'");
@@ -397,6 +402,7 @@ public class OpenCmisQueryTest extends BaseCMISTest
         MLText desc5 = new MLText();
         desc5.addValue(Locale.ENGLISH, "Five");
         desc5.addValue(Locale.US, "Five");
+        properties5.put(ContentModel.PROP_CONTENT, new ContentData(null, "text/plain", 0L, "UTF-8", Locale.UK));
         properties5.put(ContentModel.PROP_DESCRIPTION, desc5);
         properties5.put(ContentModel.PROP_TITLE, desc5);
         properties5.put(ContentModel.PROP_NAME, "EE.aa");
@@ -421,6 +427,7 @@ public class OpenCmisQueryTest extends BaseCMISTest
         MLText desc6 = new MLText();
         desc6.addValue(Locale.ENGLISH, "Six");
         desc6.addValue(Locale.US, "Six");
+        properties6.put(ContentModel.PROP_CONTENT, new ContentData(null, "text/plain", 0L, "UTF-8", Locale.UK));
         properties6.put(ContentModel.PROP_DESCRIPTION, desc6);
         properties6.put(ContentModel.PROP_TITLE, desc6);
         properties6.put(ContentModel.PROP_NAME, "FF.EE");
@@ -437,6 +444,7 @@ public class OpenCmisQueryTest extends BaseCMISTest
         MLText desc7 = new MLText();
         desc7.addValue(Locale.ENGLISH, "Seven");
         desc7.addValue(Locale.US, "Seven");
+        properties7.put(ContentModel.PROP_CONTENT, new ContentData(null, "text/plain", 0L, "UTF-8", Locale.UK));
         properties7.put(ContentModel.PROP_DESCRIPTION, desc7);
         properties7.put(ContentModel.PROP_TITLE, desc7);
         properties7.put(ContentModel.PROP_NAME, "GG*GG");
@@ -453,6 +461,7 @@ public class OpenCmisQueryTest extends BaseCMISTest
         MLText desc8 = new MLText();
         desc8.addValue(Locale.ENGLISH, "Eight");
         desc8.addValue(Locale.US, "Eight");
+        properties8.put(ContentModel.PROP_CONTENT, new ContentData(null, "text/plain", 0L, "UTF-8", Locale.UK));
         properties8.put(ContentModel.PROP_DESCRIPTION, desc8);
         properties8.put(ContentModel.PROP_TITLE, desc8);
         properties8.put(ContentModel.PROP_NAME, "HH?HH");
@@ -469,6 +478,7 @@ public class OpenCmisQueryTest extends BaseCMISTest
         MLText desc9 = new MLText();
         desc9.addValue(Locale.ENGLISH, "Nine");
         desc9.addValue(Locale.US, "Nine");
+        properties9.put(ContentModel.PROP_CONTENT, new ContentData(null, "text/plain", 0L, "UTF-8", Locale.UK));
         properties9.put(ContentModel.PROP_DESCRIPTION, desc9);
         properties9.put(ContentModel.PROP_TITLE, desc9);
         properties9.put(ContentModel.PROP_NAME, "aa");
@@ -486,6 +496,7 @@ public class OpenCmisQueryTest extends BaseCMISTest
         MLText desc10 = new MLText();
         desc10.addValue(Locale.ENGLISH, "Ten");
         desc10.addValue(Locale.US, "Ten");
+        properties10.put(ContentModel.PROP_CONTENT, new ContentData(null, "text/plain", 0L, "UTF-8", Locale.UK));
         properties10.put(ContentModel.PROP_DESCRIPTION, desc10);
         properties10.put(ContentModel.PROP_TITLE, desc10);
         properties10.put(ContentModel.PROP_NAME, "aa-thumb");
