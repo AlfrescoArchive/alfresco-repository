@@ -120,16 +120,14 @@ public class RoutingContentServiceTest extends TestCase
         // create a content node
         ContentData contentData = new ContentData(null, "text/plain", 0L, "UTF-16", Locale.CHINESE);
         
-        PropertyMap properties = new PropertyMap();
-        properties.put(ContentModel.PROP_CONTENT, contentData);
-        
         ChildAssociationRef assocRef = nodeService.createNode(
                 rootNodeRef,
                 ContentModel.ASSOC_CHILDREN,
                 QName.createQName(TEST_NAMESPACE, GUID.generate()),
                 ContentModel.TYPE_CONTENT,
-                properties);
+                null);
         contentNodeRef = assocRef.getChildRef();
+        nodeService.setContentProperty(contentNodeRef, ContentModel.PROP_CONTENT, contentData);
     }
     
     @Override
@@ -769,6 +767,8 @@ public class RoutingContentServiceTest extends TestCase
         
         Map<QName, Serializable> copyProperties = nodeService.getProperties(contentNodeRef);
         copyProperties.remove(ContentModel.PROP_NODE_UUID);
+        // remove content property as it can't be copied
+        copyProperties.remove(ContentModel.PROP_CONTENT);
         // Copy the node
         NodeRef contentCopyNodeRef = nodeService.createNode(
                 rootNodeRef,
@@ -776,6 +776,8 @@ public class RoutingContentServiceTest extends TestCase
                 QName.createQName(TEST_NAMESPACE, GUID.generate()),
                 ContentModel.TYPE_CONTENT,
                 copyProperties).getChildRef();
+        // set content to the copy
+        nodeService.setContentProperty(contentCopyNodeRef, ContentModel.PROP_CONTENT, nodeContentData);
         // Now get and check the ContentData for the copy
         ContentData copyNodeContentData = (ContentData) nodeService.getProperty(contentCopyNodeRef, ContentModel.PROP_CONTENT);
         assertNotNull(copyNodeContentData);
