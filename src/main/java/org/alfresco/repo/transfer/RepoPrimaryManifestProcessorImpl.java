@@ -632,7 +632,7 @@ public class RepoPrimaryManifestProcessorImpl extends AbstractManifestProcessorB
             nodeService.setProperties(nodeToUpdate, props);
 
             // Set unmodified content props separately
-            for (QName contentPropertyQName : contentProps.keySet())
+            for (QName contentPropertyQName : unmodifiedContentProps.keySet())
             {
                 nodeService.setContentProperty(nodeToUpdate, contentPropertyQName, unmodifiedContentProps.get(contentPropertyQName));
             }
