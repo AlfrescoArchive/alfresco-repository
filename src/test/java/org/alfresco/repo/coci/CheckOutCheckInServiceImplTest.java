@@ -616,7 +616,6 @@ public class CheckOutCheckInServiceImplTest extends BaseSpringTest
     {
         // Create a bag of props
         Map<QName, Serializable> bagOfProps = createTypePropertyBag();
-        bagOfProps.put(ContentModel.PROP_CONTENT, new ContentData(null, MimetypeMap.MIMETYPE_TEXT_PLAIN, 0L, "UTF-8"));
 
         // Create a new node 
         ChildAssociationRef childAssocRef = nodeService.createNode(
@@ -626,7 +625,8 @@ public class CheckOutCheckInServiceImplTest extends BaseSpringTest
                 ContentModel.TYPE_CONTENT,
                 bagOfProps);
         NodeRef noVersionNodeRef = childAssocRef.getChildRef();
-        
+        nodeService.setContentProperty(noVersionNodeRef, ContentModel.PROP_CONTENT, new ContentData(null, MimetypeMap.MIMETYPE_TEXT_PLAIN, 0L, "UTF-8"));
+
         // Check out and check in
         NodeRef workingCopy = cociService.checkout(noVersionNodeRef);
         cociService.checkin(workingCopy, new HashMap<String, Serializable>());
