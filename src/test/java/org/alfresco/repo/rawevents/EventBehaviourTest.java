@@ -130,12 +130,11 @@ public class EventBehaviourTest extends BaseSpringTest
         // create a content node
         ContentData contentData = new ContentData(null, "text/plain", 0L, "UTF-16", Locale.CHINESE);
 
-        PropertyMap properties = new PropertyMap();
-        properties.put(ContentModel.PROP_CONTENT, contentData);
-
         ChildAssociationRef assocRef = nodeService.createNode(rootNodeRef, ContentModel.ASSOC_CHILDREN, QName.createQName(TEST_NAMESPACE, GUID.generate()),
-                ContentModel.TYPE_CONTENT, properties);
+                ContentModel.TYPE_CONTENT, null);
         this.contentNodeRef = assocRef.getChildRef();
+
+        nodeService.setContentProperty(this.contentNodeRef, ContentModel.PROP_CONTENT, contentData);
 
         validateSetUp();
     }
