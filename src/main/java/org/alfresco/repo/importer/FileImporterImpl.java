@@ -283,9 +283,6 @@ public class FileImporterImpl implements FileImporter
         // create properties for content type
         Map<QName, Serializable> contentProps = new HashMap<QName, Serializable>(3, 1.0f);
         contentProps.put(ContentModel.PROP_NAME, file.getName());
-        contentProps.put(
-                ContentModel.PROP_CONTENT,
-                new ContentData(null, mimetype, 0L, "UTF-8"));
         String currentUser = authenticationService.getCurrentUserName();
         contentProps.put(ContentModel.PROP_CREATOR, currentUser == null ? "unknown" : currentUser);
 
@@ -296,9 +293,9 @@ public class FileImporterImpl implements FileImporter
                 assocTypeQName,
                 QName.createQName(NamespaceService.CONTENT_MODEL_1_0_URI, assocName),
                 ContentModel.TYPE_CONTENT, contentProps);
-
         NodeRef fileNodeRef = assocRef.getChildRef();
-        
+        this.nodeService.setContentProperty(fileNodeRef, ContentModel.PROP_CONTENT,
+                new ContentData(null, mimetype, 0L, "UTF-8"));
 
         if (logger.isDebugEnabled())
             logger.debug("Created file node for file: " + file.getName());
