@@ -682,7 +682,7 @@ public abstract class BaseNodeServiceTest extends BaseSpringTest
             if (propertyTypeQName.equals(DataTypeDefinition.CONTENT))
             {
                 // skip, it is not possible to add content directly
-                value = new ContentData(null, MimetypeMap.EXTENSION_BINARY, 0L, "UTF-8");
+                continue;
             }
             else if (propertyTypeQName.equals(DataTypeDefinition.LOCALE))
             {
