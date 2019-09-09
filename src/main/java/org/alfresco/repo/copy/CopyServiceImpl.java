@@ -1152,7 +1152,23 @@ public class CopyServiceImpl extends AbstractBaseCopyService implements CopyServ
         // Add the residual properties to the node
         if (residualProperties.size() > 0)
         {
+            // Handle content properties separately
+            Map<QName, Serializable> contentProps = new HashMap<>(3);
+            for (QName propertyQName : residualProperties.keySet())
+            {
+                PropertyDefinition contentPropDef = dictionaryService.getProperty(propertyQName);
+                if (residualProperties.get(propertyQName) instanceof ContentData ||
+                        contentPropDef != null && contentPropDef.getDataType().getName().equals(DataTypeDefinition.CONTENT))
+                {
+                    contentProps.put(propertyQName, residualProperties.get(propertyQName));
+                }
+            }
+            residualProperties.keySet().removeAll(contentProps.keySet());
             internalNodeService.addProperties(targetNodeRef, residualProperties);
+            for (QName contentPropertyQName : contentProps.keySet())
+            {
+                internalNodeService.setContentProperty(targetNodeRef, contentPropertyQName, contentProps.get(contentPropertyQName));
+            }
         }
     }
     
