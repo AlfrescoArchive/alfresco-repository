@@ -201,7 +201,7 @@ public abstract class BaseVersionStoreTest extends BaseSpringTest
         this.nodeProperties.put(PROP_2, VALUE_2);
         this.nodeProperties.put(PROP_3, VALUE_3);
         this.nodeProperties.put(MULTI_PROP, (Serializable)multiValue);
-        this.nodeProperties.put(ContentModel.PROP_CONTENT, new ContentData(null, "text/plain", 0L, "UTF-8"));
+//        this.nodeProperties.put(ContentModel.PROP_CONTENT, new ContentData(null, "text/plain", 0L, "UTF-8"));
         
         // Add mlText property
         this.mlText = new MLText(Locale.UK, "UK value");
@@ -273,6 +273,8 @@ public abstract class BaseVersionStoreTest extends BaseSpringTest
                 QName.createQName("{test}MyVersionableNode"),
                 nodeType,
                 this.nodeProperties).getChildRef();
+        nodeService.setContentProperty(nodeRef, ContentModel.PROP_CONTENT, new ContentData(null, "text/plain", 0L, "UTF-8"));
+
         if (versionable)
         {
             this.dbNodeService.addAspect(nodeRef, ContentModel.ASPECT_VERSIONABLE, new HashMap<QName, Serializable>());
