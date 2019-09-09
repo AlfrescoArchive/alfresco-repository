@@ -56,7 +56,7 @@ public abstract class ActionExecuterAbstractBase extends ParameterizedItemAbstra
     protected ActionDefinition actionDefinition;
     private LockService lockService;
     private NodeService baseNodeService;
-    private DictionaryService dictionaryService;
+    protected DictionaryService dictionaryService;
     private NodeService mlAwareNodeService;
     
     /** Indicate if the action status should be tracked or not (default <tt>false</tt>) */

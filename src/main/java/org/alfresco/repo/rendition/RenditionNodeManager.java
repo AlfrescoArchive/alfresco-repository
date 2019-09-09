@@ -32,6 +32,7 @@ import static org.alfresco.model.ContentModel.PROP_STORE_NAME;
 import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -40,10 +41,14 @@ import org.alfresco.model.ContentModel;
 import org.alfresco.model.RenditionModel;
 import org.alfresco.repo.policy.BehaviourFilter;
 import org.alfresco.repo.rendition.executer.AbstractRenderingEngine;
+import org.alfresco.service.cmr.dictionary.DataTypeDefinition;
+import org.alfresco.service.cmr.dictionary.DictionaryService;
+import org.alfresco.service.cmr.dictionary.PropertyDefinition;
 import org.alfresco.service.cmr.rendition.RenditionDefinition;
 import org.alfresco.service.cmr.rendition.RenditionService;
 import org.alfresco.service.cmr.rendition.RenditionServiceException;
 import org.alfresco.service.cmr.repository.ChildAssociationRef;
+import org.alfresco.service.cmr.repository.ContentData;
 import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.cmr.repository.NodeService;
 import org.alfresco.service.namespace.NamespaceService;
@@ -83,6 +88,7 @@ public class RenditionNodeManager
     private final NodeService nodeService;
     private final BehaviourFilter behaviourFilter;
     private final RenditionService renditionService;
+    private final DictionaryService dictionaryService;
     /**
      * This holds an existing rendition node if one exists and is linked to the source node
      * by a correctly named rendition association.
@@ -101,7 +107,7 @@ public class RenditionNodeManager
      */
     public RenditionNodeManager(NodeRef sourceNode, NodeRef tempRenditionNode, RenditionLocation location,
                 RenditionDefinition renditionDefinition, NodeService nodeService, RenditionService renditionService,
-                BehaviourFilter behaviourFilter)
+                BehaviourFilter behaviourFilter, DictionaryService dictionaryService)
     {
         this.sourceNode = sourceNode;
         this.tempRenditionNode = tempRenditionNode;
@@ -110,6 +116,7 @@ public class RenditionNodeManager
         this.nodeService = nodeService;
         this.renditionService = renditionService;
         this.behaviourFilter = behaviourFilter;
+        this.dictionaryService = dictionaryService;
         
         this.existingLinkedRendition = getExistingRendition();
 
@@ -526,6 +533,7 @@ public class RenditionNodeManager
         }
         
         // Copy over all regular properties from the temporary rendition
+        // Remove content properties from node properties and set them separately via NodeService#setContentProperty
         Map<QName, Serializable> newProps = nodeService.getProperties(targetNode);
         for(Entry<QName,Serializable> entry : nodeService.getProperties(tempRenditionNode).entrySet())
         {
@@ -538,6 +546,25 @@ public class RenditionNodeManager
             }
             newProps.put(propKey, entry.getValue());
         }
+
+        Map<QName, Serializable> contentProps = new HashMap<>(3);
+        for (QName propertyQName : newProps.keySet())
+        {
+            PropertyDefinition contentPropDef = dictionaryService.getProperty(propertyQName);
+            if (newProps.get(propertyQName) instanceof ContentData ||
+                    contentPropDef != null && contentPropDef.getDataType().getName().equals(DataTypeDefinition.CONTENT))
+            {
+                contentProps.put(propertyQName, newProps.get(propertyQName));
+            }
+        }
+        newProps.keySet().removeAll(contentProps.keySet());
+
         nodeService.setProperties(targetNode, newProps);
+
+        // Set content props separately
+        for (QName contentPropertyQName : contentProps.keySet())
+        {
+            nodeService.setContentProperty(targetNode, contentPropertyQName, contentProps.get(contentPropertyQName));
+        }
     }
 }
