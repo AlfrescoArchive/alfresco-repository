@@ -681,6 +681,7 @@ public abstract class AbstractRenderingEngine extends ActionExecuterAbstractBase
         // The ThumbnailService puts a cm:name property on its thumbnail nodes.
         Map<QName, Serializable> nodeProps = new HashMap<QName, Serializable>();
         nodeProps.put(ContentModel.PROP_NAME, renditionName.getLocalName());
+        nodeProps.put(ContentModel.PROP_CONTENT_PROPERTY_NAME, getRenditionContentProp(renditionDefinition));
         QName assocName = QName.createQName(NamespaceService.RENDITION_MODEL_1_0_URI, GUID.generate());
         NodeRef parentNode = renditionDefinition.getRenditionParent();
         QName assocType = renditionDefinition.getRenditionAssociationType();
@@ -693,7 +694,6 @@ public abstract class AbstractRenderingEngine extends ActionExecuterAbstractBase
         try
         {
             childAssoc = nodeService.createNode(parentNode, assocType, assocName, nodeType, nodeProps);
-            nodeService.setContentProperty(childAssoc.getChildRef(), ContentModel.PROP_CONTENT_PROPERTY_NAME, getRenditionContentProp(renditionDefinition));
             if (logger.isDebugEnabled())
             {
                 logger.debug("Created node " + childAssoc + " as child of " + parentNode + " with assoc-type " + assocType);
@@ -985,7 +985,7 @@ public abstract class AbstractRenderingEngine extends ActionExecuterAbstractBase
         QName renditionQName = renditionDefinition.getRenditionName();
 
         RenditionNodeManager renditionNodeManager = new RenditionNodeManager(sourceNode, tempRenditionNode,
-                renditionLocation, renditionDefinition, nodeService, renditionService, behaviourFilter);
+                renditionLocation, renditionDefinition, nodeService, renditionService, behaviourFilter, dictionaryService);
         ChildAssociationRef renditionNode = renditionNodeManager.findOrCreateRenditionNode();
 
         // Set the name property on the rendition if it has not already been
