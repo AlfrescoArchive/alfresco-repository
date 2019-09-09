@@ -43,7 +43,10 @@ import org.alfresco.repo.content.metadata.MetadataExtracterRegistry;
 import org.alfresco.repo.content.metadata.TikaPoweredMetadataExtracter;
 import org.alfresco.repo.content.transform.AbstractContentTransformerTest;
 import org.alfresco.repo.security.authentication.AuthenticationComponent;
+import org.alfresco.service.cmr.dictionary.DataTypeDefinition;
 import org.alfresco.service.cmr.dictionary.DictionaryService;
+import org.alfresco.service.cmr.dictionary.PropertyDefinition;
+import org.alfresco.service.cmr.repository.ContentData;
 import org.alfresco.service.cmr.repository.ContentReader;
 import org.alfresco.service.cmr.repository.ContentService;
 import org.alfresco.service.cmr.repository.ContentWriter;
@@ -141,7 +144,15 @@ public class ContentMetadataEmbedderTest extends BaseSpringTest
         // Get the old props
         Map<QName, Serializable> props = this.nodeService.getProperties(this.nodeRef);
         props.put(ContentModel.PROP_AUTHOR, myCreator);
+
+        // Remove the content properties from props
+        Map<QName, Serializable> contentProperties = embedder.removeContentTypes(props);
         this.nodeService.setProperties(this.nodeRef, props);
+        // Add content properties separately with setContentProperty
+        for(QName propQname : contentProperties.keySet())
+        {
+            this.nodeService.setContentProperty(this.nodeRef, propQname, contentProperties.get(propQname));
+        }
 
         // Execute the action
         ActionImpl action = new ActionImpl(null, ID, SetPropertyValueActionExecuter.NAME, null);
@@ -201,6 +212,37 @@ public class ContentMetadataEmbedderTest extends BaseSpringTest
             qnames.add(ContentModel.PROP_AUTHOR);
             mapping.put("author", qnames);
             return mapping;
+        }
+        /**
+         * Removes any properties from a Map<QName,Serializable> properties that has content 
+         * and returns a map containing these values.
+         * @param properties
+         * @return A Map<QName,Serializable> of the removed properties
+         */
+        protected Map<QName,Serializable> removeContentTypes(Map<QName,Serializable> properties)
+        {
+            Map<QName,Serializable> contentProperties = new HashMap<QName,Serializable>(0);
+            boolean isContentProperty = false;
+            Serializable propValue = null;
+            for (QName propQname : properties.keySet())
+            {   
+                isContentProperty = false;
+                propValue = properties.get(propQname);
+                if (propValue instanceof ContentData)
+                {
+                    PropertyDefinition contentPropDef = dictionaryService.getProperty(propQname);
+                    isContentProperty =  contentPropDef != null && contentPropDef.getDataType().getName().equals(DataTypeDefinition.CONTENT);
+                }                
+                if (isContentProperty)
+                {
+                    contentProperties.put(propQname,properties.get(propQname));
+                }
+            }
+            for(QName propQname: contentProperties.keySet())
+            {
+                properties.remove(propQname);
+            }
+            return contentProperties;
         }
     }
     
