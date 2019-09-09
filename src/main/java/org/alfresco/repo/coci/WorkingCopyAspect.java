@@ -31,6 +31,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -46,10 +47,14 @@ import org.alfresco.repo.policy.BehaviourFilter;
 import org.alfresco.repo.policy.JavaBehaviour;
 import org.alfresco.repo.policy.PolicyComponent;
 import org.alfresco.service.cmr.coci.CheckOutCheckInService;
+import org.alfresco.service.cmr.dictionary.DataTypeDefinition;
+import org.alfresco.service.cmr.dictionary.DictionaryService;
+import org.alfresco.service.cmr.dictionary.PropertyDefinition;
 import org.alfresco.service.cmr.lock.LockService;
 import org.alfresco.service.cmr.lock.LockType;
 import org.alfresco.service.cmr.repository.AssociationRef;
 import org.alfresco.service.cmr.repository.ChildAssociationRef;
+import org.alfresco.service.cmr.repository.ContentData;
 import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.cmr.repository.NodeService;
 import org.alfresco.service.namespace.QName;
@@ -64,7 +69,7 @@ public class WorkingCopyAspect implements CopyServicePolicies.OnCopyNodePolicy, 
     private LockService lockService;
     private CheckOutCheckInService checkOutCheckInService;
     private BehaviourFilter policyBehaviourFilter;
-    
+    private DictionaryService dictionaryService;
     
     /**
      * The working copy aspect copy behaviour callback.
@@ -118,7 +123,12 @@ public class WorkingCopyAspect implements CopyServicePolicies.OnCopyNodePolicy, 
     {
         this.policyBehaviourFilter = policyBehaviourFilter;
     }
-    
+
+    public void setDictionaryService(DictionaryService dictionaryService)
+    {
+        this.dictionaryService = dictionaryService;
+    }
+
     /**
      * Initialise method
      */
@@ -275,8 +285,26 @@ public class WorkingCopyAspect implements CopyServicePolicies.OnCopyNodePolicy, 
                         }
                     }
 
+                    Map<QName, Serializable> contentProps = new HashMap<>(3);
+                    for (QName propertyQName : workingCopyProperties.keySet())
+                    {
+                        PropertyDefinition contentPropDef = dictionaryService.getProperty(propertyQName);
+                        if (workingCopyProperties.get(propertyQName) instanceof ContentData ||
+                                contentPropDef != null && contentPropDef.getDataType().getName().equals(DataTypeDefinition.CONTENT))
+                        {
+                            contentProps.put(propertyQName, workingCopyProperties.get(propertyQName));
+                        }
+                    }
+                    workingCopyProperties.keySet().removeAll(contentProps.keySet());
+
                     //update working copy node properties
                     nodeService.setProperties(workingCopyNodeRef, workingCopyProperties);
+
+                    // Set content props separately
+                    for (QName contentPropertyQName : contentProps.keySet())
+                    {
+                        nodeService.setContentProperty(workingCopyNodeRef, contentPropertyQName, contentProps.get(contentPropertyQName));
+                    }
                 }
             }
             finally
@@ -349,7 +377,26 @@ public class WorkingCopyAspect implements CopyServicePolicies.OnCopyNodePolicy, 
 
                 //clean up the archived aspect and properties for working copy node
                 nodeService.removeAspect(workingCopyNodeRef, ContentModel.ASPECT_ARCHIVE_LOCKABLE);
+
+                Map<QName, Serializable> contentProps = new HashMap<>(3);
+                for (QName propertyQName : workingCopyProperties.keySet())
+                {
+                    PropertyDefinition contentPropDef = dictionaryService.getProperty(propertyQName);
+                    if (workingCopyProperties.get(propertyQName) instanceof ContentData ||
+                            contentPropDef != null && contentPropDef.getDataType().getName().equals(DataTypeDefinition.CONTENT))
+                    {
+                        contentProps.put(propertyQName, workingCopyProperties.get(propertyQName));
+                    }
+                }
+                workingCopyProperties.keySet().removeAll(contentProps.keySet());
+
                 nodeService.setProperties(workingCopyNodeRef, workingCopyProperties);
+
+                // Set content props separately
+                for (QName contentPropertyQName : contentProps.keySet())
+                {
+                    nodeService.setContentProperty(workingCopyNodeRef, contentPropertyQName, contentProps.get(contentPropertyQName));
+                }
 
                 //restore properties on original node
                 nodeService.addAspect(checkedOutNodeRef, ContentModel.ASPECT_LOCKABLE, null);
@@ -361,7 +408,25 @@ public class WorkingCopyAspect implements CopyServicePolicies.OnCopyNodePolicy, 
                 checkedOutNodeProperties.put(ContentModel.PROP_EXPIRY_DATE, expiryDate);
                 checkedOutNodeProperties.put(ContentModel.PROP_LOCK_ADDITIONAL_INFO, additionalInfo);
 
+                contentProps = new HashMap<>(3);
+                for (QName propertyQName : checkedOutNodeProperties.keySet())
+                {
+                    PropertyDefinition contentPropDef = dictionaryService.getProperty(propertyQName);
+                    if (checkedOutNodeProperties.get(propertyQName) instanceof ContentData ||
+                            contentPropDef != null && contentPropDef.getDataType().getName().equals(DataTypeDefinition.CONTENT))
+                    {
+                        contentProps.put(propertyQName, checkedOutNodeProperties.get(propertyQName));
+                    }
+                }
+                checkedOutNodeProperties.keySet().removeAll(contentProps.keySet());
+
                 nodeService.setProperties(checkedOutNodeRef, checkedOutNodeProperties);
+
+                // Set content props separately
+                for (QName contentPropertyQName : contentProps.keySet())
+                {
+                    nodeService.setContentProperty(workingCopyNodeRef, contentPropertyQName, contentProps.get(contentPropertyQName));
+                }
             }
             finally
             {

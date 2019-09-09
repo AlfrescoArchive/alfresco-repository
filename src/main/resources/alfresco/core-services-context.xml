@@ -766,6 +766,7 @@
         <property name="policyComponent" ref="policyComponent" />
         <property name="nodeService" ref="NodeService" />
         <property name="lockService" ref="LockService" />
+        <property name="dictionaryService" ref="dictionaryService" />
         <property name="nodeDAO" ref="nodeDAO" />
         <property name="checkOutCheckInService" ref="CheckoutCheckinService" />
 		<property name="policyBehaviourFilter" ref="policyBehaviourFilter" />
