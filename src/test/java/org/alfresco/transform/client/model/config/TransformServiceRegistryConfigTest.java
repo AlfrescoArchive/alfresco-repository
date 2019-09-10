@@ -25,6 +25,7 @@
  */
 package org.alfresco.transform.client.model.config;
 
+import static java.util.Collections.emptyMap;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -66,8 +67,6 @@ public class TransformServiceRegistryConfigTest extends TransformRegistryTest
 
     public static final ObjectMapper JSON_OBJECT_MAPPER = new ObjectMapper();
 
-    private Map<String, String> actualOptions;
-    
     @Before
     @Override
     public void setUp() throws Exception
@@ -76,6 +75,7 @@ public class TransformServiceRegistryConfigTest extends TransformRegistryTest
         LogManager.getLogger(TransformServiceRegistryConfigTest.class).setLevel(Level.DEBUG);
     }
 
+    @Override
     protected TransformServiceRegistryImpl buildTransformServiceRegistryImpl() throws Exception
     {
         TransformServiceRegistryImpl registry = new TransformServiceRegistryImpl()
@@ -134,12 +134,12 @@ public class TransformServiceRegistryConfigTest extends TransformRegistryTest
                 60, countSupportedTransforms(false));
 
         // Check a supported transform for each transformer.
-        assertSupported(DOC, 1234, PDF, actualOptions, null, ""); // libreoffice
-        assertSupported(DOC, 1234, PDF, actualOptions, null, ""); // libreoffice
-        assertSupported(PDF, 1234, PNG, actualOptions, null, ""); // pdfrenderer
-        assertSupported(JPEG,1234, GIF, actualOptions, null, ""); // imagemagick
-        assertSupported(MSG, 1234, TXT, actualOptions, null, ""); // tika
-        assertSupported(MSG, 1234, GIF, actualOptions, null, ""); // officeToImageViaPdf
+        assertSupported(DOC, 1234, PDF, emptyMap(), null, ""); // libreoffice
+        assertSupported(DOC, 1234, PDF, emptyMap(), null, ""); // libreoffice
+        assertSupported(PDF, 1234, PNG, emptyMap(), null, ""); // pdfrenderer
+        assertSupported(JPEG,1234, GIF, emptyMap(), null, ""); // imagemagick
+        assertSupported(MSG, 1234, TXT, emptyMap(), null, ""); // tika
+        assertSupported(MSG, 1234, GIF, emptyMap(), null, ""); // officeToImageViaPdf
 
         Map<String, String> invalidPdfOptions = new HashMap<>();
         invalidPdfOptions.put("allowEnlargement", "false");
@@ -207,12 +207,12 @@ public class TransformServiceRegistryConfigTest extends TransformRegistryTest
         assertFalse("cropWidth should be optional as required is not set", cropWidth.isRequired());
 
         // Check a supported transform for each transformer.
-        assertSupported(DOC,1234, GIF,  actualOptions, null, "");
-        assertSupported(DOC,1234, PNG,  actualOptions, null, "");
-        assertSupported(DOC,1234, JPEG, actualOptions, null, "");
-        assertSupported(DOC,1234, TIFF, actualOptions, null, "");
+        assertSupported(DOC,1234, GIF,  emptyMap(), null, "");
+        assertSupported(DOC,1234, PNG,  emptyMap(), null, "");
+        assertSupported(DOC,1234, JPEG, emptyMap(), null, "");
+        assertSupported(DOC,1234, TIFF, emptyMap(), null, "");
 
-        actualOptions = new HashMap<>();
+        Map<String, String> actualOptions = new HashMap<>();
         actualOptions.put("thumbnail", "true");
         actualOptions.put("resizeWidth", "100");
         actualOptions.put("resizeHeight", "100");
