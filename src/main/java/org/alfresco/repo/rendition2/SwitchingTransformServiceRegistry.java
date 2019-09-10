@@ -25,7 +25,7 @@
  */
 package org.alfresco.repo.rendition2;
 
-import org.alfresco.transform.client.model.config.TransformServiceRegistry;
+import org.alfresco.transform.client.registry.TransformServiceRegistry;
 
 import java.util.Map;
 

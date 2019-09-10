@@ -25,14 +25,9 @@
  */
 package org.alfresco.transform.client.model.config;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.apache.log4j.Level;
-import org.apache.log4j.LogManager;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -41,11 +36,18 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ConcurrentMap;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import org.alfresco.transform.client.registry.SupportedTransform;
+import org.alfresco.transform.client.registry.TransformRegistryTest;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.apache.log4j.Level;
+import org.apache.log4j.LogManager;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * Test the config received from the Transform Service about what it supports.
@@ -64,7 +66,10 @@ public class TransformServiceRegistryConfigTest extends TransformRegistryTest
 
     public static final ObjectMapper JSON_OBJECT_MAPPER = new ObjectMapper();
 
+    private Map<String, String> actualOptions;
+    
     @Before
+    @Override
     public void setUp() throws Exception
     {
         super.setUp();
@@ -155,12 +160,12 @@ public class TransformServiceRegistryConfigTest extends TransformRegistryTest
                 expectedTransforms, countSupportedTransforms(false));
 
         // Check required and optional default correctly
-        Map<String, List<AbstractTransformRegistry.SupportedTransform>> transformsToWord =
-                registry.getData().transformers.get(DOC);
-        List<AbstractTransformRegistry.SupportedTransform> supportedTransforms = transformsToWord.get(GIF);
-        AbstractTransformRegistry.SupportedTransform supportedTransform = supportedTransforms.get(0);
+        Map<String, List<SupportedTransform>> transformsToWord =
+                registry.getData().getTransforms().get(DOC);
+        List<SupportedTransform> supportedTransforms = transformsToWord.get(GIF);
+        SupportedTransform supportedTransform = supportedTransforms.get(0);
 
-        Set<TransformOption> transformOptionsSet = supportedTransform.transformOptions.getTransformOptions();
+        Set<TransformOption> transformOptionsSet = supportedTransform.getTransformOptions().getTransformOptions();
         System.out.println("Nothing");
 
         Iterator<TransformOption> iterator = transformOptionsSet.iterator();
@@ -190,7 +195,7 @@ public class TransformServiceRegistryConfigTest extends TransformRegistryTest
         TransformOptionValue cropGravity = (TransformOptionValue)retrieveTransformOptionByPropertyName(crop, "cropGravity", "TransformOptionValue");
         TransformOptionValue cropWidth = (TransformOptionValue)retrieveTransformOptionByPropertyName(crop, "cropWidth", "TransformOptionValue");
 
-        assertTrue("The holding group should be required", supportedTransform.transformOptions.isRequired());
+        assertTrue("The holding group should be required", supportedTransform.getTransformOptions().isRequired());
         assertFalse("imagemagick should be optional as it is not set", imagemagick.isRequired());
         assertFalse("pdf should be optional as required is not set", pdf.isRequired());
         assertEquals("alphaRemove", alphaRemove.getName());
@@ -266,9 +271,9 @@ public class TransformServiceRegistryConfigTest extends TransformRegistryTest
     {
         int count = 0;
         int uniqueCount = 0;
-        for (Map<String, List<AbstractTransformRegistry.SupportedTransform>> targetMap : registry.getData().transformers.values())
+        for (Map<String, List<SupportedTransform>> targetMap : registry.getData().getTransforms().values())
         {
-            for (List<AbstractTransformRegistry.SupportedTransform> supportedTransforms : targetMap.values())
+            for (List<SupportedTransform> supportedTransforms : targetMap.values())
             {
                 uniqueCount++;
                 count += supportedTransforms.size();

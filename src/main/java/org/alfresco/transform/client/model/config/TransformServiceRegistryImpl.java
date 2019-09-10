@@ -26,6 +26,9 @@
 package org.alfresco.transform.client.model.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+
+import org.alfresco.transform.client.registry.AbstractTransformRegistry;
+import org.alfresco.transform.client.registry.TransformCache;
 import org.alfresco.util.ConfigScheduler;
 import org.alfresco.util.PropertyCheck;
 import org.apache.commons.logging.Log;
@@ -39,7 +42,7 @@ import java.io.IOException;
  */
 public abstract class TransformServiceRegistryImpl extends AbstractTransformRegistry implements InitializingBean
 {
-    public static class Data extends AbstractTransformRegistry.Data
+    public static class Data extends TransformCache
     {
         private int tEngineCount = 0;
         private int fileCount;

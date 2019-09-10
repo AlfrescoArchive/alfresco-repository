@@ -25,21 +25,6 @@
  */
 package org.alfresco.repo.content.transform;
 
-import org.alfresco.service.cmr.repository.ContentReader;
-import org.alfresco.service.cmr.repository.ContentWriter;
-import org.alfresco.service.cmr.repository.MimetypeService;
-import org.alfresco.service.cmr.repository.NodeRef;
-import org.alfresco.transform.client.model.config.CombinedConfig;
-import org.alfresco.transform.client.model.config.TransformOption;
-import org.alfresco.transform.client.model.config.TransformServiceRegistry;
-import org.alfresco.transform.client.model.config.TransformServiceRegistryImpl;
-import org.alfresco.transform.client.model.config.TransformStep;
-import org.alfresco.transform.client.model.config.Transformer;
-import org.alfresco.util.PropertyCheck;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.springframework.beans.factory.InitializingBean;
-
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -48,6 +33,21 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
+
+import org.alfresco.service.cmr.repository.ContentReader;
+import org.alfresco.service.cmr.repository.ContentWriter;
+import org.alfresco.service.cmr.repository.MimetypeService;
+import org.alfresco.service.cmr.repository.NodeRef;
+import org.alfresco.transform.client.model.config.CombinedConfig;
+import org.alfresco.transform.client.model.config.TransformOption;
+import org.alfresco.transform.client.model.config.TransformServiceRegistryImpl;
+import org.alfresco.transform.client.model.config.TransformStep;
+import org.alfresco.transform.client.model.config.Transformer;
+import org.alfresco.transform.client.registry.TransformServiceRegistry;
+import org.alfresco.util.PropertyCheck;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.springframework.beans.factory.InitializingBean;
 
 /**
  * Implements {@link TransformServiceRegistry} providing a mechanism of validating if a local transformation
@@ -157,8 +157,8 @@ public class LocalTransformServiceRegistry extends TransformServiceRegistryImpl 
     }
 
     @Override
-    protected void register(Transformer transformer, Map<String, Set<TransformOption>> transformOptions,
-                            String baseUrl, String readFrom)
+    public void register(Transformer transformer, Map<String, Set<TransformOption>> transformOptions,
+        String baseUrl, String readFrom)
     {
         try
         {

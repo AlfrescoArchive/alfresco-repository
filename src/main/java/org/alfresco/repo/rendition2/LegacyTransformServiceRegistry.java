@@ -28,7 +28,7 @@ package org.alfresco.repo.rendition2;
 import org.alfresco.repo.content.transform.TransformerDebug;
 import org.alfresco.service.cmr.repository.ContentService;
 import org.alfresco.service.cmr.repository.TransformationOptions;
-import org.alfresco.transform.client.model.config.TransformServiceRegistry;
+import org.alfresco.transform.client.registry.TransformServiceRegistry;
 import org.alfresco.util.PropertyCheck;
 import org.springframework.beans.factory.InitializingBean;
 
