@@ -425,7 +425,7 @@ public class WorkingCopyAspect implements CopyServicePolicies.OnCopyNodePolicy, 
                 // Set content props separately
                 for (QName contentPropertyQName : contentProps.keySet())
                 {
-                    nodeService.setContentProperty(workingCopyNodeRef, contentPropertyQName, contentProps.get(contentPropertyQName));
+                    nodeService.setContentProperty(checkedOutNodeRef, contentPropertyQName, contentProps.get(contentPropertyQName));
                 }
             }
             finally
