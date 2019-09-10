@@ -450,7 +450,24 @@ public interface NodeService
      */
     @Auditable(parameters = {"nodeRef", "properties"})
     public void setProperties(NodeRef nodeRef, Map<QName, Serializable> properties) throws InvalidNodeRefException;
-    
+
+    /**
+     * Internal API to replace all current properties on the node with the given properties.
+     * Unlike {@link #setProperties(NodeRef, Map)} potentially allows to set content properties,
+     * which should be allowed only for trusted services.
+     * The properties given must still fulfill the requirements of the class and
+     * aspects relevant to the node.
+     * <p>
+     * <b>NOTE:</b> Null values <u>are</u> allowed.
+     *
+     * @param nodeRef           the node to chance
+     * @param properties        all the properties of the node keyed by their qualified names
+     * @param ignoreContentPropertyRestrictions if true allows to set content properties
+     * @throws InvalidNodeRefException if the node could not be found
+     */
+    @Auditable(parameters = {"nodeRef", "properties"})
+    public void setProperties(NodeRef nodeRef, Map<QName, Serializable> properties, boolean ignoreContentPropertyRestrictions) throws InvalidNodeRefException;
+
     /**
      * Add all given properties to the node.
      * <p>
@@ -462,7 +479,22 @@ public interface NodeService
      */
     @Auditable(parameters = {"nodeRef", "properties"})
     public void addProperties(NodeRef nodeRef, Map<QName, Serializable> properties) throws InvalidNodeRefException;
-    
+
+    /**
+     * Internal API to add all given properties to the node.
+     * Unlike {@link #addProperties(NodeRef, Map)} potentially allows to set content properties,
+     * which should be allowed only for trusted services.
+     * <p>
+     * <b>NOTE:</b> Null values <u>are</u> allowed and will replace the existing value.
+     *
+     * @param nodeRef           the node to change
+     * @param properties        the properties to change, keyed by their qualified names
+     * @param ignoreContentPropertyRestrictions if true allows to set content properties
+     * @throws InvalidNodeRefException if the node could not be found
+     */
+    @Auditable(parameters = {"nodeRef", "properties"})
+    public void addProperties(NodeRef nodeRef, Map<QName, Serializable> properties, boolean ignoreContentPropertyRestrictions) throws InvalidNodeRefException;
+
     /**
      * Sets the value of a property to be any <code>Serializable</code> instance.
      * <p>
