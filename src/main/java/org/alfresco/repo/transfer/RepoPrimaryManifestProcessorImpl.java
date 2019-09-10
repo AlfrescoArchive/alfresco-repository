@@ -615,27 +615,8 @@ public class RepoPrimaryManifestProcessorImpl extends AbstractManifestProcessorB
                 props.put(TransferModel.PROP_INVADED_BY, existingProps.get(TransferModel.PROP_INVADED_BY));
             }
 
-            // carry over unmodified content props
-            Map<QName, Serializable> unmodifiedContentProps = new HashMap<>(3);
-            for (QName propertyQName : props.keySet())
-            {
-                PropertyDefinition contentPropDef = dictionaryService.getProperty(propertyQName);
-                if (props.get(propertyQName) instanceof ContentData ||
-                        contentPropDef != null && contentPropDef.getDataType().getName().equals(DataTypeDefinition.CONTENT))
-                {
-                    unmodifiedContentProps.put(propertyQName, props.get(propertyQName));
-                }
-            }
-            props.keySet().removeAll(unmodifiedContentProps.keySet());
-
             // Update the non-content properties
-            nodeService.setProperties(nodeToUpdate, props);
-
-            // Set unmodified content props separately
-            for (QName contentPropertyQName : unmodifiedContentProps.keySet())
-            {
-                nodeService.setContentProperty(nodeToUpdate, contentPropertyQName, unmodifiedContentProps.get(contentPropertyQName));
-            }
+            nodeService.setProperties(nodeToUpdate, props, true);
 
             // Deal with the content properties
            boolean contentUpdated = writeContent(nodeToUpdate, contentProps);
