@@ -1157,27 +1157,7 @@ public class Version2ServiceImpl extends VersionServiceImpl implements VersionSe
                 }
             }
 
-            // Remove content properties from node properties and set them separately via NodeService#setContentProperty
-            Map<QName, Serializable> contentProps = new HashMap<>(3);
-
-            for (QName propertyQName : newProps.keySet())
-            {
-                PropertyDefinition contentPropDef = dictionaryService.getProperty(propertyQName);
-                if (newProps.get(propertyQName) instanceof ContentData ||
-                        contentPropDef != null && contentPropDef.getDataType().getName().equals(DataTypeDefinition.CONTENT))
-                {
-                    contentProps.put(propertyQName, newProps.get(propertyQName));
-                }
-            }
-            newProps.keySet().removeAll(contentProps.keySet());
-
-            this.nodeService.setProperties(nodeRef, newProps);
-
-            // Set content props separately
-            for (QName contentPropertyQName : contentProps.keySet())
-            {
-                nodeService.setContentProperty(nodeRef, contentPropertyQName, contentProps.get(contentPropertyQName));
-            }
+            this.nodeService.setProperties(nodeRef, newProps, true);
 
             //Restore forum properties
             this.nodeService.addProperties(nodeRef, forumProps);
