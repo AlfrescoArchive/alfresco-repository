@@ -122,6 +122,7 @@ public class DbNodeServiceImpl extends AbstractNodeServiceImpl implements Extens
     private StoreArchiveMap storeArchiveMap;
     private BehaviourFilter policyBehaviourFilter;
     private boolean enableTimestampPropagation;
+    private boolean globalContentPropertyRestrictions = true;
     private final ExtendedTrait<NodeServiceTrait> nodeServiceTrait;
     
     public DbNodeServiceImpl()
@@ -169,6 +170,11 @@ public class DbNodeServiceImpl extends AbstractNodeServiceImpl implements Extens
     public void setEnableTimestampPropagation(boolean enableTimestampPropagation)
     {
         this.enableTimestampPropagation = enableTimestampPropagation;
+    }
+
+    public void setGlobalContentPropertyRestrictions(boolean globalContentPropertyRestrictions)
+    {
+        this.globalContentPropertyRestrictions = globalContentPropertyRestrictions;
     }
 
     /**
@@ -555,7 +561,7 @@ public class DbNodeServiceImpl extends AbstractNodeServiceImpl implements Extens
         Map<QName, Serializable> missingProperties = getMissingProperties(existingProperties, allClassQNames);
         missingProperties.putAll(extraProperties);
 
-        if (!ignoreContentPropertyRestrictions)
+        if (!ignoreContentPropertyRestrictions && globalContentPropertyRestrictions)
         {
             for (QName propQname : missingProperties.keySet())
             {

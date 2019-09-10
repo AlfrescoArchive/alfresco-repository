@@ -275,6 +275,7 @@
          <ref bean="storesToIgnorePolicies"/>
       </property>
       <property name="enableTimestampPropagation" value="${system.enableTimestampPropagation}" />
+      <property name="globalContentPropertyRestrictions" value="${contentPropertyRestrictions.enabled}" />
    </bean>
    
    <bean id="nodeAuditor" class="org.alfresco.repo.node.NodeAuditor">
