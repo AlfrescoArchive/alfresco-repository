@@ -612,9 +612,9 @@ public class CopyServiceImpl extends AbstractBaseCopyService implements CopyServ
                 targetParentNodeRef, 
                 assocTypeQName,
                 assocQName,
-                sourceNodeTypeQName,
-                targetNodeProperties);
+                sourceNodeTypeQName);
         NodeRef copyTarget = targetChildAssocRef.getChildRef();
+        this.nodeService.setProperties(copyTarget, targetNodeProperties, true);
         // Save the mapping for later
         copiesByOriginal.put(sourceNodeRef, copyTarget);
         copies.add(copyTarget);
@@ -1066,7 +1066,7 @@ public class CopyServiceImpl extends AbstractBaseCopyService implements CopyServ
         }
         else
         {
-            internalNodeService.addProperties(targetNodeRef, classProperties);
+            internalNodeService.addProperties(targetNodeRef, classProperties, true);
         }
     }
     
@@ -1109,7 +1109,7 @@ public class CopyServiceImpl extends AbstractBaseCopyService implements CopyServ
         // Add the residual properties to the node
         if (residualProperties.size() > 0)
         {
-            internalNodeService.addProperties(targetNodeRef, residualProperties);
+            internalNodeService.addProperties(targetNodeRef, residualProperties, true);
         }
     }
     

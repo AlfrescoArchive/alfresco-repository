@@ -226,7 +226,8 @@ public class CopyServiceImplTest extends TestCase
                 TEST_TYPE_QNAME,
                 createTypePropertyBag());
         sourceNodeRef = childAssocRef.getChildRef();
-        
+        nodeService.setContentProperty(sourceNodeRef, ContentModel.PROP_CONTENT, CONTENT_DATA_TEXT);
+
         // Create another bag of properties
         Map<QName, Serializable> aspectProperties = new HashMap<QName, Serializable>();
         aspectProperties.put(PROP3_QNAME_MANDATORY, TEST_VALUE_1);
@@ -248,7 +249,8 @@ public class CopyServiceImplTest extends TestCase
                 TEST_TYPE_QNAME, 
                 createTypePropertyBag());
         childNodeRef = temp3.getChildRef();
-        
+        nodeService.setContentProperty(childNodeRef, ContentModel.PROP_CONTENT, CONTENT_DATA_TEXT);
+
         // Add a child that is primary
         ChildAssociationRef temp2 = nodeService.createNode(
                 rootNodeRef,
@@ -256,8 +258,8 @@ public class CopyServiceImplTest extends TestCase
                 QName.createQName("{test}testNonPrimaryChild"),
                 TEST_TYPE_QNAME,
                 createTypePropertyBag());
-        
         nonPrimaryChildNodeRef = temp2.getChildRef();
+        nodeService.setContentProperty(nonPrimaryChildNodeRef, ContentModel.PROP_CONTENT, CONTENT_DATA_TEXT);
         nodeService.addChild(
                 sourceNodeRef,
                 nonPrimaryChildNodeRef,
@@ -272,13 +274,13 @@ public class CopyServiceImplTest extends TestCase
                 TEST_TYPE_QNAME,
                 createTypePropertyBag());
         targetNodeRef = temp.getChildRef();
+        nodeService.setContentProperty(targetNodeRef, ContentModel.PROP_CONTENT, CONTENT_DATA_TEXT);
         nodeService.createAssociation(sourceNodeRef, targetNodeRef, TEST_ASSOC_TYPE_QNAME);
         
         // Create a node we can use as the destination in a copy
         Map<QName, Serializable> destinationProps = new HashMap<QName, Serializable>();
         destinationProps.put(PROP1_QNAME_MANDATORY, TEST_VALUE_1);            
-        destinationProps.put(PROP5_QNAME_MANDATORY, TEST_VALUE_3); 
-        destinationProps.put(ContentModel.PROP_CONTENT, CONTENT_DATA_TEXT);
+        destinationProps.put(PROP5_QNAME_MANDATORY, TEST_VALUE_3);
         ChildAssociationRef temp5 = nodeService.createNode(
                 rootNodeRef,
                 ContentModel.ASSOC_CHILDREN,
@@ -286,7 +288,8 @@ public class CopyServiceImplTest extends TestCase
                 TEST_TYPE_QNAME,
                 destinationProps);
         destinationNodeRef = temp5.getChildRef();
-        
+        nodeService.setContentProperty(destinationNodeRef, ContentModel.PROP_CONTENT, CONTENT_DATA_TEXT);
+
         // Create two users, for use as part of
         //  the permission related tests
         authenticationService.createAuthentication(USER_1, "PWD".toCharArray());
@@ -333,7 +336,6 @@ public class CopyServiceImplTest extends TestCase
         result.put(PROP1_QNAME_MANDATORY, TEST_VALUE_1);
         result.put(PROP2_QNAME_OPTIONAL, TEST_VALUE_2);
         result.put(PROP5_QNAME_MANDATORY, TEST_VALUE_3);
-        result.put(ContentModel.PROP_CONTENT, CONTENT_DATA_TEXT);
         return result;
     }
     
@@ -571,6 +573,7 @@ public class CopyServiceImplTest extends TestCase
                 TEST_TYPE_QNAME,
                 createTypePropertyBag());
         NodeRef nodeRef = childAssocRef.getChildRef();
+        nodeService.setContentProperty(nodeRef, ContentModel.PROP_CONTENT, CONTENT_DATA_TEXT);
 
         PagingRequest pageRequest = new PagingRequest(10);
         pageRequest.setRequestTotalCountMax(200);
@@ -662,6 +665,7 @@ public class CopyServiceImplTest extends TestCase
                 TEST_TYPE_QNAME,
                 createTypePropertyBag());
         NodeRef nodeRef = childAssocRef.getChildRef();
+        nodeService.setContentProperty(nodeRef, ContentModel.PROP_CONTENT, CONTENT_DATA_TEXT);
 
         PagingRequest pageRequest = new PagingRequest(10);
         pageRequest.setRequestTotalCountMax(200);
@@ -720,6 +724,7 @@ public class CopyServiceImplTest extends TestCase
                 ContentModel.TYPE_BASE,
                 createTypePropertyBag());
         NodeRef nodeRef = childAssocRef.getChildRef();
+        nodeService.setContentProperty(nodeRef, ContentModel.PROP_CONTENT, CONTENT_DATA_TEXT);
         // If we copy this, there should not be a cm:source association
         NodeRef copyNodeRef = copyService.copy(
                 nodeRef,
