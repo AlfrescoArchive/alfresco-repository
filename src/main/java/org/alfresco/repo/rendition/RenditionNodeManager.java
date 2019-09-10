@@ -538,6 +538,6 @@ public class RenditionNodeManager
             }
             newProps.put(propKey, entry.getValue());
         }
-        nodeService.setProperties(targetNode, newProps);
+        nodeService.setProperties(targetNode, newProps, true);
     }
 }
