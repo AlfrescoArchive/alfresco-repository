@@ -12,13 +12,13 @@ branches:
   only:
     - master
     - /support\/.*/
+    - fix/repo-4619-contenturl-property
 
 install: travis_retry mvn install -DskipTests=true -B -V
 
 stages:
   - test
   - release
-  - fix/repo-4619-contenturl-property
 
 jobs:
   include:
