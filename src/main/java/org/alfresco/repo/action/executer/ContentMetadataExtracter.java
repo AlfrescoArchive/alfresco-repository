@@ -467,7 +467,7 @@ public class ContentMetadataExtracter extends ActionExecuterAbstractBase
         }
         
         // Add all the properties to the node BEFORE we add the aspects
-        nodeService.setProperties(actionedUponNodeRef, nodeProperties);
+        nodeService.setProperties(actionedUponNodeRef, nodeProperties, true);
         
         // Add each of the aspects, as required
         for (QName requiredAspectQName : requiredAspectQNames)

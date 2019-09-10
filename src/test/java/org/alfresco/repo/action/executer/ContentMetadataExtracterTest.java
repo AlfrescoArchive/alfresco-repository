@@ -141,7 +141,7 @@ public class ContentMetadataExtracterTest extends BaseSpringTest
         props.put(ContentModel.PROP_TITLE, "");
         props.put(ContentModel.PROP_DESCRIPTION, null); // Wonder how this will
                                                         // be handled
-        this.nodeService.setProperties(this.nodeRef, props);
+        this.nodeService.setProperties(this.nodeRef, props, true);
 
         // Execute the action
         ActionImpl action = new ActionImpl(null, ID, SetPropertyValueActionExecuter.NAME, null);
@@ -305,7 +305,7 @@ public class ContentMetadataExtracterTest extends BaseSpringTest
         props.put(ContentModel.PROP_AUTHOR, myCreator);
         props.put(ContentModel.PROP_TITLE, myTitle);
         props.remove(ContentModel.PROP_DESCRIPTION); // Allow this baby
-        this.nodeService.setProperties(this.nodeRef, props);
+        this.nodeService.setProperties(this.nodeRef, props, true);
 
         // Execute the action
         ActionImpl action = new ActionImpl(null, ID, SetPropertyValueActionExecuter.NAME, null);
