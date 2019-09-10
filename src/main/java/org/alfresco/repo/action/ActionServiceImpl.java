@@ -63,10 +63,7 @@ import org.alfresco.service.cmr.action.CompositeAction;
 import org.alfresco.service.cmr.action.CompositeActionCondition;
 import org.alfresco.service.cmr.action.ParameterConstraint;
 import org.alfresco.service.cmr.action.ParameterizedItem;
-import org.alfresco.service.cmr.dictionary.DataTypeDefinition; 
 import org.alfresco.service.cmr.dictionary.DictionaryService;
-import org.alfresco.service.cmr.dictionary.PropertyDefinition;
-import org.alfresco.service.cmr.repository.ContentData;
 import org.alfresco.service.cmr.repository.ChildAssociationRef;
 import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.cmr.repository.NodeService;
@@ -1022,16 +1019,7 @@ public class ActionServiceImpl implements ActionService, RuntimeActionService, A
         props.put(ActionModel.PROP_EXECUTION_ACTION_STATUS, action.getExecutionStatus());
         props.put(ActionModel.PROP_EXECUTION_FAILURE_MESSAGE, action.getExecutionFailureMessage());
         
-        // Cannot update/set content types through setProperties. 
-        // These must be removed and added separately through setContentyProperty
-        // Create a map of content types
-        Map<QName,Serializable> contentProperties = removeContentTypes(props);
         this.nodeService.setProperties(actionNodeRef, props);
-        // Set content types separately
-        for(QName propQname : contentProperties.keySet())
-        {
-            this.nodeService.setContentProperty(actionNodeRef, propQname, contentProperties.get(propQname));
-        }
 
         // Update the compensating action (model should enforce the singularity
         // of this association)
@@ -1308,16 +1296,7 @@ public class ActionServiceImpl implements ActionService, RuntimeActionService, A
             {
                 // Update the parameter value
                 nodeRefParameterMap.put(ActionModel.PROP_PARAMETER_VALUE, parameterMap.get(paramName));
-                // Cannot update/set content types through setProperties. 
-                // These must be removed and added separately through setContentyProperty
-                // Create a map of content types
-                Map<QName,Serializable> contentProperties = removeContentTypes(nodeRefParameterMap);
                 this.nodeService.setProperties(paramNodeRef, nodeRefParameterMap);
-                // Set content types separately
-                for(QName propQname : contentProperties.keySet())
-                {
-                    this.nodeService.setContentProperty(paramNodeRef, propQname, contentProperties.get(propQname));
-                }
                 parameterMap.remove(paramName);
             }
         }
@@ -1862,35 +1841,4 @@ public class ActionServiceImpl implements ActionService, RuntimeActionService, A
         return executer.onLogException(logger,t, message);
     }
     
-    /**
-     * Removes any properties from a Map<QName,Serializable> that has content 
-     * and returns a map containing these values.
-     * @param properties
-     * @return A Map<QName,Serializable> of the removed properties
-     */
-    protected Map<QName,Serializable> removeContentTypes(Map<QName,Serializable> properties)
-    {
-        Map<QName,Serializable> contentProperties = new HashMap<QName,Serializable>(0);
-        boolean isContentProperty = false;
-        Serializable propValue = null;
-        for (QName propQname : properties.keySet())
-        {   
-            isContentProperty = false;
-            propValue = properties.get(propQname);
-            if (propValue instanceof ContentData)
-            {
-                PropertyDefinition contentPropDef = dictionaryService.getProperty(propQname);
-                isContentProperty =  contentPropDef != null && contentPropDef.getDataType().getName().equals(DataTypeDefinition.CONTENT);
-            }                
-            if (isContentProperty)
-            {
-                contentProperties.put(propQname,properties.get(propQname));
-            }
-        }
-        for(QName propQname: contentProperties.keySet())
-        {
-            properties.remove(propQname);
-        }
-        return contentProperties;
-    }
 }
