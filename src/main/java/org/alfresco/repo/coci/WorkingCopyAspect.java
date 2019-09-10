@@ -31,7 +31,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -47,14 +46,10 @@ import org.alfresco.repo.policy.BehaviourFilter;
 import org.alfresco.repo.policy.JavaBehaviour;
 import org.alfresco.repo.policy.PolicyComponent;
 import org.alfresco.service.cmr.coci.CheckOutCheckInService;
-import org.alfresco.service.cmr.dictionary.DataTypeDefinition;
-import org.alfresco.service.cmr.dictionary.DictionaryService;
-import org.alfresco.service.cmr.dictionary.PropertyDefinition;
 import org.alfresco.service.cmr.lock.LockService;
 import org.alfresco.service.cmr.lock.LockType;
 import org.alfresco.service.cmr.repository.AssociationRef;
 import org.alfresco.service.cmr.repository.ChildAssociationRef;
-import org.alfresco.service.cmr.repository.ContentData;
 import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.cmr.repository.NodeService;
 import org.alfresco.service.namespace.QName;
@@ -69,7 +64,6 @@ public class WorkingCopyAspect implements CopyServicePolicies.OnCopyNodePolicy, 
     private LockService lockService;
     private CheckOutCheckInService checkOutCheckInService;
     private BehaviourFilter policyBehaviourFilter;
-    private DictionaryService dictionaryService;
     
     /**
      * The working copy aspect copy behaviour callback.
@@ -122,11 +116,6 @@ public class WorkingCopyAspect implements CopyServicePolicies.OnCopyNodePolicy, 
     public void setPolicyBehaviourFilter(BehaviourFilter policyBehaviourFilter)
     {
         this.policyBehaviourFilter = policyBehaviourFilter;
-    }
-
-    public void setDictionaryService(DictionaryService dictionaryService)
-    {
-        this.dictionaryService = dictionaryService;
     }
 
     /**
