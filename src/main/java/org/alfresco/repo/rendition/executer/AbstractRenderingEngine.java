@@ -985,7 +985,7 @@ public abstract class AbstractRenderingEngine extends ActionExecuterAbstractBase
         QName renditionQName = renditionDefinition.getRenditionName();
 
         RenditionNodeManager renditionNodeManager = new RenditionNodeManager(sourceNode, tempRenditionNode,
-                renditionLocation, renditionDefinition, nodeService, renditionService, behaviourFilter, dictionaryService);
+                renditionLocation, renditionDefinition, nodeService, renditionService, behaviourFilter);
         ChildAssociationRef renditionNode = renditionNodeManager.findOrCreateRenditionNode();
 
         // Set the name property on the rendition if it has not already been
