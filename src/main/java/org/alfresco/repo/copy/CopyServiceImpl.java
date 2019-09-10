@@ -61,11 +61,13 @@ import org.alfresco.service.cmr.dictionary.AspectDefinition;
 import org.alfresco.service.cmr.dictionary.AssociationDefinition;
 import org.alfresco.service.cmr.dictionary.ChildAssociationDefinition;
 import org.alfresco.service.cmr.dictionary.ClassDefinition;
+import org.alfresco.service.cmr.dictionary.DataTypeDefinition;
 import org.alfresco.service.cmr.dictionary.DictionaryService;
 import org.alfresco.service.cmr.dictionary.PropertyDefinition;
 import org.alfresco.service.cmr.dictionary.TypeDefinition;
 import org.alfresco.service.cmr.repository.AssociationRef;
 import org.alfresco.service.cmr.repository.ChildAssociationRef;
+import org.alfresco.service.cmr.repository.ContentData;
 import org.alfresco.service.cmr.repository.CopyService;
 import org.alfresco.service.cmr.repository.CopyServiceException;
 import org.alfresco.service.cmr.repository.NodeRef;
@@ -606,15 +608,34 @@ public class CopyServiceImpl extends AbstractBaseCopyService implements CopyServ
         // of the CopyDetails says that the targetNodeRef was already determined.
         String targetNodeUuid = copyDetails.getTargetNodeRef().getId();
         targetNodeProperties.put(ContentModel.PROP_NODE_UUID, targetNodeUuid);
-        
+
+        // Remove content properties from node properties and set them separately via NodeService#setContentProperty
+        Map<QName, Serializable> contentProps = new HashMap<>(3);
+
+        for (QName propertyQName : targetNodeProperties.keySet())
+        {
+            PropertyDefinition contentPropDef = dictionaryService.getProperty(propertyQName);
+            if (targetNodeProperties.get(propertyQName) instanceof ContentData ||
+                    contentPropDef != null && contentPropDef.getDataType().getName().equals(DataTypeDefinition.CONTENT))
+            {
+                contentProps.put(propertyQName, targetNodeProperties.get(propertyQName));
+            }
+        }
+        targetNodeProperties.keySet().removeAll(contentProps.keySet());
+
         // The initial node copy is good to go
         ChildAssociationRef targetChildAssocRef = this.nodeService.createNode(
                 targetParentNodeRef, 
                 assocTypeQName,
                 assocQName,
-                sourceNodeTypeQName);
+                sourceNodeTypeQName,
+                targetNodeProperties);
         NodeRef copyTarget = targetChildAssocRef.getChildRef();
-        this.nodeService.setProperties(copyTarget, targetNodeProperties, true);
+        // Set content props separately
+        for (QName contentPropertyQName : contentProps.keySet())
+        {
+            this.nodeService.setContentProperty(copyTarget, contentPropertyQName, contentProps.get(contentPropertyQName));
+        }
         // Save the mapping for later
         copiesByOriginal.put(sourceNodeRef, copyTarget);
         copies.add(copyTarget);
