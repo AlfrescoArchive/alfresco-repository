@@ -285,26 +285,8 @@ public class WorkingCopyAspect implements CopyServicePolicies.OnCopyNodePolicy, 
                         }
                     }
 
-                    Map<QName, Serializable> contentProps = new HashMap<>(3);
-                    for (QName propertyQName : workingCopyProperties.keySet())
-                    {
-                        PropertyDefinition contentPropDef = dictionaryService.getProperty(propertyQName);
-                        if (workingCopyProperties.get(propertyQName) instanceof ContentData ||
-                                contentPropDef != null && contentPropDef.getDataType().getName().equals(DataTypeDefinition.CONTENT))
-                        {
-                            contentProps.put(propertyQName, workingCopyProperties.get(propertyQName));
-                        }
-                    }
-                    workingCopyProperties.keySet().removeAll(contentProps.keySet());
-
                     //update working copy node properties
-                    nodeService.setProperties(workingCopyNodeRef, workingCopyProperties);
-
-                    // Set content props separately
-                    for (QName contentPropertyQName : contentProps.keySet())
-                    {
-                        nodeService.setContentProperty(workingCopyNodeRef, contentPropertyQName, contentProps.get(contentPropertyQName));
-                    }
+                    nodeService.setProperties(workingCopyNodeRef, workingCopyProperties, true);
                 }
             }
             finally
@@ -378,25 +360,7 @@ public class WorkingCopyAspect implements CopyServicePolicies.OnCopyNodePolicy, 
                 //clean up the archived aspect and properties for working copy node
                 nodeService.removeAspect(workingCopyNodeRef, ContentModel.ASPECT_ARCHIVE_LOCKABLE);
 
-                Map<QName, Serializable> contentProps = new HashMap<>(3);
-                for (QName propertyQName : workingCopyProperties.keySet())
-                {
-                    PropertyDefinition contentPropDef = dictionaryService.getProperty(propertyQName);
-                    if (workingCopyProperties.get(propertyQName) instanceof ContentData ||
-                            contentPropDef != null && contentPropDef.getDataType().getName().equals(DataTypeDefinition.CONTENT))
-                    {
-                        contentProps.put(propertyQName, workingCopyProperties.get(propertyQName));
-                    }
-                }
-                workingCopyProperties.keySet().removeAll(contentProps.keySet());
-
-                nodeService.setProperties(workingCopyNodeRef, workingCopyProperties);
-
-                // Set content props separately
-                for (QName contentPropertyQName : contentProps.keySet())
-                {
-                    nodeService.setContentProperty(workingCopyNodeRef, contentPropertyQName, contentProps.get(contentPropertyQName));
-                }
+                nodeService.setProperties(workingCopyNodeRef, workingCopyProperties, true);
 
                 //restore properties on original node
                 nodeService.addAspect(checkedOutNodeRef, ContentModel.ASPECT_LOCKABLE, null);
@@ -408,25 +372,7 @@ public class WorkingCopyAspect implements CopyServicePolicies.OnCopyNodePolicy, 
                 checkedOutNodeProperties.put(ContentModel.PROP_EXPIRY_DATE, expiryDate);
                 checkedOutNodeProperties.put(ContentModel.PROP_LOCK_ADDITIONAL_INFO, additionalInfo);
 
-                contentProps = new HashMap<>(3);
-                for (QName propertyQName : checkedOutNodeProperties.keySet())
-                {
-                    PropertyDefinition contentPropDef = dictionaryService.getProperty(propertyQName);
-                    if (checkedOutNodeProperties.get(propertyQName) instanceof ContentData ||
-                            contentPropDef != null && contentPropDef.getDataType().getName().equals(DataTypeDefinition.CONTENT))
-                    {
-                        contentProps.put(propertyQName, checkedOutNodeProperties.get(propertyQName));
-                    }
-                }
-                checkedOutNodeProperties.keySet().removeAll(contentProps.keySet());
-
-                nodeService.setProperties(checkedOutNodeRef, checkedOutNodeProperties);
-
-                // Set content props separately
-                for (QName contentPropertyQName : contentProps.keySet())
-                {
-                    nodeService.setContentProperty(checkedOutNodeRef, contentPropertyQName, contentProps.get(contentPropertyQName));
-                }
+                nodeService.setProperties(checkedOutNodeRef, checkedOutNodeProperties, true);
             }
             finally
             {
