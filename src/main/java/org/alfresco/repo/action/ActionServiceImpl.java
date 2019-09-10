@@ -1019,7 +1019,7 @@ public class ActionServiceImpl implements ActionService, RuntimeActionService, A
         props.put(ActionModel.PROP_EXECUTION_ACTION_STATUS, action.getExecutionStatus());
         props.put(ActionModel.PROP_EXECUTION_FAILURE_MESSAGE, action.getExecutionFailureMessage());
         
-        this.nodeService.setProperties(actionNodeRef, props);
+        this.nodeService.setProperties(actionNodeRef, props, true);
 
         // Update the compensating action (model should enforce the singularity
         // of this association)
@@ -1296,7 +1296,7 @@ public class ActionServiceImpl implements ActionService, RuntimeActionService, A
             {
                 // Update the parameter value
                 nodeRefParameterMap.put(ActionModel.PROP_PARAMETER_VALUE, parameterMap.get(paramName));
-                this.nodeService.setProperties(paramNodeRef, nodeRefParameterMap);
+                this.nodeService.setProperties(paramNodeRef, nodeRefParameterMap, true);
                 parameterMap.remove(paramName);
             }
         }
