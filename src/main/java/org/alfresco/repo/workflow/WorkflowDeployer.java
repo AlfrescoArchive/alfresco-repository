@@ -25,7 +25,6 @@
  */
 package org.alfresco.repo.workflow;
 
-import java.util.HashMap;
 import org.alfresco.error.AlfrescoRuntimeException;
 import org.alfresco.model.ContentModel;
 import org.alfresco.repo.dictionary.DictionaryBootstrap;
@@ -41,11 +40,7 @@ import org.alfresco.repo.transaction.AlfrescoTransactionSupport.TxnReadState;
 import org.alfresco.repo.transaction.RetryingTransactionHelper;
 import org.alfresco.repo.transaction.RetryingTransactionHelper.RetryingTransactionCallback;
 import org.alfresco.repo.transaction.TransactionListenerAdapter;
-import org.alfresco.service.cmr.dictionary.DataTypeDefinition;
-import org.alfresco.service.cmr.dictionary.DictionaryService;
-import org.alfresco.service.cmr.dictionary.PropertyDefinition;
 import org.alfresco.service.cmr.repository.ChildAssociationRef;
-import org.alfresco.service.cmr.repository.ContentData;
 import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.cmr.repository.NodeService;
 import org.alfresco.service.cmr.repository.Path;
@@ -102,7 +97,7 @@ public class WorkflowDeployer extends AbstractLifecycleBean
     private List<String> resourceBundles = new ArrayList<String>();
     private TenantAdminService tenantAdminService;
     private TenantService tenantService;
-    private DictionaryService dictionaryService;
+    
     private NodeService nodeService;
     private NamespaceService namespaceService;
     private SearchService searchService;
@@ -238,12 +233,8 @@ public class WorkflowDeployer extends AbstractLifecycleBean
     {
         this.repoWorkflowDefsLocation = repoWorkflowDefsLocation;
     }
-
-    public void setDictionaryService(DictionaryService dictionaryService)
-    {
-        this.dictionaryService = dictionaryService;
-    }
-
+    
+        
     /**
      * Deploy the Workflow Definitions
      */
@@ -429,25 +420,7 @@ public class WorkflowDeployer extends AbstractLifecycleBean
                                 }
                             }
 
-                            Map<QName, Serializable> contentProps = new HashMap<>(3);
-                            for (QName propertyQName : props.keySet())
-                            {
-                                PropertyDefinition contentPropDef = dictionaryService.getProperty(propertyQName);
-                                if (props.get(propertyQName) instanceof ContentData ||
-                                        contentPropDef != null && contentPropDef.getDataType().getName().equals(DataTypeDefinition.CONTENT))
-                                {
-                                    contentProps.put(propertyQName, props.get(propertyQName));
-                                }
-                            }
-                            props.keySet().removeAll(contentProps.keySet());
-
-                            nodeService.setProperties(nodeRef, props);
-
-                            // Set content props separately
-                            for (QName contentPropertyQName : contentProps.keySet())
-                            {
-                                nodeService.setContentProperty(nodeRef, contentPropertyQName, contentProps.get(contentPropertyQName));
-                            }
+                           nodeService.setProperties(nodeRef, props);
                          }
                      }
                 }
