@@ -217,7 +217,8 @@ public class MLPropertyInterceptor implements MethodInterceptor
                     nodeRef,
                     pivotNodeRef);
             // Now complete the call by passing the converted properties
-            nodeService.setProperties(nodeRef, convertedProperties);
+            args[1] = convertedProperties;
+            invocation.proceed();
             // Done
         }
         else if (methodName.equals("addProperties"))
@@ -238,7 +239,8 @@ public class MLPropertyInterceptor implements MethodInterceptor
                     nodeRef,
                     pivotNodeRef);
             // Now complete the call by passing the converted properties
-            nodeService.addProperties(nodeRef, convertedProperties);
+            args[1] = convertedProperties;
+            invocation.proceed();
             // Done
         }
         else if (methodName.equals("setProperty"))
