@@ -47,7 +47,7 @@
 
 
         <dependency.spring.version>5.1.8.RELEASE</dependency.spring.version>
-        <dependency.httpcomponents.version>4.5.9</dependency.httpcomponents.version>
+        <dependency.httpcomponents.version>4.5.10</dependency.httpcomponents.version>
         <dependency.truezip.version>7.7.10</dependency.truezip.version>
         <dependency.poi.version>4.0.1</dependency.poi.version>
         <dependency.webscripts.version>7.8</dependency.webscripts.version>
