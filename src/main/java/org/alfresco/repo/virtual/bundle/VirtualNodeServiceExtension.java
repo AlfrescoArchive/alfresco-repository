@@ -1121,6 +1121,24 @@ public class VirtualNodeServiceExtension extends VirtualSpringBeanExtension<Node
     }
 
     @Override
+    public void addProperties(NodeRef nodeRef, Map<QName, Serializable> properties, boolean ignoreContentPropertyRestrictions)
+    {
+        Reference reference = Reference.fromNodeRef(nodeRef);
+        if (reference != null)
+        {
+            NodeRef actualNodeRef = reference.execute(new GetActualNodeRefMethod(null));
+
+            getTrait().addProperties(actualNodeRef,
+                    properties, ignoreContentPropertyRestrictions);
+        }
+        else
+        {
+            getTrait().addProperties(nodeRef,
+                    properties, ignoreContentPropertyRestrictions);
+        }
+    }
+
+    @Override
     public AssociationRef createAssociation(NodeRef sourceRef, NodeRef targetRef, QName assocTypeQName)
     {
     	Reference targetReference = Reference.fromNodeRef(targetRef);
@@ -1410,6 +1428,13 @@ public class VirtualNodeServiceExtension extends VirtualSpringBeanExtension<Node
     {
         getTrait().setProperties(materializeIfPossible(nodeRef),
                                  properties);
+    }
+
+    @Override
+    public void setProperties(NodeRef nodeRef, Map<QName, Serializable> properties, boolean ignoreContentPropertyRestrictions) throws InvalidNodeRefException
+    {
+        getTrait().setProperties(materializeIfPossible(nodeRef),
+                properties, ignoreContentPropertyRestrictions);
     }
 
     @Override

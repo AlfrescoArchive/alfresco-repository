@@ -1703,26 +1703,37 @@ public class DbNodeServiceImpl extends AbstractNodeServiceImpl implements Extens
     @Extend(traitAPI=NodeServiceTrait.class,extensionAPI=NodeServiceExtension.class)
     public void setProperties(NodeRef nodeRef, Map<QName, Serializable> properties) throws InvalidNodeRefException
     {
+        setProperties(nodeRef,properties, false);
+    }
+
+    @Extend(traitAPI=NodeServiceTrait.class,extensionAPI=NodeServiceExtension.class)
+    public void setProperties(NodeRef nodeRef, Map<QName, Serializable> properties, boolean ignoreContentPropertyRestrictions) throws InvalidNodeRefException
+    {
         Pair<Long, NodeRef> nodePair = getNodePairNotNull(nodeRef);
-        
+
         // Invoke policy behaviours
         invokeBeforeUpdateNode(nodeRef);
 
         // SetProperties common tasks
         setPropertiesCommonWork(nodePair, properties);
-        
+
         // Set properties and defaults, overwriting the existing properties
-        boolean changed = addAspectsAndProperties(nodePair, null, null, null, null, properties, true);
-        
+        boolean changed = addAspectsAndProperties(nodePair, null, null, null, null, null, properties, true, true, ignoreContentPropertyRestrictions);
         if (changed)
         {
             // Invoke policy behaviours
             invokeOnUpdateNode(nodeRef);
         }
     }
-    
+
     @Extend(traitAPI=NodeServiceTrait.class,extensionAPI=NodeServiceExtension.class)
     public void addProperties(NodeRef nodeRef, Map<QName, Serializable> properties) throws InvalidNodeRefException
+    {
+        addProperties(nodeRef, properties, false);
+    }
+
+    @Extend(traitAPI=NodeServiceTrait.class,extensionAPI=NodeServiceExtension.class)
+    public void addProperties(NodeRef nodeRef, Map<QName, Serializable> properties, boolean ignoreContentPropertyRestrictions) throws InvalidNodeRefException
     {
         Pair<Long, NodeRef> nodePair = getNodePairNotNull(nodeRef);
         
@@ -1733,7 +1744,7 @@ public class DbNodeServiceImpl extends AbstractNodeServiceImpl implements Extens
         setPropertiesCommonWork(nodePair, properties);
 
         // Add properties and defaults
-        boolean changed = addAspectsAndProperties(nodePair, null, null, null, null, properties, false);
+        boolean changed = addAspectsAndProperties(nodePair, null, null, null, null, null, properties, false, true, ignoreContentPropertyRestrictions);
         
         if (changed)
         {
