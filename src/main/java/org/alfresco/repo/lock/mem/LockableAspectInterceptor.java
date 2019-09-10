@@ -215,15 +215,15 @@ public class LockableAspectInterceptor implements MethodInterceptor, Extensible
             {
                 Map<QName, Serializable> convertedProperties = filterLockProperties(newProperties);
                 // Now complete the call by passing the converted properties
-                nodeService.setProperties(nodeRef, convertedProperties);
-                return null;
+                args[1] = convertedProperties;
+                return invocation.proceed();
             }
             else if (newProperties.containsKey(ContentModel.PROP_LOCK_LIFETIME))
             {
                 // Always remove this property, even for persistent locks.
                 newProperties.remove(ContentModel.PROP_LOCK_LIFETIME);
-                nodeService.setProperties(nodeRef, newProperties);
-                return null;
+                args[1] = newProperties;
+                return invocation.proceed();
             }
             else
             {
