@@ -420,7 +420,7 @@ public class WorkflowDeployer extends AbstractLifecycleBean
                                 }
                             }
 
-                           nodeService.setProperties(nodeRef, props);
+                           nodeService.setProperties(nodeRef, props, true);
                          }
                      }
                 }
