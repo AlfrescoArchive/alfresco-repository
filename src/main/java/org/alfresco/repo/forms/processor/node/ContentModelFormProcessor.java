@@ -294,31 +294,13 @@ public abstract class ContentModelFormProcessor<ItemType, PersistType> extends
             }
         }
 
-        Map<QName, Serializable> contentProps = new HashMap<>(3);
-        for (QName propertyQName : propsToPersist.keySet())
-        {
-            PropertyDefinition contentPropDef = dictionaryService.getProperty(propertyQName);
-            if (propsToPersist.get(propertyQName) instanceof ContentData ||
-                    contentPropDef != null && contentPropDef.getDataType().getName().equals(DataTypeDefinition.CONTENT))
-            {
-                contentProps.put(propertyQName, propsToPersist.get(propertyQName));
-            }
-        }
-        propsToPersist.keySet().removeAll(contentProps.keySet());
-
         // persist the properties using addProperties as this changes the repo
         // values of
         // those properties included in the Map, but leaves any other property
         // values unchanged,
         // whereas setProperties causes the deletion of properties that are not
         // included in the Map.
-        this.nodeService.addProperties(nodeRef, propsToPersist);
-
-        // Set content props separately
-        for (QName contentPropertyQName : contentProps.keySet())
-        {
-            nodeService.setContentProperty(nodeRef, contentPropertyQName, contentProps.get(contentPropertyQName));
-        }
+        this.nodeService.addProperties(nodeRef, propsToPersist, true);
 
         for (AbstractAssocCommand cmd : assocsToPersist)
         {
