@@ -384,7 +384,7 @@ public abstract class AbstractNodeImporter implements NodeImporter
 
             try
             {
-                nodeService.addProperties(nodeRef, metadata.getProperties());
+                nodeService.addProperties(nodeRef, metadata.getProperties(), true);
             }
             catch (final InvalidNodeRefException inre)
             {
