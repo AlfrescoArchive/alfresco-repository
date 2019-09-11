@@ -68,6 +68,7 @@ import org.alfresco.repo.node.NodeServicePolicies.OnCreateNodePolicy;
 import org.alfresco.repo.node.NodeServicePolicies.OnSetNodeTypePolicy;
 import org.alfresco.repo.node.NodeServicePolicies.OnUpdateNodePolicy;
 import org.alfresco.repo.node.NodeServicePolicies.OnUpdatePropertiesPolicy;
+import org.alfresco.repo.node.db.DbNodeServiceImpl;
 import org.alfresco.repo.node.db.NodeHierarchyWalker;
 import org.alfresco.repo.node.db.NodeHierarchyWalker.VisitedNode;
 import org.alfresco.repo.policy.BehaviourFilter;
@@ -144,6 +145,7 @@ public class NodeServiceTest
     
     private static ServiceRegistry serviceRegistry;
     private static NodeService nodeService;
+    private static DbNodeServiceImpl internalNodeService;
     private static PersonService personService;
     private static ContentService contentService;
     private static PermissionService permissionService;
@@ -167,6 +169,7 @@ public class NodeServiceTest
 
         serviceRegistry = (ServiceRegistry) APP_CONTEXT_INIT.getApplicationContext().getBean(ServiceRegistry.SERVICE_REGISTRY);
         nodeService = serviceRegistry.getNodeService();
+        internalNodeService = (DbNodeServiceImpl) APP_CONTEXT_INIT.getApplicationContext().getBean("dbNodeService");
         personService = serviceRegistry.getPersonService();
         contentService = serviceRegistry.getContentService();
         permissionService = serviceRegistry.getPermissionService();
@@ -1933,96 +1936,189 @@ public class NodeServiceTest
         permissionService.setPermission(folder2, userName2, PermissionService.ALL_PERMISSIONS, true);
         permissionService.setInheritParentPermissions(folder2, false);
 
-        ContentData contentProp1 = AuthenticationUtil.runAs(() -> {
-            NodeRef nodeRef = nodeService.createNode(
-                    folder1,
-                    ContentModel.ASSOC_CONTAINS,
-                    QName.createQName(GUID.generate()),
-                    ContentModel.TYPE_CONTENT).getChildRef();
-
-            // Should be possible to add content via contentService
-            ContentWriter contentWriter = contentService.getWriter(nodeRef, ContentModel.PROP_CONTENT, true);
-            contentWriter.setMimetype("text/plain");
-            contentWriter.setEncoding("UTF-8");
-            contentWriter.putContent(content);
-
-            try
-            {
-                AuthenticationUtil.runAs(() -> {
-                    ContentReader contentReader = contentService.getReader(nodeRef, ContentModel.PROP_CONTENT);
-                    fail("The content of node1 should not be readable by user 2");
-                    return null;
-                }, userName2);
-            }
-            catch (Exception e)
-            {
-                // expected
-                assertTrue("The AccessDeniedException should be thrown.", e instanceof AccessDeniedException);
-            }
-
-            return DefaultTypeConverter.INSTANCE.convert(ContentData.class, nodeService.getProperty(nodeRef, ContentModel.PROP_CONTENT));
-        }, userName1);
-
-        String content2 = AuthenticationUtil.runAs(() ->
+        internalNodeService.setGlobalContentPropertyRestrictions(false);
+        try // Test with globalContentPropertyRestrictions set to FALSE
         {
-            NodeRef nodeRef = nodeService.createNode(
-                    folder2,
-                    ContentModel.ASSOC_CONTAINS,
-                    QName.createQName(GUID.generate()),
-                    ContentModel.TYPE_CONTENT).getChildRef();
+            ContentData contentProp1 = AuthenticationUtil.runAs(() -> {
+                NodeRef nodeRef = createContentNode(folder1);
+    
+                // Should be possible to add content via contentService
+                ContentWriter contentWriter = contentService.getWriter(nodeRef, ContentModel.PROP_CONTENT, true);
+                contentWriter.setMimetype("text/plain");
+                contentWriter.setEncoding("UTF-8");
+                contentWriter.putContent(content);
+    
+                try
+                {
+                    AuthenticationUtil.runAs(() -> {
+                        ContentReader contentReader = contentService.getReader(nodeRef, ContentModel.PROP_CONTENT);
+                        fail("The content of node1 should not be readable by user 2");
+                        return null;
+                    }, userName2);
+                }
+                catch (Exception e)
+                {
+                    // expected
+                    assertTrue("The AccessDeniedException should be thrown.", e instanceof AccessDeniedException);
+                }
+    
+                return DefaultTypeConverter.INSTANCE.convert(ContentData.class, nodeService.getProperty(nodeRef, ContentModel.PROP_CONTENT));
+            }, userName1);
+    
+            String content2 = AuthenticationUtil.runAs(() ->
+            {
+                NodeRef nodeRef = createContentNode(folder2);
+    
+                try
+                {
+                    nodeService.setProperty(nodeRef, ContentModel.PROP_CONTENT, contentProp1);
+                   
+                }
+                catch (Exception e)
+                {
+                   throw  e;
+                }
+    
+                try
+                {
+                    Map<QName, Serializable> testProps = new HashMap<>();
+                    testProps.put(ContentModel.PROP_CONTENT, contentProp1);
+                    nodeService.setProperties(nodeRef, testProps);
+                    
+                }
+                catch (Exception e)
+                {
+                    throw  e;
+                }
+    
+                try
+                {
+                    Map<QName, Serializable> testProps = new HashMap<>();
+                    testProps.put(ContentModel.PROP_CONTENT, contentProp1);
+                    nodeService.addAspect(nodeRef, ContentModel.ASPECT_OWNABLE, testProps);   
+                }
+                catch (Exception e)
+                {
+                    throw e;
+                }
+    
+                try
+                {
+                    Map<QName, Serializable> testProps = new HashMap<>();
+                    testProps.put(ContentModel.PROP_CONTENT, contentProp1);
+                    createContentNode(folder2, testProps);
+                }
+                catch (Exception e)
+                {
+                    throw e;
+                }
+    
+                ContentReader contentReader = contentService.getReader(nodeRef, ContentModel.PROP_CONTENT);
+                assertNotNull("The second node should not have any content (all attempts should fail)", contentReader);
+                return null;
+            }, userName2);
+        }
+        finally // Test with globalContentPropertyRestrictions set to TRUE
+        {
+            internalNodeService.setGlobalContentPropertyRestrictions(true);
+            ContentData contentProp1 = AuthenticationUtil.runAs(() -> {
+                NodeRef nodeRef = createContentNode(folder1);
+    
+                // Should be possible to add content via contentService
+                ContentWriter contentWriter = contentService.getWriter(nodeRef, ContentModel.PROP_CONTENT, true);
+                contentWriter.setMimetype("text/plain");
+                contentWriter.setEncoding("UTF-8");
+                contentWriter.putContent(content);
+    
+                try
+                {
+                    AuthenticationUtil.runAs(() -> {
+                        ContentReader contentReader = contentService.getReader(nodeRef, ContentModel.PROP_CONTENT);
+                        fail("The content of node1 should not be readable by user 2");
+                        return null;
+                    }, userName2);
+                }
+                catch (Exception e)
+                {
+                    // expected
+                    assertTrue("The AccessDeniedException should be thrown.", e instanceof AccessDeniedException);
+                }
+    
+                return DefaultTypeConverter.INSTANCE.convert(ContentData.class, nodeService.getProperty(nodeRef, ContentModel.PROP_CONTENT));
+            }, userName1);
+    
+            String content2 = AuthenticationUtil.runAs(() ->
+            {
+                NodeRef nodeRef = createContentNode(folder2);
+    
+                try
+                {
+                    nodeService.setProperty(nodeRef, ContentModel.PROP_CONTENT, contentProp1);
+                    fail("Should not be possible to call setProperty directly to set content");
+                }
+                catch (InvalidTypeException ite)
+                {
+                    // expected
+                }
+    
+                try
+                {
+                    Map<QName, Serializable> testProps = new HashMap<>();
+                    testProps.put(ContentModel.PROP_CONTENT, contentProp1);
+                    nodeService.setProperties(nodeRef, testProps);
+                    fail("Should not be possible to call setProperties directly to set content");
+                }
+                catch (InvalidTypeException ite)
+                {
+                    // expected
+                }
+    
+                try
+                {
+                    Map<QName, Serializable> testProps = new HashMap<>();
+                    testProps.put(ContentModel.PROP_CONTENT, contentProp1);
+                    nodeService.addAspect(nodeRef, ContentModel.ASPECT_OWNABLE, testProps);
+                    fail("Should not be possible to call addAspect directly to set content");
+                }
+                catch (InvalidTypeException ite)
+                {
+                    // expected
+                }
+    
+                try
+                {
+                    Map<QName, Serializable> testProps = new HashMap<>();
+                    testProps.put(ContentModel.PROP_CONTENT, contentProp1);
+                    createContentNode(folder2, testProps);
+                    fail("Should not be possible to call createNode directly to set content");
+                }
+                catch (InvalidTypeException ite)
+                {
+                    // expected
+                }
+    
+                ContentReader contentReader = contentService.getReader(nodeRef, ContentModel.PROP_CONTENT);
+                assertNull("The second node should not have any content (all attempts should fail)", contentReader);
+                return null;
+            }, userName2);
+        }
+    }
 
-            try
-            {
-                nodeService.setProperty(nodeRef, ContentModel.PROP_CONTENT, contentProp1);
-                fail("Should not be possible to call setProperty directly to set content");
-            }
-            catch (InvalidTypeException ite)
-            {
-                // expected
-            }
-
-            try
-            {
-                Map<QName, Serializable> testProps = new HashMap<>();
-                testProps.put(ContentModel.PROP_CONTENT, contentProp1);
-                nodeService.setProperties(nodeRef, testProps);
-                fail("Should not be possible to call setProperties directly to set content");
-            }
-            catch (InvalidTypeException ite)
-            {
-                // expected
-            }
-
-            try
-            {
-                Map<QName, Serializable> testProps = new HashMap<>();
-                testProps.put(ContentModel.PROP_CONTENT, contentProp1);
-                nodeService.addAspect(nodeRef, ContentModel.ASPECT_OWNABLE, testProps);
-                fail("Should not be possible to call addAspect directly to set content");
-            }
-            catch (InvalidTypeException ite)
-            {
-                // expected
-            }
-
-            try
-            {
-                Map<QName, Serializable> testProps = new HashMap<>();
-                testProps.put(ContentModel.PROP_CONTENT, contentProp1);
-                nodeService.createNode(folder2,
-                        ContentModel.ASSOC_CONTAINS,
-                        QName.createQName(GUID.generate()),
-                        ContentModel.TYPE_CONTENT, testProps);
-                fail("Should not be possible to call createNode directly to set content");
-            }
-            catch (InvalidTypeException ite)
-            {
-                // expected
-            }
-
-            ContentReader contentReader = contentService.getReader(nodeRef, ContentModel.PROP_CONTENT);
-            assertNull("The second node should not have any content (all attempts should fail)", contentReader);
-            return null;
-        }, userName2);
+    private NodeRef createContentNode(NodeRef parentRef)
+    {
+        return nodeService.createNode(
+            parentRef,
+            ContentModel.ASSOC_CONTAINS,
+            QName.createQName(GUID.generate()),
+            ContentModel.TYPE_CONTENT).getChildRef();
+    }
+    private NodeRef createContentNode(NodeRef parentRef, Map<QName, Serializable> properties)
+    {
+        return nodeService.createNode(
+            parentRef,
+            ContentModel.ASSOC_CONTAINS,
+            QName.createQName(GUID.generate()),
+            ContentModel.TYPE_CONTENT, 
+            properties).getChildRef();
     }
 }
