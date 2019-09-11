@@ -23,7 +23,7 @@
  * along with Alfresco. If not, see <http://www.gnu.org/licenses/>.
  * #L%
  */
-package org.alfresco.transform.client.model.config;
+package org.alfresco.transform.client.registry;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
