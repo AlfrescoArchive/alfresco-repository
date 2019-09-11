@@ -2,7 +2,7 @@
     <modelVersion>4.0.0</modelVersion>
     <artifactId>alfresco-repository</artifactId>
     <name>Alfresco Repository</name>
-    <version>7.109-SNAPSHOT</version>
+    <version>7.115-SNAPSHOT</version>
     <packaging>jar</packaging>
 
     <parent>
@@ -52,8 +52,8 @@
         <dependency.poi.version>4.0.1</dependency.poi.version>
         <dependency.webscripts.version>7.8</dependency.webscripts.version>
         <dependency.opencmis.version>1.0.0</dependency.opencmis.version>
-        <dependency.activiti-engine.version>5.23.0-RC1</dependency.activiti-engine.version>
-        <dependency.activiti.version>5.23.0-RC1</dependency.activiti.version>
+        <dependency.activiti-engine.version>5.23.0</dependency.activiti-engine.version>
+        <dependency.activiti.version>5.23.0</dependency.activiti.version>
         <dependency.postgresql.version>42.2.6</dependency.postgresql.version>
         <dependency.mysql.version>5.1.47</dependency.mysql.version>
         <dependency.mariadb.version>2.2.5</dependency.mariadb.version>
@@ -65,6 +65,7 @@
         <dependency.pdfbox.version>2.0.16</dependency.pdfbox.version>
         <dependency.cxf.version>3.3.2</dependency.cxf.version>
         <dependency.jackson.version>2.9.9</dependency.jackson.version>
+        <dependency.jackson-databind.version>2.9.9.3</dependency.jackson-databind.version>
         <dependency.transform.model.version>1.0.2.5</dependency.transform.model.version>
     </properties>
 
@@ -208,7 +209,7 @@
         <dependency>
             <groupId>commons-beanutils</groupId>
             <artifactId>commons-beanutils</artifactId>
-            <version>1.9.3</version>
+            <version>1.9.4</version>
         </dependency>
         <dependency>
             <groupId>commons-collections</groupId>
@@ -587,7 +588,7 @@
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
-            <version>${dependency.jackson.version}</version>
+            <version>${dependency.jackson-databind.version}</version>
         </dependency>
 
         <!-- Spring Surf -->
@@ -839,7 +840,7 @@
         <dependency>
             <groupId>org.gytheio</groupId>
             <artifactId>gytheio-messaging-camel</artifactId>
-            <version>0.9.1</version>
+            <version>0.10.1</version>
             <exclusions>
                 <exclusion>
                     <groupId>commons-logging</groupId>
