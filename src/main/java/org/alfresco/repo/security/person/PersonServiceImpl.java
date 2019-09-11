@@ -866,10 +866,7 @@ public class PersonServiceImpl extends TransactionListenerAdapter implements Per
 
         checkIfPersonShouldBeDisabledAndSetAspect(personNode, properties);
 
-        Map<QName, Serializable> update = nodeService.getProperties(personNode);
-        update.putAll(properties);
-
-        nodeService.setProperties(personNode, update);
+        nodeService.addProperties(personNode, properties);
     }
     
     /**
