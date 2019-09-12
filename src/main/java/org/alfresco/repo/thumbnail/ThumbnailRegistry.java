@@ -457,7 +457,7 @@ public class ThumbnailRegistry implements ApplicationContextAware, ApplicationLi
         {
             Map<String, String> options = renditionDefinition.getTransformOptions();
             String renditionName = renditionDefinition.getRenditionName();
-            maxSize = transformServiceRegistry.getMaxSize(sourceMimetype, targetMimetype, options, renditionName);
+            maxSize = transformServiceRegistry.findMaxSize(sourceMimetype, targetMimetype, options, renditionName);
         }
         else
         {

@@ -280,6 +280,7 @@ public class LocalTransformServiceRegistryConfigTest extends TransformServiceReg
         officeToImageViaPdfSupportedTransformation.put("application/vnd.ms-outlook", targetMimetype);
     }
 
+    @Override
     protected String getBaseUrl(Transformer transformer)
     {
         return LOCAL_TRANSFORM+transformer.getTransformerName()+".url";

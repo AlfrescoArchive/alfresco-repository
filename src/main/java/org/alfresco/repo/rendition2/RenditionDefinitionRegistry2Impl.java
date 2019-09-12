@@ -343,7 +343,7 @@ public class RenditionDefinitionRegistry2Impl implements RenditionDefinitionRegi
             String targetMimetype = renditionDefinition2.getTargetMimetype();
             String renditionName = renditionDefinition2.getRenditionName();
             Map<String, String> options = renditionDefinition2.getTransformOptions();
-            Long maxSize = transformServiceRegistry.getMaxSize(sourceMimetype, targetMimetype, options, renditionName);
+            Long maxSize = transformServiceRegistry.findMaxSize(sourceMimetype, targetMimetype, options, renditionName);
             if (maxSize != null)
             {
                 String renditionNameMaxSizePair = entry.getKey();

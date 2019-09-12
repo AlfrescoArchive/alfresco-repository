@@ -72,7 +72,7 @@ public abstract class TransformServiceRegistryImpl extends AbstractTransformRegi
     private CronExpression cronExpression;
     private CronExpression initialAndOnErrorCronExpression;
 
-    private ConfigScheduler<Data> configScheduler = new ConfigScheduler(this)
+    private ConfigScheduler<Data> configScheduler = new ConfigScheduler<>(this)
     {
         @Override
         public boolean readConfig() throws IOException
@@ -81,7 +81,7 @@ public abstract class TransformServiceRegistryImpl extends AbstractTransformRegi
         }
 
         @Override
-        public Object createData()
+        public Data createData()
         {
             return TransformServiceRegistryImpl.this.createData();
         }

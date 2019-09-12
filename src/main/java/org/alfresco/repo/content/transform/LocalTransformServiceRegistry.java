@@ -396,7 +396,7 @@ public class LocalTransformServiceRegistry extends TransformServiceRegistryImpl 
     }
 
     @Override
-    public long getMaxSize(String sourceMimetype, String targetMimetype, Map<String, String> options, String renditionName)
+    public long findMaxSize(String sourceMimetype, String targetMimetype, Map<String, String> options, String renditionName)
     {
         // This message is not logged if placed in afterPropertiesSet
         if (getFirstTime())
@@ -406,7 +406,7 @@ public class LocalTransformServiceRegistry extends TransformServiceRegistryImpl 
         }
 
         return enabled
-                ? super.getMaxSize(sourceMimetype, targetMimetype, options, renditionName)
+                ? super.findMaxSize(sourceMimetype, targetMimetype, options, renditionName)
                 : 0;
     }
 
@@ -424,7 +424,7 @@ public class LocalTransformServiceRegistry extends TransformServiceRegistryImpl 
     public LocalTransform getLocalTransform(Map<String, String> actualOptions, String renditionName,
                                             String sourceMimetype, String targetMimetype, long sourceSizeInBytes)
     {
-        String name = getTransformerName(sourceMimetype, sourceSizeInBytes, targetMimetype, actualOptions, renditionName);
+        String name = findTransformerName(sourceMimetype, sourceSizeInBytes, targetMimetype, actualOptions, renditionName);
         LocalData data = getData();
         Map<String, LocalTransform> localTransforms = data.localTransforms;
         return localTransforms.get(name);

@@ -84,7 +84,7 @@ public class LegacyTransformServiceRegistry extends AbstractTransformServiceRegi
     }
 
     @Override
-    public long getMaxSize(String sourceMimetype, String targetMimetype, Map<String, String> options, String renditionName)
+    public long findMaxSize(String sourceMimetype, String targetMimetype, Map<String, String> options, String renditionName)
     {
         // This message is not logged if placed in afterPropertiesSet
         if (firstTime)

@@ -25,9 +25,9 @@
  */
 package org.alfresco.repo.rendition2;
 
-import org.alfresco.transform.client.registry.TransformServiceRegistry;
-
 import java.util.Map;
+
+import org.alfresco.transform.client.registry.TransformServiceRegistry;
 
 /**
  * Contains common code used in TransformServiceRegistries.
@@ -37,15 +37,8 @@ import java.util.Map;
 public abstract class AbstractTransformServiceRegistry implements TransformServiceRegistry
 {
     @Override
-    public boolean isSupported(String sourceMimetype, long size, String targetMimetype, Map<String, String> options, String renditionName)
+    public String findTransformerName(String sourceMimetype, long sourceSizeInBytes, String targetMimetype, Map<String, String> actualOptions, String renditionName)
     {
-        long maxSize = getMaxSize(sourceMimetype, targetMimetype, options, renditionName);
-        return maxSize != 0 && (maxSize == -1L || maxSize >= size);
-    }
-
-    @Override
-    public String getTransformerName(String sourceMimetype, long sourceSizeInBytes, String targetMimetype, Map<String, String> actualOptions, String renditionName)
-    {
-        throw new UnsupportedOperationException("AbstractTransformServiceRegistry.getTransformerName(...) is not supported. Only supported in ");
+        throw new UnsupportedOperationException("AbstractTransformServiceRegistry.findTransformerName(...) is not supported. Only supported in ");
     }
 }
