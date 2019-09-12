@@ -122,7 +122,7 @@ public class DbNodeServiceImpl extends AbstractNodeServiceImpl implements Extens
     private StoreArchiveMap storeArchiveMap;
     private BehaviourFilter policyBehaviourFilter;
     private boolean enableTimestampPropagation;
-    private boolean globalContentPropertyRestrictions = true;
+    private boolean globalContentPropertyRestrictions = false;
     private final ExtendedTrait<NodeServiceTrait> nodeServiceTrait;
     
     public DbNodeServiceImpl()
