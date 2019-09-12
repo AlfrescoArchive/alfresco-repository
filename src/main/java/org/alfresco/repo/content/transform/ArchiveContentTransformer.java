@@ -155,7 +155,10 @@ public class ArchiveContentTransformer extends TikaPoweredContentTransformer
             recurse = options.getIncludeEmbedded();
         }
         remoteTransformerClient.request(reader, writer, sourceMimetype, sourceExtension, targetExtension,
-                timeoutMs, logger, "includeContents", Boolean.toString(recurse),
-                "targetMimetype", targetMimetype, "targetEncoding", targetEncoding);
+                timeoutMs, logger,
+                "includeContents", Boolean.toString(recurse),
+                "sourceMimetype", sourceMimetype,
+                "targetMimetype", targetMimetype,
+                "targetEncoding", targetEncoding);
     }
 }

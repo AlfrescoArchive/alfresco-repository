@@ -295,7 +295,8 @@ public abstract class TikaPoweredContentTransformer extends AbstractRemoteConten
         long timeoutMs = options.getTimeoutMs();
 
         remoteTransformerClient.request(reader, writer, sourceMimetype, sourceExtension, targetExtension,
-                timeoutMs, logger, 
+                timeoutMs, logger,
+                "sourceMimetype", sourceMimetype,
                 "targetMimetype", targetMimetype,
                 "targetEncoding", targetEncoding);
     }

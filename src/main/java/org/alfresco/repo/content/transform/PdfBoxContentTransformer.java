@@ -116,7 +116,8 @@ public class PdfBoxContentTransformer extends TikaPoweredContentTransformer
         remoteTransformerClient.request(reader, writer, sourceMimetype, sourceExtension, targetExtension,
                 timeoutMs, logger, 
                 "notExtractBookmarksText", notExtractBookmarksText,
-                "targetMimetype", targetMimetype, 
+                "sourceMimetype", sourceMimetype,
+                "targetMimetype", targetMimetype,
                 "targetEncoding", targetEncoding);
     }
 }
