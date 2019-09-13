@@ -1727,12 +1727,11 @@ public class DbNodeServiceImpl extends AbstractNodeServiceImpl implements Extens
 
     private boolean isWhiteListedCaller()
     {
-        List<String> whiteList = new ArrayList<String>(); // To be implemented from config file.
         Class<?> caller = getCallingClass();
         String canonicalName = caller.getCanonicalName();
         String packageName = caller.getPackageName();
-        return whiteList.contains(canonicalName)
-                || whiteList.contains(packageName);
+        return this.globalContentPropertyRestrictionWhiteList.contains(canonicalName)
+                || globalContentPropertyRestrictionWhiteList.contains(packageName);
     }
     /**
      * Ensures that all required properties are present on the node and copies the
