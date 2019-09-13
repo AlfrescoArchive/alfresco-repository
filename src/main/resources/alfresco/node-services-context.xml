@@ -276,6 +276,7 @@
       </property>
       <property name="enableTimestampPropagation" value="${system.enableTimestampPropagation}" />
       <property name="globalContentPropertyRestrictions" value="${contentPropertyRestrictions.enabled}" />
+      <property name="globalContentPropertyRestrictionWhiteList" value="{contentPropertyRestrictions.white.list}"/>
    </bean>
    
    <bean id="nodeAuditor" class="org.alfresco.repo.node.NodeAuditor">

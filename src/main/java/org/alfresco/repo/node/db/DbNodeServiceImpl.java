@@ -113,7 +113,7 @@ import org.springframework.extensions.surf.util.I18NUtil;
 public class DbNodeServiceImpl extends AbstractNodeServiceImpl implements Extensible , NodeService
 {
     public static final String KEY_PENDING_DELETE_NODES = "DbNodeServiceImpl.pendingDeleteNodes";
-    
+    public static final String GLOBAL_CONTENT_PROPERTY_RESTRICTION_WHITE_LIST = "contentPropertyRestrictions.white.list";
     private static Log logger = LogFactory.getLog(DbNodeServiceImpl.class);
     
     private QNameDAO qnameDAO;
@@ -123,6 +123,7 @@ public class DbNodeServiceImpl extends AbstractNodeServiceImpl implements Extens
     private BehaviourFilter policyBehaviourFilter;
     private boolean enableTimestampPropagation;
     private boolean globalContentPropertyRestrictions = false;
+    private Set<String> globalContentPropertyRestrictionWhiteList;
     private final ExtendedTrait<NodeServiceTrait> nodeServiceTrait;
     
     public DbNodeServiceImpl()
@@ -177,6 +178,34 @@ public class DbNodeServiceImpl extends AbstractNodeServiceImpl implements Extens
         this.globalContentPropertyRestrictions = globalContentPropertyRestrictions;
     }
 
+    public void setGlobalContentPropertyRestrictionWhiteList(String whitelist)
+    {
+        this.globalContentPropertyRestrictionWhiteList = getWhiteList(whitelist);
+    }
+
+    private Set<String> getWhiteList(String whitelist)
+    {
+        Set<String> whiteListSet = new HashSet<String>();
+
+        whitelist = whitelist == null ? "" : whitelist.trim();
+        if(whitelist.length() > 0)
+        {
+            String[] classes = whitelist.split(",");
+            for (String className : classes)
+            {
+                className = className.trim();
+                if(className.isEmpty())
+                {
+                    logger.error(GLOBAL_CONTENT_PROPERTY_RESTRICTION_WHITE_LIST + "contains a blank class/ package name.");
+                    //Still ok to use but it will be ignored
+                }
+
+                whiteListSet.add(className);
+            }
+        }
+
+        return whiteListSet;
+    }
     /**
      * Performs a null-safe get of the node
      * 
@@ -1689,6 +1718,22 @@ public class DbNodeServiceImpl extends AbstractNodeServiceImpl implements Extens
         return contentPropDef != null && contentPropDef.getDataType().getName().equals(DataTypeDefinition.CONTENT);
     }
 
+    private Class<?> getCallingClass()
+    {
+        return StackWalker
+                .getInstance(StackWalker.Option.RETAIN_CLASS_REFERENCE)
+                .getCallerClass();
+    }
+
+    private boolean isWhiteListedCaller()
+    {
+        List<String> whiteList = new ArrayList<String>(); // To be implemented from config file.
+        Class<?> caller = getCallingClass();
+        String canonicalName = caller.getCanonicalName();
+        String packageName = caller.getPackageName();
+        return whiteList.contains(canonicalName)
+                || whiteList.contains(packageName);
+    }
     /**
      * Ensures that all required properties are present on the node and copies the
      * property values to the <code>Node</code>.
