@@ -26,8 +26,11 @@
 package org.alfresco.repo.rendition2;
 
 import junit.framework.AssertionFailedError;
+import org.alfresco.repo.content.transform.TransformerDebug;
 import org.alfresco.repo.security.authentication.AuthenticationUtil;
 import org.alfresco.repo.thumbnail.ThumbnailDefinition;
+import org.alfresco.transform.client.registry.AbstractTransformRegistry;
+import org.alfresco.transform.client.registry.SupportedTransform;
 import org.alfresco.util.testing.category.DebugTests;
 import org.junit.Before;
 import org.junit.Test;
@@ -38,6 +41,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.StringJoiner;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -244,7 +248,8 @@ public abstract class AbstractRenditionTest extends AbstractRenditionIntegration
     @Category(DebugTests.class)
     public void testCountTotalTransforms()
     {
-        StringBuilder sb = new StringBuilder();
+        StringBuilder sourceTargetList = new StringBuilder();
+        StringBuilder sourceTargetPriorityList = new StringBuilder();
         AtomicInteger count = new AtomicInteger(0);
         int textTargetCount = 0;
         mimetypeService.getMimetypesByExtension();
@@ -256,7 +261,7 @@ public abstract class AbstractRenditionTest extends AbstractRenditionIntegration
             {
                 if (transformServiceRegistry.isSupported(sourceMimetype, 1, targetMimetype, Collections.emptyMap(), null))
                 {
-                    logSourceTarget(sb, count, sourceMimetype, targetMimetype);
+                    logSourceTarget(sourceTargetList, sourceTargetPriorityList, count, sourceMimetype, targetMimetype);
                     if (MIMETYPE_TEXT_PLAIN.equals(targetMimetype))
                     {
                         textTargetCount++;
@@ -267,7 +272,13 @@ public abstract class AbstractRenditionTest extends AbstractRenditionIntegration
 
         System.out.println("Number of source to target mimetype transforms: "+count);
         System.out.println("Number of source to plain text transforms: "+textTargetCount);
-        System.out.println(sb);
+        System.out.println(sourceTargetList);
+        if (sourceTargetPriorityList.length() > 0)
+        {
+            System.out.println("");
+            System.out.println("Alternate transforms");
+            System.out.println(sourceTargetPriorityList);
+        }
     }
 
     /**
@@ -277,7 +288,7 @@ public abstract class AbstractRenditionTest extends AbstractRenditionIntegration
     @Category(DebugTests.class)
     public void testCountTotalRenditionTransforms()
     {
-        StringBuilder sb = new StringBuilder();
+        StringBuilder sourceTargetList = new StringBuilder();
         AtomicInteger count = new AtomicInteger(0);
         RenditionDefinitionRegistry2 renditionDefinitionRegistry = renditionService2.getRenditionDefinitionRegistry2();
         List<String> sourceMimetypes = new ArrayList(mimetypeMap.getMimetypes());
@@ -296,21 +307,49 @@ public abstract class AbstractRenditionTest extends AbstractRenditionIntegration
             sortMimetypesByExtension(targetMimetypesSorted);
             for (String targetMimetype : targetMimetypesSorted)
             {
-                logSourceTarget(sb, count, sourceMimetype, targetMimetype);
+                logSourceTarget(sourceTargetList, null, count, sourceMimetype, targetMimetype);
             }
         }
 
         System.out.println("Number of source to target mimetype transforms via renditions: "+count.get());
-        System.out.println(sb);
+        System.out.println(sourceTargetList);
     }
 
-    private void logSourceTarget(StringBuilder sb, AtomicInteger count, String sourceMimetype, String targetMimetype)
+    private void logSourceTarget(StringBuilder sourceTargetList, StringBuilder sourceTargetPriorityList, AtomicInteger count, String sourceMimetype, String targetMimetype)
     {
         count.incrementAndGet();
         String sourceExtension = mimetypeService.getExtension(sourceMimetype);
         String targetExtension = mimetypeService.getExtension(targetMimetype);
         String line = String.format("%4d %4s %4s\n", count.get(), sourceExtension, targetExtension);
-        sb.append(line);
+        sourceTargetList.append(line);
+
+        if (sourceTargetPriorityList != null)
+        {
+            AbstractTransformRegistry registry = getAbstractTransformRegistry();
+            if (registry != null)
+            {
+                Map<String, List<SupportedTransform>> supportedTransformsByTargetMimetype = registry.getData().retrieveTransforms(sourceMimetype);
+                List<SupportedTransform> supportedTransforms = supportedTransformsByTargetMimetype.get(targetMimetype);
+                char a = 'a';
+                int prevPriority = Integer.MAX_VALUE;
+                for (SupportedTransform supportedTransform : supportedTransforms)
+                {
+                    int priority = supportedTransform.getPriority();
+                    long maxSourceSizeBytes = supportedTransform.getMaxSourceSizeBytes();
+                    String priorityUnchanged = prevPriority == priority ? "*" : "";
+                    String transformName = supportedTransform.getName();
+                    line = String.format("%4d %4s %4s %c) [%d%s] %s %d\n", count.get(), sourceExtension, targetExtension,
+                            a++, priority, priorityUnchanged, transformName, maxSourceSizeBytes);
+                    sourceTargetPriorityList.append(line);
+                    prevPriority = priority;
+                }
+            }
+        }
+    }
+
+    protected AbstractTransformRegistry getAbstractTransformRegistry()
+    {
+        return null;
     }
 
     private void sortMimetypesByExtension(List<String> mimetypes)

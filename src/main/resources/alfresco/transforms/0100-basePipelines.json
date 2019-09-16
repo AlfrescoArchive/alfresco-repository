@@ -63,7 +63,7 @@
     {
       "transformerName": "outlookMsg2Image",
       "transformerPipeline" : [
-        {"transformerName": "tika",                        "targetMediaType": "text/plain"},
+        {"transformerName": "OutlookMsg",                  "targetMediaType": "text/plain"},
         {"transformerName": "textToImageViaPdf"}
       ],
       "supportedSourceAndTargetList": [
@@ -81,7 +81,7 @@
     {
       "transformerName": "outlookMsg2Pdf",
       "transformerPipeline" : [
-        {"transformerName": "tika",                        "targetMediaType": "text/plain"},
+        {"transformerName": "OutlookMsg",                  "targetMediaType": "text/plain"},
         {"transformerName": "libreoffice"}
       ],
       "supportedSourceAndTargetList": [
@@ -177,26 +177,16 @@
       ]
     },
     {
-      "transformerName": "tikaToImageViaText",
+      "transformerName": "ooXmlToImageViaText",
       "transformerPipeline" : [
-        {"transformerName": "tika",                                                                        "targetMediaType": "text/plain"},
+        {"transformerName": "OOXML",                                                                        "targetMediaType": "text/plain"},
         {"transformerName": "textToImageViaPdf"}
       ],
       "supportedSourceAndTargetList": [
-        {"sourceMediaType": "application/x-cpio",                                                          "targetMediaType": "image/gif" },
-        {"sourceMediaType": "application/x-cpio",                                                          "targetMediaType": "image/jpeg"},
-        {"sourceMediaType": "application/x-cpio",                                                          "targetMediaType": "image/tiff"},
-        {"sourceMediaType": "application/x-cpio",                                                          "targetMediaType": "image/png" },
-
         {"sourceMediaType": "application/vnd.openxmlformats-officedocument.wordprocessingml.template",     "targetMediaType": "image/gif" },
         {"sourceMediaType": "application/vnd.openxmlformats-officedocument.wordprocessingml.template",     "targetMediaType": "image/jpeg"},
         {"sourceMediaType": "application/vnd.openxmlformats-officedocument.wordprocessingml.template",     "targetMediaType": "image/tiff"},
         {"sourceMediaType": "application/vnd.openxmlformats-officedocument.wordprocessingml.template",     "targetMediaType": "image/png" },
-
-        {"sourceMediaType": "application/java-archive",                                                    "targetMediaType": "image/gif" },
-        {"sourceMediaType": "application/java-archive",                                                    "targetMediaType": "image/jpeg"},
-        {"sourceMediaType": "application/java-archive",                                                    "targetMediaType": "image/tiff"},
-        {"sourceMediaType": "application/java-archive",                                                    "targetMediaType": "image/png" },
 
         {"sourceMediaType": "application/vnd.ms-powerpoint.slideshow.macroenabled.12",                     "targetMediaType": "image/gif" },
         {"sourceMediaType": "application/vnd.ms-powerpoint.slideshow.macroenabled.12",                     "targetMediaType": "image/jpeg"},
@@ -208,20 +198,10 @@
         {"sourceMediaType": "application/vnd.openxmlformats-officedocument.presentationml.slideshow",      "targetMediaType": "image/tiff"},
         {"sourceMediaType": "application/vnd.openxmlformats-officedocument.presentationml.slideshow",      "targetMediaType": "image/png" },
 
-        {"sourceMediaType": "application/x-tar",                                                           "targetMediaType": "image/gif" },
-        {"sourceMediaType": "application/x-tar",                                                           "targetMediaType": "image/jpeg"},
-        {"sourceMediaType": "application/x-tar",                                                           "targetMediaType": "image/tiff"},
-        {"sourceMediaType": "application/x-tar",                                                           "targetMediaType": "image/png" },
-
         {"sourceMediaType": "application/vnd.ms-excel.addin.macroenabled.12",                              "targetMediaType": "image/gif" },
         {"sourceMediaType": "application/vnd.ms-excel.addin.macroenabled.12",                              "targetMediaType": "image/jpeg"},
         {"sourceMediaType": "application/vnd.ms-excel.addin.macroenabled.12",                              "targetMediaType": "image/tiff"},
-        {"sourceMediaType": "application/vnd.ms-excel.addin.macroenabled.12",                              "targetMediaType": "image/png" },
-
-        {"sourceMediaType": "application/zip",                                                             "targetMediaType": "image/gif" },
-        {"sourceMediaType": "application/zip",                                                             "targetMediaType": "image/jpeg"},
-        {"sourceMediaType": "application/zip",                                                             "targetMediaType": "image/tiff"},
-        {"sourceMediaType": "application/zip",                                                             "targetMediaType": "image/png" }
+        {"sourceMediaType": "application/vnd.ms-excel.addin.macroenabled.12",                              "targetMediaType": "image/png" }
       ],
       "transformOptions": [
         "tikaOptions",
@@ -230,23 +210,68 @@
       ]
     },
     {
-      "transformerName": "tikaToPdfViaText",
+      "transformerName": "archiveToImageViaText",
       "transformerPipeline" : [
-        {"transformerName": "tika",                                                                        "targetMediaType": "text/plain"},
+        {"transformerName": "Archive",                                                                        "targetMediaType": "text/plain"},
+        {"transformerName": "textToImageViaPdf"}
+      ],
+      "supportedSourceAndTargetList": [
+        {"sourceMediaType": "application/x-cpio",                                                          "targetMediaType": "image/gif" },
+        {"sourceMediaType": "application/x-cpio",                                                          "targetMediaType": "image/jpeg"},
+        {"sourceMediaType": "application/x-cpio",                                                          "targetMediaType": "image/tiff"},
+        {"sourceMediaType": "application/x-cpio",                                                          "targetMediaType": "image/png" },
+
+        {"sourceMediaType": "application/java-archive",                                                    "targetMediaType": "image/gif" },
+        {"sourceMediaType": "application/java-archive",                                                    "targetMediaType": "image/jpeg"},
+        {"sourceMediaType": "application/java-archive",                                                    "targetMediaType": "image/tiff"},
+        {"sourceMediaType": "application/java-archive",                                                    "targetMediaType": "image/png" },
+
+        {"sourceMediaType": "application/x-tar",                                                           "targetMediaType": "image/gif" },
+        {"sourceMediaType": "application/x-tar",                                                           "targetMediaType": "image/jpeg"},
+        {"sourceMediaType": "application/x-tar",                                                           "targetMediaType": "image/tiff"},
+        {"sourceMediaType": "application/x-tar",                                                           "targetMediaType": "image/png" },
+
+        {"sourceMediaType": "application/zip",                                                             "targetMediaType": "image/gif" },
+        {"sourceMediaType": "application/zip",                                                             "targetMediaType": "image/jpeg"},
+        {"sourceMediaType": "application/zip",                                                             "targetMediaType": "image/tiff"},
+        {"sourceMediaType": "application/zip",                                                             "targetMediaType": "image/png" }
+      ],
+      "transformOptions": [
+        "archiveOptions",
+        "pdfRendererOptions",
+        "imageMagickOptions"
+      ]
+    },
+    {
+      "transformerName": "ooXmlToPdfViaText",
+      "transformerPipeline" : [
+        {"transformerName": "OOXML",                                                                        "targetMediaType": "text/plain"},
+        {"transformerName": "libreoffice"}
+      ],
+      "supportedSourceAndTargetList": [
+        {"sourceMediaType": "application/vnd.openxmlformats-officedocument.wordprocessingml.template",     "targetMediaType": "application/pdf"},
+        {"sourceMediaType": "application/vnd.ms-powerpoint.slideshow.macroenabled.12",                     "targetMediaType": "application/pdf" },
+        {"sourceMediaType": "application/vnd.openxmlformats-officedocument.presentationml.slideshow",      "targetMediaType": "application/pdf" },
+        {"sourceMediaType": "application/vnd.ms-excel.addin.macroenabled.12",                              "targetMediaType": "application/pdf" }
+      ],
+      "transformOptions": [
+        "tikaOptions"
+      ]
+    },
+    {
+      "transformerName": "archiveToPdfViaText2",
+      "transformerPipeline" : [
+        {"transformerName": "Archive",                                                                        "targetMediaType": "text/plain"},
         {"transformerName": "libreoffice"}
       ],
       "supportedSourceAndTargetList": [
         {"sourceMediaType": "application/x-cpio",                                                          "targetMediaType": "application/pdf" },
-        {"sourceMediaType": "application/vnd.openxmlformats-officedocument.wordprocessingml.template",     "targetMediaType": "application/pdf"},
         {"sourceMediaType": "application/java-archive",                                                    "targetMediaType": "application/pdf"},
-        {"sourceMediaType": "application/vnd.ms-powerpoint.slideshow.macroenabled.12",                     "targetMediaType": "application/pdf" },
-        {"sourceMediaType": "application/vnd.openxmlformats-officedocument.presentationml.slideshow",      "targetMediaType": "application/pdf" },
         {"sourceMediaType": "application/x-tar",                                                           "targetMediaType": "application/pdf" },
-        {"sourceMediaType": "application/vnd.ms-excel.addin.macroenabled.12",                              "targetMediaType": "application/pdf" },
         {"sourceMediaType": "application/zip",                                                             "targetMediaType": "application/pdf" }
       ],
       "transformOptions": [
-        "tikaOptions"
+        "archiveOptions"
       ]
     }
   ]
