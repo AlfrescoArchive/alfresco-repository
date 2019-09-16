@@ -73,6 +73,6 @@ public class LocalRenditionTest extends AbstractRenditionTest
     @Test
     public void testAllSourceExtensions() throws Exception
     {
-        internalTestAllSourceExtensions(172, 0, ALL_SOURCE_EXTENSIONS_EXCLUDE_LIST_LOCAL);
+        internalTestAllSourceExtensions(178, 0, ALL_SOURCE_EXTENSIONS_EXCLUDE_LIST_LOCAL);
     }
 }
