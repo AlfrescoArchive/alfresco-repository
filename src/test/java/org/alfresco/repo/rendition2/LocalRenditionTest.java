@@ -59,7 +59,26 @@ public class LocalRenditionTest extends AbstractRenditionTest
         "tiff jpg medium",
         "tiff png doclib",
         "tiff png avatar",
-        "tiff png avatar32"
+        "tiff png avatar32",
+
+        // - tar -> txt stage: Archive returned a 400 status Tika - Request parameter 'targetEncoding' is missing
+        "tar jpg imgpreview",
+        "tar png doclib",
+        "tar pdf pdf",
+        "tar jpg medium",
+        "tar png avatar",
+        "tar png avatar32",
+
+        // - zip -> txt stage: Archive returned a 400 status Tika - Request parameter 'targetEncoding' is missing
+        "zip jpg imgpreview",
+        "zip png doclib",
+        "zip pdf pdf",
+        "zip jpg medium",
+        "zip png avatar",
+        "zip png avatar32",
+
+        // - msg -> txt stage: OutlookMsg returned a 400 status Tika - Request parameter 'targetEncoding' is missing
+        "msg pdf pdf"
     );
 
     @BeforeClass
@@ -81,7 +100,7 @@ public class LocalRenditionTest extends AbstractRenditionTest
     @Test
     public void testAllSourceExtensions() throws Exception
     {
-        internalTestAllSourceExtensions(178, 0, ALL_SOURCE_EXTENSIONS_EXCLUDE_LIST_LOCAL);
+        internalTestAllSourceExtensions(196, 0, ALL_SOURCE_EXTENSIONS_EXCLUDE_LIST_LOCAL);
     }
 
     @Override
