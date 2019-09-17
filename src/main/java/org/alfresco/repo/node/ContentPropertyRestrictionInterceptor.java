@@ -80,7 +80,7 @@ public class ContentPropertyRestrictionInterceptor implements MethodInterceptor
                     org.alfresco.repo.forms.processor.node.ContentModelFormProcessor.class,
                     org.alfresco.repo.forum.CommentServiceImpl.class,
                     org.alfresco.repo.importer.FileImporterImpl.class,
-                    org.alfresco.repo.jscript.ScriptNode.class,
+                    org.alfresco.repo.jscript.ScriptNode.ScriptContentData.class,
                     org.alfresco.repo.lock.mem.LockableAspectInterceptor.class,
                     org.alfresco.repo.model.filefolder.FileFolderLoader.class,
                     org.alfresco.repo.model.ml.MultilingualContentServiceImpl.class,
