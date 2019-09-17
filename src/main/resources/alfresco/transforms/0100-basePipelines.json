@@ -37,24 +37,24 @@
     {
       "transformerName": "iWorksToImageViaJpg",
       "transformerPipeline" : [
-        {"transformerName": "appleIWorks",                    "targetMediaType": "image/jpeg"},
+        {"transformerName": "appleIWorks",                                      "targetMediaType": "image/jpeg"},
         {"transformerName": "imagemagick"}
       ],
       "supportedSourceAndTargetList": [
-        {"sourceMediaType": "application/vnd.apple.keynote",  "targetMediaType": "image/gif" },
-        {"sourceMediaType": "application/vnd.apple.keynote",  "targetMediaType": "image/jpeg"},
-        {"sourceMediaType": "application/vnd.apple.keynote",  "targetMediaType": "image/png" },
-        {"sourceMediaType": "application/vnd.apple.keynote",  "targetMediaType": "image/tiff"},
+        {"sourceMediaType": "application/vnd.apple.keynote",                    "targetMediaType": "image/gif" },
+        {"sourceMediaType": "application/vnd.apple.keynote",  "priority": "60", "targetMediaType": "image/jpeg"},
+        {"sourceMediaType": "application/vnd.apple.keynote",                    "targetMediaType": "image/png" },
+        {"sourceMediaType": "application/vnd.apple.keynote",                    "targetMediaType": "image/tiff"},
 
-        {"sourceMediaType": "application/vnd.apple.numbers",  "targetMediaType": "image/gif" },
-        {"sourceMediaType": "application/vnd.apple.numbers",  "targetMediaType": "image/jpeg"},
-        {"sourceMediaType": "application/vnd.apple.numbers",  "targetMediaType": "image/png" },
-        {"sourceMediaType": "application/vnd.apple.numbers",  "targetMediaType": "image/tiff"},
+        {"sourceMediaType": "application/vnd.apple.numbers",                    "targetMediaType": "image/gif" },
+        {"sourceMediaType": "application/vnd.apple.numbers",  "priority": "60", "targetMediaType": "image/jpeg"},
+        {"sourceMediaType": "application/vnd.apple.numbers",                    "targetMediaType": "image/png" },
+        {"sourceMediaType": "application/vnd.apple.numbers",                    "targetMediaType": "image/tiff"},
 
-        {"sourceMediaType": "application/vnd.apple.pages",    "targetMediaType": "image/gif" },
-        {"sourceMediaType": "application/vnd.apple.pages",    "targetMediaType": "image/jpeg"},
-        {"sourceMediaType": "application/vnd.apple.pages",    "targetMediaType": "image/png" },
-        {"sourceMediaType": "application/vnd.apple.pages",    "targetMediaType": "image/tiff"}
+        {"sourceMediaType": "application/vnd.apple.pages",                      "targetMediaType": "image/gif" },
+        {"sourceMediaType": "application/vnd.apple.pages",    "priority": "60", "targetMediaType": "image/jpeg"},
+        {"sourceMediaType": "application/vnd.apple.pages",                      "targetMediaType": "image/png" },
+        {"sourceMediaType": "application/vnd.apple.pages",                      "targetMediaType": "image/tiff"}
       ],
       "transformOptions": [
         "imageMagickOptions"
@@ -63,14 +63,14 @@
     {
       "transformerName": "outlookMsg2Image",
       "transformerPipeline" : [
-        {"transformerName": "OutlookMsg",                  "targetMediaType": "text/plain"},
+        {"transformerName": "OutlookMsg",                                    "targetMediaType": "text/plain"},
         {"transformerName": "textToImageViaPdf"}
       ],
       "supportedSourceAndTargetList": [
-        {"sourceMediaType": "application/vnd.ms-outlook",  "targetMediaType": "image/gif" },
-        {"sourceMediaType": "application/vnd.ms-outlook",  "targetMediaType": "image/jpeg"},
-        {"sourceMediaType": "application/vnd.ms-outlook",  "targetMediaType": "image/png" },
-        {"sourceMediaType": "application/vnd.ms-outlook",  "targetMediaType": "image/tiff"}
+        {"sourceMediaType": "application/vnd.ms-outlook",  "priority": "55", "targetMediaType": "image/gif" },
+        {"sourceMediaType": "application/vnd.ms-outlook",  "priority": "55", "targetMediaType": "image/jpeg"},
+        {"sourceMediaType": "application/vnd.ms-outlook",  "priority": "55", "targetMediaType": "image/png" },
+        {"sourceMediaType": "application/vnd.ms-outlook",  "priority": "55", "targetMediaType": "image/tiff"}
       ],
       "transformOptions": [
         "tikaOptions",
@@ -249,7 +249,7 @@
         {"transformerName": "libreoffice"}
       ],
       "supportedSourceAndTargetList": [
-        {"sourceMediaType": "application/vnd.openxmlformats-officedocument.wordprocessingml.template",     "targetMediaType": "application/pdf"},
+        {"sourceMediaType": "application/vnd.openxmlformats-officedocument.wordprocessingml.template",    "priority": "55", "targetMediaType": "application/pdf"},
         {"sourceMediaType": "application/vnd.ms-powerpoint.slideshow.macroenabled.12",                     "targetMediaType": "application/pdf" },
         {"sourceMediaType": "application/vnd.openxmlformats-officedocument.presentationml.slideshow",      "targetMediaType": "application/pdf" },
         {"sourceMediaType": "application/vnd.ms-excel.addin.macroenabled.12",                              "targetMediaType": "application/pdf" }
