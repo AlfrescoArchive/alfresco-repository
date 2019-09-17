@@ -54,7 +54,7 @@ public abstract class AbstractLocalTransform implements LocalTransform
     protected final TransformerDebug transformerDebug;
 
     private final Set<TransformOption> transformsTransformOptions;
-    private final Set<String> transformsTransformOptionNames = new HashSet<>();
+    protected final Set<String> transformsTransformOptionNames = new HashSet<>();
     private final LocalTransformServiceRegistry localTransformServiceRegistry;
     private final boolean strictMimeTypeCheck;
     private final Map<String, Set<String>> strictMimetypeExceptions;
