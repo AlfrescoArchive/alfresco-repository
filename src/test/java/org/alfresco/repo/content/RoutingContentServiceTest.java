@@ -40,6 +40,7 @@ import junit.framework.TestCase;
 import org.alfresco.model.ContentModel;
 import org.alfresco.repo.content.filestore.FileContentWriter;
 import org.alfresco.repo.content.transform.ContentTransformer;
+import org.alfresco.repo.node.ContentPropertyRestrictionInterceptor;
 import org.alfresco.repo.policy.JavaBehaviour;
 import org.alfresco.repo.policy.PolicyComponent;
 import org.alfresco.repo.security.authentication.AuthenticationComponent;
@@ -102,7 +103,9 @@ public class RoutingContentServiceTest extends TestCase
         contentService = (ContentService) ctx.getBean(ServiceRegistry.CONTENT_SERVICE.getLocalName());
         this.policyComponent = (PolicyComponent) ctx.getBean("policyComponent");
         this.authenticationComponent = (AuthenticationComponent) ctx.getBean("authenticationComponent");
-        
+        ContentPropertyRestrictionInterceptor contentPropertyRestrictionInterceptor =
+                (ContentPropertyRestrictionInterceptor) ctx.getBean("contentPropertyRestrictionInterceptor");
+        contentPropertyRestrictionInterceptor.setGlobalContentPropertyRestrictionWhiteList(this.getClass().getName());
         // authenticate
         this.authenticationComponent.setSystemUserAsCurrentUser();
         
