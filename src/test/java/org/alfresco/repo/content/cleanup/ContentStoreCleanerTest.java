@@ -46,7 +46,6 @@ import org.alfresco.repo.content.filestore.FileContentStore;
 import org.alfresco.repo.domain.contentdata.ContentDataDAO;
 import org.alfresco.repo.domain.contentdata.ContentDataDAO.ContentUrlHandler;
 import org.alfresco.repo.lock.JobLockService;
-import org.alfresco.repo.node.ContentPropertyRestrictionInterceptor;
 import org.alfresco.repo.security.authentication.AuthenticationUtil;
 import org.alfresco.repo.transaction.RetryingTransactionHelper.RetryingTransactionCallback;
 import org.alfresco.service.ServiceRegistry;
@@ -282,65 +281,58 @@ public class ContentStoreCleanerTest extends TestCase
      */
     public void testEagerCleanupDereferencing() throws Exception
     {
-        ContentPropertyRestrictionInterceptor contentPropertyRestrictionInterceptor =
-                (ContentPropertyRestrictionInterceptor) ctx.getBean("contentPropertyRestrictionInterceptor");
-        try {
-            contentPropertyRestrictionInterceptor.setGlobalContentPropertyRestrictionWhiteList(this.getClass().getCanonicalName());
-            eagerCleaner.setEagerOrphanCleanup(true);
-
-            final StoreRef storeRef = nodeService.createStore("test", getName() + "-" + GUID.generate());
-            RetryingTransactionCallback<ContentData> testCallback = new RetryingTransactionCallback<ContentData>() {
-                public ContentData execute() throws Throwable {
-                    // Create some content
-                    NodeRef rootNodeRef = nodeService.getRootNode(storeRef);
-                    Map<QName, Serializable> properties = new HashMap<QName, Serializable>(13);
-                    properties.put(ContentModel.PROP_NAME, (Serializable) "test.txt");
-                    NodeRef contentNodeRef = nodeService.createNode(
-                            rootNodeRef,
-                            ContentModel.ASSOC_CHILDREN,
-                            ContentModel.ASSOC_CHILDREN,
-                            ContentModel.TYPE_CONTENT,
-                            properties).getChildRef();
-                    ContentWriter writer = contentService.getWriter(contentNodeRef, ContentModel.PROP_CONTENT, true);
-                    writer.setMimetype(MimetypeMap.MIMETYPE_TEXT_PLAIN);
-                    writer.putContent("INITIAL CONTENT");
-                    ContentData contentData = writer.getContentData();
-
-                    // Delete the first node
-                    nodeService.deleteNode(contentNodeRef);
-
-                    ContentReader reader = contentService.getRawReader(contentData.getContentUrl());
-                    assertNotNull(reader);
-                    assertTrue("Content was cleaned before end of transaction", reader.exists());
-
-                    // Make a new copy using the same ContentData
-                    properties.put(ContentModel.PROP_NAME, (Serializable) "test2.txt");
-                    properties.put(ContentModel.PROP_CONTENT, contentData);
-                    contentNodeRef = nodeService.createNode(
-                            rootNodeRef,
-                            ContentModel.ASSOC_CHILDREN,
-                            ContentModel.ASSOC_CHILDREN,
-                            ContentModel.TYPE_CONTENT,
-                            properties).getChildRef();
-
-                    reader = contentService.getRawReader(contentData.getContentUrl());
-                    assertNotNull(reader);
-                    assertTrue("Content was cleaned before end of transaction", reader.exists());
-
-                    // Done
-                    return contentData;
-                }
-            };
-            ContentData contentData = transactionService.getRetryingTransactionHelper().doInTransaction(testCallback);
-            // Make sure that the content URL still exists
-            ContentReader reader = contentService.getRawReader(contentData.getContentUrl());
-            assertNotNull(reader);
-            assertTrue("Content was cleaned despite being re-referenced in the transaction", reader.exists());
-        }
-        finally
+        eagerCleaner.setEagerOrphanCleanup(true);
+        
+        final StoreRef storeRef = nodeService.createStore("test", getName() + "-" + GUID.generate());
+        RetryingTransactionCallback<ContentData> testCallback = new RetryingTransactionCallback<ContentData>()
         {
-            contentPropertyRestrictionInterceptor.setGlobalContentPropertyRestrictionWhiteList("");
-        }
+            public ContentData execute() throws Throwable
+            {
+                // Create some content
+                NodeRef rootNodeRef = nodeService.getRootNode(storeRef);
+                Map<QName, Serializable> properties = new HashMap<QName, Serializable>(13);
+                properties.put(ContentModel.PROP_NAME, (Serializable)"test.txt");
+                NodeRef contentNodeRef = nodeService.createNode(
+                        rootNodeRef,
+                        ContentModel.ASSOC_CHILDREN,
+                        ContentModel.ASSOC_CHILDREN,
+                        ContentModel.TYPE_CONTENT,
+                        properties).getChildRef();
+                ContentWriter writer = contentService.getWriter(contentNodeRef, ContentModel.PROP_CONTENT, true);
+                writer.setMimetype(MimetypeMap.MIMETYPE_TEXT_PLAIN);
+                writer.putContent("INITIAL CONTENT");
+                ContentData contentData = writer.getContentData();
+               
+                // Delete the first node
+                nodeService.deleteNode(contentNodeRef);
+               
+                ContentReader reader = contentService.getRawReader(contentData.getContentUrl());
+                assertNotNull(reader);
+                assertTrue("Content was cleaned before end of transaction", reader.exists());
+
+                // Make a new copy using the same ContentData
+                properties.put(ContentModel.PROP_NAME, (Serializable)"test2.txt");
+                properties.put(ContentModel.PROP_CONTENT, contentData);
+                contentNodeRef = nodeService.createNode(
+                        rootNodeRef,
+                        ContentModel.ASSOC_CHILDREN,
+                        ContentModel.ASSOC_CHILDREN,
+                        ContentModel.TYPE_CONTENT,
+                        properties).getChildRef();
+                
+                reader = contentService.getRawReader(contentData.getContentUrl());
+                assertNotNull(reader);
+                assertTrue("Content was cleaned before end of transaction", reader.exists());
+
+                // Done
+                return contentData;
+            }
+        };
+        ContentData contentData = transactionService.getRetryingTransactionHelper().doInTransaction(testCallback);
+        // Make sure that the content URL still exists
+        ContentReader reader = contentService.getRawReader(contentData.getContentUrl());
+        assertNotNull(reader);
+        assertTrue("Content was cleaned despite being re-referenced in the transaction", reader.exists());
     }
 
     public void testImmediateRemoval() throws Exception
