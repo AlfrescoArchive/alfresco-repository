@@ -111,6 +111,7 @@ public class CheckOutCheckInServiceImplTest extends BaseSpringTest
     private PersonService personService;
     private FileFolderService fileFolderService;
     private AuthenticationComponent authenticationComponent;
+    private ServiceRegistry serviceRegistry;
     /**
      * Data used by the tests
      */
@@ -155,7 +156,7 @@ public class CheckOutCheckInServiceImplTest extends BaseSpringTest
         this.permissionService = (PermissionService)this.applicationContext.getBean("permissionService");
         this.copyService = (CopyService)this.applicationContext.getBean("copyService");
         this.personService = (PersonService) this.applicationContext.getBean("PersonService");
-        ServiceRegistry serviceRegistry = (ServiceRegistry) this.applicationContext.getBean("ServiceRegistry");
+        this.serviceRegistry = (ServiceRegistry) this.applicationContext.getBean("ServiceRegistry");
         this.fileFolderService = serviceRegistry.getFileFolderService();
         this.nodeService = serviceRegistry.getNodeService();
         
@@ -618,15 +619,20 @@ public class CheckOutCheckInServiceImplTest extends BaseSpringTest
         Map<QName, Serializable> bagOfProps = createTypePropertyBag();
         bagOfProps.put(ContentModel.PROP_CONTENT, new ContentData(null, MimetypeMap.MIMETYPE_TEXT_PLAIN, 0L, "UTF-8"));
 
+
         // Create a new node 
-        ChildAssociationRef childAssocRef = nodeService.createNode(
+        NodeRef noVersionNodeRef = nodeService.createNode(
                 rootNodeRef,
                 ContentModel.ASSOC_CHILDREN,
                 QName.createQName("test"),
-                ContentModel.TYPE_CONTENT,
-                bagOfProps);
-        NodeRef noVersionNodeRef = childAssocRef.getChildRef();
-        
+                ContentModel.TYPE_CONTENT).getChildRef();
+
+        // It is illegal to create a node with content, adding content after creation with ContentWriter
+        ContentWriter writer = contentService.getWriter(noVersionNodeRef, ContentModel.TYPE_CONTENT, true);
+        writer.setEncoding("UTF-16");
+        writer.setMimetype("text/plain");
+        writer.setLocale(Locale.ENGLISH);
+        writer.putContent("The cat sat on the mat.");
         // Check out and check in
         NodeRef workingCopy = cociService.checkout(noVersionNodeRef);
         cociService.checkin(workingCopy, new HashMap<String, Serializable>());
