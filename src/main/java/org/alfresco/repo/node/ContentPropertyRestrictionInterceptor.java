@@ -161,7 +161,7 @@ public class ContentPropertyRestrictionInterceptor implements MethodInterceptor
             }
             else if (methodName.equals("createNode") && args.length == 5)
             {
-                Map<QName, Serializable> properties = args[2] != null ?
+                Map<QName, Serializable> properties = args[4] != null ?
                         Collections.unmodifiableMap((Map<QName, Serializable>) args[4]) : Collections.emptyMap();
                 for (QName propQname : properties.keySet())
                 {
