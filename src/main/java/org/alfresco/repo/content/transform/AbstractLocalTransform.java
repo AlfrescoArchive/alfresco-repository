@@ -31,6 +31,7 @@ import org.alfresco.service.cmr.repository.ContentReader;
 import org.alfresco.service.cmr.repository.ContentWriter;
 import org.alfresco.service.cmr.repository.MimetypeService;
 import org.alfresco.service.cmr.repository.NodeRef;
+import org.alfresco.transform.client.model.config.TransformOption;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -48,6 +49,7 @@ public abstract class AbstractLocalTransform implements LocalTransform
     protected final MimetypeService mimetypeService;
     protected final TransformerDebug transformerDebug;
 
+    private final Set<TransformOption> transformsTransformOptions;
     private final LocalTransformServiceRegistry localTransformServiceRegistry;
     private final boolean strictMimeTypeCheck;
     private final Map<String, Set<String>> strictMimetypeExceptions;
@@ -57,6 +59,7 @@ public abstract class AbstractLocalTransform implements LocalTransform
     AbstractLocalTransform(String name, TransformerDebug transformerDebug,
                            MimetypeService mimetypeService, boolean strictMimeTypeCheck,
                            Map<String, Set<String>> strictMimetypeExceptions, boolean retryTransformOnDifferentMimeType,
+                           Set<TransformOption> transformsTransformOptions,
                            LocalTransformServiceRegistry localTransformServiceRegistry)
     {
         this.name = name;
@@ -65,6 +68,7 @@ public abstract class AbstractLocalTransform implements LocalTransform
         this.strictMimeTypeCheck = strictMimeTypeCheck;
         this.strictMimetypeExceptions = strictMimetypeExceptions;
         this.retryTransformOnDifferentMimeType = retryTransformOnDifferentMimeType;
+        this.transformsTransformOptions = transformsTransformOptions;
         this.localTransformServiceRegistry = localTransformServiceRegistry;
     }
 
@@ -98,6 +102,7 @@ public abstract class AbstractLocalTransform implements LocalTransform
                         "   target extension: " + targetExtension);
             }
 
+            transformOptions = stripExtraTransformOptions(transformOptions);
             transformWithDebug(reader, writer, transformOptions, renditionName, sourceNodeRef, sourceMimetype,
                     targetMimetype, sourceExtension, targetExtension);
 
@@ -111,10 +116,14 @@ public abstract class AbstractLocalTransform implements LocalTransform
         }
         else
         {
-            log.debug("Local transformer not available: \n" +
-                    "   source: " + reader + "\n" +
-                    "   target: " + writer + "\n" +
-                    "   options: " + transformOptions);
+            if (log.isDebugEnabled())
+            {
+                transformOptions = stripExtraTransformOptions(transformOptions);
+                log.debug("Local transformer not available: \n" +
+                        "   source: " + reader + "\n" +
+                        "   target: " + writer + "\n" +
+                        "   options: " + transformOptions);
+            }
         }
     }
 
@@ -253,5 +262,11 @@ public abstract class AbstractLocalTransform implements LocalTransform
                 }
             }
         }
+    }
+
+    private Map<String, String> stripExtraTransformOptions(Map<String, String> transformOptions)
+    {
+        // TODO stripExtraTransformOptions
+        return transformOptions;
     }
 }
