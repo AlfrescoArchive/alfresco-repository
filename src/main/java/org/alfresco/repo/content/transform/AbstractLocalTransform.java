@@ -53,7 +53,6 @@ public abstract class AbstractLocalTransform implements LocalTransform
     protected final MimetypeService mimetypeService;
     protected final TransformerDebug transformerDebug;
 
-    private final Set<TransformOption> transformsTransformOptions;
     protected final Set<String> transformsTransformOptionNames = new HashSet<>();
     private final LocalTransformServiceRegistry localTransformServiceRegistry;
     private final boolean strictMimeTypeCheck;
@@ -73,7 +72,6 @@ public abstract class AbstractLocalTransform implements LocalTransform
         this.strictMimeTypeCheck = strictMimeTypeCheck;
         this.strictMimetypeExceptions = strictMimetypeExceptions;
         this.retryTransformOnDifferentMimeType = retryTransformOnDifferentMimeType;
-        this.transformsTransformOptions = transformsTransformOptions;
         this.localTransformServiceRegistry = localTransformServiceRegistry;
 
         addOptionNames(transformsTransformOptionNames, transformsTransformOptions);
@@ -271,13 +269,19 @@ public abstract class AbstractLocalTransform implements LocalTransform
         }
     }
 
+    /**
+     * Returns a list of transform option names known to this transformer. When a transform is part of a pipeline or a
+     * failover, the rendition options may include options needed for other transforms. So that extra options are not
+     * passed to the T-Engine for this transform and rejected, {@link #stripExtraTransformOptions(Map)} removes them
+     * using the names obtained here.
+     */
     private static void addOptionNames(Set<String> transformsTransformOptionNames, Set<TransformOption> transformsTransformOptions)
     {
         for (TransformOption transformOption : transformsTransformOptions)
         {
             if (transformOption instanceof TransformOptionValue)
             {
-                transformsTransformOptionNames.add(((TransformOptionValue) transformOption).getName());
+                transformsTransformOptionNames.add(((TransformOptionValue)transformOption).getName());
             }
             else
             {
@@ -286,6 +290,13 @@ public abstract class AbstractLocalTransform implements LocalTransform
         }
     }
 
+    /**
+     * Returns a subset of the supplied actual transform options from the rendition definition that are known to this
+     * transformer.
+     * @param transformOptions the complete set of actual transform options. This will be returned if all options are
+     *                         known to this transformer. Otherwise a new Map is returned.
+     * @return the transformOptions to be past to the T-Engine.
+     */
     private Map<String, String> stripExtraTransformOptions(Map<String, String> transformOptions)
     {
         Set<String> optionNames = transformOptions.keySet();

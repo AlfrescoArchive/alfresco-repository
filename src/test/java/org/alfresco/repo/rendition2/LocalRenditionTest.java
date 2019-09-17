@@ -53,32 +53,14 @@ public class LocalRenditionTest extends AbstractRenditionTest
 {
     public static final List<String> ALL_SOURCE_EXTENSIONS_EXCLUDE_LIST_LOCAL = Arrays.asList(
         // - textToPdf returned a 400 status Miscellaneous Transformers - U+0628 ('afii57416') is not available in this font Helvetica encoding: WinAnsiEncoding
+        //   This is because the wrong transformer is being used due bug. The priority in the transform config is currently ignored.
         "txt pdf pdf",
 
         "tiff jpg imgpreview",
         "tiff jpg medium",
         "tiff png doclib",
         "tiff png avatar",
-        "tiff png avatar32",
-
-        // - tar -> txt stage: Archive returned a 400 status Tika - Request parameter 'targetEncoding' is missing
-        "tar jpg imgpreview",
-        "tar png doclib",
-        "tar pdf pdf",
-        "tar jpg medium",
-        "tar png avatar",
-        "tar png avatar32",
-
-        // - zip -> txt stage: Archive returned a 400 status Tika - Request parameter 'targetEncoding' is missing
-        "zip jpg imgpreview",
-        "zip png doclib",
-        "zip pdf pdf",
-        "zip jpg medium",
-        "zip png avatar",
-        "zip png avatar32",
-
-        // - msg -> txt stage: OutlookMsg returned a 400 status Tika - Request parameter 'targetEncoding' is missing
-        "msg pdf pdf"
+        "tiff png avatar32"
     );
 
     @BeforeClass
@@ -94,7 +76,7 @@ public class LocalRenditionTest extends AbstractRenditionTest
         AbstractRenditionIntegrationTest.after();
     }
 
-    // TODO this method will be removed when Local transformers support all 196 renditions supported by legacy
+    // TODO this method will be removed when Local transformers the same transforms as legacy
     @Override
     @Category(DebugTests.class)
     @Test

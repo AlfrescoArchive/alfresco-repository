@@ -175,8 +175,8 @@ public class LocalTransformServiceRegistry extends TransformServiceRegistryImpl 
                         " Read from "+readFrom);
             }
 
-            Set<TransformOption> transformsTransformOptions = lookupTransformOptions(transformer.getTransformOptions(), transformOptions,
-                    readFrom, this::logError);
+            Set<TransformOption> transformsTransformOptions = lookupTransformOptions(
+                    transformer.getTransformOptions(), transformOptions, readFrom, this::logError);
 
             LocalTransform localTransform;
             List<TransformStep> pipeline = transformer.getTransformerPipeline();
@@ -289,8 +289,20 @@ public class LocalTransformServiceRegistry extends TransformServiceRegistryImpl 
         }
     }
 
-    static Set<TransformOption> lookupTransformOptions(final Set<String> transformOptionNames,
-                                                       final Map<String, Set<TransformOption>> transformOptions, final String readFrom,
+    /**
+     * Returns the set of TransformOptions for this transform. In the JSON structure, each transform lists the names
+     * of each set of transform options it uses. In the case of pipelines and failovers transforms, there is typically
+     * more than one set. Typically there is one for each child transform.
+     * @param transformOptionNames the names of the transform options used by this transform.
+     * @param transformOptions a map keyed on transform option name of all the TransformOptions
+     * @param readFrom used in debug messages to indicate where the transformer config was read from.
+     * @param logError used to log an error message if a transformOptionName is invalid.
+     *
+     * For more information how this is used see {@link AbstractLocalTransform#addOptionNames(Set, Set)}.
+     */
+    private static Set<TransformOption> lookupTransformOptions(final Set<String> transformOptionNames,
+                                                       final Map<String, Set<TransformOption>> transformOptions,
+                                                       final String readFrom,
                                                        final Consumer<String> logError)
     {
         if (transformOptionNames == null)
@@ -311,6 +323,8 @@ public class LocalTransformServiceRegistry extends TransformServiceRegistryImpl 
             options.add(new TransformOptionGroup(false, oneSetOfTransformOptions));
         }
 
+        // If there is only one transform name, the set from the holding TransformOptionGroup can be returned,
+        // rather than having a nested structure.
         return options.size() == 1 ?
                 ((TransformOptionGroup) options.iterator().next()).getTransformOptions() :
                 options;
