@@ -284,13 +284,16 @@ public class ContentStoreCleanerTest extends TestCase
     {
         ContentPropertyRestrictionInterceptor contentPropertyRestrictionInterceptor =
                 (ContentPropertyRestrictionInterceptor) ctx.getBean("contentPropertyRestrictionInterceptor");
-        try {
+        try
+        {
             contentPropertyRestrictionInterceptor.setGlobalContentPropertyRestrictionWhiteList(this.getClass().getCanonicalName());
             eagerCleaner.setEagerOrphanCleanup(true);
 
             final StoreRef storeRef = nodeService.createStore("test", getName() + "-" + GUID.generate());
-            RetryingTransactionCallback<ContentData> testCallback = new RetryingTransactionCallback<ContentData>() {
-                public ContentData execute() throws Throwable {
+            RetryingTransactionCallback<ContentData> testCallback = new RetryingTransactionCallback<ContentData>()
+            {
+                public ContentData execute() throws Throwable
+                {
                     // Create some content
                     NodeRef rootNodeRef = nodeService.getRootNode(storeRef);
                     Map<QName, Serializable> properties = new HashMap<QName, Serializable>(13);
