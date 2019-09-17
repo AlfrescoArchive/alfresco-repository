@@ -32,9 +32,13 @@ import org.alfresco.service.cmr.repository.ContentWriter;
 import org.alfresco.service.cmr.repository.MimetypeService;
 import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.transform.client.model.config.TransformOption;
+import org.alfresco.transform.client.model.config.TransformOptionGroup;
+import org.alfresco.transform.client.model.config.TransformOptionValue;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -50,6 +54,7 @@ public abstract class AbstractLocalTransform implements LocalTransform
     protected final TransformerDebug transformerDebug;
 
     private final Set<TransformOption> transformsTransformOptions;
+    private final Set<String> transformsTransformOptionNames = new HashSet<>();
     private final LocalTransformServiceRegistry localTransformServiceRegistry;
     private final boolean strictMimeTypeCheck;
     private final Map<String, Set<String>> strictMimetypeExceptions;
@@ -70,6 +75,8 @@ public abstract class AbstractLocalTransform implements LocalTransform
         this.retryTransformOnDifferentMimeType = retryTransformOnDifferentMimeType;
         this.transformsTransformOptions = transformsTransformOptions;
         this.localTransformServiceRegistry = localTransformServiceRegistry;
+
+        addOptionNames(transformsTransformOptionNames, transformsTransformOptions);
     }
 
     public abstract boolean isAvailable();
@@ -264,9 +271,40 @@ public abstract class AbstractLocalTransform implements LocalTransform
         }
     }
 
+    private static void addOptionNames(Set<String> transformsTransformOptionNames, Set<TransformOption> transformsTransformOptions)
+    {
+        for (TransformOption transformOption : transformsTransformOptions)
+        {
+            if (transformOption instanceof TransformOptionValue)
+            {
+                transformsTransformOptionNames.add(((TransformOptionValue) transformOption).getName());
+            }
+            else
+            {
+                addOptionNames(transformsTransformOptionNames, ((TransformOptionGroup)transformOption).getTransformOptions());
+            }
+        }
+    }
+
     private Map<String, String> stripExtraTransformOptions(Map<String, String> transformOptions)
     {
-        // TODO stripExtraTransformOptions
-        return transformOptions;
+        Set<String> optionNames = transformOptions.keySet();
+        if (transformsTransformOptionNames.containsAll(optionNames))
+        {
+            return transformOptions;
+        }
+
+        Map<String, String> strippedTransformOptions = new HashMap<>(transformOptions.size());
+        for (Map.Entry<String, String> entry : transformOptions.entrySet())
+        {
+            String key = entry.getKey();
+            if (transformsTransformOptionNames.contains(key))
+            {
+                String value = entry.getValue();
+                strippedTransformOptions.put(key, value);
+            }
+        }
+
+        return strippedTransformOptions;
     }
 }

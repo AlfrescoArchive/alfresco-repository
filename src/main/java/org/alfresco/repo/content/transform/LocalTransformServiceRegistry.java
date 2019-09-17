@@ -200,7 +200,7 @@ public class LocalTransformServiceRegistry extends TransformServiceRegistryImpl 
                 int startupRetryPeriodSeconds = getStartupRetryPeriodSeconds(name);
                 localTransform = new LocalTransformImpl(name, transformerDebug, mimetypeService,
                          strictMimeTypeCheck, strictMimetypeExceptions, retryTransformOnDifferentMimeType,
-                        this, baseUrl, startupRetryPeriodSeconds);
+                        transformsTransformOptions,, this, baseUrl, startupRetryPeriodSeconds);
             }
             else if (isPipeline)
             {
