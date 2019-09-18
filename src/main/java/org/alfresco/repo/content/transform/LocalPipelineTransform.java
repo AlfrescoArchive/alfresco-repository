@@ -81,6 +81,11 @@ public class LocalPipelineTransform extends AbstractLocalTransform
         transformers.add(transformer);
     }
 
+    public LocalTransform getIntermediateTransformer(int i)
+    {
+        return i >= transformers.size() ? null : transformers.get(i).intermediateTransformer;
+    }
+
     @Override
     protected void transformImpl(ContentReader reader,
                                  ContentWriter writer, Map<String, String> transformOptions,

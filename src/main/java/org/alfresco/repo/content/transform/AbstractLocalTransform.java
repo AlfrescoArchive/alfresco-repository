@@ -86,6 +86,16 @@ public abstract class AbstractLocalTransform implements LocalTransform
                                           String renditionName, NodeRef sourceNodeRef)
                                           throws Exception;
 
+    public String getName()
+    {
+        return name;
+    }
+
+    public Set<String> getTransformsTransformOptionNames()
+    {
+        return transformsTransformOptionNames;
+    }
+
     @Override
     public void transform(ContentReader reader, ContentWriter writer, Map<String, String> transformOptions,
                           String renditionName, NodeRef sourceNodeRef)
@@ -107,7 +117,7 @@ public abstract class AbstractLocalTransform implements LocalTransform
                         "   target extension: " + targetExtension);
             }
 
-            transformOptions = stripExtraTransformOptions(transformOptions);
+            transformOptions = getStrippedTransformOptions(transformOptions);
             transformWithDebug(reader, writer, transformOptions, renditionName, sourceNodeRef, sourceMimetype,
                     targetMimetype, sourceExtension, targetExtension);
 
@@ -123,7 +133,7 @@ public abstract class AbstractLocalTransform implements LocalTransform
         {
             if (log.isDebugEnabled())
             {
-                transformOptions = stripExtraTransformOptions(transformOptions);
+                transformOptions = getStrippedTransformOptions(transformOptions);
                 log.debug("Local transformer not available: \n" +
                         "   source: " + reader + "\n" +
                         "   target: " + writer + "\n" +
@@ -238,7 +248,7 @@ public abstract class AbstractLocalTransform implements LocalTransform
                     long sourceSizeInBytes = reader.getSize();
 
                     LocalTransform localTransform = localTransformServiceRegistry.getLocalTransform(
-                            transformOptions, renditionName, differentType, targetMimetype, sourceSizeInBytes);
+                            differentType, sourceSizeInBytes, targetMimetype, transformOptions, renditionName);
                     if (localTransform == null)
                     {
                         transformerDebug.debug("          Failed", e);
@@ -272,7 +282,7 @@ public abstract class AbstractLocalTransform implements LocalTransform
     /**
      * Returns a list of transform option names known to this transformer. When a transform is part of a pipeline or a
      * failover, the rendition options may include options needed for other transforms. So that extra options are not
-     * passed to the T-Engine for this transform and rejected, {@link #stripExtraTransformOptions(Map)} removes them
+     * passed to the T-Engine for this transform and rejected, {@link #getStrippedTransformOptions(Map)} removes them
      * using the names obtained here.
      */
     private static void addOptionNames(Set<String> transformsTransformOptionNames, Set<TransformOption> transformsTransformOptions)
@@ -292,12 +302,12 @@ public abstract class AbstractLocalTransform implements LocalTransform
 
     /**
      * Returns a subset of the supplied actual transform options from the rendition definition that are known to this
-     * transformer.
+     * transformer. The ones that will be passed to the T-Engine. It strips out extra ones.
      * @param transformOptions the complete set of actual transform options. This will be returned if all options are
      *                         known to this transformer. Otherwise a new Map is returned.
      * @return the transformOptions to be past to the T-Engine.
      */
-    private Map<String, String> stripExtraTransformOptions(Map<String, String> transformOptions)
+    public Map<String, String> getStrippedTransformOptions(Map<String, String> transformOptions)
     {
         Set<String> optionNames = transformOptions.keySet();
         if (transformsTransformOptionNames.containsAll(optionNames))

@@ -494,12 +494,11 @@ public class LocalTransformServiceRegistry extends TransformServiceRegistryImpl 
         String sourceMimetype = reader.getMimetype();
         String targetMimetype = writer.getMimetype();
         long sourceSizeInBytes = reader.getSize();
-        LocalTransform localTransform = getLocalTransform(actualOptions, renditionName, sourceMimetype, targetMimetype, sourceSizeInBytes);
+        LocalTransform localTransform = getLocalTransform(sourceMimetype, sourceSizeInBytes, targetMimetype, actualOptions, renditionName);
         localTransform.transform(reader, writer, actualOptions, renditionName, sourceNodeRef);
     }
 
-    public LocalTransform getLocalTransform(Map<String, String> actualOptions, String renditionName,
-                                            String sourceMimetype, String targetMimetype, long sourceSizeInBytes)
+    public LocalTransform getLocalTransform(String sourceMimetype, long sourceSizeInBytes, String targetMimetype, Map<String, String> actualOptions, String renditionName)
     {
         String name = findTransformerName(sourceMimetype, sourceSizeInBytes, targetMimetype, actualOptions, renditionName);
         LocalData data = getData();
