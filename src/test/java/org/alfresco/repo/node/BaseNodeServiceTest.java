@@ -964,9 +964,6 @@ public abstract class BaseNodeServiceTest extends BaseSpringTest
         {
             pageNumber++;
             QName renditionQName = makePageAssocName(pageNumber);
-//            Map<QName, Serializable> properties = Collections.singletonMap(
-//                    PROP_QNAME_TEST_RENDITION_PAGE_CONTENT,
-//                    (Serializable) renditionContentPage);
             NodeRef nodeRef = nodeService.createNode(
                     fileNodeRef,
                     ASSOC_TYPE_QNAME_TEST_RENDITION,
