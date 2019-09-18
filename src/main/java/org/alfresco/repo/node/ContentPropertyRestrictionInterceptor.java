@@ -120,6 +120,7 @@ public class ContentPropertyRestrictionInterceptor implements MethodInterceptor
                     for (QName propQname : properties.keySet())
                     {
                         if (isContentProperty(propQname, properties.get(propQname)) &&
+                                isContentNotNullOrEmpty(properties.get(propQname)) &&
                                 isContentChanged(nodeRef, propQname, properties.get(propQname)))
                         {
                             throw new InvalidTypeException("The node's content can't be updated via NodeService#setProperties directly: \n" +
@@ -139,6 +140,7 @@ public class ContentPropertyRestrictionInterceptor implements MethodInterceptor
                     for (QName propQname : properties.keySet())
                     {
                         if (isContentProperty(propQname, properties.get(propQname)) &&
+                                isContentNotNullOrEmpty(properties.get(propQname)) &&
                                 isContentChanged(nodeRef, propQname, properties.get(propQname)))
                         {
                             throw new InvalidTypeException("The node's content can't be updated via NodeService#addProperties directly: \n" +
@@ -154,7 +156,7 @@ public class ContentPropertyRestrictionInterceptor implements MethodInterceptor
                         Collections.unmodifiableMap((Map<QName, Serializable>) args[4]) : Collections.emptyMap();
                 for (QName propQname : properties.keySet())
                 {
-                    if (isContentProperty(propQname, properties.get(propQname)))
+                    if (isContentProperty(propQname, properties.get(propQname)) && isContentNotNullOrEmpty(properties.get(propQname)))
                     {
                         throw new InvalidTypeException("The node's content can't be updated via NodeService#createNode directly: \n" +
                                 "   node: " + args[0] + "\n" +
@@ -170,6 +172,7 @@ public class ContentPropertyRestrictionInterceptor implements MethodInterceptor
                 if (nodeRef != null)
                 {
                     if (isContentProperty(propQname, value) &&
+                            isContentNotNullOrEmpty(value) &&
                             isContentChanged(nodeRef, propQname, value))
                     {
                         throw new InvalidTypeException("The node's content can't be updated via NodeService#setProperty directly: \n" +
@@ -188,6 +191,7 @@ public class ContentPropertyRestrictionInterceptor implements MethodInterceptor
                     for (QName propQname : properties.keySet())
                     {
                         if (isContentProperty(propQname, properties.get(propQname)) &&
+                                isContentNotNullOrEmpty(properties.get(propQname)) &&
                                 isContentChanged(nodeRef, propQname, properties.get(propQname)))
                         {
                             throw new InvalidTypeException("The node's content can't be updated via NodeService#addAspect directly: \n" +
@@ -213,6 +217,23 @@ public class ContentPropertyRestrictionInterceptor implements MethodInterceptor
         {
             return !existingValue.equals(newValue);
         }
+    }
+
+    private boolean isContentNotNullOrEmpty(Serializable propValue)
+    {
+        if (propValue == null)
+        {
+            return false;
+        }
+        if (propValue instanceof ContentData)
+        {
+            String contentUrl = ((ContentData) propValue).getContentUrl();
+            if (contentUrl == null || contentUrl.isEmpty())
+            {
+                return false;
+            }
+        }
+        return true;
     }
 
     private boolean isContentProperty(QName propertyQName, Serializable propValue)

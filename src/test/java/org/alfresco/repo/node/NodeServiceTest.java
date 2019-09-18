@@ -1953,10 +1953,7 @@ public class NodeServiceTest
             NodeRef nodeRef = createContentNode(folder1);
 
             // Should be possible to add content via contentService
-            ContentWriter contentWriter = contentService.getWriter(nodeRef, ContentModel.PROP_CONTENT, true);
-            contentWriter.setMimetype("text/plain");
-            contentWriter.setEncoding("UTF-8");
-            contentWriter.putContent(content);
+            addContentToNode(nodeRef);
 
             try
             {
@@ -1977,7 +1974,11 @@ public class NodeServiceTest
 
         AuthenticationUtil.runAs(() ->
         {
-            NodeRef nodeRef = createContentNode(folder2);
+            NodeRef nodeRef = nodeService.createNode(
+                    folder2,
+                    ContentModel.ASSOC_CONTAINS,
+                    QName.createQName(GUID.generate()),
+                    ContentModel.TYPE_CONTENT).getChildRef();
 
             try
             {
@@ -2103,10 +2104,7 @@ public class NodeServiceTest
             NodeRef nodeRef = createContentNode(folder1);
 
             // Should be possible to add content via contentService
-            ContentWriter contentWriter = contentService.getWriter(nodeRef, ContentModel.PROP_CONTENT, true);
-            contentWriter.setMimetype("text/plain");
-            contentWriter.setEncoding("UTF-8");
-            contentWriter.putContent(content);
+            addContentToNode(nodeRef);
 
             try
             {
@@ -2183,7 +2181,6 @@ public class NodeServiceTest
     public void testSetContentPropertiesWithoutModification()
     {
         NodeRef workspaceRootNodeRef = nodeService.getRootNode(StoreRef.STORE_REF_WORKSPACE_SPACESSTORE);
-        String content = "Some content";
         String userName1 = GUID.generate();
         HashMap<QName, Serializable> properties = new HashMap<>();
         properties.put(ContentModel.PROP_USERNAME, userName1);
@@ -2206,10 +2203,7 @@ public class NodeServiceTest
             NodeRef nodeRef = createContentNode(folder1);
 
             // Should be possible to add content via contentService
-            ContentWriter contentWriter = contentService.getWriter(nodeRef, ContentModel.PROP_CONTENT, true);
-            contentWriter.setMimetype("text/plain");
-            contentWriter.setEncoding("UTF-8");
-            contentWriter.putContent(content);
+            addContentToNode(nodeRef);
 
             Serializable contentProp = nodeService.getProperty(nodeRef, ContentModel.PROP_CONTENT);
 
@@ -2239,13 +2233,152 @@ public class NodeServiceTest
         }, userName1);
     }
 
+    /**
+     * See MNT-20850
+     */
+    @Test
+    public void testSetContentPropertyToNull()
+    {
+        NodeRef workspaceRootNodeRef = nodeService.getRootNode(StoreRef.STORE_REF_WORKSPACE_SPACESSTORE);
+        ContentData nullContentData = new ContentData(null, "text/plain", 0L, "UTF-8", Locale.ENGLISH);
+        ContentData emptyContentData = new ContentData("", "text/plain", 0L, "UTF-8", Locale.ENGLISH);
+        String userName1 = GUID.generate();
+        HashMap<QName, Serializable> properties = new HashMap<>();
+        properties.put(ContentModel.PROP_USERNAME, userName1);
+        personService.createPerson(properties);
+
+        Map<QName, Serializable> props = new HashMap<>(3);
+        props.put(ContentModel.PROP_NAME, GUID.generate());
+        NodeRef folder1 = nodeService.createNode(
+                workspaceRootNodeRef,
+                ContentModel.ASSOC_CHILDREN,
+                QName.createQName(NAMESPACE, GUID.generate()),
+                ContentModel.TYPE_FOLDER,
+                props).getChildRef();
+
+        permissionService.setPermission(folder1, userName1, PermissionService.ALL_PERMISSIONS, true);
+        permissionService.setInheritParentPermissions(folder1, false);
+
+        AuthenticationUtil.runAs(() ->
+        {
+            NodeRef nodeRef = createContentNode(folder1);
+
+            nodeService.setProperty(nodeRef, ContentModel.PROP_CONTENT, emptyContentData);
+            assertEquals("The content property was not correct.", emptyContentData, nodeService.getProperty(nodeRef, ContentModel.PROP_CONTENT));
+            nodeService.setProperty(nodeRef, ContentModel.PROP_CONTENT, nullContentData);
+            assertEquals("The content property was not correct.", nullContentData, nodeService.getProperty(nodeRef, ContentModel.PROP_CONTENT));
+            nodeService.setProperty(nodeRef, ContentModel.PROP_CONTENT, null);
+            assertNull("The content property was not correct.", nodeService.getProperty(nodeRef, ContentModel.PROP_CONTENT));
+
+            nodeRef = createContentNode(folder1);
+
+            Map<QName, Serializable> existingProps = nodeService.getProperties(nodeRef);
+            String description = "Some description 1";
+            existingProps.put(ContentModel.PROP_DESCRIPTION, description);
+            existingProps.put(ContentModel.PROP_CONTENT, emptyContentData);
+            nodeService.setProperties(nodeRef, existingProps);
+            assertEquals("Additional property should be set", description, nodeService.getProperty(nodeRef, ContentModel.PROP_DESCRIPTION));
+            assertEquals("The content property was not correct.", emptyContentData, nodeService.getProperty(nodeRef, ContentModel.PROP_CONTENT));
+
+            nodeRef = createContentNode(folder1);
+
+            existingProps = nodeService.getProperties(nodeRef);
+            description = "Some description 2";
+            existingProps.put(ContentModel.PROP_DESCRIPTION, description);
+            existingProps.put(ContentModel.PROP_CONTENT, nullContentData);
+            nodeService.setProperties(nodeRef, existingProps);
+            assertEquals("Additional property should be set", description, nodeService.getProperty(nodeRef, ContentModel.PROP_DESCRIPTION));
+            assertEquals("The content property was not correct.", nullContentData, nodeService.getProperty(nodeRef, ContentModel.PROP_CONTENT));
+
+            nodeRef = createContentNode(folder1);
+
+            existingProps = nodeService.getProperties(nodeRef);
+            description = "Some description 3";
+            existingProps.put(ContentModel.PROP_DESCRIPTION, description);
+            existingProps.put(ContentModel.PROP_CONTENT, null);
+            nodeService.setProperties(nodeRef, existingProps);
+            assertEquals("Additional property should be set", description, nodeService.getProperty(nodeRef, ContentModel.PROP_DESCRIPTION));
+            assertNull("The content property was not correct.", nodeService.getProperty(nodeRef, ContentModel.PROP_CONTENT));
+
+            nodeRef = createContentNode(folder1);
+
+            existingProps = new HashMap<>(2);
+            existingProps.put(ContentModel.PROP_CONTENT, emptyContentData);
+            String title = "Some title 1";
+            existingProps.put(ContentModel.PROP_TITLE, title);
+
+            nodeService.addProperties(nodeRef, existingProps);
+            assertEquals("Additional property should be set", title, nodeService.getProperty(nodeRef, ContentModel.PROP_TITLE));
+            assertEquals("The content property was not correct.", emptyContentData, nodeService.getProperty(nodeRef, ContentModel.PROP_CONTENT));
+
+            nodeRef = createContentNode(folder1);
+
+            existingProps = new HashMap<>(2);
+            existingProps.put(ContentModel.PROP_CONTENT, nullContentData);
+            title = "Some title 2";
+            existingProps.put(ContentModel.PROP_TITLE, title);
+
+            nodeService.addProperties(nodeRef, existingProps);
+            assertEquals("Additional property should be set", title, nodeService.getProperty(nodeRef, ContentModel.PROP_TITLE));
+            assertEquals("The content property was not correct.", nullContentData, nodeService.getProperty(nodeRef, ContentModel.PROP_CONTENT));
+
+            nodeRef = createContentNode(folder1);
+
+            existingProps = new HashMap<>(2);
+            existingProps.put(ContentModel.PROP_CONTENT, null);
+            title = "Some title 3";
+            existingProps.put(ContentModel.PROP_TITLE, title);
+
+            nodeService.addProperties(nodeRef, existingProps);
+            assertEquals("Additional property should be set", title, nodeService.getProperty(nodeRef, ContentModel.PROP_TITLE));
+            assertNull("The content property was not correct.", nodeService.getProperty(nodeRef, ContentModel.PROP_CONTENT));
+
+            nodeRef = createContentNode(folder1);
+
+            Map<QName, Serializable> aspectProps = new HashMap<>();
+            aspectProps.put(ContentModel.PROP_CONTENT, emptyContentData);
+            nodeService.addAspect(nodeRef, ContentModel.ASPECT_OWNABLE, aspectProps);
+            assertTrue("Aspect should be added", nodeService.hasAspect(nodeRef, ContentModel.ASPECT_OWNABLE));
+            assertEquals("The content property was not correct.", emptyContentData, nodeService.getProperty(nodeRef, ContentModel.PROP_CONTENT));
+
+            nodeRef = createContentNode(folder1);
+
+            aspectProps = new HashMap<>();
+            aspectProps.put(ContentModel.PROP_CONTENT, nullContentData);
+            nodeService.addAspect(nodeRef, ContentModel.ASPECT_OWNABLE, aspectProps);
+            assertTrue("Aspect should be added", nodeService.hasAspect(nodeRef, ContentModel.ASPECT_OWNABLE));
+            assertEquals("The content property was not correct.", nullContentData, nodeService.getProperty(nodeRef, ContentModel.PROP_CONTENT));
+
+            nodeRef = createContentNode(folder1);
+
+            aspectProps = new HashMap<>();
+            aspectProps.put(ContentModel.PROP_CONTENT, null);
+            nodeService.addAspect(nodeRef, ContentModel.ASPECT_OWNABLE, aspectProps);
+            assertTrue("Aspect should be added", nodeService.hasAspect(nodeRef, ContentModel.ASPECT_OWNABLE));
+            assertNull("The content property was not correct.", nodeService.getProperty(nodeRef, ContentModel.PROP_CONTENT));
+
+            return null;
+        }, userName1);
+    }
+
+    private void addContentToNode(NodeRef nodeRef)
+    {
+        String content = "Some content";
+        ContentWriter contentWriter = contentService.getWriter(nodeRef, ContentModel.PROP_CONTENT, true);
+        contentWriter.setMimetype("text/plain");
+        contentWriter.setEncoding("UTF-8");
+        contentWriter.putContent(content);
+    }
+
     private NodeRef createContentNode(NodeRef parentRef)
     {
-        return nodeService.createNode(
+        NodeRef nodeRef = nodeService.createNode(
                 parentRef,
                 ContentModel.ASSOC_CONTAINS,
                 QName.createQName(GUID.generate()),
                 ContentModel.TYPE_CONTENT).getChildRef();
+        addContentToNode(nodeRef);
+        return nodeRef;
     }
     private NodeRef createContentNode(NodeRef parentRef, Map<QName, Serializable> properties)
     {
