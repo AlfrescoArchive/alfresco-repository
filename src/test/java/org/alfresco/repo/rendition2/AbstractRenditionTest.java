@@ -39,6 +39,7 @@ import org.junit.experimental.categories.Category;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -329,7 +330,8 @@ public abstract class AbstractRenditionTest extends AbstractRenditionIntegration
             if (registry != null)
             {
                 Map<String, List<SupportedTransform>> supportedTransformsByTargetMimetype = registry.getData().retrieveTransforms(sourceMimetype);
-                List<SupportedTransform> supportedTransforms = supportedTransformsByTargetMimetype.get(targetMimetype);
+                List<SupportedTransform> supportedTransforms = new ArrayList<>(supportedTransformsByTargetMimetype.get(targetMimetype));
+                supportedTransforms.sort((t1, t2) -> t1.getPriority()-t2.getPriority());
                 char a = 'a';
                 int prevPriority = Integer.MAX_VALUE;
                 for (SupportedTransform supportedTransform : supportedTransforms)
