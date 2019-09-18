@@ -2423,7 +2423,6 @@ public class NodeServiceTest
                 newContentData = new ContentData("fake://url/123", oldContentData.getMimetype(),
                         oldContentData.getSize(), oldContentData.getEncoding(), oldContentData.getLocale());
                 nodeService.setProperty(nodeRef, ContentModel.PROP_CONTENT, newContentData);
-                assertEquals("The content property was not correct.", newContentData, nodeService.getProperty(nodeRef, ContentModel.PROP_CONTENT));
                 fail("Should not be possible to change content URL");
             }
             catch (InvalidTypeException ite)
