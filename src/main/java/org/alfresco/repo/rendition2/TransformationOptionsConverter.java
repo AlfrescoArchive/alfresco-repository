@@ -128,7 +128,7 @@ public class TransformationOptionsConverter implements InitializingBean
                     TIMEOUT, MAX_SOURCE_SIZE_K_BYTES
             }));
 
-    private interface Setter
+    protected interface Setter
     {
         void set(String s);
     }
@@ -313,7 +313,7 @@ public class TransformationOptionsConverter implements InitializingBean
         return transformationOptions;
     }
 
-    private <T> void ifSet(Map<String, String> options, String key, TransformationOptionsConverter.Setter setter)
+    protected <T> void ifSet(Map<String, String> options, String key, TransformationOptionsConverter.Setter setter)
     {
         String value = options.get(key);
         if (value != null)
