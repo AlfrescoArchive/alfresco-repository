@@ -46,7 +46,7 @@ import org.aopalliance.intercept.MethodInvocation;
  * Interceptor that enforces restrictions on updates of properties of type content (cm:content and alike) on NodeService.
  * <p/>
  * Can be configured by using global enabled flag - <code>contentPropertyRestrictions.enabled</code>,
- * or comma separated white list of callers <code>contentPropertyRestrictions.white.list</code>,
+ * or comma separated white list of callers <code>contentPropertyRestrictions.whitelist</code>,
  * which can be either packages or fully qualified class names.
  *
  * @author Alex Mukha
