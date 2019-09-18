@@ -15,6 +15,7 @@ branches:
   only:
     - master
     - /support\/.*/
+    - fix/repo-4619-contenturl-property-2
 
 stages:
   - test
