@@ -253,15 +253,15 @@ public class AccessAuditorTest
 
     private static NodeRef newContent(NodeRef parent, String name)
     {
+        PropertyMap propertyMap0 = new PropertyMap();
+        propertyMap0.put(ContentModel.PROP_CONTENT, new ContentData(null, "text/plain", 0L, "UTF-16", Locale.ENGLISH));
         NodeRef content = nodeService.createNode(
                 parent,
                 ContentModel.ASSOC_CONTAINS,
                 QName.createQName(NamespaceService.CONTENT_MODEL_1_0_URI, name),
-                ContentModel.TYPE_CONTENT).getChildRef();
+                ContentModel.TYPE_CONTENT,
+                propertyMap0).getChildRef();
         ContentWriter writer = serviceRegistry.getContentService().getWriter(content, ContentModel.TYPE_CONTENT, true);
-        writer.setEncoding("UTF-16");
-        writer.setMimetype("text/plain");
-        writer.setLocale(Locale.ENGLISH);
         writer.putContent("The cat sat on the mat.");
         
         return content;
