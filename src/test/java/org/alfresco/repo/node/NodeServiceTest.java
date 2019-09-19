@@ -52,6 +52,7 @@ import org.alfresco.repo.cache.SimpleCache;
 import org.alfresco.repo.cache.TransactionalCache;
 import org.alfresco.repo.cache.TransactionalCache.ValueHolder;
 import org.alfresco.repo.content.MimetypeMap;
+import org.alfresco.repo.domain.dialect.Dialect;
 import org.alfresco.repo.domain.node.Node;
 import org.alfresco.repo.domain.node.NodeDAO;
 import org.alfresco.repo.domain.node.NodeEntity;
