@@ -30,6 +30,7 @@ import java.util.Map;
 
 import org.alfresco.api.AlfrescoPublicApi;
 import org.alfresco.repo.content.transform.ContentTransformer;
+import org.alfresco.repo.content.transform.LocalTransformServiceRegistry;
 import org.alfresco.service.Auditable;
 import org.alfresco.service.cmr.dictionary.InvalidTypeException;
 import org.alfresco.service.namespace.QName;
@@ -226,17 +227,6 @@ public interface ContentService
     public List<ContentTransformer> getActiveTransformers(String sourceMimetype, String targetMimetype, TransformationOptions options);
 
     /**
-     * Fetch the transformer that is capable of transforming image content.
-     * 
-     * @return Returns a transformer that can be used, or null if one was not available
-     *
-     * @deprecated The transformations code is being moved out of the codebase and replaced by the new async RenditionService2 or other external libraries.
-     */
-    @Deprecated
-    @Auditable
-    public ContentTransformer getImageTransformer();
-    
-    /**
      * @deprecated use {@link #isTransformable(ContentReader, ContentWriter, TransformationOptions)}.
      */
     @Deprecated
@@ -266,4 +256,10 @@ public interface ContentService
     @Deprecated
     @Auditable(parameters = {"reader", "writer", "options"})
     public boolean isTransformable(ContentReader reader, ContentWriter writer, TransformationOptions options);
+
+    /**
+     * @deprecated The transformations code is being moved out of the codebase and replaced by the new async RenditionService2 or other external libraries.
+     */
+    @Deprecated
+    LocalTransformServiceRegistry getLocalTransformServiceRegistry();
 }

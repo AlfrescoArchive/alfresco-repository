@@ -44,6 +44,7 @@ import org.alfresco.repo.content.filestore.FileContentStore;
 import org.alfresco.repo.content.filestore.FileContentWriter;
 import org.alfresco.repo.content.transform.ContentTransformer;
 import org.alfresco.repo.content.transform.ContentTransformerRegistry;
+import org.alfresco.repo.content.transform.LocalTransformServiceRegistry;
 import org.alfresco.repo.content.transform.TransformerDebug;
 import org.alfresco.repo.content.transform.UnimportantTransformException;
 import org.alfresco.repo.content.transform.UnsupportedTransformationException;
@@ -100,6 +101,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
     private ApplicationContext applicationContext;
     @Deprecated
     protected TransformerDebug transformerDebug;
+    private LocalTransformServiceRegistry localTransformServiceRegistry;
 
 
     /** a registry of all available content transformers */
@@ -220,6 +222,17 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
     public void setTransformerDebug(TransformerDebug transformerDebug)
     {
         this.transformerDebug = transformerDebug;
+    }
+
+    @Override
+    public LocalTransformServiceRegistry getLocalTransformServiceRegistry()
+    {
+        return localTransformServiceRegistry;
+    }
+
+    public void setLocalTransformServiceRegistry(LocalTransformServiceRegistry localTransformServiceRegistry)
+    {
+        this.localTransformServiceRegistry = localTransformServiceRegistry;
     }
 
     /**
@@ -849,16 +862,6 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
     public List<ContentTransformer> getActiveTransformers(String sourceMimetype, long sourceSize, String targetMimetype, TransformationOptions options)
     {
         return transformerRegistry.getActiveTransformers(sourceMimetype, sourceSize, targetMimetype, options);
-    }
-
-    /**
-     * @see org.alfresco.service.cmr.repository.ContentService#getImageTransformer()
-     * @deprecated The transformations code is being moved out of the codebase and replaced by the new async RenditionService2 or other external libraries.
-     */
-    @Deprecated
-    public ContentTransformer getImageTransformer()
-    {
-        return imageMagickContentTransformer;
     }
 
     /**
