@@ -221,28 +221,6 @@ public interface ContentService
             throws NoTransformerException, ContentIOException;
     
     /**
-     * Fetch the transformers that are capable of transforming the content in the
-     * given source mimetype to the given target mimetype with the provided transformation
-     * options.
-     * <p/>
-     * The transformation options provide a finer grain way of discovering the correct transformer, 
-     * since the values and type of the options provided are considered by the transformer when
-     * deciding whether it can satisfy the transformation request.
-     * @param sourceUrl TODO
-     * @param  sourceMimetype       the source mimetype
-     * @param  sourceSize           the source size (bytes). Ignored if negative. 
-     * @param  targetMimetype       the target mimetype
-     * @param  options              the transformation options
-     * 
-     * @return ContentTransformer   the transformers that can be used, or null if none are available
-     *
-     * @deprecated The transformations code is being moved out of the codebase and replaced by the new async RenditionService2 or other external libraries.
-     */
-    @Deprecated
-    @Auditable(parameters = {"sourceMimetype", "sourceSize", "targetMimetype", "options"})
-    public List<ContentTransformer> getTransformers(String sourceUrl, String sourceMimetype, long sourceSize, String targetMimetype, TransformationOptions options);
-    
-    /**
      * Fetch the transformer that is capable of transforming the content in the
      * given source mimetype to the given target mimetype with the provided transformation
      * options.

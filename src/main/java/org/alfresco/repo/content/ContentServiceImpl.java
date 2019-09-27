@@ -779,29 +779,19 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
     @Deprecated
     public ContentTransformer getTransformer(String sourceUrl, String sourceMimetype, long sourceSize, String targetMimetype, TransformationOptions options)
     {
-        List<ContentTransformer> transformers = getTransformers(sourceUrl, sourceMimetype, sourceSize, targetMimetype, options);
-        return (transformers == null) ? null : transformers.get(0);
-    }
-
-    /**
-     * @see org.alfresco.service.cmr.repository.ContentService#getTransformers(String, java.lang.String, long, java.lang.String, org.alfresco.service.cmr.repository.TransformationOptions)
-     * @deprecated The transformations code is being moved out of the codebase and replaced by the new async RenditionService2 or other external libraries.
-     */
-    @Deprecated
-    public List<ContentTransformer> getTransformers(String sourceUrl, String sourceMimetype, long sourceSize, String targetMimetype, TransformationOptions options)
-    {
+        List<ContentTransformer> transformers = null;
         try
         {
-            // look for a transformer
             transformerDebug.pushAvailable(sourceUrl, sourceMimetype, targetMimetype, options);
-            List<ContentTransformer> transformers = getActiveTransformers(sourceMimetype, sourceSize, targetMimetype, options);
-            transformerDebug.availableTransformers(transformers, sourceSize, options, "ContentService.getTransformer(...)");
-            return transformers.isEmpty() ? null : transformers;
+            List<ContentTransformer> transformers1 = getActiveTransformers(sourceMimetype, sourceSize, targetMimetype, options);
+            transformerDebug.availableTransformers(transformers1, sourceSize, options, "ContentService.getTransformer(...)");
+            transformers = transformers1.isEmpty() ? null : transformers1;
         }
         finally
         {
             transformerDebug.popAvailable();
         }
+        return (transformers == null) ? null : transformers.get(0);
     }
 
     /**
