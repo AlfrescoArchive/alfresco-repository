@@ -1306,7 +1306,7 @@ public class ThumbnailServiceImplTest extends BaseAlfrescoSpringTest
         {
             // Reset our transformer count for each test
             LongRunningTransformer transformer = (LongRunningTransformer) contentService
-                    .getTransformer(TEST_LONG_RUNNING_MIME_TYPE, MimetypeMap.MIMETYPE_IMAGE_JPEG);
+                    .getTransformer(null, TEST_LONG_RUNNING_MIME_TYPE, -1, MimetypeMap.MIMETYPE_IMAGE_JPEG, new TransformationOptions());
             transformer.setTransformCount(0);
 
             Map<QName, Serializable> props = new HashMap<QName, Serializable>(1);

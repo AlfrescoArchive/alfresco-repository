@@ -221,26 +221,6 @@ public interface ContentService
             throws NoTransformerException, ContentIOException;
     
     /**
-     * Fetch the transformer that is capable of transforming the content in the
-     * given source mimetype to the given target mimetype.
-     * <p>
-     * Since no transformation options are provided only the source and destination mimetypes are
-     * considered when getting the correct transformer.
-     * 
-     * @param sourceMimetype the source mimetype
-     * @param targetMimetype the target mimetype
-     * @return Returns a transformer that can be used, or null if one was not available
-     * 
-     * @see ContentService#getTransformer(String, String, long, String, TransformationOptions)
-     * @see ContentAccessor#getMimetype()
-     *
-     * @deprecated The transformations code is being moved out of the codebase and replaced by the new async RenditionService2 or other external libraries.
-     */
-    @Deprecated
-    @Auditable(parameters = {"sourceMimetype", "targetMimetype"})
-    public ContentTransformer getTransformer(String sourceMimetype, String targetMimetype);
-    
-    /**
      * Fetch the transformers that are capable of transforming the content in the
      * given source mimetype to the given target mimetype with the provided transformation
      * options.
@@ -286,12 +266,6 @@ public interface ContentService
     @Auditable(parameters = {"sourceMimetype", "sourceSize", "targetMimetype", "options"})
     public ContentTransformer getTransformer(String sourceUrl, String sourceMimetype, long sourceSize, String targetMimetype, TransformationOptions options);
     
-    /**
-     * @deprecated use overloaded method with sourceSize parameter.
-     */
-    @Deprecated
-    public ContentTransformer getTransformer(String sourceMimetype, String targetMimetype, TransformationOptions options);
-
     /**
      * Returns the maximum source size of any content that may transformed between the supplied
      * mimetypes using the supplied options.

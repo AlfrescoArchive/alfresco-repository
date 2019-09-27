@@ -118,7 +118,7 @@ public class ContentServiceImplTest extends BaseVersionStoreTest
         assertTrue(this.contentService.isTransformable(contentReader, contentWriter));
         this.contentService.transform(contentReader, contentWriter, new HashMap<String, Object>());
         assertNotNull(this.contentService.getActiveTransformers(contentReader.getMimetype(), contentWriter.getMimetype(), new TransformationOptions()));
-        assertNull(this.contentService.getTransformer(MimetypeMap.MIMETYPE_TEXT_PLAIN, MimetypeMap.MIMETYPE_IMAGE_PNG, new TransformationOptions()));
+        assertNull(this.contentService.getTransformer(null, MimetypeMap.MIMETYPE_TEXT_PLAIN, -1, MimetypeMap.MIMETYPE_IMAGE_PNG, new TransformationOptions()));
 
        // this.nodeService.setProperty(versionableNode, ContentModel.PROP_NAME, "for debugTransformers.txt");
         try
