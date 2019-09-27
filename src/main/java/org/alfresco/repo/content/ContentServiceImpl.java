@@ -773,17 +773,6 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
     }
 
     /**
-     * @see org.alfresco.repo.content.transform.ContentTransformerRegistry
-     * @see org.alfresco.repo.content.transform.ContentTransformer
-     * @deprecated The transformations code is being moved out of the codebase and replaced by the new async RenditionService2 or other external libraries.
-     */
-    @Deprecated
-    public ContentTransformer getTransformer(String sourceMimetype, String targetMimetype)
-    {
-        return getTransformer(null, sourceMimetype, -1, targetMimetype, new TransformationOptions());
-    }
-
-    /**
      * @see org.alfresco.service.cmr.repository.ContentService#getTransformer(String, java.lang.String, long, java.lang.String, org.alfresco.service.cmr.repository.TransformationOptions)
      * @deprecated The transformations code is being moved out of the codebase and replaced by the new async RenditionService2 or other external libraries.
      */
