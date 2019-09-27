@@ -116,7 +116,7 @@ public class ContentServiceImplTest extends BaseVersionStoreTest
 
         //Call deprecated methods
         assertTrue(this.contentService.isTransformable(contentReader, contentWriter));
-        this.contentService.transform(contentReader, contentWriter, new HashMap<String, Object>());
+        this.contentService.transform(contentReader, contentWriter, new TransformationOptions(new HashMap<String, Object>()));
         assertNotNull(this.contentService.getActiveTransformers(contentReader.getMimetype(), contentWriter.getMimetype(), new TransformationOptions()));
         assertNull(this.contentService.getTransformer(null, MimetypeMap.MIMETYPE_TEXT_PLAIN, -1, MimetypeMap.MIMETYPE_IMAGE_PNG, new TransformationOptions()));
 
@@ -133,7 +133,7 @@ public class ContentServiceImplTest extends BaseVersionStoreTest
 
         try
         {
-            this.contentService.transform(null, null);
+            this.contentService.transform(null, null, new TransformationOptions());
             fail("Should throw exception");
         }
         catch (AlfrescoRuntimeException are)
@@ -144,7 +144,7 @@ public class ContentServiceImplTest extends BaseVersionStoreTest
         ContentReader empty = new EmptyContentReader("empty.txt");
         try
         {
-            this.contentService.transform(empty, null);
+            this.contentService.transform(empty, null, new TransformationOptions());
             fail("Should throw exception");
         }
         catch (AlfrescoRuntimeException are)
@@ -165,7 +165,7 @@ public class ContentServiceImplTest extends BaseVersionStoreTest
         try
         {
             contentWriter.setMimetype(null);
-            this.contentService.transform(contentReader, contentWriter);
+            this.contentService.transform(contentReader, contentWriter, new TransformationOptions());
             fail("Should throw exception");
         }
         catch (AlfrescoRuntimeException are)

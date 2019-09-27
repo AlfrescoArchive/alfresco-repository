@@ -567,33 +567,6 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
     /**
      * @see org.alfresco.repo.content.transform.ContentTransformerRegistry
      * @see org.alfresco.repo.content.transform.ContentTransformer
-     * @see org.alfresco.service.cmr.repository.ContentService#transform(org.alfresco.service.cmr.repository.ContentReader, org.alfresco.service.cmr.repository.ContentWriter)
-     * @deprecated The transformations code is being moved out of the codebase and replaced by the new async RenditionService2 or other external libraries.
-     */
-    @Deprecated
-    public void transform(ContentReader reader, ContentWriter writer)
-    {
-        // Call transform with no options
-        TransformationOptions options = new TransformationOptions();
-        this.transform(reader, writer, options);
-    }
-    
-    /**
-     * @see org.alfresco.repo.content.transform.ContentTransformerRegistry
-     * @see org.alfresco.repo.content.transform.ContentTransformer
-     * @deprecated
-     * @deprecated The transformations code is being moved out of the codebase and replaced by the new async RenditionService2 or other external libraries.
-     */
-    @Deprecated
-    public void transform(ContentReader reader, ContentWriter writer, Map<String, Object> options)
-            throws NoTransformerException, ContentIOException
-    {
-        transform(reader, writer, new TransformationOptions(options));
-    }
-    
-    /**
-     * @see org.alfresco.repo.content.transform.ContentTransformerRegistry
-     * @see org.alfresco.repo.content.transform.ContentTransformer
      * @deprecated The transformations code is being moved out of the codebase and replaced by the new async RenditionService2 or other external libraries.
      */
     @Deprecated

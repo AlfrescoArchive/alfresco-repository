@@ -160,51 +160,6 @@ public interface ContentService
     /**
      * Transforms the content from the reader and writes the content
      * back out to the writer.
-     * <p>
-     * The mimetypes used for the transformation must be set both on
-     * the {@link ContentAccessor#getMimetype() reader} and on the
-     * {@link ContentAccessor#getMimetype() writer}.
-     * 
-     * @param reader the source content location and mimetype
-     * @param writer the target content location and mimetype
-     * @throws NoTransformerException if no transformer exists for the
-     *      given source and target mimetypes of the reader and writer
-     * @throws ContentIOException if the transformation fails
-     *
-     * @deprecated The transformations code is being moved out of the codebase and replaced by the new async RenditionService2 or other external libraries.
-     */
-    @Deprecated
-    @Auditable(parameters = {"reader", "writer"})
-    public void transform(ContentReader reader, ContentWriter writer)
-            throws NoTransformerException, ContentIOException;
-    
-
-    /**
-     * @see ContentService#transform(ContentReader, ContentWriter)
-     * @see ContentService#transform(ContentReader, ContentWriter, TransformationOptions)
-     * 
-     * A map of transform options can be provided.
-     * 
-     * @param reader the source content location and mimetype
-     * @param writer the target content location and mimetype
-     * @param options the options for the transformation
-     * @throws NoTransformerException if no transformer exists for the
-     *      given source and target mimetypes of the reader and writer
-     * @throws ContentIOException if the transformation fails
-     * 
-     * @deprecated
-     * As of release 3.0 the TransformOptions class should be used to pass transformation options 
-     * to a transformation execution.
-     */
-    @Deprecated
-    @Auditable(parameters = {"reader", "writer", "options"})
-    public void transform(ContentReader reader, ContentWriter writer, Map<String, Object> options)
-            throws NoTransformerException, ContentIOException;
-    
-    /**
-     * @see ContentService#transform(ContentReader, ContentWriter)
-     * 
-     * A transformation options can be provided.
      * 
      * @param reader the source content location and mimetype
      * @param writer the target content location and mimetype
