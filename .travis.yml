@@ -15,7 +15,6 @@ branches:
   only:
     - master
     - /support\/.*/
-    - fix/REPO-4674-dedeprecated-forums
 
 stages:
   - test
