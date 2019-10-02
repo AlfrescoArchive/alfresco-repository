@@ -865,52 +865,6 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
     }
 
     /**
-     * @see org.alfresco.repo.content.transform.ContentTransformerRegistry
-     * @see org.alfresco.repo.content.transform.ContentTransformer
-     * @deprecated The transformations code is being moved out of the codebase and replaced by the new async RenditionService2 or other external libraries.
-     */
-    @Deprecated
-    public boolean isTransformable(ContentReader reader, ContentWriter writer)
-    {
-       return isTransformable(reader, writer, new TransformationOptions());
-    }
-    
-    /**
-     * @see org.alfresco.service.cmr.repository.ContentService#isTransformable(org.alfresco.service.cmr.repository.ContentReader, org.alfresco.service.cmr.repository.ContentWriter, org.alfresco.service.cmr.repository.TransformationOptions)
-     * @deprecated The transformations code is being moved out of the codebase and replaced by the new async RenditionService2 or other external libraries.
-     */
-    @Deprecated
-    public boolean isTransformable(ContentReader reader, ContentWriter writer, TransformationOptions options)
-    {
-     // check that source and target mimetypes are available
-        String sourceMimetype = reader.getMimetype();
-        if (sourceMimetype == null)
-        {
-            throw new AlfrescoRuntimeException("The content reader mimetype must be set: " + reader);
-        }
-        String targetMimetype = writer.getMimetype();
-        if (targetMimetype == null)
-        {
-            throw new AlfrescoRuntimeException("The content writer mimetype must be set: " + writer);
-        }
-        
-        long sourceSize = reader.getSize();
-        try
-        {
-            // look for a transformer
-            transformerDebug.pushAvailable(reader.getContentUrl(), sourceMimetype, targetMimetype, options);
-            List<ContentTransformer> transformers = getActiveTransformers(sourceMimetype, sourceSize, targetMimetype, options);
-            transformerDebug.availableTransformers(transformers, sourceSize, options, "ContentService.isTransformable(...)");
-            
-            return transformers.size() > 0; 
-        }
-        finally
-        {
-            transformerDebug.popAvailable();
-        }
-    }
-
-    /**
      * Ensures that, upon closure of the output stream, the node is updated with
      * the latest URL of the content to which it refers.
      * <p>

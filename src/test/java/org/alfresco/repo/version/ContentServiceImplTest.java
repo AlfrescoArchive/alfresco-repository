@@ -115,7 +115,6 @@ public class ContentServiceImplTest extends BaseVersionStoreTest
         ContentWriter contentWriter = this.contentService.getWriter(versionableNode, ContentModel.PROP_CONTENT, false);
 
         //Call deprecated methods
-        assertTrue(this.contentService.isTransformable(contentReader, contentWriter));
         this.contentService.transform(contentReader, contentWriter, new TransformationOptions(new HashMap<String, Object>()));
         assertNotNull(this.contentService.getActiveTransformers(contentReader.getMimetype(), contentWriter.getMimetype(), new TransformationOptions()));
         assertNull(this.contentService.getTransformer(null, MimetypeMap.MIMETYPE_TEXT_PLAIN, -1, MimetypeMap.MIMETYPE_IMAGE_PNG, new TransformationOptions()));
@@ -154,29 +153,8 @@ public class ContentServiceImplTest extends BaseVersionStoreTest
 
         try
         {
-            this.contentService.isTransformable(empty, null, new TransformationOptions());
-            fail("Should throw exception");
-        }
-        catch (AlfrescoRuntimeException are)
-        {
-            are.getMessage().contains("The content reader mimetype must be set");
-        }
-
-        try
-        {
             contentWriter.setMimetype(null);
             this.contentService.transform(contentReader, contentWriter, new TransformationOptions());
-            fail("Should throw exception");
-        }
-        catch (AlfrescoRuntimeException are)
-        {
-            are.getMessage().contains("The content writer mimetype must be set");
-        }
-
-        try
-        {
-            contentWriter.setMimetype(null);
-            this.contentService.isTransformable(contentReader, contentWriter, new TransformationOptions());
             fail("Should throw exception");
         }
         catch (AlfrescoRuntimeException are)

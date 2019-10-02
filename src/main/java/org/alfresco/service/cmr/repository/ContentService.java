@@ -215,47 +215,16 @@ public interface ContentService
     public long getMaxSourceSizeBytes(String sourceMimetype, String targetMimetype, TransformationOptions options);
 
     /**
-     * @deprecated use {@link #getTransformers(String, String, long, String, TransformationOptions)}.
+     * @deprecated
      * @since 3.5
      */
     @Auditable(parameters = {"sourceMimetype", "sourceSize", "targetMimetype", "options"})
     public List<ContentTransformer> getActiveTransformers(String sourceMimetype, long sourceSize, String targetMimetype, TransformationOptions options);
     
     /**
-     * @deprecated use {@link #getTransformers(String, String, long, String, TransformationOptions)}.
+     * @deprecated
      */
     public List<ContentTransformer> getActiveTransformers(String sourceMimetype, String targetMimetype, TransformationOptions options);
-
-    /**
-     * @deprecated use {@link #isTransformable(ContentReader, ContentWriter, TransformationOptions)}.
-     */
-    @Deprecated
-    @Auditable(parameters = {"reader", "writer"})
-    public boolean isTransformable(ContentReader reader, ContentWriter writer);
-    
-    /**
-     * Returns whether a transformer exists that can read the content from
-     * the reader and write the content back out to the writer with the 
-     * provided tranformation options.
-     * <p>
-     * <b>If you are about to call {@link #transform(ContentReader, ContentWriter, TransformationOptions)}
-     * it is best NOT to call this method first as it must perform the same steps and will throw
-     * NoTransformerException if there are no transformers.</b><p>
-     * 
-     * The mimetypes used for the transformation must be set both on
-     * the {@link ContentAccessor#getMimetype() reader} and on the
-     * {@link ContentAccessor#getMimetype() writer}.
-     * 
-     * @param  reader   the source content location and mimetype
-     * @param  writer   the target content location and mimetype
-     * @param  options  the transformation options
-     * @return boolean  true if a transformer exists, false otherwise
-     *
-     * @deprecated The transformations code is being moved out of the codebase and replaced by the new async RenditionService2 or other external libraries.
-     */
-    @Deprecated
-    @Auditable(parameters = {"reader", "writer", "options"})
-    public boolean isTransformable(ContentReader reader, ContentWriter writer, TransformationOptions options);
 
     /**
      * @deprecated The transformations code is being moved out of the codebase and replaced by the new async RenditionService2 or other external libraries.
