@@ -849,16 +849,6 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
      * @deprecated The transformations code is being moved out of the codebase and replaced by the new async RenditionService2 or other external libraries.
      */
     @Deprecated
-    public List<ContentTransformer> getActiveTransformers(String sourceMimetype, String targetMimetype, TransformationOptions options)
-    {
-        return getActiveTransformers(sourceMimetype, -1, targetMimetype, options);
-    }
-
-    /**
-     *
-     * @deprecated The transformations code is being moved out of the codebase and replaced by the new async RenditionService2 or other external libraries.
-     */
-    @Deprecated
     public List<ContentTransformer> getActiveTransformers(String sourceMimetype, long sourceSize, String targetMimetype, TransformationOptions options)
     {
         return transformerRegistry.getActiveTransformers(sourceMimetype, sourceSize, targetMimetype, options);

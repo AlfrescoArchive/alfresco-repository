@@ -114,11 +114,6 @@ public class ContentServiceImplTest extends BaseVersionStoreTest
         ContentReader contentReader = this.contentService.getReader(versionableNode, ContentModel.PROP_CONTENT);
         ContentWriter contentWriter = this.contentService.getWriter(versionableNode, ContentModel.PROP_CONTENT, false);
 
-        //Call deprecated methods
-        this.contentService.transform(contentReader, contentWriter, new TransformationOptions(new HashMap<String, Object>()));
-        assertNotNull(this.contentService.getActiveTransformers(contentReader.getMimetype(), contentWriter.getMimetype(), new TransformationOptions()));
-        assertNull(this.contentService.getTransformer(null, MimetypeMap.MIMETYPE_TEXT_PLAIN, -1, MimetypeMap.MIMETYPE_IMAGE_PNG, new TransformationOptions()));
-
        // this.nodeService.setProperty(versionableNode, ContentModel.PROP_NAME, "for debugTransformers.txt");
         try
         {
