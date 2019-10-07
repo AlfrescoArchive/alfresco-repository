@@ -37,6 +37,8 @@ import org.apache.tika.parser.Parser;
 import org.apache.tika.parser.pdf.PDFParser;
 import org.apache.tika.parser.pdf.PDFParserConfig;
 
+import static org.alfresco.repo.rendition2.RenditionDefinition2.TARGET_ENCODING;
+
 /**
  * Uses <a href="http://tika.apache.org/">Apache Tika</a> and
  *  <a href="@link http://pdfbox.apache.org/">Apache PDFBox</a> to perform
@@ -99,21 +101,12 @@ public class PdfBoxContentTransformer extends TikaPoweredContentTransformer
     }
 
     @Override
-    protected String getTransform()
-    {
-        return "PdfBox";
-    }
-    
-    
-    @Override
     protected void transformRemote(RemoteTransformerClient remoteTransformerClient, ContentReader reader,
                                    ContentWriter writer, TransformationOptions options,
                                    String sourceMimetype, String targetMimetype,
                                    String sourceExtension, String targetExtension,
                                    String targetEncoding) throws Exception
     {
-
-        String transform = getTransform();
         long timeoutMs = options.getTimeoutMs();
         String notExtractBookmarksText = null;
 
@@ -124,9 +117,9 @@ public class PdfBoxContentTransformer extends TikaPoweredContentTransformer
 
         remoteTransformerClient.request(reader, writer, sourceMimetype, sourceExtension, targetExtension,
                 timeoutMs, logger, 
-                "transform", transform,
                 "notExtractBookmarksText", notExtractBookmarksText,
-                "targetMimetype", targetMimetype, 
-                "targetEncoding", targetEncoding);
+                "sourceMimetype", sourceMimetype,
+                "targetMimetype", targetMimetype,
+                TARGET_ENCODING, targetEncoding);
     }
 }

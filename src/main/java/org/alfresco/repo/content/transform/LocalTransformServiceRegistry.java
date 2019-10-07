@@ -25,20 +25,6 @@
  */
 package org.alfresco.repo.content.transform;
 
-import org.alfresco.service.cmr.repository.ContentReader;
-import org.alfresco.service.cmr.repository.ContentWriter;
-import org.alfresco.service.cmr.repository.MimetypeService;
-import org.alfresco.service.cmr.repository.NodeRef;
-import org.alfresco.transform.client.model.config.CombinedConfig;
-import org.alfresco.transform.client.model.config.TransformServiceRegistry;
-import org.alfresco.transform.client.model.config.TransformServiceRegistryImpl;
-import org.alfresco.transform.client.model.config.TransformStep;
-import org.alfresco.transform.client.model.config.Transformer;
-import org.alfresco.util.PropertyCheck;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.springframework.beans.factory.InitializingBean;
-
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -47,6 +33,25 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
+import java.util.function.Consumer;
+
+import org.alfresco.service.cmr.repository.ContentReader;
+import org.alfresco.service.cmr.repository.ContentWriter;
+import org.alfresco.service.cmr.repository.MimetypeService;
+import org.alfresco.service.cmr.repository.NodeRef;
+import org.alfresco.transform.client.model.config.TransformOptionGroup;
+import org.alfresco.transform.client.registry.CombinedConfig;
+import org.alfresco.transform.client.model.config.TransformOption;
+import org.alfresco.transform.client.registry.TransformServiceRegistryImpl;
+import org.alfresco.transform.client.model.config.TransformStep;
+import org.alfresco.transform.client.model.config.Transformer;
+import org.alfresco.transform.client.registry.TransformServiceRegistry;
+import org.alfresco.util.PropertyCheck;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.springframework.beans.factory.InitializingBean;
+
+import static java.util.Collections.emptySet;
 
 /**
  * Implements {@link TransformServiceRegistry} providing a mechanism of validating if a local transformation
@@ -62,7 +67,7 @@ public class LocalTransformServiceRegistry extends TransformServiceRegistryImpl 
     private static final String URL = ".url";
     static final String STRICT_MIMETYPE_CHECK_WHITELIST_MIMETYPES = "transformer.strict.mimetype.check.whitelist.mimetypes";
 
-    class LocalData extends TransformServiceRegistryImpl.Data
+    public class LocalData extends TransformServiceRegistryImpl.Data
     {
         private Map<String, LocalTransform> localTransforms = new HashMap<>();
     }
@@ -122,7 +127,6 @@ public class LocalTransformServiceRegistry extends TransformServiceRegistryImpl 
     public void afterPropertiesSet() throws Exception
     {
         PropertyCheck.mandatory(this, "mimetypeService", mimetypeService);
-        PropertyCheck.mandatory(this, "pipelineConfigDir", pipelineConfigDir);
         PropertyCheck.mandatory(this, "properties", properties);
         PropertyCheck.mandatory(this, "transformerDebug", transformerDebug);
         strictMimetypeExceptions = getStrictMimetypeExceptions();
@@ -130,44 +134,61 @@ public class LocalTransformServiceRegistry extends TransformServiceRegistryImpl 
     }
 
     @Override
-    protected Data readConfig() throws IOException
+    public boolean readConfig() throws IOException
     {
-        Data data = createData();
         CombinedConfig combinedConfig = new CombinedConfig(getLog());
         List<String> urls = getTEngineUrls();
-        boolean successReadingRemoteConfig = combinedConfig.addRemoteConfig(urls, "T-Engine");
-        setSuccessReadingRemoteConfig(data, successReadingRemoteConfig);
-        combinedConfig.addLocalConfig("alfresco/transformers");
-        if (!pipelineConfigDir.isEmpty())
+        boolean successReadingConfig = combinedConfig.addRemoteConfig(urls, "T-Engine");
+        successReadingConfig &= combinedConfig.addLocalConfig("alfresco/transforms");
+        if (pipelineConfigDir != null && !pipelineConfigDir.isBlank())
         {
-            combinedConfig.addLocalConfig(pipelineConfigDir);
+            successReadingConfig &= combinedConfig.addLocalConfig(pipelineConfigDir);
         }
-        combinedConfig.register(data, this);
-        return data;
+        combinedConfig.register(this);
+        return successReadingConfig;
     }
 
     @Override
-    protected Data createData()
+    public LocalData getData()
+    {
+        return (LocalData)super.getData();
+    }
+
+    @Override
+    public Data createData()
     {
         return new LocalData();
     }
 
     @Override
-    protected void register(Data data, Transformer transformer, String baseUrl, String readFrom)
+    public void register(Transformer transformer, Map<String, Set<TransformOption>> transformOptions,
+        String baseUrl, String readFrom)
     {
         try
         {
             String name = transformer.getTransformerName();
-            Map<String, LocalTransform> localTransforms = ((LocalData)data).localTransforms;
+            LocalData data = getData();
+            Map<String, LocalTransform> localTransforms = data.localTransforms;
             if (name == null || localTransforms.get(name) != null)
             {
                 throw new IllegalArgumentException("Local transformer names must exist and be unique (" + name + ")."+
                         " Read from "+readFrom);
             }
 
+            Set<TransformOption> transformsTransformOptions = lookupTransformOptions(
+                    transformer.getTransformOptions(), transformOptions, readFrom, this::logError);
+
             LocalTransform localTransform;
             List<TransformStep> pipeline = transformer.getTransformerPipeline();
-            if (pipeline == null || pipeline.isEmpty())
+            List<String> failover = transformer.getTransformerFailover();
+            boolean isPipeline = pipeline != null && !pipeline.isEmpty();
+            boolean isFailover = failover != null && !failover.isEmpty();
+            if (isPipeline && isFailover)
+            {
+                throw new IllegalArgumentException("Local transformer " + name +
+                        " cannot have pipeline and failover sections. Read from "+readFrom);
+            }
+            if (!isPipeline && !isFailover)
             {
                 baseUrl = getBaseUrlIfTesting(name, baseUrl);
                 if (baseUrl == null)
@@ -179,9 +200,9 @@ public class LocalTransformServiceRegistry extends TransformServiceRegistryImpl 
                 int startupRetryPeriodSeconds = getStartupRetryPeriodSeconds(name);
                 localTransform = new LocalTransformImpl(name, transformerDebug, mimetypeService,
                          strictMimeTypeCheck, strictMimetypeExceptions, retryTransformOnDifferentMimeType,
-                        this, baseUrl, startupRetryPeriodSeconds);
+                        transformsTransformOptions, this, baseUrl, startupRetryPeriodSeconds);
             }
-            else
+            else if (isPipeline)
             {
                 int transformerCount = pipeline.size();
                 if (transformerCount <= 1)
@@ -193,18 +214,11 @@ public class LocalTransformServiceRegistry extends TransformServiceRegistryImpl 
 
                 localTransform = new LocalPipelineTransform(name, transformerDebug, mimetypeService,
                         strictMimeTypeCheck, strictMimetypeExceptions, retryTransformOnDifferentMimeType,
-                        this);
+                        transformsTransformOptions, this);
                 for (int i=0; i < transformerCount; i++)
                 {
                     TransformStep intermediateTransformerStep = pipeline.get(i);
                     String intermediateTransformerName = intermediateTransformerStep.getTransformerName();
-                    if (name == null || localTransforms.get(name) != null)
-                    {
-                        throw new IllegalArgumentException("Local pipeline transformer " + name +
-                                " did not specified an intermediate transformer name."+
-                                " Read from "+readFrom);
-                    }
-
                     LocalTransform intermediateTransformer = localTransforms.get(intermediateTransformerName);
                     if (intermediateTransformer == null)
                     {
@@ -237,14 +251,83 @@ public class LocalTransformServiceRegistry extends TransformServiceRegistryImpl 
                     ((LocalPipelineTransform) localTransform).addIntermediateTransformer(intermediateTransformer, targetMimetype);
                 }
             }
+            else // if (isFailover)
+            {
+                int transformerCount = failover.size();
+                if (transformerCount <= 1)
+                {
+                    throw new IllegalArgumentException("Local failover transformer " + name +
+                            " must have more than one transformer defined."+
+                            " Read from "+readFrom);
+                }
+
+                localTransform = new LocalFailoverTransform(name, transformerDebug, mimetypeService,
+                        strictMimeTypeCheck, strictMimetypeExceptions, retryTransformOnDifferentMimeType,
+                        transformsTransformOptions, this);
+
+                for (String transformerStepName : failover)
+                {
+                    LocalTransform stepTransformer = localTransforms.get(transformerStepName);
+                    if (stepTransformer == null)
+                    {
+                        throw new IllegalArgumentException("Local failover transformer " + name +
+                                " specified an intermediate transformer " +
+                                transformerStepName + " that has not been defined."+
+                                " Read from "+readFrom);
+                    }
+
+                    ((LocalFailoverTransform) localTransform).addStepTransformer(stepTransformer);
+                }
+            }
             localTransforms.put(name, localTransform);
-            super.register(data, transformer, baseUrl, readFrom);
+            super.register(transformer, transformOptions, baseUrl, readFrom);
         }
         catch (IllegalArgumentException e)
         {
             String msg = e.getMessage();
             getLog().error(msg);
         }
+    }
+
+    /**
+     * Returns the set of TransformOptions for this transform. In the JSON structure, each transform lists the names
+     * of each set of transform options it uses. In the case of pipelines and failovers transforms, there is typically
+     * more than one set. Typically there is one for each child transform.
+     * @param transformOptionNames the names of the transform options used by this transform.
+     * @param transformOptions a map keyed on transform option name of all the TransformOptions
+     * @param readFrom used in debug messages to indicate where the transformer config was read from.
+     * @param logError used to log an error message if a transformOptionName is invalid.
+     *
+     * For more information how this is used see {@link AbstractLocalTransform#addOptionNames(Set, Set)}.
+     */
+    private static Set<TransformOption> lookupTransformOptions(final Set<String> transformOptionNames,
+                                                       final Map<String, Set<TransformOption>> transformOptions,
+                                                       final String readFrom,
+                                                       final Consumer<String> logError)
+    {
+        if (transformOptionNames == null)
+        {
+            return emptySet();
+        }
+
+        final Set<TransformOption> options = new HashSet<>();
+        for (String name : transformOptionNames)
+        {
+            final Set<TransformOption> oneSetOfTransformOptions = transformOptions.get(name);
+            if (oneSetOfTransformOptions == null)
+            {
+                logError.accept("transformOptions in " + readFrom + " with the name " + name +
+                        " does not exist. Ignored");
+                continue;
+            }
+            options.add(new TransformOptionGroup(false, oneSetOfTransformOptions));
+        }
+
+        // If there is only one transform name, the set from the holding TransformOptionGroup can be returned,
+        // rather than having a nested structure.
+        return options.size() == 1 ?
+                ((TransformOptionGroup) options.iterator().next()).getTransformOptions() :
+                options;
     }
 
     // When testing, we need to be able to set the baseUrl when reading from a file.
@@ -390,17 +473,17 @@ public class LocalTransformServiceRegistry extends TransformServiceRegistryImpl 
     }
 
     @Override
-    public long getMaxSize(String sourceMimetype, String targetMimetype, Map<String, String> options, String renditionName)
+    public long findMaxSize(String sourceMimetype, String targetMimetype, Map<String, String> options, String renditionName)
     {
         // This message is not logged if placed in afterPropertiesSet
         if (getFirstTime())
         {
             setFirstTime(false);
-            transformerDebug.debug("Local transforms "+getCounts()+" are " + (enabled ? "enabled" : "disabled"));
+            transformerDebug.debug("Local transforms "+getData()+" are " + (enabled ? "enabled" : "disabled"));
         }
 
         return enabled
-                ? super.getMaxSize(sourceMimetype, targetMimetype, options, renditionName)
+                ? super.findMaxSize(sourceMimetype, targetMimetype, options, renditionName)
                 : 0;
     }
 
@@ -411,15 +494,15 @@ public class LocalTransformServiceRegistry extends TransformServiceRegistryImpl 
         String sourceMimetype = reader.getMimetype();
         String targetMimetype = writer.getMimetype();
         long sourceSizeInBytes = reader.getSize();
-        LocalTransform localTransform = getLocalTransform(actualOptions, renditionName, sourceMimetype, targetMimetype, sourceSizeInBytes);
+        LocalTransform localTransform = getLocalTransform(sourceMimetype, sourceSizeInBytes, targetMimetype, actualOptions, renditionName);
         localTransform.transform(reader, writer, actualOptions, renditionName, sourceNodeRef);
     }
 
-    public LocalTransform getLocalTransform(Map<String, String> actualOptions, String renditionName,
-                                            String sourceMimetype, String targetMimetype, long sourceSizeInBytes)
+    public LocalTransform getLocalTransform(String sourceMimetype, long sourceSizeInBytes, String targetMimetype, Map<String, String> actualOptions, String renditionName)
     {
-        String name = getTransformerName(sourceMimetype, sourceSizeInBytes, targetMimetype, actualOptions, renditionName);
-        Map<String, LocalTransform> localTransforms = ((LocalData)data).localTransforms;
+        String name = findTransformerName(sourceMimetype, sourceSizeInBytes, targetMimetype, actualOptions, renditionName);
+        LocalData data = getData();
+        Map<String, LocalTransform> localTransforms = data.localTransforms;
         return localTransforms.get(name);
     }
 }

@@ -413,12 +413,12 @@
                org.alfresco.service.cmr.repository.NodeService.getChildAssocsByPropertyValue=ACL_NODE.0.sys:base.ReadChildren,AFTER_ACL_NODE.sys:base.ReadProperties
                org.alfresco.service.cmr.repository.NodeService.getChildrenByName=ACL_NODE.0.sys:base.ReadChildren,AFTER_ACL_NODE.sys:base.ReadProperties
                org.alfresco.service.cmr.repository.NodeService.getPrimaryParent=ACL_NODE.0.sys:base.ReadProperties
-               org.alfresco.service.cmr.repository.NodeService.createAssociation=ACL_ALLOW
-               org.alfresco.service.cmr.repository.NodeService.removeAssociation=ACL_ALLOW
-               org.alfresco.service.cmr.repository.NodeService.setAssociations=ACL_ALLOW
-               org.alfresco.service.cmr.repository.NodeService.getTargetAssocs=ACL_ALLOW
-               org.alfresco.service.cmr.repository.NodeService.getSourceAssocs=ACL_ALLOW
-               org.alfresco.service.cmr.repository.NodeService.getAssoc=ACL_ALLOW
+               org.alfresco.service.cmr.repository.NodeService.createAssociation=ACL_NODE.0.sys:base.WriteProperties,ACL_NODE.1.sys:base.ReadProperties
+               org.alfresco.service.cmr.repository.NodeService.removeAssociation=ACL_NODE.0.sys:base.DeleteNode,ACL_NODE.1.sys:base.ReadProperties
+               org.alfresco.service.cmr.repository.NodeService.setAssociations=ACL_NODE.0.sys:base.WriteProperties,ACL_NODE.2.sys:base.ReadProperties
+               org.alfresco.service.cmr.repository.NodeService.getTargetAssocs=ACL_NODE.0.sys:base.ReadProperties,AFTER_ACL_NODE.sys:base.ReadProperties
+               org.alfresco.service.cmr.repository.NodeService.getSourceAssocs=ACL_NODE.0.sys:base.ReadProperties,AFTER_ACL_PARENT.sys:base.ReadProperties
+               org.alfresco.service.cmr.repository.NodeService.getAssoc=ACL_ALLOW,AFTER_ACL_NODE.sys:base.ReadProperties
                org.alfresco.service.cmr.repository.NodeService.getPath=ACL_NODE.0.sys:base.ReadProperties
                org.alfresco.service.cmr.repository.NodeService.getPaths=ACL_NODE.0.sys:base.ReadProperties
                org.alfresco.service.cmr.repository.NodeService.getStoreArchiveNode=ACL_NODE.0.sys:base.Read
@@ -979,6 +979,25 @@
     </bean>
     
     <!-- ============ -->
+    <!-- Blog Service -->
+    <!-- ============ -->
+    
+    <bean id="BlogService_security" class="org.alfresco.repo.security.permissions.impl.acegi.MethodSecurityInterceptor">
+        <property name="authenticationManager"><ref bean="authenticationManager"/></property>
+        <property name="accessDecisionManager"><ref bean="accessDecisionManager"/></property>
+        <property name="afterInvocationManager"><ref bean="afterInvocationManager"/></property>
+        <property name="objectDefinitionSource">
+            <value>
+               org.alfresco.service.cmr.blog.BlogService.getDrafts=ACL_ALLOW,AFTER_ACL_NODE.sys:base.ReadProperties
+               org.alfresco.service.cmr.blog.BlogService.getPublished=ACL_ALLOW,AFTER_ACL_NODE.sys:base.ReadProperties
+               org.alfresco.service.cmr.blog.BlogService.getMyDraftsAndAllPublished=ACL_NODE.0.sys:base.ReadChildren,AFTER_ACL_NODE.sys:base.ReadProperties
+               org.alfresco.service.cmr.blog.BlogService.*=ACL_ALLOW
+            </value>
+        </property>
+    </bean>
+    
+    
+    <!-- ============ -->
     <!-- Site Service -->
     <!-- ============ -->
     
@@ -1110,6 +1129,33 @@
         <property name="service" value="org.alfresco.service.cmr.links.LinksService" />
         <property name="methodName" value="listLinks" />
     </bean>
+
+    <!-- ========================= -->
+    <!-- The Discussions Services  -->
+    <!-- ========================= -->
+
+    <!-- The discussion service itself does not require any security restrictions, -->
+    <!--  they are imposed by the node and site services it uses to do its work. -->
+    <bean id="DiscussionService_security" class="org.alfresco.repo.security.permissions.impl.AlwaysProceedMethodInterceptor" />
+    
+    <!-- The canned queries that the discussion services use do however need to check -->
+    <bean id="DiscussionService_CannedQuery_security" class="org.alfresco.repo.security.permissions.impl.acegi.MethodSecurityInterceptor">
+        <property name="authenticationManager"><ref bean="authenticationManager"/></property>
+        <property name="accessDecisionManager"><ref bean="accessDecisionManager"/></property>
+        <property name="afterInvocationManager"><ref bean="afterInvocationManager"/></property>
+        <property name="objectDefinitionSource">
+            <value>
+               org.alfresco.service.cmr.discussion.DiscussionService.listPosts=ACL_ALLOW,AFTER_ACL_NODE.sys:base.ReadProperties
+            </value>
+        </property>
+    </bean>
+
+    <bean id="DiscussionService_security_listPosts" class="org.alfresco.repo.security.permissions.impl.acegi.MethodSecurityBean">
+        <property name="methodSecurityInterceptor" ref="DiscussionService_CannedQuery_security" />
+        <property name="service" value="org.alfresco.service.cmr.discussion.DiscussionService" />
+        <property name="methodName" value="listPosts" />
+    </bean>
+
 
     <!-- ================================= -->
     <!-- The Remote Credentials Service    -->

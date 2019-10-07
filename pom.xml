@@ -2,7 +2,7 @@
     <modelVersion>4.0.0</modelVersion>
     <artifactId>alfresco-repository</artifactId>
     <name>Alfresco Repository</name>
-    <version>7.90-SNAPSHOT</version>
+    <version>8.5-SNAPSHOT</version>
     <packaging>jar</packaging>
 
     <parent>
@@ -37,33 +37,36 @@
 
         <maven.build.sourceVersion>11</maven.build.sourceVersion>
 
+        <dependency.alfresco-data-model.version>8.50</dependency.alfresco-data-model.version>
+        <dependency.alfresco-core.version>7.21</dependency.alfresco-core.version>
+
         <dependency.alfresco-legacy-lucene.version>6.2</dependency.alfresco-legacy-lucene.version>
-        <dependency.alfresco-core.version>7.19</dependency.alfresco-core.version>
         <dependency.alfresco-greenmail.version>6.1</dependency.alfresco-greenmail.version>
-        <dependency.alfresco-data-model.version>8.45</dependency.alfresco-data-model.version>
         <dependency.alfresco-jlan.version>7.1</dependency.alfresco-jlan.version>
         <dependency.alfresco-pdf-renderer.version>1.1</dependency.alfresco-pdf-renderer.version>
         <dependency.alfresco-hb-data-sender.version>1.0.11</dependency.alfresco-hb-data-sender.version>
-
+        <dependency.transform.model.version>1.0.2.7</dependency.transform.model.version>
 
         <dependency.spring.version>5.1.8.RELEASE</dependency.spring.version>
         <dependency.httpcomponents.version>4.5.9</dependency.httpcomponents.version>
         <dependency.truezip.version>7.7.10</dependency.truezip.version>
         <dependency.poi.version>4.0.1</dependency.poi.version>
-        <dependency.webscripts.version>7.8</dependency.webscripts.version>
+        <dependency.webscripts.version>7.9</dependency.webscripts.version>
         <dependency.opencmis.version>1.0.0</dependency.opencmis.version>
-        <dependency.activiti-engine.version>5.22.0</dependency.activiti-engine.version>
-        <dependency.activiti.version>5.22.0</dependency.activiti.version>
+        <dependency.activiti-engine.version>5.23.0</dependency.activiti-engine.version>
+        <dependency.activiti.version>5.23.0</dependency.activiti.version>
         <dependency.postgresql.version>42.2.6</dependency.postgresql.version>
         <dependency.mysql.version>5.1.47</dependency.mysql.version>
         <dependency.mariadb.version>2.2.5</dependency.mariadb.version>
         <dependency.antlr.version>3.5.2</dependency.antlr.version>
-        <dependency.keycloak.version>4.5.0.Final</dependency.keycloak.version>
+        <dependency.keycloak.version>6.0.1</dependency.keycloak.version>
         <dependency.jboss.logging.version>3.3.2.Final</dependency.jboss.logging.version>
         <dependency.camel.version>2.24.1</dependency.camel.version>
         <dependency.activemq.version>5.15.9</dependency.activemq.version>
         <dependency.pdfbox.version>2.0.16</dependency.pdfbox.version>
         <dependency.cxf.version>3.3.2</dependency.cxf.version>
+        <dependency.jackson.version>2.9.9</dependency.jackson.version>
+        <dependency.jackson-databind.version>2.9.10</dependency.jackson-databind.version>
     </properties>
 
     <dependencyManagement>
@@ -90,6 +93,43 @@
                 <groupId>org.apache.cxf</groupId>
                 <artifactId>cxf-rt-frontend-jaxws</artifactId>
                 <version>${dependency.cxf.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.cxf</groupId>
+                <artifactId>cxf-rt-frontend-jaxrs</artifactId>
+                <version>${dependency.cxf.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.cxf</groupId>
+                <artifactId>cxf-rt-rs-client</artifactId>
+                <version>${dependency.cxf.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.cxf</groupId>
+                <artifactId>cxf-rt-transports-http</artifactId>
+                <version>${dependency.cxf.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.cxf</groupId>
+                <artifactId>cxf-rt-ws-policy</artifactId>
+                <version>${dependency.cxf.version}</version>
+            </dependency>
+            <!-- newer dependency from camel-jackson -->
+            <dependency>
+                <groupId>com.fasterxml.jackson.module</groupId>
+                <artifactId>jackson-module-jaxb-annotations</artifactId>
+                <version>${dependency.jackson.version}</version>
+            </dependency>
+            <!-- newer jackson libs -->
+            <dependency>
+                <groupId>com.fasterxml.jackson.core</groupId>
+                <artifactId>jackson-core</artifactId>
+                <version>${dependency.jackson.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.fasterxml.jackson.core</groupId>
+                <artifactId>jackson-annotations</artifactId>
+                <version>${dependency.jackson.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
@@ -154,7 +194,7 @@
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-compress</artifactId>
-            <version>1.18</version>
+            <version>1.19</version>
         </dependency>
         <dependency>
             <groupId>org.apache.commons</groupId>
@@ -169,7 +209,7 @@
         <dependency>
             <groupId>commons-beanutils</groupId>
             <artifactId>commons-beanutils</artifactId>
-            <version>1.9.3</version>
+            <version>1.9.4</version>
         </dependency>
         <dependency>
             <groupId>commons-collections</groupId>
@@ -545,6 +585,12 @@
             <version>1.1</version>
         </dependency>
 
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+            <version>${dependency.jackson-databind.version}</version>
+        </dependency>
+
         <!-- Spring Surf -->
         <dependency>
             <groupId>org.alfresco.surf</groupId>
@@ -794,7 +840,7 @@
         <dependency>
             <groupId>org.gytheio</groupId>
             <artifactId>gytheio-messaging-camel</artifactId>
-            <version>0.9.1</version>
+            <version>0.10.1</version>
             <exclusions>
                 <exclusion>
                     <groupId>commons-logging</groupId>
@@ -980,6 +1026,13 @@
             </exclusions>
         </dependency>
 
+        <!-- Transform dependencies -->
+        <dependency>
+            <groupId>org.alfresco</groupId>
+            <artifactId>alfresco-transform-model</artifactId>
+            <version>${dependency.transform.model.version}</version>
+        </dependency>
+
         <!-- Test dependencies -->
         <dependency>
             <groupId>org.mockito</groupId>
@@ -997,6 +1050,13 @@
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
             <version>4.12</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.alfresco</groupId>
+            <artifactId>alfresco-transform-model</artifactId>
+            <version>${dependency.transform.model.version}</version>
+            <classifier>tests</classifier>
             <scope>test</scope>
         </dependency>
         <dependency>

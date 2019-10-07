@@ -26,22 +26,28 @@
 package org.alfresco.repo.rendition2;
 
 import junit.framework.AssertionFailedError;
+import org.alfresco.repo.content.transform.TransformerDebug;
 import org.alfresco.repo.security.authentication.AuthenticationUtil;
 import org.alfresco.repo.thumbnail.ThumbnailDefinition;
+import org.alfresco.transform.client.registry.AbstractTransformRegistry;
+import org.alfresco.transform.client.registry.SupportedTransform;
 import org.alfresco.util.testing.category.DebugTests;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.StringJoiner;
+import java.util.concurrent.atomic.AtomicInteger;
+
+import static org.alfresco.repo.content.MimetypeMap.MIMETYPE_TEXT_PLAIN;
 
 /**
  * Abstract test class to check it is possible to create renditions from the quick files using combinations of
@@ -57,7 +63,7 @@ public abstract class AbstractRenditionTest extends AbstractRenditionIntegration
 
     public static final List<String> TAS_REST_API_EXCLUDE_LIST = Collections.EMPTY_LIST;
 
-    public static final List<String> ALL_SOURCE_EXTENSIONS_EXCLUDE_LIST = Arrays.asList(
+    public static final List<String> ALL_SOURCE_EXTENSIONS_EXCLUDE_LIST_LEGACY = Arrays.asList(
             "key jpg imgpreview",
             "key jpg medium",
             "key png doclib",
@@ -130,7 +136,7 @@ public abstract class AbstractRenditionTest extends AbstractRenditionIntegration
                 List<ThumbnailDefinition> thumbnailDefinitions = thumbnailRegistry.getThumbnailDefinitions(sourceMimetype, -1);
                 Set<String> thumbnailNames = getThumbnailNames(thumbnailDefinitions);
                 assertEquals("There should be the same renditions ("+renditionNames+") as deprecated thumbnails ("+thumbnailNames+")",
-                        renditionNames, thumbnailNames);
+                        thumbnailNames, renditionNames);
 
                 renditionCount += renditionNames.size();
                 for (String renditionName : renditionNames)
@@ -202,15 +208,15 @@ public abstract class AbstractRenditionTest extends AbstractRenditionIntegration
     @Test
     public void testAllSourceExtensions() throws Exception
     {
-        internalTestAllSourceExtensions(196, 0);
+        internalTestAllSourceExtensions(196, 0, ALL_SOURCE_EXTENSIONS_EXCLUDE_LIST_LEGACY);
     }
 
-    protected void internalTestAllSourceExtensions(int expectedRenditionCount, int expectedFailedCount) throws Exception
+    protected void internalTestAllSourceExtensions(int expectedRenditionCount, int expectedFailedCount,
+                                                   List<String> excludeList) throws Exception
     {
         List<String> sourceExtensions = getAllSourceMimetypes();
         assertRenditionsOkayFromSourceExtension(sourceExtensions,
-                ALL_SOURCE_EXTENSIONS_EXCLUDE_LIST,
-                Collections.emptyList(), expectedRenditionCount, expectedFailedCount);
+                excludeList, Collections.emptyList(), expectedRenditionCount, expectedFailedCount);
     }
 
     private List<String> getAllSourceMimetypes()
@@ -234,5 +240,133 @@ public abstract class AbstractRenditionTest extends AbstractRenditionIntegration
     {
         assertRenditionsOkayFromSourceExtension(Arrays.asList("gif"),
                 Collections.emptyList(), Collections.emptyList(), expectedRenditionCount, expectedFailedCount);
+    }
+
+    /**
+     * Gets transforms combinations that are possible regardless of renditions.
+     */
+    @Test
+    @Category(DebugTests.class)
+    public void testCountTotalTransforms()
+    {
+        StringBuilder sourceTargetList = new StringBuilder();
+        StringBuilder sourceTargetPriorityList = new StringBuilder();
+        AtomicInteger count = new AtomicInteger(0);
+        int textTargetCount = 0;
+        mimetypeService.getMimetypesByExtension();
+        List<String> mimetypes = new ArrayList(mimetypeMap.getMimetypes());
+        sortMimetypesByExtension(mimetypes);
+        for (String sourceMimetype : mimetypes)
+        {
+            for (String targetMimetype : mimetypes)
+            {
+                if (transformServiceRegistry.isSupported(sourceMimetype, 1, targetMimetype, Collections.emptyMap(), null))
+                {
+                    logSourceTarget(sourceTargetList, sourceTargetPriorityList, count, sourceMimetype, targetMimetype);
+                    if (MIMETYPE_TEXT_PLAIN.equals(targetMimetype))
+                    {
+                        textTargetCount++;
+                    }
+                }
+            }
+        }
+
+        System.out.println("Number of source to target mimetype transforms: "+count);
+        System.out.println("Number of source to plain text transforms: "+textTargetCount);
+        System.out.println(sourceTargetList);
+        if (sourceTargetPriorityList.length() > 0)
+        {
+            System.out.println("");
+            System.out.println("Alternate transforms");
+            System.out.println(sourceTargetPriorityList);
+        }
+    }
+
+    /**
+     * Gets transforms combinations for the current set of renditions.
+     */
+    @Test
+    @Category(DebugTests.class)
+    public void testCountTotalRenditionTransforms()
+    {
+        StringBuilder sourceTargetList = new StringBuilder();
+        AtomicInteger count = new AtomicInteger(0);
+        RenditionDefinitionRegistry2 renditionDefinitionRegistry = renditionService2.getRenditionDefinitionRegistry2();
+        List<String> sourceMimetypes = new ArrayList(mimetypeMap.getMimetypes());
+        sortMimetypesByExtension(sourceMimetypes);
+        for (String sourceMimetype: sourceMimetypes)
+        {
+            Set<String> targetMimetypes = new HashSet<>();
+            for (String renditionName : renditionDefinitionRegistry.getRenditionNamesFrom(sourceMimetype, 1))
+            {
+                RenditionDefinition2 renditionDefinition = renditionDefinitionRegistry.getRenditionDefinition(renditionName);
+                String targetMimetype = renditionDefinition.getTargetMimetype();
+                targetMimetypes.add(targetMimetype);
+            }
+
+            List<String> targetMimetypesSorted = new ArrayList(targetMimetypes);
+            sortMimetypesByExtension(targetMimetypesSorted);
+            for (String targetMimetype : targetMimetypesSorted)
+            {
+                logSourceTarget(sourceTargetList, null, count, sourceMimetype, targetMimetype);
+            }
+        }
+
+        System.out.println("Number of source to target mimetype transforms via renditions: "+count.get());
+        System.out.println(sourceTargetList);
+    }
+
+    private void logSourceTarget(StringBuilder sourceTargetList, StringBuilder sourceTargetPriorityList, AtomicInteger count, String sourceMimetype, String targetMimetype)
+    {
+        count.incrementAndGet();
+        String sourceExtension = mimetypeService.getExtension(sourceMimetype);
+        String targetExtension = mimetypeService.getExtension(targetMimetype);
+        String line = String.format("%4d %4s %4s\n", count.get(), sourceExtension, targetExtension);
+        sourceTargetList.append(line);
+
+        if (sourceTargetPriorityList != null)
+        {
+            AbstractTransformRegistry registry = getAbstractTransformRegistry();
+            if (registry != null)
+            {
+                Map<String, List<SupportedTransform>> supportedTransformsByTargetMimetype = registry.getData().retrieveTransforms(sourceMimetype);
+                List<SupportedTransform> supportedTransforms = new ArrayList<>(supportedTransformsByTargetMimetype.get(targetMimetype));
+                supportedTransforms.sort((t1, t2) -> t1.getPriority()-t2.getPriority());
+                char a = 'a';
+                int prevPriority = Integer.MAX_VALUE;
+                for (SupportedTransform supportedTransform : supportedTransforms)
+                {
+                    int priority = supportedTransform.getPriority();
+                    long maxSourceSizeBytes = supportedTransform.getMaxSourceSizeBytes();
+                    String priorityUnchanged = prevPriority == priority ? "*" : "";
+                    String transformName = supportedTransform.getName();
+                    line = String.format("%4d %4s %4s %c) [%d%s] %s %d\n", count.get(), sourceExtension, targetExtension,
+                            a++, priority, priorityUnchanged, transformName, maxSourceSizeBytes);
+                    sourceTargetPriorityList.append(line);
+                    prevPriority = priority;
+                }
+            }
+        }
+    }
+
+    protected AbstractTransformRegistry getAbstractTransformRegistry()
+    {
+        return null;
+    }
+
+    private void sortMimetypesByExtension(List<String> mimetypes)
+    {
+        List<String> extensions = new ArrayList(mimetypes.size());
+        for (String mimetype : mimetypes)
+        {
+            extensions.add(mimetypeMap.getExtension(mimetype));
+        }
+        Collections.sort(extensions);
+
+        mimetypes.clear();
+        for (String extension : extensions)
+        {
+            mimetypes.add(mimetypeService.getMimetype(extension));
+        }
     }
 }

@@ -30,10 +30,16 @@ import org.alfresco.service.cmr.repository.ContentReader;
 import org.alfresco.service.cmr.repository.ContentWriter;
 import org.alfresco.service.cmr.repository.MimetypeService;
 import org.alfresco.service.cmr.repository.NodeRef;
+import org.alfresco.transform.client.model.config.TransformOption;
 import org.alfresco.util.Pair;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+
+import static org.alfresco.repo.rendition2.RenditionDefinition2.SOURCE_ENCODING;
+import static org.alfresco.repo.rendition2.RenditionDefinition2.SOURCE_NODE_REF;
+import static org.alfresco.repo.rendition2.RenditionDefinition2.TARGET_ENCODING;
 
 /**
  * A local transformer using flat transform options.
@@ -52,11 +58,12 @@ public class LocalTransformImpl extends AbstractLocalTransform
                               MimetypeService mimetypeService, boolean strictMimeTypeCheck,
                               Map<String, Set<String>> strictMimetypeExceptions,
                               boolean retryTransformOnDifferentMimeType,
+                              Set<TransformOption> transformsTransformOptions,
                               LocalTransformServiceRegistry localTransformServiceRegistry, String baseUrl,
                               int startupRetryPeriodSeconds)
     {
         super(name, transformerDebug, mimetypeService, strictMimeTypeCheck, strictMimetypeExceptions,
-                retryTransformOnDifferentMimeType, localTransformServiceRegistry);
+                retryTransformOnDifferentMimeType, transformsTransformOptions, localTransformServiceRegistry);
         remoteTransformerClient = new RemoteTransformerClient(name, baseUrl);
         remoteTransformerClient.setStartupRetryPeriodSeconds(startupRetryPeriodSeconds);
 
@@ -139,62 +146,62 @@ public class LocalTransformImpl extends AbstractLocalTransform
                                  String sourceExtension, String targetExtension,
                                  String renditionName, NodeRef sourceNodeRef) throws Exception
     {
-        boolean removeSourceEncoding = false;
-        try
+        // Only pass the sourceEncoding and other dynamic values like it if they were supplied in the rendition
+        // definition without a value. The sourceEncoding value is also supplied in the RenditionEventProducer in
+        // the message to the T-Router.
+        transformOptions = new HashMap<>(transformOptions);
+        if (transformOptions.containsKey(SOURCE_ENCODING) && transformOptions.get(SOURCE_ENCODING) == null)
         {
-            // At some point in the future, we may decide to only pass the sourceEncoding and other dynamic values like
-            // it if they were supplied in the rendition definition without a value. The sourceEncoding value is also
-            // supplied in the TransformRequest (message to the T-Router).
-            if (transformOptions.get("sourceEncoding") == null)
-            {
-                String sourceEncoding = reader.getEncoding();
-                transformOptions.put("sourceEncoding", sourceEncoding);
-                removeSourceEncoding = true;
-            }
-
-            // Build an array of option names and values and extract the timeout.
-            long timeoutMs = 0;
-            int nonOptions = transformOptions.containsKey(RenditionDefinition2.TIMEOUT) ? 1 : 0;
-            int size = (transformOptions.size() - nonOptions + 3) * 2;
-            String[] args = new String[size];
-            int i = 0;
-            for (Map.Entry<String, String> option : transformOptions.entrySet())
-            {
-                String name = option.getKey();
-                String value = option.getValue();
-                if (RenditionDefinition2.TIMEOUT.equals(name))
-                {
-                    if (value != null)
-                    {
-                        timeoutMs = Long.parseLong(value);
-                    }
-                }
-                else
-                {
-                    args[i++] = name;
-                    args[i++] = value;
-                }
-            }
-
-            // These 3 values are commonly needed and are always supplied in the TransformRequest (message to the T-Router).
-            // The targetExtension is also supplied in the TransformRequest, but in the case of local and legacy transformers
-            // is added by the remoteTransformerClient.request call for historic reasons, so does not need to be added here.
-            args[i++] = "sourceMimetype";
-            args[i++] = sourceMimetype;
-            args[i++] = "sourceExtension";
-            args[i++] = sourceExtension;
-            args[i++] = "targetMimetype";
-            args[i++] = targetMimetype;
-
-            remoteTransformerClient.request(reader, writer, sourceMimetype, sourceExtension, targetExtension,
-                    timeoutMs, log, args);
+            String sourceEncoding = reader.getEncoding();
+            transformOptions.put(SOURCE_ENCODING, sourceEncoding);
         }
-        finally
+        if (transformOptions.containsKey(SOURCE_NODE_REF) && transformOptions.get(SOURCE_NODE_REF) == null)
         {
-            if (removeSourceEncoding)
+            transformOptions.put(SOURCE_NODE_REF, sourceNodeRef.toString());
+        }
+
+        // The targetEncoding is passed as an option if it is know to the transformer and has not been set.
+        if (transformOptions.get(TARGET_ENCODING) == null && transformsTransformOptionNames.contains(TARGET_ENCODING))
+        {
+            String targetEncoding = writer.getEncoding();
+            transformOptions.put(TARGET_ENCODING, targetEncoding);
+        }
+
+        // Build an array of option names and values and extract the timeout.
+        long timeoutMs = 0;
+        int nonOptions = transformOptions.containsKey(RenditionDefinition2.TIMEOUT) ? 1 : 0;
+        int size = (transformOptions.size() - nonOptions + 3) * 2;
+        String[] args = new String[size];
+        int i = 0;
+        for (Map.Entry<String, String> option : transformOptions.entrySet())
+        {
+            String name = option.getKey();
+            String value = option.getValue();
+            if (RenditionDefinition2.TIMEOUT.equals(name))
             {
-                transformOptions.remove("sourceEncoding");
+                if (value != null)
+                {
+                    timeoutMs = Long.parseLong(value);
+                }
+            }
+            else
+            {
+                args[i++] = name;
+                args[i++] = value;
             }
         }
+
+        // These 3 values are commonly needed and are always supplied in the TransformRequest (message to the T-Router).
+        // The targetExtension is also supplied in the TransformRequest, but in the case of local and legacy transformers
+        // is added by the remoteTransformerClient.request call for historic reasons, so does not need to be added here.
+        args[i++] = "sourceMimetype";
+        args[i++] = sourceMimetype;
+        args[i++] = "sourceExtension";
+        args[i++] = sourceExtension;
+        args[i++] = "targetMimetype";
+        args[i++] = targetMimetype;
+
+        remoteTransformerClient.request(reader, writer, sourceMimetype, sourceExtension, targetExtension,
+                timeoutMs, log, args);
     }
 }

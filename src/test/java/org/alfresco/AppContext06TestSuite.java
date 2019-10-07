@@ -49,7 +49,7 @@ import org.junit.runners.Suite;
     org.alfresco.repo.rawevents.TransactionAwareEventProducerTest.class,
 
     // Requires running transformers
-    org.alfresco.transform.client.model.config.LocalTransformServiceRegistryConfigTest.class,
+    org.alfresco.transform.client.registry.LocalTransformServiceRegistryConfigTest.class,
     org.alfresco.repo.rendition2.RenditionService2IntegrationTest.class,
     org.alfresco.repo.rendition2.LocalTransformServiceRegistryIntegrationTest.class,
     org.alfresco.repo.rendition2.LocalTransformClientIntegrationTest.class,
@@ -71,6 +71,7 @@ import org.junit.runners.Suite;
     org.alfresco.repo.template.TemplateServiceImplTest.class,
     org.alfresco.repo.tenant.MultiTServiceImplTest.class,
     org.alfresco.repo.search.SearcherComponentTest.class,
+    org.alfresco.repo.blog.BlogServiceImplTest.class,
     org.alfresco.repo.action.scheduled.ScheduledPersistedActionServiceTest.class,
 
     org.alfresco.repo.rendition2.RenditionDefinitionTest.class

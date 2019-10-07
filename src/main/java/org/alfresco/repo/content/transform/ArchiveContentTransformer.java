@@ -41,6 +41,8 @@ import org.apache.tika.parser.ParseContext;
 import org.apache.tika.parser.Parser;
 import org.apache.tika.parser.pkg.PackageParser;
 
+import static org.alfresco.repo.rendition2.RenditionDefinition2.TARGET_ENCODING;
+
 /**
  * This class transforms archive files (zip, tar etc) to text, which enables indexing
  *  and searching of archives as well as webpreviewing.
@@ -142,19 +144,12 @@ public class ArchiveContentTransformer extends TikaPoweredContentTransformer
     }
 
     @Override
-    protected String getTransform()
-    {
-        return "Archive";
-    }
-
-    @Override
     protected void transformRemote(RemoteTransformerClient remoteTransformerClient, ContentReader reader,
                                    ContentWriter writer, TransformationOptions options,
                                    String sourceMimetype, String targetMimetype,
                                    String sourceExtension, String targetExtension,
                                    String targetEncoding) throws Exception
     {
-        String transform = getTransform();
         long timeoutMs = options.getTimeoutMs();
         boolean recurse = includeContents;
         if(options.getIncludeEmbedded() != null)
@@ -162,7 +157,10 @@ public class ArchiveContentTransformer extends TikaPoweredContentTransformer
             recurse = options.getIncludeEmbedded();
         }
         remoteTransformerClient.request(reader, writer, sourceMimetype, sourceExtension, targetExtension,
-                timeoutMs, logger, "transform", transform, "includeContents", Boolean.toString(recurse),
-                "targetMimetype", targetMimetype, "targetEncoding", targetEncoding);
+                timeoutMs, logger,
+                "includeContents", Boolean.toString(recurse),
+                "sourceMimetype", sourceMimetype,
+                "targetMimetype", targetMimetype,
+                TARGET_ENCODING, targetEncoding);
     }
 }
