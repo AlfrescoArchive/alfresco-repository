@@ -16,6 +16,10 @@ branches:
     - master
     - /support\/.*/
        
+addons:
+    srcclr:
+        debug: true
+        
 stages:
   - test
   - release
