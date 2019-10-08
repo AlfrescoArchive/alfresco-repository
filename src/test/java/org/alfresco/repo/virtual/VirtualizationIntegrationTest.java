@@ -552,7 +552,7 @@ public abstract class VirtualizationIntegrationTest implements VirtualizationTes
         return new ArgumentMatcher<SearchParameters>()
         {
             @Override
-            public boolean matches(Object argument)
+            public boolean matches(SearchParameters argument)
             {
                 if (argument instanceof SearchParameters)
                 {
