@@ -27,8 +27,8 @@
 package org.alfresco.repo.invitation.site;
 
 import static org.alfresco.repo.invitation.activiti.SendModeratedInviteDelegate.ENTERPRISE_EMAIL_TEMPLATE_PATH;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
