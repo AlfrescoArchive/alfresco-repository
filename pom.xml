@@ -190,6 +190,12 @@
                 <artifactId>bcmail-jdk15on</artifactId>
                 <version>1.61</version>
             </dependency>
+            <!-- upgrade dependency from TIKA -->
+            <dependency>
+                <groupId>org.apache.commons</groupId>
+                <artifactId>commons-compress</artifactId>
+                <version>1.19</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 
