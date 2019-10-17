@@ -85,6 +85,22 @@ public class RenditionService2Impl implements RenditionService2, InitializingBea
 
     private static Log logger = LogFactory.getLog(RenditionService2Impl.class);
 
+    // As Async transforms and renditions are so similar, this class provides a way to provide the code that is different.
+    private abstract static class renderOrTransformCallBack
+    {
+        abstract String getName();
+
+        abstract RenditionDefinition2 getRenditionDefinition();
+
+        void handleUnsupported(UnsupportedOperationException e)
+        {
+        }
+
+        void throwIllegalStateExceptionIfAlreadyDone(int sourceContentHashCode)
+        {
+        }
+    }
+
     private TransactionService transactionService;
     private NodeService nodeService;
     private ContentService contentService;
@@ -183,31 +199,99 @@ public class RenditionService2Impl implements RenditionService2, InitializingBea
         PropertyCheck.mandatory(this, "ruleService", ruleService);
     }
 
+    @Override
+    public void transform(NodeRef sourceNodeRef, TransformDefinition transformDefinition)
+    {
+        requestAsyncTransformOrRendition(sourceNodeRef, new renderOrTransformCallBack()
+        {
+            @Override
+            public String getName()
+            {
+                String transformName = transformDefinition.getTransformName();
+                return "Transform" + (transformName == null ? "" : " " + transformName);
+            }
+
+            @Override
+            public RenditionDefinition2 getRenditionDefinition()
+            {
+                return transformDefinition;
+            }
+        });
+    }
+
+    @Override
     public void render(NodeRef sourceNodeRef, String renditionName)
+    {
+        requestAsyncTransformOrRendition(sourceNodeRef, new renderOrTransformCallBack()
+        {
+            @Override
+            public String getName()
+            {
+                return "Rendition " + renditionName;
+            }
+
+            @Override
+            public RenditionDefinition2 getRenditionDefinition()
+            {
+                checkSourceNodeForPreventionClass(sourceNodeRef);
+
+                RenditionDefinition2 renditionDefinition = renditionDefinitionRegistry2.getRenditionDefinition(renditionName);
+                if (renditionDefinition == null)
+                {
+                    throw new IllegalArgumentException(getName() + " has not been registered.");
+                }
+                return renditionDefinition;
+            }
+
+            @Override
+            public void handleUnsupported(UnsupportedOperationException e)
+            {
+                // On the initial request for a rendition  throw the exception.
+                NodeRef renditionNode = getRenditionNode(sourceNodeRef, renditionName);
+                if (renditionNode == null)
+                {
+                    throw e;
+                }
+            }
+
+            @Override
+            public void throwIllegalStateExceptionIfAlreadyDone(int sourceContentHashCode)
+            {
+                // Avoid doing extra transforms that have already been done.
+                NodeRef renditionNode = getRenditionNode(sourceNodeRef, renditionName);
+                int renditionContentHashCode = getRenditionContentHashCode(renditionNode);
+                if (logger.isDebugEnabled())
+                {
+                    logger.debug(getName() + ": Source " + sourceContentHashCode + " rendition " + renditionContentHashCode+ " hashCodes");
+                }
+                if (renditionContentHashCode == sourceContentHashCode)
+                {
+                    throw new IllegalStateException(getName() + " has already been created.");
+                }
+            }
+        });
+    }
+
+    private void requestAsyncTransformOrRendition(NodeRef sourceNodeRef, renderOrTransformCallBack callBack)
     {
         try
         {
             if (!isEnabled())
             {
-                throw new RenditionService2Exception("Renditions are disabled (system.thumbnail.generate=false or renditionService2.enabled=false).");
+                throw new RenditionService2Exception("Async transforms and renditions are disabled " +
+                        "(system.thumbnail.generate=false or renditionService2.enabled=false).");
             }
 
             if (!nodeService.exists(sourceNodeRef))
             {
-                throw new IllegalArgumentException("The supplied sourceNodeRef "+sourceNodeRef+" does not exist.");
+                throw new IllegalArgumentException(callBack.getName()+ ": The supplied sourceNodeRef "+sourceNodeRef+" does not exist.");
             }
 
-            checkSourceNodeForPreventionClass(sourceNodeRef);
-
-            RenditionDefinition2 renditionDefinition = renditionDefinitionRegistry2.getRenditionDefinition(renditionName);
-            if (renditionDefinition == null)
-            {
-                throw new IllegalArgumentException("The rendition "+renditionName+" has not been registered.");
-            }
+            RenditionDefinition2 renditionDefinition = callBack.getRenditionDefinition();
 
             if (logger.isDebugEnabled())
             {
-                logger.debug("Request transform for rendition " + renditionName + " on " +sourceNodeRef);
+                logger.debug(callBack.getName()+ ": transform " +sourceNodeRef);
             }
 
             AtomicBoolean supported = new AtomicBoolean(true);
@@ -223,11 +307,7 @@ public class RenditionService2Impl implements RenditionService2, InitializingBea
                 }
                 catch (UnsupportedOperationException e)
                 {
-                    NodeRef renditionNode = getRenditionNode(sourceNodeRef, renditionName);
-                    if (renditionNode == null)
-                    {
-                        throw e;
-                    }
+                    callBack.handleUnsupported(e);
                     supported.set(false);
                 }
             }
@@ -240,26 +320,15 @@ public class RenditionService2Impl implements RenditionService2, InitializingBea
                 {
                     if (logger.isDebugEnabled())
                     {
-                        logger.debug("Rendition of " + renditionName + " is no longer supported. " +
-                                "The mimetype might have changed or the content is now too big.");
+                        logger.debug(callBack.getName() +" is not supported. " +
+                                "The content might be too big or the source mimetype cannot be converted.");
                     }
                     failure(sourceNodeRef, renditionDefinition, sourceContentHashCode);
                 }
                 else
                 {
-                    // Avoid doing extra transforms that have already been done.
-                    NodeRef renditionNode = getRenditionNode(sourceNodeRef, renditionName);
-                    int renditionContentHashCode = getRenditionContentHashCode(renditionNode);
-                    if (logger.isDebugEnabled())
-                    {
-                        logger.debug("Render: Source " + sourceContentHashCode + " rendition " + renditionContentHashCode+ " hashCodes");
-                    }
-                    if (renditionContentHashCode == sourceContentHashCode)
-                    {
-                        throw new IllegalStateException("The rendition " + renditionName + " has already been created.");
-                    }
+                    callBack.throwIllegalStateExceptionIfAlreadyDone(sourceContentHashCode);
 
-                    // If source node has content
                     if (sourceContentHashCode != SOURCE_HAS_NO_CONTENT)
                     {
                         transformClient.transform(sourceNodeRef, renditionDefinition, user, sourceContentHashCode);
@@ -268,13 +337,92 @@ public class RenditionService2Impl implements RenditionService2, InitializingBea
                     {
                         if (logger.isDebugEnabled())
                         {
-                            logger.debug("Rendition of " + renditionName + " had no content.");
+                            logger.debug(callBack.getName() + ": Source had no content.");
                         }
                         failure(sourceNodeRef, renditionDefinition, sourceContentHashCode);
                     }
                 }
                 return null;
             };
+            String renditionName = renditionDefinition.getRenditionName();
+            renditionRequestSheduler.scheduleRendition(callback, sourceNodeRef + renditionName);
+        }
+        catch (Exception e)
+        {
+            logger.debug(e.getMessage());
+            throw e;
+        }
+    }
+
+    public void transformXX(NodeRef sourceNodeRef, TransformDefinition transformDefinition)
+    {
+        try
+        {
+            if (!enabled)
+            {
+                throw new RenditionService2Exception("Transforms are disabled (renditionService2.enabled=false).");
+            }
+
+            if (!nodeService.exists(sourceNodeRef))
+            {
+                throw new IllegalArgumentException("The supplied sourceNodeRef "+sourceNodeRef+" does not exist.");
+            }
+
+                       String transformName = transformDefinition.getTransformName();
+            if (logger.isDebugEnabled())
+            {
+                logger.debug("Request transform " + transformName + " on " +sourceNodeRef);
+            }
+
+            AtomicBoolean supported = new AtomicBoolean(true);
+            ContentData contentData = (ContentData) nodeService.getProperty(sourceNodeRef, ContentModel.PROP_CONTENT);
+            if (contentData != null && contentData.getContentUrl() != null)
+            {
+                String contentUrl = contentData.getContentUrl();
+                String sourceMimetype = contentData.getMimetype();
+                long size = contentData.getSize();
+                try
+                {
+                    transformClient.checkSupported(sourceNodeRef, transformDefinition, sourceMimetype, size, contentUrl);
+                }
+                catch (UnsupportedOperationException e)
+                {
+                    supported.set(false);
+                }
+            }
+
+            String user = AuthenticationUtil.getRunAsUser();
+            RetryingTransactionHelper.RetryingTransactionCallback callback = () ->
+            {
+                int sourceContentHashCode = getSourceContentHashCode(sourceNodeRef);
+                if (!supported.get())
+                {
+                    if (logger.isDebugEnabled())
+                    {
+                         logger.debug("Transform of " + transformName + " is not supported.");
+                    }
+                    failure(sourceNodeRef, transformDefinition, sourceContentHashCode);
+                }
+                else
+                {
+
+                    // If source node has content
+                    if (sourceContentHashCode != SOURCE_HAS_NO_CONTENT)
+                    {
+                        transformClient.transform(sourceNodeRef, transformDefinition, user, sourceContentHashCode);
+                    }
+                    else
+                    {
+                        if (logger.isDebugEnabled())
+                        {
+                            logger.debug("Transform " + transformName + " of source node had no content.");
+                        }
+                        failure(sourceNodeRef, transformDefinition, sourceContentHashCode);
+                    }
+                }
+                return null;
+            };
+            String renditionName = transformDefinition.getRenditionName();
             renditionRequestSheduler.scheduleRendition(callback, sourceNodeRef + renditionName);
         }
         catch (Exception e)
@@ -295,13 +443,42 @@ public class RenditionService2Impl implements RenditionService2, InitializingBea
                 }, false, true));
     }
 
+    public void consume(NodeRef sourceNodeRef, InputStream transformInputStream, RenditionDefinition2 renditionDefinition,
+                        int transformContentHashCode)
+    {
+        if (renditionDefinition instanceof TransformDefinition)
+        {
+            consumeTransform(sourceNodeRef, transformInputStream, (TransformDefinition)renditionDefinition, transformContentHashCode);
+        }
+        else
+        {
+            consumeRendition(sourceNodeRef, transformInputStream, renditionDefinition, transformContentHashCode);
+        }
+    }
+
+    /**
+     *  Takes a transformation (InputStream) and sends it to the transform response queue.
+     *  If the transformInputStream is null, this is taken to be a transform failure.
+     */
+    private void consumeTransform(NodeRef sourceNodeRef, InputStream transformInputStream,
+                                  TransformDefinition transformDefinition, int transformContentHashCode)
+    {
+        String transformName = transformDefinition.getTransformName();
+        String replyQueue = transformDefinition.getReplyQueue();
+        String userData = transformDefinition.getUserData();
+        boolean success = transformInputStream != null;
+        // TODO
+        logger.info("TODO: Reply to " + replyQueue + " that the transform " + transformName +
+                " with the user data " + userData + " " + (success ? "was successful" : "failed."));
+    }
+
     /**
      *  Takes a transformation (InputStream) and attaches it as a rendition to the source node.
      *  Does nothing if there is already a newer rendition.
      *  If the transformInputStream is null, this is taken to be a transform failure.
      */
-    public void consume(NodeRef sourceNodeRef, InputStream transformInputStream, RenditionDefinition2 renditionDefinition,
-                        int transformContentHashCode)
+    private void consumeRendition(NodeRef sourceNodeRef, InputStream transformInputStream,
+                                  RenditionDefinition2 renditionDefinition, int transformContentHashCode)
     {
         String renditionName = renditionDefinition.getRenditionName();
         int sourceContentHashCode = getSourceContentHashCode(sourceNodeRef);
