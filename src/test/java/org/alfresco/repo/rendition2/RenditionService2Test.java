@@ -169,7 +169,7 @@ public class RenditionService2Test
     public void useLocalTransform()
     {
         renditionService2.render(nodeRef, TEST_RENDITION);
-        verify(transformClient, times(1)).transform(any(), any(), anyString(), anyInt());
+        verify(transformClient, times(1)).transform(any(), any(), any(), anyInt());
     }
 
     @Test(expected = UnsupportedOperationException.class)

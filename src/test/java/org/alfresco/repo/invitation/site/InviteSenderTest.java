@@ -465,8 +465,8 @@ public class InviteSenderTest extends TestCase
         List<NodeRef> nodeRefs = Arrays.asList(template);
         when(results.getNodeRefs()).thenReturn(nodeRefs);
         when(searchService.query((SearchParameters) any())).thenReturn(results);
-        when(searchService.selectNodes(any(NodeRef.class), any(String.class),
-                    any(QueryParameterDefinition[].class), any(NamespacePrefixResolver.class), eq(false)))
+        when(searchService.selectNodes(any(), any(String.class),
+                    any(), any(), eq(false)))
                     .thenReturn(nodeRefs);
         return searchService;
     }
