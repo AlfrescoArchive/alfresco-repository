@@ -405,12 +405,6 @@ public class RenditionDefinitionRegistry2Impl implements RenditionDefinitionRegi
     public RenditionDefinition2 getRenditionDefinition(String renditionName)
     {
         Data data = getData();
-        RenditionDefinition2 definition = data.renditionDefinitions.get(renditionName);
-
-        if (definition == null)
-        {
-            definition = RenditionDefinition2Impl.createTemporaryRenditionDefinition(renditionName);
-        }
-        return definition;
+        return data.renditionDefinitions.get(renditionName);
     }
 }
