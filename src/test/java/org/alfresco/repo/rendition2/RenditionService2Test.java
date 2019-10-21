@@ -2,7 +2,7 @@
  * #%L
  * Alfresco Repository
  * %%
- * Copyright (C) 2005 - 2018 Alfresco Software Limited
+ * Copyright (C) 2005 - 2019 Alfresco Software Limited
  * %%
  * This file is part of the Alfresco software.
  * If the software was purchased under a paid Alfresco license, the terms of
@@ -48,6 +48,7 @@ import org.mockito.runners.MockitoJUnitRunner;
 import org.quartz.CronExpression;
 
 import java.io.IOException;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -92,9 +93,14 @@ public class RenditionService2Test
     @Mock private TransformServiceRegistryImpl transformServiceRegistry;
 
     private NodeRef nodeRef = new NodeRef("workspace://spacesStore/test-id");
+    private NodeRef nodeRefMissing = new NodeRef("workspace://spacesStore/test-id");
     private static final String TEST_RENDITION = "testRendition";
     private static final String JPEG = "image/jpeg";
     private String contentUrl = "test-content-url";
+
+    private static final String USER_DATA = "some_userData";
+    private static final String REPLY_QUEUE = "some_replyQueue";
+    private static final TransformDefinition transformDefinition = new TransformDefinition(JPEG, Collections.singletonMap("a", "A"), USER_DATA, REPLY_QUEUE);
 
     @Before
     public void setup() throws Exception
@@ -108,6 +114,7 @@ public class RenditionService2Test
         renditionDefinitionRegistry2.setCronExpression(null); // just read it once
 
         when(nodeService.exists(nodeRef)).thenReturn(true);
+        when(nodeService.exists(nodeRefMissing)).thenReturn(false);
         when(nodeService.getProperty(nodeRef, ContentModel.PROP_CONTENT)).thenReturn(contentData);
         when(nodeService.getProperty(nodeRef, ContentModel.PROP_MODIFIED)).thenReturn(new Date());
         when(contentData.getContentUrl()).thenReturn(contentUrl);
@@ -159,16 +166,42 @@ public class RenditionService2Test
     }
 
     @Test(expected = RenditionService2Exception.class)
+    public void disabledForAsyncTransform()
+    {
+        renditionService2.setEnabled(false);
+        renditionService2.transform(nodeRef, transformDefinition);
+    }
+
+    @Test(expected = RenditionService2Exception.class)
     public void thumbnailsDisabled()
     {
         renditionService2.setThumbnailsEnabled(false);
         renditionService2.render(nodeRef, TEST_RENDITION);
     }
 
+    @Test(expected = IllegalArgumentException.class)
+    public void nodeRefDoesNotExist()
+    {
+        renditionService2.render(nodeRefMissing, TEST_RENDITION);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void nodeRefDoesNotExistForAsyncTransform()
+    {
+        renditionService2.transform(nodeRefMissing, transformDefinition);
+    }
+
     @Test
     public void useLocalTransform()
     {
         renditionService2.render(nodeRef, TEST_RENDITION);
+        verify(transformClient, times(1)).transform(any(), any(), anyString(), anyInt());
+    }
+
+    @Test
+    public void useLocalTransformForAsyncTransform()
+    {
+        renditionService2.transform(nodeRef, transformDefinition);
         verify(transformClient, times(1)).transform(any(), any(), anyString(), anyInt());
     }
 

@@ -2,7 +2,7 @@
  * #%L
  * Alfresco Repository
  * %%
- * Copyright (C) 2005 - 2018 Alfresco Software Limited
+ * Copyright (C) 2005 - 2019 Alfresco Software Limited
  * %%
  * This file is part of the Alfresco software.
  * If the software was purchased under a paid Alfresco license, the terms of
@@ -48,6 +48,7 @@ import org.alfresco.service.namespace.NamespaceService;
 import org.alfresco.service.namespace.QName;
 import org.alfresco.service.namespace.RegexQNamePattern;
 import org.alfresco.service.transaction.TransactionService;
+import org.alfresco.transform.client.model.TransformReply;
 import org.alfresco.util.PropertyCheck;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -388,8 +389,22 @@ public class RenditionService2Impl implements RenditionService2, InitializingBea
         String transformName = transformDefinition.getTransformName();
         String replyQueue = transformDefinition.getReplyQueue();
         String userData = transformDefinition.getUserData();
+        String targetMimetype = transformDefinition.getTargetMimetype();
         boolean success = transformInputStream != null;
+
         // TODO REPO-4700
+//        ContentData contentData = org.alfresco.enterprise.repo.rendition2.RenditionEventProducer.getContentData(sourceNodeRef);
+//        String sourceMimetype = contentData.getMimetype();
+        String sourceExt = "TODO"; // get from sourceNodeRef.  Do we even need it?
+        String targetExt = "TODO"; // get from targetMimetype. Do we even need it?
+        String user = "-"; // user = AuthenticationUtil.getRunAsUser(); // Use a dummy value, so we don't expose internals?
+        long requested = 0; // probably a dummy value
+        int seq = 0; // Increment if retry on transaction.
+        ClientData clientData = new ClientData(sourceNodeRef, transformName, transformContentHashCode,
+                user, userData, replyQueue, requested, seq, sourceExt, targetExt);
+
+        // TODO more components of the reply to be set. Different if a failure.
+        TransformReply transformReply = TransformReply.builder().withClientData(clientData.toString()).build();
         logger.info("TODO: Reply to " + replyQueue + " that the transform " + transformName +
                 " with the user data " + userData + " " + (success ? "was successful" : "failed."));
     }
