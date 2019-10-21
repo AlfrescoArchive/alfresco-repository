@@ -112,13 +112,9 @@ public class RenditionService2Impl implements RenditionService2, InitializingBea
     private BehaviourFilter behaviourFilter;
     private RuleService ruleService;
     private PostTxnCallbackScheduler renditionRequestSheduler;
+    private TransformEventProducer transformEventProducer;
     private boolean enabled;
     private boolean thumbnailsEnabled;
-
-    public void setRenditionRequestSheduler(PostTxnCallbackScheduler renditionRequestSheduler)
-    {
-        this.renditionRequestSheduler = renditionRequestSheduler;
-    }
 
     public void setTransactionService(TransactionService transactionService)
     {
@@ -169,6 +165,16 @@ public class RenditionService2Impl implements RenditionService2, InitializingBea
     public void setRuleService(RuleService ruleService)
     {
         this.ruleService = ruleService;
+    }
+
+    public void setRenditionRequestSheduler(PostTxnCallbackScheduler renditionRequestSheduler)
+    {
+        this.renditionRequestSheduler = renditionRequestSheduler;
+    }
+
+    public void setTransformEventProducer(TransformEventProducer transformEventProducer)
+    {
+        this.transformEventProducer = transformEventProducer;
     }
 
     public void setEnabled(boolean enabled)
@@ -273,7 +279,7 @@ public class RenditionService2Impl implements RenditionService2, InitializingBea
         });
     }
 
-    private void requestAsyncTransformOrRendition(NodeRef sourceNodeRef, renderOrTransformCallBack callBack)
+    private void requestAsyncTransformOrRendition(NodeRef sourceNodeRef, renderOrTransformCallBack renderOrTransform)
     {
         try
         {
@@ -285,14 +291,14 @@ public class RenditionService2Impl implements RenditionService2, InitializingBea
 
             if (!nodeService.exists(sourceNodeRef))
             {
-                throw new IllegalArgumentException(callBack.getName()+ ": The supplied sourceNodeRef "+sourceNodeRef+" does not exist.");
+                throw new IllegalArgumentException(renderOrTransform.getName()+ ": The supplied sourceNodeRef "+sourceNodeRef+" does not exist.");
             }
 
-            RenditionDefinition2 renditionDefinition = callBack.getRenditionDefinition();
+            RenditionDefinition2 renditionDefinition = renderOrTransform.getRenditionDefinition();
 
             if (logger.isDebugEnabled())
             {
-                logger.debug(callBack.getName()+ ": transform " +sourceNodeRef);
+                logger.debug(renderOrTransform.getName()+ ": transform " +sourceNodeRef);
             }
 
             AtomicBoolean supported = new AtomicBoolean(true);
@@ -308,7 +314,7 @@ public class RenditionService2Impl implements RenditionService2, InitializingBea
                 }
                 catch (UnsupportedOperationException e)
                 {
-                    callBack.handleUnsupported(e);
+                    renderOrTransform.handleUnsupported(e);
                     supported.set(false);
                 }
             }
@@ -321,14 +327,14 @@ public class RenditionService2Impl implements RenditionService2, InitializingBea
                 {
                     if (logger.isDebugEnabled())
                     {
-                        logger.debug(callBack.getName() +" is not supported. " +
+                        logger.debug(renderOrTransform.getName() +" is not supported. " +
                                 "The content might be too big or the source mimetype cannot be converted.");
                     }
                     failure(sourceNodeRef, renditionDefinition, sourceContentHashCode);
                 }
                 else
                 {
-                    callBack.throwIllegalStateExceptionIfAlreadyDone(sourceContentHashCode);
+                    renderOrTransform.throwIllegalStateExceptionIfAlreadyDone(sourceContentHashCode);
 
                     if (sourceContentHashCode != SOURCE_HAS_NO_CONTENT)
                     {
@@ -338,7 +344,7 @@ public class RenditionService2Impl implements RenditionService2, InitializingBea
                     {
                         if (logger.isDebugEnabled())
                         {
-                            logger.debug(callBack.getName() + ": Source had no content.");
+                            logger.debug(renderOrTransform.getName() + ": Source had no content.");
                         }
                         failure(sourceNodeRef, renditionDefinition, sourceContentHashCode);
                     }
@@ -371,42 +377,23 @@ public class RenditionService2Impl implements RenditionService2, InitializingBea
     {
         if (renditionDefinition instanceof TransformDefinition)
         {
-            consumeTransform(sourceNodeRef, transformInputStream, (TransformDefinition)renditionDefinition, transformContentHashCode);
+            if (logger.isDebugEnabled())
+            {
+                TransformDefinition transformDefinition = (TransformDefinition)renditionDefinition;
+                String transformName = transformDefinition.getTransformName();
+                String replyQueue = transformDefinition.getReplyQueue();
+                String userData = transformDefinition.getUserData();
+                boolean success = transformInputStream != null;
+                logger.info("Reply to " + replyQueue + " that the transform " + transformName +
+                        " with the user data " + userData + " " + (success ? "was successful" : "failed."));
+            }
+            transformEventProducer.produceTransformEvent(sourceNodeRef, transformInputStream,
+                    (TransformDefinition)renditionDefinition, transformContentHashCode);
         }
         else
         {
             consumeRendition(sourceNodeRef, transformInputStream, renditionDefinition, transformContentHashCode);
         }
-    }
-
-    /**
-     *  Takes a transformation (InputStream) and sends it to the transform response queue.
-     *  If the transformInputStream is null, this is taken to be a transform failure.
-     */
-    private void consumeTransform(NodeRef sourceNodeRef, InputStream transformInputStream,
-                                  TransformDefinition transformDefinition, int transformContentHashCode)
-    {
-        String transformName = transformDefinition.getTransformName();
-        String replyQueue = transformDefinition.getReplyQueue();
-        String userData = transformDefinition.getUserData();
-        String targetMimetype = transformDefinition.getTargetMimetype();
-        boolean success = transformInputStream != null;
-
-        // TODO REPO-4700
-//        ContentData contentData = org.alfresco.enterprise.repo.rendition2.RenditionEventProducer.getContentData(sourceNodeRef);
-//        String sourceMimetype = contentData.getMimetype();
-        String sourceExt = "TODO"; // get from sourceNodeRef.  Do we even need it?
-        String targetExt = "TODO"; // get from targetMimetype. Do we even need it?
-        String user = "-"; // user = AuthenticationUtil.getRunAsUser(); // Use a dummy value, so we don't expose internals?
-        long requested = 0; // probably a dummy value
-        int seq = 0; // Increment if retry on transaction.
-        ClientData clientData = new ClientData(sourceNodeRef, transformName, transformContentHashCode,
-                user, userData, replyQueue, requested, seq, sourceExt, targetExt);
-
-        // TODO more components of the reply to be set. Different if a failure.
-        TransformReply transformReply = TransformReply.builder().withClientData(clientData.toString()).build();
-        logger.info("TODO: Reply to " + replyQueue + " that the transform " + transformName +
-                " with the user data " + userData + " " + (success ? "was successful" : "failed."));
     }
 
     /**
