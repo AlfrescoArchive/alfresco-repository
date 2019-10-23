@@ -78,7 +78,6 @@ public class LocalTransformClientIntegrationTest extends AbstractRenditionIntegr
     @Test
     public void testRenderPagesToJpeg() throws Exception
     {
-        legacyTransformServiceRegistry.setEnabled(false);
         new RenditionDefinition2Impl("pagesToJpeg", "image/jpeg", new HashMap<>(), true, renditionDefinitionRegistry2 );
         try
         {
@@ -94,7 +93,6 @@ public class LocalTransformClientIntegrationTest extends AbstractRenditionIntegr
     @Test
     public void testReloadOfStaticDefinitions() throws Exception
     {
-        legacyTransformServiceRegistry.setEnabled(false);
         new RenditionDefinition2Impl("dynamic1", "image/jpeg", new HashMap<>(), true, renditionDefinitionRegistry2 );
         new RenditionDefinition2Impl("dynamic2", "image/jpeg", new HashMap<>(), true, renditionDefinitionRegistry2 );
         new RenditionDefinition2Impl("static1", "image/jpeg", new HashMap<>(), false, renditionDefinitionRegistry2 );
