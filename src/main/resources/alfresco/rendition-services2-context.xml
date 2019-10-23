@@ -94,6 +94,23 @@
         <property name="converter" ref="transformOptionsConverter" />
     </bean>
 
+    <!-- Deprecated -->
+    <bean id="switchingSynchronousTransformClient" class="org.alfresco.repo.rendition2.SwitchingSynchronousTransformClient">
+        <constructor-arg name="primary" ref="localSynchronousTransformClient" />
+        <constructor-arg name="secondary" ref="legacySynchronousTransformClient" />
+    </bean>
+
+    <!-- Deprecated -->
+    <bean id="localSynchronousTransformClient" class="org.alfresco.repo.rendition2.LocalSynchronousTransformClient">
+        <property name="localTransformServiceRegistry" ref="localTransformServiceRegistryImpl" />
+    </bean>
+
+    <!-- Deprecated -->
+    <bean id="legacySynchronousTransformClient" class="org.alfresco.repo.rendition2.LegacySynchronousTransformClient">
+        <property name="contentService" ref="ContentService" />
+        <property name="converter" ref="transformOptionsConverter" />
+    </bean>
+
     <!-- Deprecated bean that converts transform properties to the deprecated TransformationOptions format -->
     <bean id="transformOptionsConverter" class="org.alfresco.repo.rendition2.TransformationOptionsConverter">
         <property name="maxSourceSizeKBytes" value="${system.thumbnail.definition.default.maxSourceSizeKBytes}" />

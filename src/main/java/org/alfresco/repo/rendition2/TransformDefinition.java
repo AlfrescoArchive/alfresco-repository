@@ -54,9 +54,14 @@ public class TransformDefinition extends RenditionDefinition2Impl
     public TransformDefinition(String transformName, String targetMimetype, Map<String, String> transformOptions,
                                String userData, String replyQueue)
     {
-        super(transformName == null ? null : TRANSFORM_NAMESPACE+transformName, targetMimetype, transformOptions, null);
+        super(convertToRenditionName(transformName), targetMimetype, transformOptions, null);
         this.userData = userData;
         this.replyQueue = replyQueue;
+    }
+
+    static String convertToRenditionName(String transformName)
+    {
+        return transformName == null ? null : TRANSFORM_NAMESPACE+transformName;
     }
 
     /**
