@@ -180,7 +180,7 @@ public class LocalTransformClientIntegrationTest extends AbstractRenditionIntegr
         checkClientRendition("quickMaskedHtml.jpeg", "avatar32", false);
     }
 
-    protected void checkClientRendition(String testFileName, String renditionDefinitionName, boolean expectedToPass) throws InterruptedException
+    private void checkClientRendition(String testFileName, String renditionDefinitionName, boolean expectedToPass) throws InterruptedException
     {
         if (expectedToPass)
         {
