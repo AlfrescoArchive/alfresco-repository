@@ -114,6 +114,7 @@ public class LocalTransformClient implements TransformClient, InitializingBean
         LocalTransform localTransform = localTransformServiceRegistry.getLocalTransform(sourceMimetype,
                 sourceSizeInBytes, targetMimetype, actualOptions, renditionName);
         transform.set(localTransform);
+        System.err.println(Thread.currentThread().getName()+" set "+localTransform);
 
         String message = TRANSFORM + renditionName + " from " + sourceMimetype +
                 (localTransform == null ? " is unsupported" : " is supported");
@@ -128,13 +129,14 @@ public class LocalTransformClient implements TransformClient, InitializingBean
     public void transform(NodeRef sourceNodeRef, RenditionDefinition2 renditionDefinition, String user,
                           int sourceContentHashCode)
     {
+        String renditionName = renditionDefinition.getRenditionName();
+        String targetMimetype = renditionDefinition.getTargetMimetype();
+        Map<String, String> actualOptions = renditionDefinition.getTransformOptions();
+        LocalTransform localTransform = transform.get();
+        System.err.println(Thread.currentThread().getName()+" get "+localTransform);
+
         executorService.submit(() ->
         {
-            String renditionName = renditionDefinition.getRenditionName();
-            String targetMimetype = renditionDefinition.getTargetMimetype();
-            Map<String, String> actualOptions = renditionDefinition.getTransformOptions();
-            LocalTransform localTransform = transform.get();
-
             AuthenticationUtil.runAs((AuthenticationUtil.RunAsWork<Void>) () ->
                 transactionService.getRetryingTransactionHelper().doInTransaction(() ->
                 {

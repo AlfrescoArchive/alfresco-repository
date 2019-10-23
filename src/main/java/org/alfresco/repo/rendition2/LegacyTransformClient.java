@@ -129,16 +129,16 @@ public class LegacyTransformClient implements TransformClient, InitializingBean
     @Override
     public void transform(NodeRef sourceNodeRef, RenditionDefinition2 renditionDefinition, String user, int sourceContentHashCode)
     {
+        String targetMimetype = renditionDefinition.getTargetMimetype();
+        String renditionName = renditionDefinition.getRenditionName();
+        Map<String, String> actualOptions = renditionDefinition.getTransformOptions();
+
+        TransformationOptions transformationOptions = converter.getTransformationOptions(renditionName, actualOptions);
+        transformationOptions.setSourceNodeRef(sourceNodeRef);
+        ContentTransformer legacyTransform = transform.get();
+
         executorService.submit(() ->
         {
-            String targetMimetype = renditionDefinition.getTargetMimetype();
-            String renditionName = renditionDefinition.getRenditionName();
-            Map<String, String> actualOptions = renditionDefinition.getTransformOptions();
-
-            TransformationOptions transformationOptions = converter.getTransformationOptions(renditionName, actualOptions);
-            transformationOptions.setSourceNodeRef(sourceNodeRef);
-            ContentTransformer legacyTransform = transform.get();
-
             AuthenticationUtil.runAs((AuthenticationUtil.RunAsWork<Void>) () ->
                 transactionService.getRetryingTransactionHelper().doInTransaction(() ->
                 {
