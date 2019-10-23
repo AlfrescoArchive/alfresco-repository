@@ -65,11 +65,8 @@ public class TransformEventProducer
         long requested = 0; // probably a dummy value
         int seq = 0; // Increment if retry on transaction.
 
-        ClientData clientData = new ClientData(sourceNodeRef, transformName, transformContentHashCode,
-                user, userData, replyQueue, requested, seq, sourceExt, targetExt);
-
         TransformReply transformReply = TransformReply.builder().
-                withClientData(clientData.toString()).
+                withClientData(userData).
                 // TODO add more components of the reply.
                 build();
     }
