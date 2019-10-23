@@ -2,7 +2,7 @@
  * #%L
  * Alfresco Repository
  * %%
- * Copyright (C) 2005 - 2018 Alfresco Software Limited
+ * Copyright (C) 2005 - 2019 Alfresco Software Limited
  * %%
  * This file is part of the Alfresco software.
  * If the software was purchased under a paid Alfresco license, the terms of
@@ -164,9 +164,7 @@ public class LocalTransformClientIntegrationTest extends AbstractRenditionIntegr
     @Test
     public void testRetryOnDifferentMimetype() throws Exception
     {
-        boolean expectedToPass = true;
-        if(!transformClient.getClass().isInstance(LocalTransformClient.class))
-                expectedToPass = false;
+        boolean expectedToPass = transformClient.getClass().isInstance(LocalTransformClient.class);
 
         // File is actually an image masked as docx
         checkClientRendition("quick-differentMimetype.docx", "pdf", expectedToPass);
