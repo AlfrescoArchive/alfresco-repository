@@ -89,7 +89,7 @@
 
     <bean id="legacyTransformClient" class="org.alfresco.repo.rendition2.LegacyTransformClient">
         <property name="transactionService" ref="transactionService" />
-        <property name="contentService" ref="ContentService" />
+        <property name="contentService" ref="contentService" />
         <property name="renditionService2" ref="renditionService2" />
         <property name="converter" ref="transformOptionsConverter" />
     </bean>

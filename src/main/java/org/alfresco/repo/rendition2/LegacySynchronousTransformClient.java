@@ -96,6 +96,8 @@ public class LegacySynchronousTransformClient implements SynchronousTransformCli
                           String transformName, NodeRef sourceNodeRef) throws Exception
     {
         String renditionName = TransformDefinition.convertToRenditionName(transformName);
+        TransformationOptions options = converter.getTransformationOptions(renditionName, actualOptions);
+        options.setSourceNodeRef(sourceNodeRef);
         ContentTransformer legacyTransform = transform.get();
         try
         {
@@ -114,9 +116,11 @@ public class LegacySynchronousTransformClient implements SynchronousTransformCli
                 logger.debug(TRANSFORM + "requested " + renditionName);
             }
 
-            TransformationOptions transformationOptions = converter.getTransformationOptions(renditionName, actualOptions);
-            transformationOptions.setSourceNodeRef(sourceNodeRef);
-            legacyTransform.transform(reader, writer, transformationOptions);
+            // Note: we don't call legacyTransform.transform(reader, writer, options) as the Legacy
+            // transforms (unlike Local and Transform Service) automatically fail over to the next
+            // highest priority. This was not done for the newer transforms, as a fail over can always be
+            // defined and that makes it simpler to understand what is going on.
+            contentService.transform(reader, writer, options);
 
             if (logger.isDebugEnabled())
             {

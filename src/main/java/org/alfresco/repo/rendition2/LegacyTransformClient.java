@@ -132,9 +132,8 @@ public class LegacyTransformClient implements TransformClient, InitializingBean
         String targetMimetype = renditionDefinition.getTargetMimetype();
         String renditionName = renditionDefinition.getRenditionName();
         Map<String, String> actualOptions = renditionDefinition.getTransformOptions();
-
-        TransformationOptions transformationOptions = converter.getTransformationOptions(renditionName, actualOptions);
-        transformationOptions.setSourceNodeRef(sourceNodeRef);
+        TransformationOptions options = converter.getTransformationOptions(renditionName, actualOptions);
+        options.setSourceNodeRef(sourceNodeRef);
         ContentTransformer legacyTransform = transform.get();
 
         executorService.submit(() ->
@@ -159,9 +158,14 @@ public class LegacyTransformClient implements TransformClient, InitializingBean
                         {
                             logger.debug(TRANSFORM + "requested " + renditionName);
                         }
+
+                        // Note: we don't call legacyTransform.transform(reader, writer, options) as the Legacy
+                        // transforms (unlike Local and Transform Service) automatically fail over to the next
+                        // highest priority. This was not done for the newer transforms, as a fail over can always be
+                        // defined and that makes it simpler to understand what is going on.
                         ContentWriter writer = contentService.getTempWriter();
                         writer.setMimetype(targetMimetype);
-                        legacyTransform.transform(reader, writer, transformationOptions);
+                        contentService.transform(reader, writer, options);
 
                         InputStream inputStream = writer.getReader().getContentInputStream();
                         if (logger.isDebugEnabled())
