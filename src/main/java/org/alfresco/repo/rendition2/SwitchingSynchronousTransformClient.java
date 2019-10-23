@@ -38,6 +38,7 @@ import java.util.Map;
  *
  * @author adavis
  */
+@Deprecated
 public class SwitchingSynchronousTransformClient implements SynchronousTransformClient
 {
     private final SynchronousTransformClient primary;
@@ -54,18 +55,20 @@ public class SwitchingSynchronousTransformClient implements SynchronousTransform
     public boolean isSupported(NodeRef sourceNodeRef, String sourceMimetype, long sourceSizeInBytes, String contentUrl,
                                String targetMimetype, Map<String, String> actualOptions, String transformName)
     {
-        boolean supported;
-        try
+        boolean supported = true;
+        if (primary.isSupported(sourceNodeRef, sourceMimetype, sourceSizeInBytes, contentUrl,
+                targetMimetype, actualOptions, transformName))
         {
             synchronousTransformClient.set(primary);
-            supported = primary.isSupported(sourceNodeRef, sourceMimetype, sourceSizeInBytes, contentUrl,
-                    targetMimetype, actualOptions, transformName);
         }
-        catch (UnsupportedOperationException e)
+        else if (secondary.isSupported(sourceNodeRef, sourceMimetype, sourceSizeInBytes, contentUrl,
+                targetMimetype, actualOptions, transformName))
         {
             synchronousTransformClient.set(secondary);
-            supported = secondary.isSupported(sourceNodeRef, sourceMimetype, sourceSizeInBytes, contentUrl,
-                    targetMimetype, actualOptions, transformName);
+        }
+        else
+        {
+            supported = false;
         }
         return supported;
     }

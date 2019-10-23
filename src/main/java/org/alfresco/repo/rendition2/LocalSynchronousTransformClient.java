@@ -44,6 +44,7 @@ import java.util.Map;
  *
  * @author adavis
  */
+@Deprecated
 public class LocalSynchronousTransformClient implements SynchronousTransformClient, InitializingBean
 {
     private static final String TRANSFORM = "Local synchronous transform ";
