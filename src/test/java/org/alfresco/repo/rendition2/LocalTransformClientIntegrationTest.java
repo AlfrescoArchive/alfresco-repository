@@ -92,7 +92,7 @@ public class LocalTransformClientIntegrationTest extends AbstractRenditionIntegr
     }
 
     @Test
-    public void testReloadOfStaticDefinitions() throws Exception
+    public void testReloadOfStaticDefinitions()
     {
         legacyTransformServiceRegistry.setEnabled(false);
         new RenditionDefinition2Impl("dynamic1", "image/jpeg", new HashMap<>(), true, renditionDefinitionRegistry2 );
