@@ -53,7 +53,7 @@ public class TransformEventProducer
 
         String transformName = transformDefinition.getTransformName();
         String replyQueue = transformDefinition.getReplyQueue();
-        String userData = transformDefinition.getUserData();
+        String clientData = transformDefinition.getClientData();
         String targetMimetype = transformDefinition.getTargetMimetype();
         boolean success = transformInputStream != null;
 
@@ -65,11 +65,8 @@ public class TransformEventProducer
         long requested = 0; // probably a dummy value
         int seq = 0; // Increment if retry on transaction.
 
-        ClientData clientData = new ClientData(sourceNodeRef, transformName, transformContentHashCode,
-                user, userData, replyQueue, requested, seq, sourceExt, targetExt);
-
         TransformReply transformReply = TransformReply.builder().
-                withClientData(clientData.toString()).
+                withClientData(clientData).
                 // TODO add more components of the reply.
                 build();
     }

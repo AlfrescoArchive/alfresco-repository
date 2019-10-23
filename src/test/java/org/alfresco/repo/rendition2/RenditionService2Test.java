@@ -98,9 +98,9 @@ public class RenditionService2Test
     private static final String JPEG = "image/jpeg";
     private String contentUrl = "test-content-url";
 
-    private static final String USER_DATA = "some_userData";
+    private static final String CLIENT_DATA = "some_clientData";
     private static final String REPLY_QUEUE = "some_replyQueue";
-    private static final TransformDefinition TEST_TRANSFORM = new TransformDefinition(JPEG, Collections.singletonMap("a", "A"), USER_DATA, REPLY_QUEUE);
+    private static final TransformDefinition TEST_TRANSFORM = new TransformDefinition(JPEG, Collections.singletonMap("a", "A"), CLIENT_DATA, REPLY_QUEUE);
     private boolean failureCalled;
 
     @Before
