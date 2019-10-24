@@ -44,7 +44,7 @@ public class TransformDefinition extends RenditionDefinition2Impl
 {
     public static final String TRANSFORM_NAMESPACE = "transform:";
 
-    private final String userData;
+    private final String clientData;
     private final String replyQueue;
 
     /**
@@ -52,10 +52,10 @@ public class TransformDefinition extends RenditionDefinition2Impl
      * if the transform will take place, will be cached against the transformName.
      */
     public TransformDefinition(String transformName, String targetMimetype, Map<String, String> transformOptions,
-                               String userData, String replyQueue)
+                               String clientData, String replyQueue)
     {
         super(convertToRenditionName(transformName), targetMimetype, transformOptions, null);
-        this.userData = userData;
+        this.clientData = clientData;
         this.replyQueue = replyQueue;
     }
 
@@ -68,9 +68,9 @@ public class TransformDefinition extends RenditionDefinition2Impl
      * Constructor where the targetMimetype and transformOptions are unlikely to be repeated.
      */
     public TransformDefinition(String targetMimetype, Map<String, String> transformOptions,
-                               String userData, String replyQueue)
+                               String clientData, String replyQueue)
     {
-        this(null, targetMimetype, transformOptions, userData, replyQueue);
+        this(null, targetMimetype, transformOptions, clientData, replyQueue);
     }
 
     public String getTransformName()
@@ -79,9 +79,9 @@ public class TransformDefinition extends RenditionDefinition2Impl
         return renditionName == null ? null : renditionName.substring(TRANSFORM_NAMESPACE.length());
     }
 
-    public String getUserData()
+    public String getClientData()
     {
-        return userData;
+        return clientData;
     }
 
     public String getReplyQueue()

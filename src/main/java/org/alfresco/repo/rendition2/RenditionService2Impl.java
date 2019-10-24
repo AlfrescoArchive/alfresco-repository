@@ -48,7 +48,6 @@ import org.alfresco.service.namespace.NamespaceService;
 import org.alfresco.service.namespace.QName;
 import org.alfresco.service.namespace.RegexQNamePattern;
 import org.alfresco.service.transaction.TransactionService;
-import org.alfresco.transform.client.model.TransformReply;
 import org.alfresco.util.PropertyCheck;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -382,10 +381,10 @@ public class RenditionService2Impl implements RenditionService2, InitializingBea
                 TransformDefinition transformDefinition = (TransformDefinition)renditionDefinition;
                 String transformName = transformDefinition.getTransformName();
                 String replyQueue = transformDefinition.getReplyQueue();
-                String userData = transformDefinition.getUserData();
+                String clientData = transformDefinition.getClientData();
                 boolean success = transformInputStream != null;
                 logger.info("Reply to " + replyQueue + " that the transform " + transformName +
-                        " with the user data " + userData + " " + (success ? "was successful" : "failed."));
+                        " with the client data " + clientData + " " + (success ? "was successful" : "failed."));
             }
             transformEventProducer.produceTransformEvent(sourceNodeRef, transformInputStream,
                     (TransformDefinition)renditionDefinition, transformContentHashCode);
