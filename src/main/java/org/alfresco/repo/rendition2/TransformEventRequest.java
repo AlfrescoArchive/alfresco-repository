@@ -38,11 +38,22 @@ import java.util.Objects;
 public class TransformEventRequest implements Serializable
 {
     private String requestId;
+    private String transformName;
     private String nodeRef;
     private String targetMediaType;
     private Map<String, String> transformOptions = new HashMap();
     private String clientData;
     private String replyQueue;
+
+    public String getTransformName()
+    {
+        return transformName;
+    }
+
+    public void setTransformName(String transformName)
+    {
+        this.transformName = transformName;
+    }
 
     public String getRequestId()
     {
@@ -142,6 +153,12 @@ public class TransformEventRequest implements Serializable
         public TransformEventRequest.Builder withRequestId(final String requestId)
         {
             this.request.requestId = requestId;
+            return this;
+        }
+
+        public TransformEventRequest.Builder withTransformName(final String transformName)
+        {
+            this.request.transformName = transformName;
             return this;
         }
 

@@ -32,6 +32,7 @@ import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.transaction.TransactionService;
 import org.alfresco.util.ParameterCheck;
 import org.apache.camel.Exchange;
+import org.apache.camel.NoSuchEndpointException;
 import org.apache.camel.Processor;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -80,7 +81,6 @@ public class TransformEventConsumerProcessor implements Processor
             {
                 logger.debug("Exchange message is null or empty");
             }
-
             return;
         }
         try
@@ -95,7 +95,6 @@ public class TransformEventConsumerProcessor implements Processor
                 logger.error("Failed to unmarshal event [" + body + "]", e);
                 throw new AlfrescoRuntimeException("Failed to unmarshal event, skipping processing of this event.\"");
             }
-
             processEvent(event);
         }
         catch (Exception e)
@@ -110,23 +109,26 @@ public class TransformEventConsumerProcessor implements Processor
         ParameterCheck.mandatoryString("requestId", event.getRequestId());
         ParameterCheck.mandatoryString("nodeRef", event.getNodeRef());
         ParameterCheck.mandatoryString("targetMediaType", event.getTargetMediaType());
+
         ParameterCheck.mandatoryString("replyQueue", event.getReplyQueue());
+        if (!event.getReplyQueue().startsWith("jms:"))
+        {
+            throw new NoSuchEndpointException(event.getReplyQueue(), "ensure that protocol is specified for the return queue.");
+        }
     }
 
     private void processEvent(TransformEventRequest event)
     {
         validateEvent(event);
 
-        String executingUser = AuthenticationUtil.getSystemUserName();
-        // TODO use the constructor that uses transformName for TransformDefinition
-        TransformDefinition eventDefinition = new TransformDefinition(event.getTargetMediaType(), event.getTransformOptions(), event.getClientData(), event.getReplyQueue());
+        TransformDefinition eventDefinition = new TransformDefinition(event.getTransformName(), event.getTargetMediaType(), event.getTransformOptions(), event.getClientData(), event.getReplyQueue());
 
         AuthenticationUtil.runAs((AuthenticationUtil.RunAsWork<Void>) () -> transactionService.getRetryingTransactionHelper().doInTransaction(() -> {
 
             renditionService2.transform(new NodeRef(event.getNodeRef()), eventDefinition);
 
             return null;
-        }), executingUser);
+        }), AuthenticationUtil.getSystemUserName());
     }
 
 
