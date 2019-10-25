@@ -63,6 +63,14 @@ public interface SynchronousTransformClient
     boolean isSupported(NodeRef sourceNodeRef, String sourceMimetype, long sourceSizeInBytes, String contentUrl,
                         String targetMimetype,  Map<String, String> actualOptions, String transformName);
 
+    default boolean isSupported(final String sourceMimetype, final long sourceSizeInBytes,
+                final String targetMimetype, final Map<String, String> actualOptions,
+                final String transformName)
+    {
+        return isSupported(null, sourceMimetype, sourceSizeInBytes, null,
+                targetMimetype, actualOptions, transformName);
+    }
+
     /**
      * Helper method to call {@link #isSupported(NodeRef, String, long, String, String, Map, String)}. Uses the
      * {@code nodeService} and {@code sourceNodeRef} to work out the {@code sourceMimetype}, {@code sourceSizeInBytes}
