@@ -90,7 +90,7 @@ public class RenditionService2Test
     @Mock private BehaviourFilter behaviourFilter;
     @Mock private RuleService ruleService;
     @Mock private TransformServiceRegistryImpl transformServiceRegistry;
-    @Mock private TransformEventProducer transformEventProducer;
+    @Mock private TransformReplyProvider transformReplyProvider;
 
     private NodeRef nodeRef = new NodeRef("workspace://spacesStore/test-id");
     private NodeRef nodeRefMissing = new NodeRef("workspace://spacesStore/bad-test-id");
@@ -152,7 +152,7 @@ public class RenditionService2Test
         renditionService2.setRuleService(ruleService);
         renditionService2.setTransactionService(transactionService);
         renditionService2.setRenditionRequestSheduler(new RenditionRequestSchedulerMock());
-        renditionService2.setTransformEventProducer(transformEventProducer);
+        renditionService2.setTransformReplyProvider(transformReplyProvider);
         renditionService2.setEnabled(true);
         renditionService2.setThumbnailsEnabled(true);
 
@@ -220,7 +220,7 @@ public class RenditionService2Test
     {
         renditionService2.render(nodeRef, TEST_RENDITION);
         verify(transformClient, times(1)).transform(any(), any(), anyString(), anyInt());
-        verify(transformEventProducer, times(0)).produceTransformEvent(any(), any(), any(), anyInt());
+        verify(transformReplyProvider, times(0)).produceTransformEvent(any(), any(), any(), anyInt());
     }
 
     @Test
@@ -228,7 +228,7 @@ public class RenditionService2Test
     {
         renditionService2.transform(nodeRef, TEST_TRANSFORM);
         verify(transformClient, times(1)).transform(any(), any(), anyString(), anyInt());
-        verify(transformEventProducer, times(1)).produceTransformEvent(any(), any(), any(), anyInt());
+        verify(transformReplyProvider, times(1)).produceTransformEvent(any(), any(), any(), anyInt());
     }
 
     @Test(expected = UnsupportedOperationException.class)

@@ -40,11 +40,11 @@ import org.apache.commons.logging.LogFactory;
 import java.io.IOException;
 
 /**
- * Transform Request processor executes transformation based on TransformEventRequest event.
+ * Transform Request processor executes transformation based on TransformRequest event.
  *
  * @author aepure
  */
-public class TransformEventConsumerProcessor implements Processor
+public class TransformRequestProcessor implements Processor
 {
     private static Log logger = LogFactory.getLog(RenditionEventProcessor.class);
 
@@ -85,10 +85,10 @@ public class TransformEventConsumerProcessor implements Processor
         }
         try
         {
-            TransformEventRequest event;
+            TransformRequest event;
             try
             {
-                event = messagingObjectMapper.readValue(body, TransformEventRequest.class);
+                event = messagingObjectMapper.readValue(body, TransformRequest.class);
             }
             catch (IOException e)
             {
@@ -103,7 +103,7 @@ public class TransformEventConsumerProcessor implements Processor
         }
     }
 
-    private void validateEvent(TransformEventRequest event)
+    private void validateEvent(TransformRequest event)
     {
         ParameterCheck.mandatory("event", event);
         ParameterCheck.mandatoryString("requestId", event.getRequestId());
@@ -117,7 +117,7 @@ public class TransformEventConsumerProcessor implements Processor
         }
     }
 
-    private void processEvent(TransformEventRequest event)
+    private void processEvent(TransformRequest event)
     {
         validateEvent(event);
 

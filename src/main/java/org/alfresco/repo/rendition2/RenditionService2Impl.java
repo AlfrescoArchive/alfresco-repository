@@ -111,7 +111,7 @@ public class RenditionService2Impl implements RenditionService2, InitializingBea
     private BehaviourFilter behaviourFilter;
     private RuleService ruleService;
     private PostTxnCallbackScheduler renditionRequestSheduler;
-    private TransformEventProducer transformEventProducer;
+    private TransformReplyProvider transformReplyProvider;
     private boolean enabled;
     private boolean thumbnailsEnabled;
 
@@ -171,9 +171,9 @@ public class RenditionService2Impl implements RenditionService2, InitializingBea
         this.renditionRequestSheduler = renditionRequestSheduler;
     }
 
-    public void setTransformEventProducer(TransformEventProducer transformEventProducer)
+    public void setTransformReplyProvider(TransformReplyProvider transformReplyProvider)
     {
-        this.transformEventProducer = transformEventProducer;
+        this.transformReplyProvider = transformReplyProvider;
     }
 
     public void setEnabled(boolean enabled)
@@ -386,7 +386,7 @@ public class RenditionService2Impl implements RenditionService2, InitializingBea
                 logger.info("Reply to " + replyQueue + " that the transform " + transformName +
                         " with the client data " + clientData + " " + (success ? "was successful" : "failed."));
             }
-            transformEventProducer.produceTransformEvent(sourceNodeRef, transformInputStream,
+            transformReplyProvider.produceTransformEvent(sourceNodeRef, transformInputStream,
                     (TransformDefinition)renditionDefinition, transformContentHashCode);
         }
         else

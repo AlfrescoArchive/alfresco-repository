@@ -35,7 +35,7 @@ import java.util.Objects;
  *
  * @author aepure
  */
-public class TransformEventRequest implements Serializable
+public class TransformRequest implements Serializable
 {
     private String requestId;
     private String transformName;
@@ -121,7 +121,7 @@ public class TransformEventRequest implements Serializable
             return true;
         if (o == null || getClass() != o.getClass())
             return false;
-        TransformEventRequest that = (TransformEventRequest) o;
+        TransformRequest that = (TransformRequest) o;
         return requestId.equals(that.requestId) && nodeRef.equals(that.nodeRef);
     }
 
@@ -132,7 +132,7 @@ public class TransformEventRequest implements Serializable
 
     @Override public String toString()
     {
-        return "TransformEventRequest{" +
+        return "TransformRequest{" +
             "requestId='" + requestId + '\'' +
             ", nodeRef='" + nodeRef + '\'' +
             ", targetMediaType='" + targetMediaType + '\'' +
@@ -143,56 +143,56 @@ public class TransformEventRequest implements Serializable
     }
 
     public static class Builder {
-        private final TransformEventRequest request;
+        private final TransformRequest request;
 
         private Builder()
         {
-            this.request = new TransformEventRequest();
+            this.request = new TransformRequest();
         }
 
-        public TransformEventRequest.Builder withRequestId(final String requestId)
+        public TransformRequest.Builder withRequestId(final String requestId)
         {
             this.request.requestId = requestId;
             return this;
         }
 
-        public TransformEventRequest.Builder withTransformName(final String transformName)
+        public TransformRequest.Builder withTransformName(final String transformName)
         {
             this.request.transformName = transformName;
             return this;
         }
 
-        public TransformEventRequest.Builder withNodeRef(final String nodeRef)
+        public TransformRequest.Builder withNodeRef(final String nodeRef)
         {
             this.request.nodeRef = nodeRef;
             return this;
         }
 
-        public TransformEventRequest.Builder withTargetMediaType(final String targetMediaType)
+        public TransformRequest.Builder withTargetMediaType(final String targetMediaType)
         {
             this.request.targetMediaType = targetMediaType;
             return this;
         }
 
-        public TransformEventRequest.Builder withTransformOptions(final Map<String, String> transformOptions)
+        public TransformRequest.Builder withTransformOptions(final Map<String, String> transformOptions)
         {
             this.request.transformOptions = transformOptions;
             return this;
         }
 
-        public TransformEventRequest.Builder withUserData(final String userData)
+        public TransformRequest.Builder withUserData(final String userData)
         {
             this.request.clientData = userData;
             return this;
         }
 
-        public TransformEventRequest.Builder withReplyQueue(final String replyQueue)
+        public TransformRequest.Builder withReplyQueue(final String replyQueue)
         {
             this.request.replyQueue = replyQueue;
             return this;
         }
 
-        public TransformEventRequest build()
+        public TransformRequest build()
         {
             return this.request;
         }
