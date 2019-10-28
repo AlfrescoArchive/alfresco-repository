@@ -58,7 +58,6 @@ import org.alfresco.query.PagingRequest;
 import org.alfresco.query.PagingResults;
 import org.alfresco.repo.action.executer.TransformActionExecuter;
 import org.alfresco.repo.content.MimetypeMap;
-import org.alfresco.repo.content.transform.LocalTransformServiceRegistry;
 import org.alfresco.repo.content.transform.UnimportantTransformException;
 import org.alfresco.repo.content.transform.UnsupportedTransformationException;
 import org.alfresco.repo.content.transform.magick.ImageTransformationOptions;
@@ -67,6 +66,7 @@ import org.alfresco.repo.node.getchildren.GetChildrenCannedQuery;
 import org.alfresco.repo.rendition2.RenditionDefinition2;
 import org.alfresco.repo.rendition2.RenditionDefinitionRegistry2;
 import org.alfresco.repo.rendition2.RenditionService2;
+import org.alfresco.repo.rendition2.SynchronousTransformClient;
 import org.alfresco.repo.search.QueryParameterDefImpl;
 import org.alfresco.repo.security.authentication.AuthenticationUtil;
 import org.alfresco.repo.security.authentication.AuthenticationUtil.RunAsWork;
@@ -210,6 +210,7 @@ public class ScriptNode implements Scopeable, NamespacePrefixResolverProvider
     private FileFolderService fileFolderService = null;
     private RenditionService2 renditionService2;
     private RenditionDefinitionRegistry2 renditionDefinitionRegistry2;
+    private SynchronousTransformClient synchronousTransformClient;
     private RetryingTransactionHelper retryingTransactionHelper = null;
     private Boolean isDocument = null;
     private Boolean isContainer = null;
@@ -281,6 +282,7 @@ public class ScriptNode implements Scopeable, NamespacePrefixResolverProvider
         this.scope = scope;
         renditionService2 = services.getRenditionService2();
         renditionDefinitionRegistry2 = renditionService2.getRenditionDefinitionRegistry2();
+        synchronousTransformClient = services.getSynchronousTransformClient();
     }
     
     @Override
@@ -2744,22 +2746,22 @@ public class ScriptNode implements Scopeable, NamespacePrefixResolverProvider
         // the delegate definition for transforming a document
         Transformer transformer = new AbstractTransformer()
         {
-            protected void doTransform(LocalTransformServiceRegistry localTransformServiceRegistry, ContentReader reader, ContentWriter writer)
+            protected void doTransform(SynchronousTransformClient synchronousTransformClient, ContentReader reader, ContentWriter writer)
             {
-                transformNodeRef(localTransformServiceRegistry, reader, writer, Collections.emptyMap(), sourceNodeRef);
+                transformNodeRef(synchronousTransformClient, reader, writer, Collections.emptyMap(), sourceNodeRef);
             }
         };
         
         return transformNode(transformer, mimetype, destination);
     }
 
-    private void transformNodeRef(LocalTransformServiceRegistry localTransformServiceRegistry,
+    private void transformNodeRef(SynchronousTransformClient synchronousTransformClient,
                                   ContentReader reader, ContentWriter writer,
                                   Map<String, String> actualOptions, NodeRef sourceNodeRef)
     {
         try
         {
-            localTransformServiceRegistry.transform(reader, writer, actualOptions, null, sourceNodeRef);
+            synchronousTransformClient.transform(reader, writer, actualOptions, null, sourceNodeRef);
         }
         catch (Exception e)
         {
@@ -2806,8 +2808,7 @@ public class ScriptNode implements Scopeable, NamespacePrefixResolverProvider
             writer.setEncoding(reader.getEncoding()); // original encoding
             
             // Try and transform the content using the supplied delegate
-            LocalTransformServiceRegistry localTransformServiceRegistry = contentService.getLocalTransformServiceRegistry();
-            transformedNode = transformer.transform(localTransformServiceRegistry, copyNodeRef, reader, writer);
+            transformedNode = transformer.transform(synchronousTransformClient, copyNodeRef, reader, writer);
         }
         
         return transformedNode;
@@ -2880,7 +2881,7 @@ public class ScriptNode implements Scopeable, NamespacePrefixResolverProvider
         // the delegate definition for transforming an image
         Transformer transformer = new AbstractTransformer()
         {
-            protected void doTransform(LocalTransformServiceRegistry localTransformServiceRegistry, ContentReader reader, ContentWriter writer)
+            protected void doTransform(SynchronousTransformClient synchronousTransformClient, ContentReader reader, ContentWriter writer)
             {
                 Map<String, String> actualOptions = Collections.emptyMap();
                 if (options != null || !options.trim().isEmpty())
@@ -2889,7 +2890,7 @@ public class ScriptNode implements Scopeable, NamespacePrefixResolverProvider
                     throw new IllegalArgumentException("ImageMagick commandOptions '"+options+
                             "' may no longer be passed blindly to the transformer for security reasons.");
                 }
-                transformNodeRef(localTransformServiceRegistry, reader, writer, actualOptions, sourceNodeRef);
+                transformNodeRef(synchronousTransformClient, reader, writer, actualOptions, sourceNodeRef);
             }
         };
         
@@ -4170,27 +4171,27 @@ public class ScriptNode implements Scopeable, NamespacePrefixResolverProvider
         /**
          * Transform the reader to the specified writer
          * 
-         * @param localTransformServiceRegistry
+         * @param synchronousTransformClient
          * @param noderef          NodeRef of the destination for the transform
          * @param reader           Source reader
          * @param writer           Destination writer
          *
          * @return Node representing the transformed entity
          */
-        ScriptNode transform(LocalTransformServiceRegistry localTransformServiceRegistry, NodeRef noderef,
+        ScriptNode transform(SynchronousTransformClient synchronousTransformClient, NodeRef noderef,
             ContentReader reader, ContentWriter writer);
     }
 
     private abstract class AbstractTransformer implements Transformer
     {
-        public ScriptNode transform(LocalTransformServiceRegistry localTransformServiceRegistry, NodeRef nodeRef,
+        public ScriptNode transform(SynchronousTransformClient synchronousTransformClient, NodeRef nodeRef,
             ContentReader reader, ContentWriter writer)
         {
             ScriptNode transformedNode = null;
 
             try
             {
-                doTransform(localTransformServiceRegistry, reader, writer);
+                doTransform(synchronousTransformClient, reader, writer);
                 transformedNode = newInstance(nodeRef, services, scope);
             }
             catch (NoTransformerException e)
@@ -4220,7 +4221,7 @@ public class ScriptNode implements Scopeable, NamespacePrefixResolverProvider
             return transformedNode;
         }
 
-        protected abstract void doTransform(LocalTransformServiceRegistry localTransformServiceRegistry,
+        protected abstract void doTransform(SynchronousTransformClient synchronousTransformClient,
             ContentReader reader, ContentWriter writer);
     };
 
