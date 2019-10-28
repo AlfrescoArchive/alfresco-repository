@@ -28,13 +28,8 @@ package org.alfresco.repo.content.transform;
 import org.alfresco.model.ContentModel;
 import org.alfresco.repo.content.filestore.FileContentWriter;
 import org.alfresco.repo.model.Repository;
-import org.alfresco.repo.rendition2.RenditionDefinition2;
-import org.alfresco.repo.rendition2.RenditionDefinition2Impl;
-import org.alfresco.repo.rendition2.RenditionDefinitionRegistry2Impl;
 import org.alfresco.repo.rendition2.SynchronousTransformClient;
-import org.alfresco.repo.rendition2.TransformClient;
 import org.alfresco.repo.transaction.RetryingTransactionHelper;
-import org.alfresco.service.cmr.repository.ContentData;
 import org.alfresco.service.cmr.repository.ContentReader;
 import org.alfresco.service.cmr.repository.ContentService;
 import org.alfresco.service.cmr.repository.ContentWriter;
@@ -77,8 +72,6 @@ import java.util.TreeSet;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Pattern;
 
-import static org.alfresco.repo.rendition2.RenditionService2Impl.SOURCE_HAS_NO_CONTENT;
-
 /**
  * Debugs transformers selection and activity.<p>
  *
@@ -111,7 +104,7 @@ public class TransformerDebug implements ApplicationContextAware
 
     private ApplicationContext applicationContext;
     private ContentService contentService;
-    private SynchronousTransformClient transformClient;
+    private SynchronousTransformClient synchronousTransformClient;
     private Repository repositoryHelper;
     private TransactionService transactionService;
 
@@ -351,18 +344,18 @@ public class TransformerDebug implements ApplicationContextAware
         this.contentService = contentService;
     }
 
-    private SynchronousTransformClient getTransformClient()
+    private SynchronousTransformClient getSynchronousTransformClient()
     {
-        if (transformClient == null)
+        if (synchronousTransformClient == null)
         {
-            transformClient = (SynchronousTransformClient) applicationContext.getBean("legacySynchronousTransformClient");
+            synchronousTransformClient = (SynchronousTransformClient) applicationContext.getBean("legacySynchronousTransformClient");
         }
-        return transformClient;
+        return synchronousTransformClient;
     }
 
     public void setSynchronousTransformClient(SynchronousTransformClient transformClient)
     {
-        this.transformClient = transformClient;
+        this.synchronousTransformClient = transformClient;
     }
 
     public Repository getRepositoryHelper()
@@ -1676,7 +1669,7 @@ public class TransformerDebug implements ApplicationContextAware
                 setStringBuilder(sb);
                 sourceNodeRef = createSourceNode(sourceExtension, sourceMimetype);
                 ContentReader reader = contentService.getReader(sourceNodeRef, ContentModel.PROP_CONTENT);
-                SynchronousTransformClient synchronousTransformClient = getTransformClient();
+                SynchronousTransformClient synchronousTransformClient = getSynchronousTransformClient();
                 Map<String, String> actualOptions = Collections.emptyMap();
                 synchronousTransformClient.isSupported(sourceNodeRef, targetMimetype, actualOptions, null, nodeService);
                 synchronousTransformClient.transform(reader, writer, actualOptions, null, sourceNodeRef);
