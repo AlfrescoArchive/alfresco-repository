@@ -2,7 +2,7 @@
  * #%L
  * Alfresco Data model classes
  * %%
- * Copyright (C) 2005 - 2016 Alfresco Software Limited
+ * Copyright (C) 2005 - 2019 Alfresco Software Limited
  * %%
  * This file is part of the Alfresco software. 
  * If the software was purchased under a paid Alfresco license, the terms of 
@@ -72,13 +72,13 @@ public class DictionaryDAOImpl implements DictionaryDAO, NamespaceDAO,
     private TenantService tenantService;
 
     // used to reset the cache
-    private ThreadLocal<Map<String, DictionaryRegistry>> dictionaryRegistryThreadLocal = new ThreadLocal<Map<String, DictionaryRegistry>>();
+    private ThreadLocal<Map<String, DictionaryRegistry>> dictionaryRegistryThreadLocal = new ThreadLocal<>();
 
     // Internal cache (clusterable)
     private CompiledModelsCache dictionaryRegistryCache;
 
     // Static list of registered dictionary listeners
-    private List<DictionaryListener> dictionaryListeners = new ArrayList<DictionaryListener>();
+    private List<DictionaryListener> dictionaryListeners = new ArrayList<>();
     private ReadWriteLock dictionaryListenersLock = new ReentrantReadWriteLock();
 
     // Logger
@@ -95,8 +95,7 @@ public class DictionaryDAOImpl implements DictionaryDAO, NamespaceDAO,
         this.tenantService = tenantService;
     }
 
-    public void setDictionaryRegistryCache(
-            CompiledModelsCache dictionaryRegistryCache)
+    public void setDictionaryRegistryCache(CompiledModelsCache dictionaryRegistryCache)
     {
         this.dictionaryRegistryCache = dictionaryRegistryCache;
     }
@@ -107,8 +106,7 @@ public class DictionaryDAOImpl implements DictionaryDAO, NamespaceDAO,
         return defaultAnalyserResourceBundleName;
     }
 
-    public void setDefaultAnalyserResourceBundleName(
-            String defaultAnalyserResourceBundleName)
+    public void setDefaultAnalyserResourceBundleName(String defaultAnalyserResourceBundleName)
     {
         this.defaultAnalyserResourceBundleName = defaultAnalyserResourceBundleName;
     }
@@ -162,7 +160,7 @@ public class DictionaryDAOImpl implements DictionaryDAO, NamespaceDAO,
         this.dictionaryListenersLock.readLock().lock();
         try
         {
-            return new ArrayList<DictionaryListener>(dictionaryListeners);
+            return new ArrayList<>(dictionaryListeners);
         }
         finally
         {
@@ -172,8 +170,7 @@ public class DictionaryDAOImpl implements DictionaryDAO, NamespaceDAO,
 
     private Map<String, DictionaryRegistry> getThreadLocal()
     {
-        Map<String, DictionaryRegistry> map = dictionaryRegistryThreadLocal
-                .get();
+        Map<String, DictionaryRegistry> map = dictionaryRegistryThreadLocal.get();
         if (map == null)
         {
             map = new HashMap<String, DictionaryRegistry>();
@@ -184,13 +181,11 @@ public class DictionaryDAOImpl implements DictionaryDAO, NamespaceDAO,
 
     private DictionaryRegistry createCoreDictionaryRegistry()
     {
-        DictionaryRegistry dictionaryRegistry = new CoreDictionaryRegistryImpl(
-                this);
+        DictionaryRegistry dictionaryRegistry = new CoreDictionaryRegistryImpl(this);
         return dictionaryRegistry;
     }
 
-    private DictionaryRegistry createTenantDictionaryRegistry(
-            final String tenant)
+    private DictionaryRegistry createTenantDictionaryRegistry(final String tenant)
     {
         DictionaryRegistry result = AuthenticationUtil.runAs(
                 new RunAsWork<DictionaryRegistry>()
@@ -213,6 +208,8 @@ public class DictionaryDAOImpl implements DictionaryDAO, NamespaceDAO,
         String tenant = tenantService.getCurrentUserDomain();
 
         dictionaryRegistryCache.forceInChangesForThisUncommittedTransaction(tenant);
+        
+        dictionaryRegistryCache.refresh(tenant);
 
         if (logger.isDebugEnabled())
         {

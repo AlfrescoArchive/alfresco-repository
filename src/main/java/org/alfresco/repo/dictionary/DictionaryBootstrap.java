@@ -2,7 +2,7 @@
  * #%L
  * Alfresco Data model classes
  * %%
- * Copyright (C) 2005 - 2016 Alfresco Software Limited
+ * Copyright (C) 2005 - 2019 Alfresco Software Limited
  * %%
  * This file is part of the Alfresco software. 
  * If the software was purchased under a paid Alfresco license, the terms of 
@@ -138,8 +138,9 @@ public class DictionaryBootstrap implements DictionaryListener
 
     /*
      * (non-Javadoc)
-     * @see org.alfresco.repo.dictionary.DictionaryListener#onInit()
+     * @see org.alfresco.repo.dictionary.DictionaryListener#onDictionaryInit()
      */
+    @Override
     public void onDictionaryInit()
     {
         long startTime = System.currentTimeMillis();
@@ -150,45 +151,40 @@ public class DictionaryBootstrap implements DictionaryListener
         }
 
         // note: on first bootstrap will init empty dictionary
-        Collection<QName> modelsBefore = dictionaryDAO.getModels(true); // note: on first bootstrap will init empty dictionary
+        Collection<QName> modelsBefore = dictionaryDAO.getModels(true);
         int modelsBeforeCnt = (modelsBefore != null ? modelsBefore.size() : 0);
         
-        if ((tenantService == null) || (! tenantService.isTenantUser()))
+        if (tenantService == null || !tenantService.isTenantUser())
         {
             // register models
             for (String bootstrapModel : models)
             {
-                InputStream modelStream = getClass().getClassLoader().getResourceAsStream(bootstrapModel);
-                if (modelStream == null)
+                try (InputStream modelStream = getClass().getClassLoader().getResourceAsStream(bootstrapModel))
                 {
-                    throw new DictionaryException("d_dictionary.bootstrap.model_not_found", bootstrapModel);
-                }
-                try
-                {
-                    M2Model model = M2Model.createModel(modelStream);
-                    model.setConfigProperties(globalProperties);
-                    
-                    if (logger.isDebugEnabled())
+                    if (modelStream == null)
                     {
-                        logger.debug("Loading model: "+model.getName()+" (from "+bootstrapModel+")");
+                        throw new DictionaryException("d_dictionary.bootstrap.model_not_found", bootstrapModel);
                     }
-
-                    dictionaryDAO.putModel(model);
-                }
-                catch(DictionaryException e)
-                {
-                    throw new DictionaryException("d_dictionary.bootstrap.model_not_imported", e, bootstrapModel);
-                }
-                finally
-                {
                     try
                     {
-                        modelStream.close();
-                    } 
-                    catch (IOException ioe)
-                    {
-                        logger.warn("Failed to close model input stream for '"+bootstrapModel+"': "+ioe);
+                        M2Model model = M2Model.createModel(modelStream);
+                        model.setConfigProperties(globalProperties);
+
+                        if (logger.isDebugEnabled())
+                        {
+                            logger.debug("Loading model: "+model.getName()+" (from "+bootstrapModel+")");
+                        }
+
+                        dictionaryDAO.putModel(model);
                     }
+                    catch(DictionaryException e)
+                    {
+                        throw new DictionaryException("d_dictionary.bootstrap.model_not_imported", e, bootstrapModel);
+                    }
+                }
+                catch (IOException ioe)
+                {
+                    logger.warn("Failed to close model input stream for '"+bootstrapModel+"': "+ioe);
                 }
             }
             
@@ -204,16 +200,18 @@ public class DictionaryBootstrap implements DictionaryListener
     
     /*
      * (non-Javadoc)
-     * @see org.alfresco.repo.dictionary.DictionaryListener#afterInit()
+     * @see org.alfresco.repo.dictionary.DictionaryListener#afterDictionaryInit()
      */
+    @Override
     public void afterDictionaryInit()
     {
     }
     
     /*
      * (non-Javadoc)
-     * @see org.alfresco.repo.dictionary.DictionaryListener#onDictionaryDestroy()
+     * @see org.alfresco.repo.dictionary.DictionaryListener#afterDictionaryDestroy()
      */
+    @Override
     public void afterDictionaryDestroy()
     {
     }
