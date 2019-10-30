@@ -151,9 +151,6 @@
        <property name="transformerRegistry">
            <ref bean="contentTransformerRegistry" />
        </property>
-       <property name="localTransformServiceRegistry">
-           <ref bean="localTransformServiceRegistryImpl" />
-       </property>
       <property name="policyComponent">
           <ref bean="policyComponent" />
       </property>

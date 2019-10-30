@@ -30,6 +30,7 @@ import org.alfresco.repo.content.transform.LocalTransformServiceRegistry;
 import org.alfresco.service.cmr.repository.ContentReader;
 import org.alfresco.service.cmr.repository.ContentWriter;
 import org.alfresco.service.cmr.repository.NodeRef;
+import org.alfresco.service.cmr.repository.TransformationOptions;
 import org.alfresco.util.PropertyCheck;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -52,10 +53,16 @@ public class LocalSynchronousTransformClient implements SynchronousTransformClie
 
     private LocalTransformServiceRegistry localTransformServiceRegistry;
     private ThreadLocal<LocalTransform> transform = new ThreadLocal<>();
+    private TransformationOptionsConverter converter;
 
     public void setLocalTransformServiceRegistry(LocalTransformServiceRegistry localTransformServiceRegistry)
     {
         this.localTransformServiceRegistry = localTransformServiceRegistry;
+    }
+
+    public void setConverter(TransformationOptionsConverter converter)
+    {
+        this.converter = converter;
     }
 
     @Override
@@ -65,8 +72,8 @@ public class LocalSynchronousTransformClient implements SynchronousTransformClie
     }
 
     @Override
-    public boolean isSupported(NodeRef sourceNodeRef, String sourceMimetype, long sourceSizeInBytes, String contentUrl,
-                        String targetMimetype,  Map<String, String> actualOptions, String transformName)
+    public boolean isSupported(String sourceMimetype, long sourceSizeInBytes, String contentUrl, String targetMimetype,
+                               Map<String, String> actualOptions, String transformName, NodeRef sourceNodeRef)
     {
         String renditionName = TransformDefinition.convertToRenditionName(transformName);
         LocalTransform localTransform = localTransformServiceRegistry.getLocalTransform(sourceMimetype,
@@ -119,5 +126,12 @@ public class LocalSynchronousTransformClient implements SynchronousTransformClie
             }
             throw e;
         }
+    }
+
+    @Override
+    @Deprecated
+    public Map<String, String> convertOptions(TransformationOptions options)
+    {
+        return converter.getOptions(options);
     }
 }

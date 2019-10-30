@@ -28,6 +28,7 @@ package org.alfresco.repo.rendition2;
 import org.alfresco.service.cmr.repository.ContentReader;
 import org.alfresco.service.cmr.repository.ContentWriter;
 import org.alfresco.service.cmr.repository.NodeRef;
+import org.alfresco.service.cmr.repository.TransformationOptions;
 
 import java.util.Map;
 
@@ -52,17 +53,17 @@ public class SwitchingSynchronousTransformClient implements SynchronousTransform
     }
 
     @Override
-    public boolean isSupported(NodeRef sourceNodeRef, String sourceMimetype, long sourceSizeInBytes, String contentUrl,
-                               String targetMimetype, Map<String, String> actualOptions, String transformName)
+    public boolean isSupported(String sourceMimetype, long sourceSizeInBytes, String contentUrl, String targetMimetype,
+                               Map<String, String> actualOptions, String transformName, NodeRef sourceNodeRef)
     {
         boolean supported = true;
-        if (primary.isSupported(sourceNodeRef, sourceMimetype, sourceSizeInBytes, contentUrl,
-                targetMimetype, actualOptions, transformName))
+        if (primary.isSupported(sourceMimetype, sourceSizeInBytes, contentUrl, targetMimetype, actualOptions,
+                transformName, sourceNodeRef))
         {
             synchronousTransformClient.set(primary);
         }
-        else if (secondary.isSupported(sourceNodeRef, sourceMimetype, sourceSizeInBytes, contentUrl,
-                targetMimetype, actualOptions, transformName))
+        else if (secondary.isSupported(sourceMimetype, sourceSizeInBytes, contentUrl, targetMimetype, actualOptions,
+                transformName, sourceNodeRef))
         {
             synchronousTransformClient.set(secondary);
         }
@@ -74,8 +75,16 @@ public class SwitchingSynchronousTransformClient implements SynchronousTransform
     }
 
     @Override
-    public void transform(ContentReader reader, ContentWriter writer, Map<String, String> actualOptions, String transformName, NodeRef sourceNodeRef) throws Exception
+    public void transform(ContentReader reader, ContentWriter writer, Map<String, String> actualOptions,
+                          String transformName, NodeRef sourceNodeRef) throws Exception
     {
         synchronousTransformClient.get().transform(reader, writer, actualOptions, transformName, sourceNodeRef);
+    }
+
+    @Override
+    @Deprecated
+    public Map<String, String> convertOptions(TransformationOptions options)
+    {
+        return secondary.convertOptions(options);
     }
 }

@@ -73,14 +73,15 @@ public class LegacySynchronousTransformClient implements SynchronousTransformCli
     }
 
     @Override
-    public boolean isSupported(NodeRef sourceNodeRef, String sourceMimetype, long sourceSizeInBytes, String contentUrl,
-                               String targetMimetype,  Map<String, String> actualOptions, String transformName)
+    public boolean isSupported(String sourceMimetype, long sourceSizeInBytes, String contentUrl, String targetMimetype,
+                               Map<String, String> actualOptions, String transformName, NodeRef sourceNodeRef)
     {
         String renditionName = TransformDefinition.convertToRenditionName(transformName);
         TransformationOptions transformationOptions = converter.getTransformationOptions(renditionName, actualOptions);
         transformationOptions.setSourceNodeRef(sourceNodeRef);
 
-        ContentTransformer legacyTransform = contentService.getTransformer(contentUrl, sourceMimetype, sourceSizeInBytes, targetMimetype, transformationOptions);
+        ContentTransformer legacyTransform = contentService.getTransformer(contentUrl, sourceMimetype,
+                sourceSizeInBytes, targetMimetype, transformationOptions);
         transform.set(legacyTransform);
 
         if (logger.isDebugEnabled())
@@ -135,5 +136,12 @@ public class LegacySynchronousTransformClient implements SynchronousTransformCli
             }
             throw e;
         }
+    }
+
+    @Override
+    @Deprecated
+    public Map<String, String> convertOptions(TransformationOptions options)
+    {
+        return converter.getOptions(options);
     }
 }

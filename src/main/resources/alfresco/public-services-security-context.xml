@@ -495,7 +495,6 @@
                org.alfresco.service.cmr.repository.ContentService.getWriter=ACL_NODE.0.sys:base.WriteContent
                org.alfresco.service.cmr.repository.ContentService.getTransformer=ACL_ALLOW
                org.alfresco.service.cmr.repository.ContentService.getMaxSourceSizeBytes=ACL_ALLOW
-               org.alfresco.service.cmr.repository.ContentService.getLocalTransformServiceRegistry=ACL_ALLOW
                org.alfresco.service.cmr.repository.ContentService.transform=ACL_ALLOW
                org.alfresco.service.cmr.repository.ContentService.getTempWriter=ACL_ALLOW
                org.alfresco.service.cmr.repository.ContentService.*=ACL_DENY

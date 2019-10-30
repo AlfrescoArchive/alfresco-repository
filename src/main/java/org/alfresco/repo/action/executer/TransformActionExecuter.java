@@ -2,7 +2,7 @@
  * #%L
  * Alfresco Repository
  * %%
- * Copyright (C) 2005 - 2016 Alfresco Software Limited
+ * Copyright (C) 2005 - 2019 Alfresco Software Limited
  * %%
  * This file is part of the Alfresco software. 
  * If the software was purchased under a paid Alfresco license, the terms of 
@@ -26,6 +26,7 @@
 package org.alfresco.repo.action.executer;
 
 import java.util.List;
+import java.util.Map;
 
 import org.alfresco.model.ContentModel;
 import org.alfresco.query.PagingRequest;
@@ -33,6 +34,7 @@ import org.alfresco.query.PagingResults;
 import org.alfresco.repo.action.ParameterDefinitionImpl;
 import org.alfresco.repo.content.transform.UnimportantTransformException;
 import org.alfresco.repo.content.transform.UnsupportedTransformationException;
+import org.alfresco.repo.rendition2.SynchronousTransformClient;
 import org.alfresco.service.cmr.action.Action;
 import org.alfresco.service.cmr.action.ParameterDefinition;
 import org.alfresco.service.cmr.coci.CheckOutCheckInService;
@@ -90,7 +92,8 @@ public class TransformActionExecuter extends ActionExecuterAbstractBase
     private ContentService contentService;
     private CopyService copyService;
     private MimetypeService mimetypeService;
-    
+    private SynchronousTransformClient synchronousTransformClient;
+
     /**
      * Properties (needed to avoid changing method signatures)
      */
@@ -104,7 +107,12 @@ public class TransformActionExecuter extends ActionExecuterAbstractBase
     {
         this.mimetypeService = mimetypeService;
     }
-    
+
+    public void setSynchronousTransformClient(SynchronousTransformClient synchronousTransformClient)
+    {
+        this.synchronousTransformClient = synchronousTransformClient;
+    }
+
     /**
      * Set the node service
      */
@@ -189,10 +197,16 @@ public class TransformActionExecuter extends ActionExecuterAbstractBase
         }
 
         TransformationOptions options = newTransformationOptions(ruleAction, actionedUponNodeRef);
-        // getExecuteAsychronously() is not true for async convert content rules, so using Thread name
-        //        options.setUse(ruleAction.getExecuteAsychronously() ? "asyncRule" :"syncRule");
+        // getExecuteAsynchronously() is not true for async convert content rules, so using Thread name
+        // options.setUse(ruleAction.getExecuteAsynchronously() ? "asyncRule" :"syncRule");
         options.setUse(Thread.currentThread().getName().contains("Async") ? "asyncRule" :"syncRule");
-        if (null == contentService.getTransformer(contentReader.getContentUrl(), contentReader.getMimetype(), contentReader.getSize(), mimeType, options))
+
+        String sourceMimetype = contentReader.getMimetype();
+        long sourceSizeInBytes = contentReader.getSize();
+        String contentUrl = contentReader.getContentUrl();
+        Map<String, String> actualOptions = synchronousTransformClient.convertOptions(options);
+        if (synchronousTransformClient.isSupported(sourceMimetype, sourceSizeInBytes,
+                contentUrl, mimeType, actualOptions, null, actionedUponNodeRef))
         {
             throw new RuleServiceException(String.format(TRANSFORMER_NOT_EXISTS_MESSAGE_PATTERN, contentReader.getMimetype(), mimeType));
         }

@@ -2,7 +2,7 @@
  * #%L
  * Alfresco Repository
  * %%
- * Copyright (C) 2005 - 2016 Alfresco Software Limited
+ * Copyright (C) 2005 - 2019 Alfresco Software Limited
  * %%
  * This file is part of the Alfresco software. 
  * If the software was purchased under a paid Alfresco license, the terms of 
@@ -222,17 +222,6 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
     public void setTransformerDebug(TransformerDebug transformerDebug)
     {
         this.transformerDebug = transformerDebug;
-    }
-
-    @Override
-    public LocalTransformServiceRegistry getLocalTransformServiceRegistry()
-    {
-        return localTransformServiceRegistry;
-    }
-
-    public void setLocalTransformServiceRegistry(LocalTransformServiceRegistry localTransformServiceRegistry)
-    {
-        this.localTransformServiceRegistry = localTransformServiceRegistry;
     }
 
     /**

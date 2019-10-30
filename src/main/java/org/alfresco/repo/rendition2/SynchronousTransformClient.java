@@ -31,6 +31,7 @@ import org.alfresco.service.cmr.repository.ContentReader;
 import org.alfresco.service.cmr.repository.ContentWriter;
 import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.cmr.repository.NodeService;
+import org.alfresco.service.cmr.repository.TransformationOptions;
 
 import java.util.Map;
 
@@ -44,11 +45,9 @@ import java.util.Map;
 public interface SynchronousTransformClient
 {
     /**
-     * Works out if it is possible to transform content of a given source mimetype and size into a
-     * target mimetype given a list of actual transform option names and values (Strings) plus the data contained in the
-     * Transformer objects registered with this class.
+     * Works out if it is possible to transform content of a given source mimetype and size into a target mimetype
+     * given a list of actual transform option names and values.
      *
-     * @param sourceNodeRef the NodeRef of the source content. Optional as it is only used in debug messages.
      * @param sourceMimetype the mimetype of the source content
      * @param sourceSizeInBytes the size in bytes of the source content. Ignored if negative.
      * @param contentUrl The url of the content. Optional as it is only used in debug messages.
@@ -57,36 +56,55 @@ public interface SynchronousTransformClient
      * @param transformName (optional) name for the set of options and target mimetype. If supplied is used to cache
      * results to avoid having to work out if a given transformation is supported a second time. The sourceMimetype
      * and sourceSizeInBytes may still change. In the case of ACS this is the rendition name.
+     * @param sourceNodeRef the NodeRef of the source content. Optional as it is only used in debug messages.
      * @return {@code}true{@code} if it is supported.
      */
     @Deprecated
-    boolean isSupported(NodeRef sourceNodeRef, String sourceMimetype, long sourceSizeInBytes, String contentUrl,
-                        String targetMimetype,  Map<String, String> actualOptions, String transformName);
-
-    default boolean isSupported(final String sourceMimetype, final long sourceSizeInBytes,
-                final String targetMimetype, final Map<String, String> actualOptions,
-                final String transformName)
-    {
-        return isSupported(null, sourceMimetype, sourceSizeInBytes, null,
-                targetMimetype, actualOptions, transformName);
-    }
+    boolean isSupported(String sourceMimetype, long sourceSizeInBytes, String contentUrl, String targetMimetype,
+                        Map<String, String> actualOptions, String transformName, NodeRef sourceNodeRef);
 
     /**
-     * Helper method to call {@link #isSupported(NodeRef, String, long, String, String, Map, String)}. Uses the
-     * {@code nodeService} and {@code sourceNodeRef} to work out the {@code sourceMimetype}, {@code sourceSizeInBytes}
-     * and {@code contentUrl}.
+     * Overrides and calls {@link #isSupported(String, long, String, String, Map, String, NodeRef)} to work out if a
+     * transform is supported. Uses the {@code contentReader} to work out the {@code sourceMimetype},
+     * {@code sourceSizeInBytes} and {@code contentUrl}.
+     * @param contentReader to access the sourceNodeRef content property.
      * @param sourceNodeRef the NodeRef of the source content.
      * @param targetMimetype the mimetype of the target
      * @param actualOptions the actual name value pairs available that could be passed to the Transform Service.
      * @param transformName (optional) name for the set of options and target mimetype. If supplied is used to cache
      * results to avoid having to work out if a given transformation is supported a second time. The sourceMimetype
      * and sourceSizeInBytes may still change. In the case of ACS this is the rendition name.
-     * @param nodeService to access the sourceNodeRef content property.
      * @return {@code}true{@code} if it is supported.
      */
     @Deprecated
-    default boolean isSupported(NodeRef sourceNodeRef, String targetMimetype,
-                                Map<String, String> actualOptions, String transformName, NodeService nodeService)
+    // TODO include the following in the calling code, so this method may be removed.
+    default boolean isSupported(ContentReader contentReader, NodeRef sourceNodeRef, String targetMimetype,
+                                Map<String, String> actualOptions, String transformName)
+    {
+        String sourceMimetype = contentReader.getMimetype();
+        long sourceSizeInBytes = contentReader.getSize();
+        String contentUrl = contentReader.getContentUrl();
+        return isSupported(sourceMimetype, sourceSizeInBytes, contentUrl, targetMimetype, actualOptions,
+                transformName, sourceNodeRef);
+    }
+
+    /**
+     * Overrides and calls {@link #isSupported(String, long, String, String, Map, String, NodeRef)} to work out if a
+     * transform is supported. Uses the {@code nodeService} to read the content of the {@code sourceNodeRef} to work out
+     * the {@code sourceMimetype}, {@code sourceSizeInBytes} and {@code contentUrl}.
+     * @param nodeService to access the sourceNodeRef's content property.
+     * @param sourceNodeRef the NodeRef of the source content.
+     * @param targetMimetype the mimetype of the target
+     * @param actualOptions the actual name value pairs available that could be passed to the Transform Service.
+     * @param transformName (optional) name for the set of options and target mimetype. If supplied is used to cache
+     * results to avoid having to work out if a given transformation is supported a second time. The sourceMimetype
+     * and sourceSizeInBytes may still change. In the case of ACS this is the rendition name.
+     * @return {@code}true{@code} if it is supported.
+     */
+    @Deprecated
+    // TODO include the following in the calling code, so this method may be removed.
+    default boolean isSupported(NodeService nodeService, NodeRef sourceNodeRef, String targetMimetype,
+                                Map<String, String> actualOptions, String transformName)
     {
         boolean supported = false;
         ContentData contentData = (ContentData) nodeService.getProperty(sourceNodeRef, ContentModel.PROP_CONTENT);
@@ -95,8 +113,8 @@ public interface SynchronousTransformClient
             String sourceMimetype = contentData.getMimetype();
             long sourceSizeInBytes = contentData.getSize();
             String contentUrl = contentData.getContentUrl();
-            supported = isSupported(sourceNodeRef, sourceMimetype, sourceSizeInBytes, contentUrl,
-                    targetMimetype, actualOptions, transformName);
+            supported = isSupported(sourceMimetype, sourceSizeInBytes, contentUrl, targetMimetype, actualOptions,
+                    transformName, sourceNodeRef);
         }
         return supported;
     }
@@ -104,7 +122,7 @@ public interface SynchronousTransformClient
     /**
      * Requests a synchronous transform. Not used for renditions.
      * The call to this method <b>MUST</b> be proceeded by a successful call to
-     * {@link #isSupported(NodeRef, String, long, String, String, Map, String)} in the <b>SAME</b> Thread.
+     * {@link #isSupported(String, long, String, String, Map, String, NodeRef)} in the <b>SAME</b> Thread.
      * @param reader of the source content
      * @param writer to the target node's content
      * @param actualOptions the actual name value pairs available that could be passed to the Transform Service.
@@ -116,4 +134,8 @@ public interface SynchronousTransformClient
     @Deprecated
     void transform(ContentReader reader, ContentWriter writer, Map<String, String> actualOptions,
                    String transformName, NodeRef sourceNodeRef) throws Exception;
+
+    // TODO Replace code that calls this method with code that uses the newer Map of transform objects.
+    @Deprecated
+    Map<String, String> convertOptions(TransformationOptions options);
 }

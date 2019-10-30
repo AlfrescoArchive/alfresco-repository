@@ -144,7 +144,7 @@ public class LocalSynchronousTransformClientIntegrationTest extends AbstractRend
             String targetMimetype = renditionDefinition.getTargetMimetype();
             Map<String, String> actualOptions = renditionDefinition.getTransformOptions();
 
-            synchronousTransformClient.isSupported(sourceNode, targetMimetype, actualOptions, null, nodeService);
+            synchronousTransformClient.isSupported(nodeService, sourceNode, targetMimetype, actualOptions, null);
 
             ContentReader reader = contentService.getReader(sourceNode, PROP_CONTENT);
             ContentWriter writer = contentService.getTempWriter();

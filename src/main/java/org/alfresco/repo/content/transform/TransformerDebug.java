@@ -2,7 +2,7 @@
  * #%L
  * Alfresco Repository
  * %%
- * Copyright (C) 2005 - 2016 Alfresco Software Limited
+ * Copyright (C) 2005 - 2019 Alfresco Software Limited
  * %%
  * This file is part of the Alfresco software. 
  * If the software was purchased under a paid Alfresco license, the terms of 
@@ -1670,7 +1670,7 @@ public class TransformerDebug implements ApplicationContextAware
                 ContentReader reader = contentService.getReader(sourceNodeRef, ContentModel.PROP_CONTENT);
                 SynchronousTransformClient synchronousTransformClient = getSynchronousTransformClient();
                 Map<String, String> actualOptions = Collections.emptyMap();
-                synchronousTransformClient.isSupported(sourceNodeRef, targetMimetype, actualOptions, null, nodeService);
+                synchronousTransformClient.isSupported(nodeService, sourceNodeRef, targetMimetype, actualOptions, null);
                 synchronousTransformClient.transform(reader, writer, actualOptions, null, sourceNodeRef);
             }
             catch (Exception e)
