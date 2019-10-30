@@ -797,6 +797,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
      * @deprecated The transformations code is being moved out of the codebase and replaced by the new async RenditionService2 or other external libraries.
      */
     @Deprecated
+    // TODO move to LegacyTransformServiceRegistry which is the last caller of this method.
     public long getMaxSourceSizeBytes(String sourceMimetype, String targetMimetype, TransformationOptions options)
     {
         try

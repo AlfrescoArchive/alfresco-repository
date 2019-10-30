@@ -46,7 +46,7 @@ import java.util.Map;
  * @author adavis
  */
 @Deprecated
-public class LegacySynchronousTransformClient implements SynchronousTransformClient, InitializingBean
+public class LegacySynchronousTransformClient implements SynchronousTransformClient<ContentTransformer>, InitializingBean
 {
     private static final String TRANSFORM = "Legacy synchronous transform ";
     private static Log logger = LogFactory.getLog(LegacyTransformClient.class);
@@ -100,11 +100,12 @@ public class LegacySynchronousTransformClient implements SynchronousTransformCli
         TransformationOptions options = converter.getTransformationOptions(renditionName, actualOptions);
         options.setSourceNodeRef(sourceNodeRef);
         ContentTransformer legacyTransform = transform.get();
+        transform.set(null);
         try
         {
             if (legacyTransform == null)
             {
-                throw new IllegalStateException("isSupported was not called prior to transform.");
+                throw new IllegalStateException(IS_SUPPORTED_NOT_CALLED);
             }
 
             if (null == reader || !reader.exists())
@@ -136,6 +137,26 @@ public class LegacySynchronousTransformClient implements SynchronousTransformCli
             }
             throw e;
         }
+    }
+
+    @Override
+    @Deprecated
+    public ContentTransformer getSupportedBy()
+    {
+        ContentTransformer legacyTransform = transform.get();
+        transform.set(null);
+        if (legacyTransform == null)
+        {
+            throw new IllegalStateException(IS_SUPPORTED_NOT_CALLED);
+        }
+        return legacyTransform;
+    }
+
+    @Override
+    @Deprecated
+    public void setSupportedBy(ContentTransformer legacyTransform)
+    {
+        transform.set(legacyTransform);
     }
 
     @Override

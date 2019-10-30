@@ -27,6 +27,7 @@ package org.alfresco.repo.rendition2;
 
 import org.alfresco.repo.content.transform.LocalTransform;
 import org.alfresco.repo.content.transform.LocalTransformServiceRegistry;
+import org.alfresco.repo.content.transform.UnsupportedTransformationException;
 import org.alfresco.service.cmr.repository.ContentReader;
 import org.alfresco.service.cmr.repository.ContentWriter;
 import org.alfresco.service.cmr.repository.NodeRef;
@@ -46,7 +47,7 @@ import java.util.Map;
  * @author adavis
  */
 @Deprecated
-public class LocalSynchronousTransformClient implements SynchronousTransformClient, InitializingBean
+public class LocalSynchronousTransformClient implements SynchronousTransformClient<LocalTransform>, InitializingBean
 {
     private static final String TRANSFORM = "Local synchronous transform ";
     private static Log logger = LogFactory.getLog(LocalTransformClient.class);
@@ -78,7 +79,7 @@ public class LocalSynchronousTransformClient implements SynchronousTransformClie
         String renditionName = TransformDefinition.convertToRenditionName(transformName);
         LocalTransform localTransform = localTransformServiceRegistry.getLocalTransform(sourceMimetype,
                 sourceSizeInBytes, targetMimetype, actualOptions, renditionName);
-        transform.set(localTransform);
+        setSupportedBy(localTransform);
 
         if (logger.isDebugEnabled())
         {
@@ -93,14 +94,9 @@ public class LocalSynchronousTransformClient implements SynchronousTransformClie
                           String transformName, NodeRef sourceNodeRef) throws Exception
     {
         String renditionName = TransformDefinition.convertToRenditionName(transformName);
-        LocalTransform localTransform = transform.get();
+        LocalTransform localTransform = getSupportedBy();
         try
         {
-            if (localTransform == null)
-            {
-                throw new IllegalStateException("isSupported was not called prior to transform.");
-            }
-
             if (null == reader || !reader.exists())
             {
                 throw new IllegalArgumentException("sourceNodeRef "+sourceNodeRef+" has no content.");
@@ -126,6 +122,26 @@ public class LocalSynchronousTransformClient implements SynchronousTransformClie
             }
             throw e;
         }
+    }
+
+    @Override
+    @Deprecated
+    public LocalTransform getSupportedBy()
+    {
+        LocalTransform localTransform = transform.get();
+        transform.set(null);
+        if (localTransform == null)
+        {
+            throw new IllegalStateException(IS_SUPPORTED_NOT_CALLED);
+        }
+        return localTransform;
+    }
+
+    @Override
+    @Deprecated
+    public void setSupportedBy(LocalTransform localTransform)
+    {
+        transform.set(localTransform);
     }
 
     @Override

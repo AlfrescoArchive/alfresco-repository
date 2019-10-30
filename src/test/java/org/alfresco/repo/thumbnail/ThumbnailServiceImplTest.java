@@ -233,8 +233,8 @@ public class ThumbnailServiceImplTest extends BaseAlfrescoSpringTest
     {
         ImageTransformationOptions options = new ImageTransformationOptions();
         PagedSourceOptions pagedSourceOptions = new PagedSourceOptions();
-        pagedSourceOptions.setStartPageNumber(new Integer(2));
-        pagedSourceOptions.setEndPageNumber(new Integer(2));
+        pagedSourceOptions.setStartPageNumber(new Integer(1));
+        pagedSourceOptions.setEndPageNumber(new Integer(1));
         options.addSourceOptions(pagedSourceOptions);
         
         ThumbnailDefinition thumbnailDefinition = new ThumbnailDefinition(MimetypeMap.MIMETYPE_PDF, options, "doclib_2");
@@ -1183,23 +1183,24 @@ public class ThumbnailServiceImplTest extends BaseAlfrescoSpringTest
         
         // Create thumbnail - different content property
         // TODO
-        
-        // Create thumbnail - different command options
-        // We'll pass illegal command options to ImageMagick in order to trigger an exception
-        Exception x = null;
-        try
-        {
-            imageTransformationOptions.setCommandOptions("-noSuchOption");
-            thumbnail1 = this.thumbnailService.createThumbnail(jpgOrig, ContentModel.PROP_CONTENT,
-                    MimetypeMap.MIMETYPE_IMAGE_PNG, imageTransformationOptions, "smallCO");
-        } catch (ContentIOException ciox)
-        {
-            x = ciox;
-            ciox.printStackTrace();
-        }
-        assertNotNull("Expected exception from ImageMagick due to invalid option", x);
-        // Reset the command options
-        imageTransformationOptions.setCommandOptions("");
+
+// We now automatically discard all extra command options for security reasons.
+//        // Create thumbnail - different command options
+//        // We'll pass illegal command options to ImageMagick in order to trigger an exception
+//        Exception x = null;
+//        try
+//        {
+//            imageTransformationOptions.setCommandOptions("-noSuchOption");
+//            thumbnail1 = this.thumbnailService.createThumbnail(jpgOrig, ContentModel.PROP_CONTENT,
+//                    MimetypeMap.MIMETYPE_IMAGE_PNG, imageTransformationOptions, "smallCO");
+//        } catch (ContentIOException ciox)
+//        {
+//            x = ciox;
+//            ciox.printStackTrace();
+//        }
+//        assertNotNull("Expected exception from ImageMagick due to invalid option", x);
+//        // Reset the command options
+//        imageTransformationOptions.setCommandOptions("");
         
         
         // Create thumbnail - different target assoc details
@@ -1222,7 +1223,7 @@ public class ThumbnailServiceImplTest extends BaseAlfrescoSpringTest
                 MimetypeMap.MIMETYPE_IMAGE_PNG, imageTransformationOptions, null);
         assertNotNull(thumbnail1);
         checkRenditioned(jpgOrig, 
-        		Collections.singletonList(new ExpectedAssoc(RegexQNamePattern.MATCH_ALL, null, 5)));
+        		Collections.singletonList(new ExpectedAssoc(RegexQNamePattern.MATCH_ALL, null, 4)));
         checkRendition(null, thumbnail1);
         outputThumbnailTempContentLocation(thumbnail1, "png", "'null' - 64x64, marked as thumbnail");
     }

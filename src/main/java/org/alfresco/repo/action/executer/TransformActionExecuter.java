@@ -196,17 +196,17 @@ public class TransformActionExecuter extends ActionExecuterAbstractBase
             throw new RuleServiceException(CONTENT_READER_NOT_FOUND_MESSAGE);
         }
 
-        TransformationOptions options = newTransformationOptions(ruleAction, actionedUponNodeRef);
+        TransformationOptions transformationOptions = newTransformationOptions(ruleAction, actionedUponNodeRef);
         // getExecuteAsynchronously() is not true for async convert content rules, so using Thread name
         // options.setUse(ruleAction.getExecuteAsynchronously() ? "asyncRule" :"syncRule");
-        options.setUse(Thread.currentThread().getName().contains("Async") ? "asyncRule" :"syncRule");
+        transformationOptions.setUse(Thread.currentThread().getName().contains("Async") ? "asyncRule" :"syncRule");
 
         String sourceMimetype = contentReader.getMimetype();
         long sourceSizeInBytes = contentReader.getSize();
         String contentUrl = contentReader.getContentUrl();
-        Map<String, String> actualOptions = synchronousTransformClient.convertOptions(options);
+        Map<String, String> options = synchronousTransformClient.convertOptions(transformationOptions);
         if (!synchronousTransformClient.isSupported(sourceMimetype, sourceSizeInBytes,
-                contentUrl, mimeType, actualOptions, null, actionedUponNodeRef))
+                contentUrl, mimeType, options, null, actionedUponNodeRef))
         {
             throw new RuleServiceException(String.format(TRANSFORMER_NOT_EXISTS_MESSAGE_PATTERN, sourceMimetype, mimeType));
         }
