@@ -175,7 +175,7 @@ public class ThumbnailServiceImplTest extends BaseAlfrescoSpringTest
     
     private void checkTransformer()
     {
-        if (localTransformServiceRegistry.isSupported(MimetypeMap.MIMETYPE_IMAGE_JPEG, -1,
+        if (!localTransformServiceRegistry.isSupported(MimetypeMap.MIMETYPE_IMAGE_JPEG, -1,
                 MimetypeMap.MIMETYPE_IMAGE_JPEG, Collections.emptyMap(), null))
         {
             fail("Image transformer is not working.  Please check your image conversion command setup.");
