@@ -205,10 +205,10 @@ public class TransformActionExecuter extends ActionExecuterAbstractBase
         long sourceSizeInBytes = contentReader.getSize();
         String contentUrl = contentReader.getContentUrl();
         Map<String, String> actualOptions = synchronousTransformClient.convertOptions(options);
-        if (synchronousTransformClient.isSupported(sourceMimetype, sourceSizeInBytes,
+        if (!synchronousTransformClient.isSupported(sourceMimetype, sourceSizeInBytes,
                 contentUrl, mimeType, actualOptions, null, actionedUponNodeRef))
         {
-            throw new RuleServiceException(String.format(TRANSFORMER_NOT_EXISTS_MESSAGE_PATTERN, contentReader.getMimetype(), mimeType));
+            throw new RuleServiceException(String.format(TRANSFORMER_NOT_EXISTS_MESSAGE_PATTERN, sourceMimetype, mimeType));
         }
         
         // Get the details of the copy destination
