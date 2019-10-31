@@ -355,7 +355,7 @@ public class TransformationOptionsConverter implements InitializingBean
                 ifSet(height != -1, map, RESIZE_HEIGHT, height);
                 ifSet(imageResizeOptions.isResizeToThumbnail(), map, THUMBNAIL, true);
                 ifSet(imageResizeOptions.isPercentResize(), map, RESIZE_PERCENTAGE, true);
-                ifSet(imageResizeOptions.getAllowEnlargement(), map, ALLOW_ENLARGEMENT, false);
+                ifSet(!imageResizeOptions.getAllowEnlargement(), map, ALLOW_ENLARGEMENT, false);
                 ifSet(imageResizeOptions.isMaintainAspectRatio(), map, MAINTAIN_ASPECT_RATIO, true);
             }
 
