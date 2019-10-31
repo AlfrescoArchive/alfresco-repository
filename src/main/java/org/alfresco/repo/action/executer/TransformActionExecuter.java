@@ -339,9 +339,10 @@ public class TransformActionExecuter extends ActionExecuterAbstractBase
 
     {
         // transform - will throw NoTransformerException if there are no transformers
-        TransformationOptions options = newTransformationOptions(ruleAction, sourceNodeRef);
-        options.setTargetNodeRef(destinationNodeRef);
-        this.contentService.transform(contentReader, contentWriter, options);
+        TransformationOptions transformationOptions = newTransformationOptions(ruleAction, sourceNodeRef);
+        transformationOptions.setTargetNodeRef(destinationNodeRef);
+        Map options = synchronousTransformClient.convertOptions(transformationOptions);
+        synchronousTransformClient.transform(contentReader, contentWriter, options, null, sourceNodeRef);
     }
     
     /**

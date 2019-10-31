@@ -26,6 +26,8 @@
 package org.alfresco.repo.rendition2;
 
 import org.alfresco.repo.content.transform.ContentTransformer;
+import org.alfresco.repo.content.transform.UnsupportedTransformationException;
+import org.alfresco.service.cmr.repository.ContentIOException;
 import org.alfresco.service.cmr.repository.ContentReader;
 import org.alfresco.service.cmr.repository.ContentService;
 import org.alfresco.service.cmr.repository.ContentWriter;
@@ -94,7 +96,7 @@ public class LegacySynchronousTransformClient implements SynchronousTransformCli
 
     @Override
     public void transform(ContentReader reader, ContentWriter writer, Map<String, String> actualOptions,
-                          String transformName, NodeRef sourceNodeRef) throws Exception
+                          String transformName, NodeRef sourceNodeRef)
     {
         String renditionName = TransformDefinition.convertToRenditionName(transformName);
         TransformationOptions options = converter.getTransformationOptions(renditionName, actualOptions);

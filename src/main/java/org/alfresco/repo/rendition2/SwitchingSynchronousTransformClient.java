@@ -78,7 +78,7 @@ public class SwitchingSynchronousTransformClient implements SynchronousTransform
 
     @Override
     public void transform(ContentReader reader, ContentWriter writer, Map<String, String> actualOptions,
-                          String transformName, NodeRef sourceNodeRef) throws Exception
+                          String transformName, NodeRef sourceNodeRef)
     {
         Pair<SynchronousTransformClient,Object> clientSupportedBy = getSupportedBy();
         SynchronousTransformClient synchronousTransformClient = clientSupportedBy.getFirst();

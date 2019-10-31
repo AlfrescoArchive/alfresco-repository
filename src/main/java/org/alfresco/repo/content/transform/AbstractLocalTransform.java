@@ -84,7 +84,7 @@ public abstract class AbstractLocalTransform implements LocalTransform
                                           String sourceMimetype, String targetMimetype,
                                           String sourceExtension, String targetExtension,
                                           String renditionName, NodeRef sourceNodeRef)
-                                          throws Exception;
+            throws UnsupportedTransformationException, ContentIOException;
 
     public String getName()
     {
@@ -99,7 +99,6 @@ public abstract class AbstractLocalTransform implements LocalTransform
     @Override
     public void transform(ContentReader reader, ContentWriter writer, Map<String, String> transformOptions,
                           String renditionName, NodeRef sourceNodeRef)
-            throws Exception
     {
         if (isAvailable())
         {
@@ -144,9 +143,8 @@ public abstract class AbstractLocalTransform implements LocalTransform
 
     private void transformWithDebug(ContentReader reader, ContentWriter writer, Map<String, String> transformOptions,
                                     String renditionName, NodeRef sourceNodeRef, String sourceMimetype, String targetMimetype,
-                                    String sourceExtension, String targetExtension) throws Exception
+                                    String sourceExtension, String targetExtension)
     {
-
         try
         {
             depth.set(depth.get()+1);
@@ -173,7 +171,6 @@ public abstract class AbstractLocalTransform implements LocalTransform
     }
 
     private void strictMimetypeCheck(ContentReader reader, NodeRef sourceNodeRef, String declaredMimetype)
-            throws UnsupportedTransformationException
     {
         if (mimetypeService != null && strictMimeTypeCheck && depth.get() == 1)
         {
@@ -222,7 +219,7 @@ public abstract class AbstractLocalTransform implements LocalTransform
 
     private void retryWithDifferentMimetype(ContentReader reader, ContentWriter writer, String targetMimetype,
                                             Map<String, String> transformOptions, String renditionName,
-                                            NodeRef sourceNodeRef, Throwable e) throws Exception
+                                            NodeRef sourceNodeRef, Throwable e)
     {
         if (mimetypeService != null && localTransformServiceRegistry != null)
         {

@@ -91,7 +91,7 @@ public class LocalSynchronousTransformClient implements SynchronousTransformClie
 
     @Override
     public void transform(ContentReader reader, ContentWriter writer, Map<String, String> actualOptions,
-                          String transformName, NodeRef sourceNodeRef) throws Exception
+                          String transformName, NodeRef sourceNodeRef)
     {
         String renditionName = TransformDefinition.convertToRenditionName(transformName);
         LocalTransform localTransform = getSupportedBy();

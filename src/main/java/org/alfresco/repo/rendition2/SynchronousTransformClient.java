@@ -26,7 +26,9 @@
 package org.alfresco.repo.rendition2;
 
 import org.alfresco.model.ContentModel;
+import org.alfresco.repo.content.transform.UnsupportedTransformationException;
 import org.alfresco.service.cmr.repository.ContentData;
+import org.alfresco.service.cmr.repository.ContentIOException;
 import org.alfresco.service.cmr.repository.ContentReader;
 import org.alfresco.service.cmr.repository.ContentWriter;
 import org.alfresco.service.cmr.repository.NodeRef;
@@ -135,10 +137,15 @@ public interface SynchronousTransformClient<T>
      * results to avoid having to work out if a given transformation is supported a second time. The sourceMimetype
      * and sourceSizeInBytes may still change. In the case of ACS this is the rendition name.
      * @param sourceNodeRef the source node
+     * @throws UnsupportedTransformationException if there is an unexpected failure to transform, normally in a
+     *         pipeline, where an intermediate transform may not be performed after all because an intermediate
+     *         converion is too big.
+     * @throws ContentIOException  there is an unexpected communication or transformation failure.
      */
     @Deprecated
     void transform(ContentReader reader, ContentWriter writer, Map<String, String> actualOptions,
-                   String transformName, NodeRef sourceNodeRef) throws Exception;
+                   String transformName, NodeRef sourceNodeRef)
+            throws UnsupportedTransformationException, ContentIOException;
 
     /**
      * Only needed if {@code isSupported} and {@code transform} are called in different {@code Threads}.

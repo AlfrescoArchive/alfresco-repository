@@ -26,6 +26,7 @@
 package org.alfresco.repo.content.transform;
 
 import org.alfresco.repo.content.filestore.FileContentWriter;
+import org.alfresco.service.cmr.repository.ContentIOException;
 import org.alfresco.service.cmr.repository.ContentReader;
 import org.alfresco.service.cmr.repository.ContentWriter;
 import org.alfresco.service.cmr.repository.MimetypeService;
@@ -91,7 +92,7 @@ public class LocalPipelineTransform extends AbstractLocalTransform
                                  ContentWriter writer, Map<String, String> transformOptions,
                                  String sourceMimetype, String targetMimetype,
                                  String sourceExtension, String targetExtension,
-                                 String renditionName, NodeRef sourceNodeRef) throws Exception
+                                 String renditionName, NodeRef sourceNodeRef)
     {
         ContentReader currentReader = reader;
         int lastI = transformers.size() - 1;
