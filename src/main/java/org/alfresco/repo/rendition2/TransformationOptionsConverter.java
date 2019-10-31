@@ -25,7 +25,6 @@
  */
 package org.alfresco.repo.rendition2;
 
-import org.alfresco.error.AlfrescoRuntimeException;
 import org.alfresco.repo.content.transform.RuntimeExecutableContentTransformerOptions;
 import org.alfresco.repo.content.transform.magick.ImageResizeOptions;
 import org.alfresco.repo.content.transform.magick.ImageTransformationOptions;
@@ -117,6 +116,7 @@ public class TransformationOptionsConverter implements InitializingBean
         IMAGE_OPTIONS.addAll(CROP_OPTIONS);
         IMAGE_OPTIONS.addAll(TEMPORAL_OPTIONS);
         IMAGE_OPTIONS.addAll(RESIZE_OPTIONS);
+        IMAGE_OPTIONS.add(AUTO_ORIENT);
     }
 
     private static Set<String> PDF_OPTIONS = new HashSet<>(Arrays.asList(new String[]
@@ -241,7 +241,6 @@ public class TransformationOptionsConverter implements InitializingBean
                 if (containsPaged || containsCrop || containsTemporal)
                 {
                     List<TransformationSourceOptions> sourceOptionsList = new ArrayList<>();
-                    opts.setSourceOptionsList(sourceOptionsList);
                     if (containsPaged)
                     {
                         PagedSourceOptions pagedSourceOptions = new PagedSourceOptions();
@@ -275,6 +274,7 @@ public class TransformationOptionsConverter implements InitializingBean
                         ifSet(options, DURATION, (v) -> temporalSourceOptions.setDuration(v));
                         ifSet(options, OFFSET, (v) -> temporalSourceOptions.setOffset(v));
                     }
+                    opts.setSourceOptionsList(sourceOptionsList);
                 }
             }
         }
@@ -351,36 +351,15 @@ public class TransformationOptionsConverter implements InitializingBean
             {
                 int width = imageResizeOptions.getWidth();
                 int height = imageResizeOptions.getHeight();
-                if (width != -1)
-                {
-                    map.put(RESIZE_WIDTH, Integer.toString(width));
-                }
-                if (height != -1)
-                {
-                    map.put(RESIZE_HEIGHT, Integer.toString(height));
-                }
-                if (imageResizeOptions.isResizeToThumbnail())
-                {
-                    map.put(THUMBNAIL, Boolean.toString(true));
-                }
-                if (imageResizeOptions.isPercentResize())
-                {
-                    map.put(RESIZE_PERCENTAGE, Boolean.toString(true));
-                }
-                if (!imageResizeOptions.getAllowEnlargement())
-                {
-                    map.put(ALLOW_ENLARGEMENT, Boolean.toString(false));
-                }
-                if (imageResizeOptions.isMaintainAspectRatio())
-                {
-                    map.put(MAINTAIN_ASPECT_RATIO, Boolean.toString(true));
-                }
+                ifSet(width != -1, map, RESIZE_WIDTH, width);
+                ifSet(height != -1, map, RESIZE_HEIGHT, height);
+                ifSet(imageResizeOptions.isResizeToThumbnail(), map, THUMBNAIL, true);
+                ifSet(imageResizeOptions.isPercentResize(), map, RESIZE_PERCENTAGE, true);
+                ifSet(imageResizeOptions.getAllowEnlargement(), map, ALLOW_ENLARGEMENT, false);
+                ifSet(imageResizeOptions.isMaintainAspectRatio(), map, MAINTAIN_ASPECT_RATIO, true);
             }
 
-            if (!opts.isAutoOrient())
-            {
-                map.put(AUTO_ORIENT, Boolean.toString(false));
-            }
+            ifSet(!opts.isAutoOrient(), map, AUTO_ORIENT, false);
 
             Collection<TransformationSourceOptions> sourceOptionsList = opts.getSourceOptionsList();
             if (sourceOptionsList != null)
@@ -406,45 +385,26 @@ public class TransformationOptionsConverter implements InitializingBean
                     else if (transformationSourceOptions instanceof CropSourceOptions)
                     {
                         CropSourceOptions cropSourceOptions = (CropSourceOptions) transformationSourceOptions;
-                        map.put(CROP_GRAVITY, cropSourceOptions.getGravity());
+                        String gravity = cropSourceOptions.getGravity();
+                        boolean percentageCrop = cropSourceOptions.isPercentageCrop();
                         int height = cropSourceOptions.getHeight();
                         int width = cropSourceOptions.getWidth();
                         int xOffset = cropSourceOptions.getXOffset();
                         int yOffset = cropSourceOptions.getYOffset();
-                        if (cropSourceOptions.isPercentageCrop())
-                        {
-                            map.put(CROP_PERCENTAGE, Boolean.toString(true));
-                        }
-                        if (height != -1)
-                        {
-                            map.put(CROP_WIDTH, Integer.toString(width));
-                        }
-                        if (width != -1)
-                        {
-                            map.put(CROP_HEIGHT, Integer.toString(height));
-                        }
-                        if (xOffset != 0)
-                        {
-                            map.put(CROP_X_OFFSET, Integer.toString(xOffset));
-                        }
-                        if (yOffset != 0)
-                        {
-                            map.put(CROP_Y_OFFSET, Integer.toString(yOffset));
-                        }
+                        ifSet(gravity != null, map, CROP_GRAVITY, gravity);
+                        ifSet(percentageCrop, map, CROP_PERCENTAGE, percentageCrop);
+                        ifSet(width != -1, map, CROP_WIDTH, width);
+                        ifSet(height != -1, map, CROP_HEIGHT, height);
+                        ifSet(xOffset != 0, map, CROP_X_OFFSET, xOffset);
+                        ifSet(yOffset != 0, map, CROP_Y_OFFSET, yOffset);
                     }
                     else if (transformationSourceOptions instanceof TemporalSourceOptions)
                     {
                         TemporalSourceOptions temporalSourceOptions = (TemporalSourceOptions) transformationSourceOptions;
                         String duration = temporalSourceOptions.getDuration();
                         String offset = temporalSourceOptions.getOffset();
-                        if (duration != null)
-                        {
-                            map.put(DURATION, duration);
-                        }
-                        if (offset != null)
-                        {
-                            map.put(OFFSET, offset);
-                        }
+                        ifSet(duration != null, map, DURATION, duration);
+                        ifSet(offset != null, map, OFFSET, offset);
                     }
                     else
                     {
@@ -473,5 +433,13 @@ public class TransformationOptionsConverter implements InitializingBean
         }
 
         return map;
+    }
+
+    protected void ifSet(boolean condition, Map<String, String> options, String key, Object value)
+    {
+        if (condition)
+        {
+            options.put(key, value.toString());
+        }
     }
 }
