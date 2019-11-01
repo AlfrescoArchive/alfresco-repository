@@ -5,7 +5,7 @@
 
    <bean id="mockRenderingEngine"
       class="org.alfresco.repo.rendition.RenditionServicePermissionsTest$MockRenderingEngine"
-      parent="baseRenderingAction">
+      parent="baseTransformationRenderingEngine">
    </bean>
 
 </beans>
