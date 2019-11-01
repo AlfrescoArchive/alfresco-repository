@@ -41,19 +41,9 @@ public class TransformRequest implements Serializable
     private String transformName;
     private String nodeRef;
     private String targetMediaType;
-    private Map<String, String> transformOptions = new HashMap();
+    private Map<String, String> transformOptions = new HashMap<>();
     private String clientData;
     private String replyQueue;
-
-    public String getTransformName()
-    {
-        return transformName;
-    }
-
-    public void setTransformName(String transformName)
-    {
-        this.transformName = transformName;
-    }
 
     public String getRequestId()
     {
@@ -63,6 +53,16 @@ public class TransformRequest implements Serializable
     public void setRequestId(String requestId)
     {
         this.requestId = requestId;
+    }
+
+    public String getTransformName()
+    {
+        return transformName;
+    }
+
+    public void setTransformName(String transformName)
+    {
+        this.transformName = transformName;
     }
 
     public String getNodeRef()
@@ -90,6 +90,16 @@ public class TransformRequest implements Serializable
         return transformOptions;
     }
 
+    public String getClientData()
+    {
+        return clientData;
+    }
+
+    public void setClientData(String clientData)
+    {
+        this.clientData = clientData;
+    }
+
     public void setTransformOptions(Map<String, String> transformOptions)
     {
         this.transformOptions = transformOptions;
@@ -103,16 +113,6 @@ public class TransformRequest implements Serializable
     public void setReplyQueue(String replyQueue)
     {
         this.replyQueue = replyQueue;
-    }
-
-    public String getClientData()
-    {
-        return clientData;
-    }
-
-    public void setClientData(String clientData)
-    {
-        this.clientData = clientData;
     }
 
     @Override public boolean equals(Object o)
@@ -132,13 +132,14 @@ public class TransformRequest implements Serializable
 
     @Override public String toString()
     {
-        return "TransformRequest{" +
-            "requestId='" + requestId + '\'' +
-            ", nodeRef='" + nodeRef + '\'' +
-            ", targetMediaType='" + targetMediaType + '\'' +
-            ", transformOptions='" + transformOptions + '\'' +
-            ", clientData='" + clientData + '\'' +
-            ", replyQueue='" + replyQueue + '\'' +
+        return '{' +
+            "\"requestId\":\"" + requestId + '\"' +
+            ", \"transformName\":\"" + transformName + '\"' +
+            ", \"nodeRef\":\"" + nodeRef + '\"' +
+            ", \"targetMediaType\":\"" + targetMediaType + '\"' +
+            ", \"transformOptions\":" + transformOptions +
+            ", \"clientData\":\"" + clientData + '\"' +
+            ", \"replyQueue\":\"" + replyQueue + '\"' +
             '}';
     }
 

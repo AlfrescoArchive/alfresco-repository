@@ -38,6 +38,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import java.io.IOException;
+import java.util.Map;
 
 /**
  * Transform Request processor executes transformation based on TransformRequest event.
@@ -121,7 +122,7 @@ public class TransformRequestProcessor implements Processor
     {
         validateEvent(event);
 
-        TransformDefinition eventDefinition = new TransformDefinition(event.getTransformName(), event.getTargetMediaType(), event.getTransformOptions(), event.getClientData(), event.getReplyQueue());
+        TransformDefinition eventDefinition = createTransformDefinition(event.getTransformName(), event.getTargetMediaType(), event.getTransformOptions(), event.getClientData(), event.getReplyQueue());
 
         AuthenticationUtil.runAs((AuthenticationUtil.RunAsWork<Void>) () -> transactionService.getRetryingTransactionHelper().doInTransaction(() -> {
 
@@ -131,5 +132,8 @@ public class TransformRequestProcessor implements Processor
         }), AuthenticationUtil.getSystemUserName());
     }
 
-
+    TransformDefinition createTransformDefinition(String transformName, String targetMimetype, Map<String, String> transformOptions, String clientData, String replyQueue)
+    {
+        return new TransformDefinition(transformName, targetMimetype, transformOptions, clientData, replyQueue);
+    }
 }
