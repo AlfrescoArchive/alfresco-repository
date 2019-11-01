@@ -44,7 +44,6 @@ import org.alfresco.repo.content.filestore.FileContentStore;
 import org.alfresco.repo.content.filestore.FileContentWriter;
 import org.alfresco.repo.content.transform.ContentTransformer;
 import org.alfresco.repo.content.transform.ContentTransformerRegistry;
-import org.alfresco.repo.content.transform.LocalTransformServiceRegistry;
 import org.alfresco.repo.content.transform.TransformerDebug;
 import org.alfresco.repo.content.transform.UnimportantTransformException;
 import org.alfresco.repo.content.transform.UnsupportedTransformationException;
@@ -101,7 +100,6 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
     private ApplicationContext applicationContext;
     @Deprecated
     protected TransformerDebug transformerDebug;
-    private LocalTransformServiceRegistry localTransformServiceRegistry;
 
 
     /** a registry of all available content transformers */

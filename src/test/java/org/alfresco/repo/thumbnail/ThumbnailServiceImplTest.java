@@ -44,7 +44,6 @@ import org.alfresco.repo.content.MimetypeMap;
 import org.alfresco.repo.content.transform.AbstractContentTransformer2;
 import org.alfresco.repo.content.transform.AbstractContentTransformerTest;
 import org.alfresco.repo.content.transform.ContentTransformer;
-import org.alfresco.repo.content.transform.LocalTransformServiceRegistry;
 import org.alfresco.repo.content.transform.magick.ImageResizeOptions;
 import org.alfresco.repo.content.transform.magick.ImageTransformationOptions;
 import org.alfresco.repo.domain.dialect.Dialect;
@@ -52,6 +51,7 @@ import org.alfresco.repo.domain.dialect.Oracle9Dialect;
 import org.alfresco.repo.domain.dialect.SQLServerDialect;
 import org.alfresco.repo.jscript.ClasspathScriptLocation;
 import org.alfresco.repo.model.Repository;
+import org.alfresco.repo.rendition2.SynchronousTransformClient;
 import org.alfresco.repo.thumbnail.script.ScriptThumbnailService;
 import org.alfresco.repo.transaction.AlfrescoTransactionSupport;
 import org.alfresco.repo.transaction.RetryingTransactionHelper;
@@ -136,7 +136,7 @@ public class ThumbnailServiceImplTest extends BaseAlfrescoSpringTest
     private PermissionService permissionService;
     private LockService lockService;
     private CopyService copyService;
-    private LocalTransformServiceRegistry localTransformServiceRegistry;
+    private SynchronousTransformClient synchronousTransformClient;
 
     private NodeRef folder;
     private static final String TEST_FAILING_MIME_TYPE = "application/vnd.alfresco.test.transientfailure";
@@ -163,7 +163,7 @@ public class ThumbnailServiceImplTest extends BaseAlfrescoSpringTest
         this.permissionService = (PermissionService) applicationContext.getBean("PermissionService");
         this.lockService = (LockService) applicationContext.getBean("lockService");
         this.copyService = (CopyService) applicationContext.getBean("CopyService");
-        localTransformServiceRegistry = (LocalTransformServiceRegistry) applicationContext.getBean("localTransformServiceRegistryImpl");
+        synchronousTransformClient = (SynchronousTransformClient) applicationContext.getBean("synchronousTransformClient");
 
         // Create a folder and some content
         Map<QName, Serializable> folderProps = new HashMap<QName, Serializable>(1);
@@ -175,8 +175,8 @@ public class ThumbnailServiceImplTest extends BaseAlfrescoSpringTest
     
     private void checkTransformer()
     {
-        if (!localTransformServiceRegistry.isSupported(MimetypeMap.MIMETYPE_IMAGE_JPEG, -1,
-                MimetypeMap.MIMETYPE_IMAGE_JPEG, Collections.emptyMap(), null))
+        if (!synchronousTransformClient.isSupported(MimetypeMap.MIMETYPE_IMAGE_JPEG, -1, null,
+                MimetypeMap.MIMETYPE_IMAGE_JPEG, Collections.emptyMap(), null, null))
         {
             fail("Image transformer is not working.  Please check your image conversion command setup.");
         }
