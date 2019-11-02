@@ -243,13 +243,15 @@ public class TransformationOptionsConverter implements InitializingBean
                     List<TransformationSourceOptions> sourceOptionsList = new ArrayList<>();
                     if (containsPaged)
                     {
+                        // The legacy transformer options start at page 1, where as image magick and the local
+                        // transforms start at 0;
                         PagedSourceOptions pagedSourceOptions = new PagedSourceOptions();
                         sourceOptionsList.add(pagedSourceOptions);
-                        ifSet(options, START_PAGE, (v) -> pagedSourceOptions.setStartPageNumber(Integer.parseInt(v)));
-                        ifSet(options, END_PAGE, (v) -> pagedSourceOptions.setEndPageNumber(Integer.parseInt(v)));
+                        ifSet(options, START_PAGE, (v) -> pagedSourceOptions.setStartPageNumber(Integer.parseInt(v) + 1));
+                        ifSet(options, END_PAGE, (v) -> pagedSourceOptions.setEndPageNumber(Integer.parseInt(v) + 1));
                         ifSet(options, PAGE, (v) ->
                         {
-                            int i = Integer.parseInt(v);
+                            int i = Integer.parseInt(v) + 1;
                             pagedSourceOptions.setStartPageNumber(i);
                             pagedSourceOptions.setEndPageNumber(i);
                         });
@@ -370,8 +372,10 @@ public class TransformationOptionsConverter implements InitializingBean
                     {
                         PagedSourceOptions pagedSourceOptions = (PagedSourceOptions) transformationSourceOptions;
 
-                        Integer startPageNumber = pagedSourceOptions.getStartPageNumber();
-                        Integer endPageNumber = pagedSourceOptions.getEndPageNumber();
+                        // The legacy transformer options start at page 1, where as image magick and the local
+                        // transforms start at 0;
+                        Integer startPageNumber = pagedSourceOptions.getStartPageNumber() - 1;
+                        Integer endPageNumber = pagedSourceOptions.getEndPageNumber() - 1;
                         if (startPageNumber == endPageNumber)
                         {
                             map.put(PAGE, Integer.toString(startPageNumber));
