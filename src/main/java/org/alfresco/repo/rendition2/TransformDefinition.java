@@ -46,17 +46,21 @@ public class TransformDefinition extends RenditionDefinition2Impl
 
     private final String clientData;
     private final String replyQueue;
+    private final String requestId;
+    private String errorMessage;
 
     /**
      * Constructor where the same targetMimetype and transformOptions are used in multiple calls. In such a case, how or
      * if the transform will take place, will be cached against the transformName.
      */
     public TransformDefinition(String transformName, String targetMimetype, Map<String, String> transformOptions,
-                               String clientData, String replyQueue)
+                               String clientData, String replyQueue, String requestId)
     {
         super(convertToRenditionName(transformName), targetMimetype, transformOptions, null);
         this.clientData = clientData;
         this.replyQueue = replyQueue;
+        this.requestId = requestId;
+        this.errorMessage = null;
     }
 
     static String convertToRenditionName(String transformName)
@@ -68,9 +72,9 @@ public class TransformDefinition extends RenditionDefinition2Impl
      * Constructor where the targetMimetype and transformOptions are unlikely to be repeated.
      */
     public TransformDefinition(String targetMimetype, Map<String, String> transformOptions,
-                               String clientData, String replyQueue)
+                               String clientData, String replyQueue, String requestId)
     {
-        this(null, targetMimetype, transformOptions, clientData, replyQueue);
+        this(null, targetMimetype, transformOptions, clientData, replyQueue, requestId);
     }
 
     public String getTransformName()
@@ -87,5 +91,20 @@ public class TransformDefinition extends RenditionDefinition2Impl
     public String getReplyQueue()
     {
         return replyQueue;
+    }
+
+    public String getRequestId()
+    {
+        return requestId;
+    }
+
+    public String getErrorMessage()
+    {
+        return errorMessage;
+    }
+
+    public void setErrorMessage(String errorMessage)
+    {
+        this.errorMessage = errorMessage;
     }
 }

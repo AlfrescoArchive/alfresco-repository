@@ -100,7 +100,8 @@ public class RenditionService2Test
 
     private static final String CLIENT_DATA = "some_clientData";
     private static final String REPLY_QUEUE = "some_replyQueue";
-    private static final TransformDefinition TEST_TRANSFORM = new TransformDefinition(JPEG, Collections.singletonMap("a", "A"), CLIENT_DATA, REPLY_QUEUE);
+    private static final String REQUEST_ID = "some_requestId";
+    private static final TransformDefinition TEST_TRANSFORM = new TransformDefinition(JPEG, Collections.singletonMap("a", "A"), CLIENT_DATA, REPLY_QUEUE, REQUEST_ID);
     private boolean failureCalled;
 
     @Before

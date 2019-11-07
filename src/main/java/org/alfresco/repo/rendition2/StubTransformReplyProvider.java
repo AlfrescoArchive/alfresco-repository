@@ -40,7 +40,7 @@ public class StubTransformReplyProvider implements TransformReplyProvider
     public void produceTransformEvent(NodeRef sourceNodeRef, InputStream transformInputStream,
         TransformDefinition transformDefinition, int transformContentHashCode)
     {
-        throw new UnsupportedOperationException();
+        throw new UnsupportedOperationException("Not currently supported in community edition");
     }
 
 }

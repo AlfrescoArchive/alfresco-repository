@@ -94,7 +94,7 @@ public class TransformRequestProcessor implements Processor
             catch (IOException e)
             {
                 logger.error("Failed to unmarshal event [" + body + "]", e);
-                throw new AlfrescoRuntimeException("Failed to unmarshal event, skipping processing of this event.\"");
+                throw new AlfrescoRuntimeException("Failed to unmarshal event, skipping processing of this event.");
             }
             processEvent(event);
         }
@@ -110,30 +110,45 @@ public class TransformRequestProcessor implements Processor
         ParameterCheck.mandatoryString("requestId", event.getRequestId());
         ParameterCheck.mandatoryString("nodeRef", event.getNodeRef());
         ParameterCheck.mandatoryString("targetMediaType", event.getTargetMediaType());
-
         ParameterCheck.mandatoryString("replyQueue", event.getReplyQueue());
-        if (!event.getReplyQueue().startsWith("jms:"))
-        {
-            throw new NoSuchEndpointException(event.getReplyQueue(), "ensure that protocol is specified for the return queue.");
-        }
     }
 
     private void processEvent(TransformRequest event)
     {
         validateEvent(event);
 
-        TransformDefinition eventDefinition = createTransformDefinition(event.getTransformName(), event.getTargetMediaType(), event.getTransformOptions(), event.getClientData(), event.getReplyQueue());
 
-        AuthenticationUtil.runAs((AuthenticationUtil.RunAsWork<Void>) () -> transactionService.getRetryingTransactionHelper().doInTransaction(() -> {
+        String replyQueue = event.getReplyQueue().startsWith("jms:")
+            ? event.getReplyQueue().substring("jms:".length())
+            : event.getReplyQueue();
 
-            renditionService2.transform(new NodeRef(event.getNodeRef()), eventDefinition);
+        TransformDefinition transformDefinition = createTransformDefinition(event.getTransformName(), event.getTargetMediaType(),
+            event.getTransformOptions(), event.getClientData(), processReplyQueue(event.getReplyQueue()), event.getRequestId());
 
-            return null;
-        }), AuthenticationUtil.getSystemUserName());
+        AuthenticationUtil.runAs(
+            (AuthenticationUtil.RunAsWork<Void>) () -> transactionService.getRetryingTransactionHelper().doInTransaction(() -> {
+
+                renditionService2.transform(new NodeRef(event.getNodeRef()), transformDefinition);
+
+                return null;
+            }), AuthenticationUtil.getSystemUserName());
     }
 
-    TransformDefinition createTransformDefinition(String transformName, String targetMimetype, Map<String, String> transformOptions, String clientData, String replyQueue)
+    TransformDefinition createTransformDefinition(String transformName, String targetMimetype,
+        Map<String, String> transformOptions, String clientData, String replyQueue, String requestId)
     {
-        return new TransformDefinition(transformName, targetMimetype, transformOptions, clientData, replyQueue);
+        return new TransformDefinition(transformName, targetMimetype, transformOptions, clientData, replyQueue, requestId);
+    }
+
+    String processReplyQueue(String replyQueue)
+    {
+        // Strip "jms:" or "queue://" prefix from the reply queue if provided, it is the responsibility of the
+        // TransformReply Provider to specify the proper protocol of the replyQueue.
+        return replyQueue.startsWith("jms:")
+            ? replyQueue.substring("jms:".length())
+            : replyQueue.startsWith("queue://")
+                ? replyQueue.substring("queue://".length())
+                : replyQueue;
+
     }
 }
