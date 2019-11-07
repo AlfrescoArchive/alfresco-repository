@@ -189,6 +189,7 @@ public class LegacyTransformClient implements TransformClient, InitializingBean
                             ((TransformDefinition) renditionDefinition).setErrorMessage(e.getMessage());
                         }
                         renditionService2.failure(sourceNodeRef, renditionDefinition, sourceContentHashCode);
+                        throw e;
                     }
                     return null;
                 }), user);

@@ -117,38 +117,32 @@ public class TransformRequestProcessor implements Processor
     {
         validateEvent(event);
 
+        String transformName = event.getTransformName();
+        String targetMediaType = event.getTargetMediaType();
+        Map<String, String> transformOptions = event.getTransformOptions();
+        String clientData = event.getClientData();
+        String replyQueue = processReplyQueue(event.getReplyQueue());
+        String requestId = event.getRequestId();
 
-        String replyQueue = event.getReplyQueue().startsWith("jms:")
-            ? event.getReplyQueue().substring("jms:".length())
-            : event.getReplyQueue();
+        TransformDefinition transformDefinition = new TransformDefinition(transformName, targetMediaType, transformOptions,
+            clientData, replyQueue, requestId);
 
-        TransformDefinition transformDefinition = createTransformDefinition(event.getTransformName(), event.getTargetMediaType(),
-            event.getTransformOptions(), event.getClientData(), processReplyQueue(event.getReplyQueue()), event.getRequestId());
+        NodeRef nodeRef = new NodeRef(event.getNodeRef());
 
         AuthenticationUtil.runAs(
             (AuthenticationUtil.RunAsWork<Void>) () -> transactionService.getRetryingTransactionHelper().doInTransaction(() -> {
-
-                renditionService2.transform(new NodeRef(event.getNodeRef()), transformDefinition);
+                renditionService2.transform(nodeRef, transformDefinition);
 
                 return null;
             }), AuthenticationUtil.getSystemUserName());
-    }
-
-    TransformDefinition createTransformDefinition(String transformName, String targetMimetype,
-        Map<String, String> transformOptions, String clientData, String replyQueue, String requestId)
-    {
-        return new TransformDefinition(transformName, targetMimetype, transformOptions, clientData, replyQueue, requestId);
     }
 
     String processReplyQueue(String replyQueue)
     {
         // Strip "jms:" or "queue://" prefix from the reply queue if provided, it is the responsibility of the
         // TransformReply Provider to specify the proper protocol of the replyQueue.
-        return replyQueue.startsWith("jms:")
-            ? replyQueue.substring("jms:".length())
-            : replyQueue.startsWith("queue://")
-                ? replyQueue.substring("queue://".length())
-                : replyQueue;
-
+        return replyQueue.startsWith("jms:") ?
+            replyQueue.substring("jms:".length()) :
+            replyQueue.startsWith("queue://") ? replyQueue.substring("queue://".length()) : replyQueue;
     }
 }
