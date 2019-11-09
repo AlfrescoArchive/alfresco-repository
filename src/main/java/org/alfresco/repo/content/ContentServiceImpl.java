@@ -573,7 +573,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
     public void transform(ContentReader reader, ContentWriter writer, TransformationOptions options) 
         throws NoTransformerException, ContentIOException
     {
-        // check that source and target mimetypes are available
+        // check that source and target mimetypes are available 
         if (reader == null)
         {
             throw new AlfrescoRuntimeException("The content reader must be set");
