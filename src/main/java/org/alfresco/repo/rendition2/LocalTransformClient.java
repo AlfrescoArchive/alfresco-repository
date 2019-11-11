@@ -176,6 +176,10 @@ public class LocalTransformClient implements TransformClient, InitializingBean
                         {
                             logger.debug(TRANSFORM + "failed " + renditionName, e);
                         }
+                        if (renditionDefinition instanceof TransformDefinition)
+                        {
+                            ((TransformDefinition) renditionDefinition).setErrorMessage(e.getMessage());
+                        }
                         renditionService2.failure(sourceNodeRef, renditionDefinition, sourceContentHashCode);
                         throw e;
                     }

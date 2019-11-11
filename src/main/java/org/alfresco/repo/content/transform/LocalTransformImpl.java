@@ -26,7 +26,6 @@
 package org.alfresco.repo.content.transform;
 
 import org.alfresco.repo.rendition2.RenditionDefinition2;
-import org.alfresco.service.cmr.repository.ContentIOException;
 import org.alfresco.service.cmr.repository.ContentReader;
 import org.alfresco.service.cmr.repository.ContentWriter;
 import org.alfresco.service.cmr.repository.MimetypeService;

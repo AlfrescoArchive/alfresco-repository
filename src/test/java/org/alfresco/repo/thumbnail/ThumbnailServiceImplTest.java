@@ -1181,28 +1181,8 @@ public class ThumbnailServiceImplTest extends BaseAlfrescoSpringTest
         checkRendition("smallPng", thumbnail1);
         outputThumbnailTempContentLocation(thumbnail1, "png", "smallPng - 64x64, marked as thumbnail");
         
-        // Create thumbnail - different content property
-        // TODO
+//      Removd code: We now automatically discard all extra command options for security reasons.
 
-// We now automatically discard all extra command options for security reasons.
-//        // Create thumbnail - different command options
-//        // We'll pass illegal command options to ImageMagick in order to trigger an exception
-//        Exception x = null;
-//        try
-//        {
-//            imageTransformationOptions.setCommandOptions("-noSuchOption");
-//            thumbnail1 = this.thumbnailService.createThumbnail(jpgOrig, ContentModel.PROP_CONTENT,
-//                    MimetypeMap.MIMETYPE_IMAGE_PNG, imageTransformationOptions, "smallCO");
-//        } catch (ContentIOException ciox)
-//        {
-//            x = ciox;
-//            ciox.printStackTrace();
-//        }
-//        assertNotNull("Expected exception from ImageMagick due to invalid option", x);
-//        // Reset the command options
-//        imageTransformationOptions.setCommandOptions("");
-        
-        
         // Create thumbnail - different target assoc details
         ThumbnailParentAssociationDetails tpad
             = new ThumbnailParentAssociationDetails(otherFolder,

@@ -96,6 +96,11 @@ public class LocalSynchronousTransformClient implements SynchronousTransformClie
         LocalTransform localTransform = getSupportedBy();
         try
         {
+            if (localTransform == null)
+            {
+                throw new IllegalStateException("isSupported was not called prior to transform.");
+            }
+
             if (null == reader || !reader.exists())
             {
                 throw new IllegalArgumentException("sourceNodeRef "+sourceNodeRef+" has no content.");

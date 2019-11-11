@@ -81,7 +81,6 @@ public interface SynchronousTransformClient<T>
      * @return {@code}true{@code} if it is supported.
      */
     @Deprecated
-    // TODO include the following in the calling code, so this method may be removed.
     default boolean isSupported(ContentReader contentReader, NodeRef sourceNodeRef, String targetMimetype,
                                 Map<String, String> actualOptions, String transformName)
     {
@@ -106,7 +105,6 @@ public interface SynchronousTransformClient<T>
      * @return {@code}true{@code} if it is supported.
      */
     @Deprecated
-    // TODO include the following in the calling code, so this method may be removed.
     default boolean isSupported(NodeService nodeService, NodeRef sourceNodeRef, String targetMimetype,
                                 Map<String, String> actualOptions, String transformName)
     {

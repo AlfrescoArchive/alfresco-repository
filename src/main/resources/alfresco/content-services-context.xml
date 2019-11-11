@@ -148,9 +148,9 @@
       <property name="nodeService">
           <ref bean="nodeService" />
       </property>
-       <property name="transformerRegistry">
-           <ref bean="contentTransformerRegistry" />
-       </property>
+      <property name="transformerRegistry">
+          <ref bean="contentTransformerRegistry" />
+      </property>
       <property name="policyComponent">
           <ref bean="policyComponent" />
       </property>

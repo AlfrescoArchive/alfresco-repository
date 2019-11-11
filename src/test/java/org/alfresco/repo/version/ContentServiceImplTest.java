@@ -30,8 +30,6 @@ import org.alfresco.model.ContentModel;
 import org.alfresco.repo.content.EmptyContentReader;
 import org.alfresco.repo.content.MimetypeMap;
 import org.alfresco.repo.content.MimetypeMapTest;
-import org.alfresco.repo.content.transform.ContentTransformer;
-import org.alfresco.service.cmr.repository.ContentIOException;
 import org.alfresco.service.cmr.repository.ContentReader;
 import org.alfresco.service.cmr.repository.ContentService;
 import org.alfresco.service.cmr.repository.ContentWriter;
@@ -44,7 +42,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 
-import java.util.HashMap;
 import org.springframework.transaction.annotation.Transactional;
 
 /**

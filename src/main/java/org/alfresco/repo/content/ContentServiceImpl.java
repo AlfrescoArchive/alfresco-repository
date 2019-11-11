@@ -755,9 +755,9 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
         try
         {
             transformerDebug.pushAvailable(sourceUrl, sourceMimetype, targetMimetype, options);
-            List<ContentTransformer> transformers1 = getActiveTransformers(sourceMimetype, sourceSize, targetMimetype, options);
-            transformerDebug.availableTransformers(transformers1, sourceSize, options, "ContentService.getTransformer(...)");
-            transformers = transformers1.isEmpty() ? null : transformers1;
+            List<ContentTransformer> activeTransformers = getActiveTransformers(sourceMimetype, sourceSize, targetMimetype, options);
+            transformerDebug.availableTransformers(activeTransformers, sourceSize, options, "ContentService.getTransformer(...)");
+            transformers = activeTransformers.isEmpty() ? null : activeTransformers;
         }
         finally
         {

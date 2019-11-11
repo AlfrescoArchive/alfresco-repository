@@ -408,6 +408,7 @@ public class TransformerDebug implements ApplicationContextAware
     /**
      * Called prior to working out what transformers are available.
      */
+    @Deprecated
     public void pushAvailable(String fromUrl, String sourceMimetype, String targetMimetype,
                               String renditionName, NodeRef sourceNodeRef)
     {

@@ -43,15 +43,15 @@ import java.util.concurrent.Executors;
  * @author aepure
  */
 @Component
-public class TransformEventConsumer extends SpringRouteBuilder
+public class TransformRequestConsumer extends SpringRouteBuilder
 {
-    private static Log logger = LogFactory.getLog(TransformEventConsumer.class);
+    private static Log logger = LogFactory.getLog(TransformRequestConsumer.class);
 
-    @Value("${acs.repo.transform.events.endpoint}")
+    @Value("${acs.repo.transform.request.endpoint}")
     public String sourceQueue;
 
     @Autowired
-    @Qualifier("transformEventConsumerProcessor")
+    @Qualifier("transformRequestProcessor")
     private Processor processor;
 
     // Not restricted for now, should be restricted after performance tests.

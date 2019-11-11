@@ -38,13 +38,14 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import java.io.IOException;
+import java.util.Map;
 
 /**
- * Transform Request processor executes transformation based on TransformEventRequest event.
+ * Transform Request processor executes transformation based on TransformRequest event.
  *
  * @author aepure
  */
-public class TransformEventConsumerProcessor implements Processor
+public class TransformRequestProcessor implements Processor
 {
     private static Log logger = LogFactory.getLog(RenditionEventProcessor.class);
 
@@ -85,15 +86,15 @@ public class TransformEventConsumerProcessor implements Processor
         }
         try
         {
-            TransformEventRequest event;
+            TransformRequest event;
             try
             {
-                event = messagingObjectMapper.readValue(body, TransformEventRequest.class);
+                event = messagingObjectMapper.readValue(body, TransformRequest.class);
             }
             catch (IOException e)
             {
                 logger.error("Failed to unmarshal event [" + body + "]", e);
-                throw new AlfrescoRuntimeException("Failed to unmarshal event, skipping processing of this event.\"");
+                throw new AlfrescoRuntimeException("Failed to unmarshal event, skipping processing of this event.");
             }
             processEvent(event);
         }
@@ -103,33 +104,45 @@ public class TransformEventConsumerProcessor implements Processor
         }
     }
 
-    private void validateEvent(TransformEventRequest event)
+    private void validateEvent(TransformRequest event)
     {
         ParameterCheck.mandatory("event", event);
         ParameterCheck.mandatoryString("requestId", event.getRequestId());
         ParameterCheck.mandatoryString("nodeRef", event.getNodeRef());
         ParameterCheck.mandatoryString("targetMediaType", event.getTargetMediaType());
-
         ParameterCheck.mandatoryString("replyQueue", event.getReplyQueue());
-        if (!event.getReplyQueue().startsWith("jms:"))
-        {
-            throw new NoSuchEndpointException(event.getReplyQueue(), "ensure that protocol is specified for the return queue.");
-        }
     }
 
-    private void processEvent(TransformEventRequest event)
+    private void processEvent(TransformRequest event)
     {
         validateEvent(event);
 
-        TransformDefinition eventDefinition = new TransformDefinition(event.getTransformName(), event.getTargetMediaType(), event.getTransformOptions(), event.getClientData(), event.getReplyQueue());
+        String transformName = event.getTransformName();
+        String targetMediaType = event.getTargetMediaType();
+        Map<String, String> transformOptions = event.getTransformOptions();
+        String clientData = event.getClientData();
+        String replyQueue = processReplyQueue(event.getReplyQueue());
+        String requestId = event.getRequestId();
 
-        AuthenticationUtil.runAs((AuthenticationUtil.RunAsWork<Void>) () -> transactionService.getRetryingTransactionHelper().doInTransaction(() -> {
+        TransformDefinition transformDefinition = new TransformDefinition(transformName, targetMediaType, transformOptions,
+            clientData, replyQueue, requestId);
 
-            renditionService2.transform(new NodeRef(event.getNodeRef()), eventDefinition);
+        NodeRef nodeRef = new NodeRef(event.getNodeRef());
 
-            return null;
-        }), AuthenticationUtil.getSystemUserName());
+        AuthenticationUtil.runAs(
+            (AuthenticationUtil.RunAsWork<Void>) () -> transactionService.getRetryingTransactionHelper().doInTransaction(() -> {
+                renditionService2.transform(nodeRef, transformDefinition);
+
+                return null;
+            }), AuthenticationUtil.getSystemUserName());
     }
 
-
+    String processReplyQueue(String replyQueue)
+    {
+        // Strip "jms:" or "queue://" prefix from the reply queue if provided, it is the responsibility of the
+        // TransformReply Provider to specify the proper protocol of the replyQueue.
+        return replyQueue.startsWith("jms:") ?
+            replyQueue.substring("jms:".length()) :
+            replyQueue.startsWith("queue://") ? replyQueue.substring("queue://".length()) : replyQueue;
+    }
 }

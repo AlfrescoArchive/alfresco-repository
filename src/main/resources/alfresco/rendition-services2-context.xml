@@ -60,7 +60,7 @@
         <property name="behaviourFilter" ref="policyBehaviourFilter" />
         <property name="ruleService" ref="ruleService" />
         <property name="renditionRequestSheduler" ref="renditionRequestSheduler" />
-        <property name="transformEventProducer" ref="transformEventProducer" />
+        <property name="transformReplyProvider" ref="transformReplyProvider" />
         <property name="enabled" value="${renditionService2.enabled}" />
         <property name="thumbnailsEnabled" value="${system.thumbnail.generate}" />
     </bean>
@@ -69,7 +69,7 @@
         <property name="transactionService" ref="TransactionService" />
     </bean>
 
-    <bean id="transformEventProducer" class="org.alfresco.repo.rendition2.DummyTransformEventProducer">
+    <bean id="transformReplyProvider" class="org.alfresco.repo.rendition2.StubTransformReplyProvider">
     </bean>
 
     <!-- Replaced in the enterprise edition -->
@@ -186,8 +186,8 @@
         <property name="transactionService" ref="transactionService" />
     </bean>
 
-    <!-- Process raw content update events -->
-    <bean id="transformEventConsumerProcessor" class="org.alfresco.repo.rendition2.TransformEventConsumerProcessor">
+    <!-- Process transform request events. -->
+    <bean id="transformRequestProcessor" class="org.alfresco.repo.rendition2.TransformRequestProcessor">
         <property name="renditionService2" ref="renditionService2" />
         <property name="messagingObjectMapper" ref="alfrescoEventObjectMapper" />
         <property name="transactionService" ref="transactionService" />
