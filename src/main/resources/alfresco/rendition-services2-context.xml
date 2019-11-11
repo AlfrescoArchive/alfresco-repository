@@ -92,6 +92,7 @@
         <property name="contentService" ref="contentService" />
         <property name="renditionService2" ref="renditionService2" />
         <property name="converter" ref="transformOptionsConverter" />
+        <property name="legacySynchronousTransformClient" ref="legacySynchronousTransformClient" />
     </bean>
 
     <!-- Deprecated -->
@@ -108,7 +109,9 @@
 
     <!-- Deprecated -->
     <bean id="legacySynchronousTransformClient" class="org.alfresco.repo.rendition2.LegacySynchronousTransformClient">
-        <property name="contentService" ref="ContentService" />
+        <property name="mimetypeService" ref="mimetypeService" />
+        <property name="transformerRegistry" ref="contentTransformerRegistry" />
+        <property name="transformerDebug" ref="transformerDebug" />
         <property name="converter" ref="transformOptionsConverter" />
     </bean>
 

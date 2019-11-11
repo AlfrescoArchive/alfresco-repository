@@ -623,8 +623,9 @@ public abstract class BaseContentNode implements TemplateContent
                 // try and transform the content
                 try
                 {
-                    if (synchronousTransformClient.isSupported(reader, nodeRef, "text/plain",
-                        Collections.emptyMap(), null))
+                    if (synchronousTransformClient.isSupported(reader, "text/plain",
+                            Collections.emptyMap(), null, nodeRef
+                    ))
                     {
                         synchronousTransformClient.transform(reader, writer, Collections.emptyMap(), null, nodeRef);
 

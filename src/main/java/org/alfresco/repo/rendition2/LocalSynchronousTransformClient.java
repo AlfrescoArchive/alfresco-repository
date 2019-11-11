@@ -39,13 +39,12 @@ import org.springframework.beans.factory.InitializingBean;
 import java.util.Map;
 
 /**
- * Request synchronous transforms. Used in refactoring deprecated code, which called Legacy transforms, so that it will
- * first try a Local transform, falling back to Legacy if not available. Transforms take place using transforms
- * available on the local machine (based on {@link LocalTransform}).
+ * Request synchronous transforms.
+ *
+ * Transforms take place using transforms available on the local machine (based on {@link LocalTransform}).
  *
  * @author adavis
  */
-@Deprecated
 public class LocalSynchronousTransformClient implements SynchronousTransformClient<LocalTransform>, InitializingBean
 {
     private static final String TRANSFORM = "Local synchronous transform ";
@@ -129,7 +128,6 @@ public class LocalSynchronousTransformClient implements SynchronousTransformClie
     }
 
     @Override
-    @Deprecated
     public LocalTransform getSupportedBy()
     {
         LocalTransform localTransform = transform.get();
@@ -142,7 +140,6 @@ public class LocalSynchronousTransformClient implements SynchronousTransformClie
     }
 
     @Override
-    @Deprecated
     public void setSupportedBy(LocalTransform localTransform)
     {
         transform.set(localTransform);

@@ -38,12 +38,10 @@ import org.alfresco.service.cmr.repository.TransformationOptions;
 import java.util.Map;
 
 /**
- * Request synchronous transforms. Used in refactoring deprecated code, which called Legacy transforms, so that it will
- * first try a Local transform, falling back to Legacy if not available.
+ * Request synchronous transforms.
  *
  * @author adavis
  */
-@Deprecated
 public interface SynchronousTransformClient<T>
 {
     String IS_SUPPORTED_NOT_CALLED = "isSupported was not called prior to transform in the same Thread.";
@@ -60,10 +58,9 @@ public interface SynchronousTransformClient<T>
      * @param transformName (optional) name for the set of options and target mimetype. If supplied is used to cache
      * results to avoid having to work out if a given transformation is supported a second time. The sourceMimetype
      * and sourceSizeInBytes may still change. In the case of ACS this is the rendition name.
-     * @param sourceNodeRef the NodeRef of the source content. Optional as it is only used in debug messages.
+     * @param sourceNodeRef (optional) NodeRef of the source content. Only used in debug messages.
      * @return {@code}true{@code} if it is supported.
      */
-    @Deprecated
     boolean isSupported(String sourceMimetype, long sourceSizeInBytes, String contentUrl, String targetMimetype,
                         Map<String, String> actualOptions, String transformName, NodeRef sourceNodeRef);
 
@@ -72,17 +69,18 @@ public interface SynchronousTransformClient<T>
      * transform is supported. Uses the {@code contentReader} to work out the {@code sourceMimetype},
      * {@code sourceSizeInBytes} and {@code contentUrl}.
      * @param contentReader to access the sourceNodeRef content property.
-     * @param sourceNodeRef the NodeRef of the source content.
      * @param targetMimetype the mimetype of the target
      * @param actualOptions the actual name value pairs available that could be passed to the Transform Service.
      * @param transformName (optional) name for the set of options and target mimetype. If supplied is used to cache
      * results to avoid having to work out if a given transformation is supported a second time. The sourceMimetype
      * and sourceSizeInBytes may still change. In the case of ACS this is the rendition name.
+     * @param sourceNodeRef (optional) NodeRef of the source content. Only used in debug messages.
      * @return {@code}true{@code} if it is supported.
      */
     @Deprecated
-    default boolean isSupported(ContentReader contentReader, NodeRef sourceNodeRef, String targetMimetype,
-                                Map<String, String> actualOptions, String transformName)
+    // TODO try to remove calls to this method.
+    default boolean isSupported(ContentReader contentReader, String targetMimetype, Map<String, String> actualOptions,
+                                String transformName, NodeRef sourceNodeRef)
     {
         String sourceMimetype = contentReader.getMimetype();
         long sourceSizeInBytes = contentReader.getSize();
@@ -105,6 +103,7 @@ public interface SynchronousTransformClient<T>
      * @return {@code}true{@code} if it is supported.
      */
     @Deprecated
+    // TODO try to remove calls to this method.
     default boolean isSupported(NodeService nodeService, NodeRef sourceNodeRef, String targetMimetype,
                                 Map<String, String> actualOptions, String transformName)
     {
@@ -140,7 +139,6 @@ public interface SynchronousTransformClient<T>
      *         converion is too big.
      * @throws ContentIOException  there is an unexpected communication or transformation failure.
      */
-    @Deprecated
     void transform(ContentReader reader, ContentWriter writer, Map<String, String> actualOptions,
                    String transformName, NodeRef sourceNodeRef)
             throws UnsupportedTransformationException, ContentIOException;
@@ -149,17 +147,18 @@ public interface SynchronousTransformClient<T>
      * Only needed if {@code isSupported} and {@code transform} are called in different {@code Threads}.
      * See the description in {@link #transform(ContentReader, ContentWriter, Map, String, NodeRef)}.
      */
-    @Deprecated
     T getSupportedBy();
 
     /**
      * Only needed if {@code isSupported} and {@code transform} are called in different {@code Threads}.
      * See the description in {@link #transform(ContentReader, ContentWriter, Map, String, NodeRef)}.
      */
-    @Deprecated
     void setSupportedBy(T t);
 
-    // TODO Replace code that calls this method with code that uses the newer Map of transform objects.
+    /**
+     * @deprecated Will be removed when legacy transforms are removed.
+     */
     @Deprecated
+    // TODO try to remove calls to this method.
     Map<String, String> convertOptions(TransformationOptions options);
 }

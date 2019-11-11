@@ -88,7 +88,6 @@ public class SwitchingSynchronousTransformClient implements SynchronousTransform
     }
 
     @Override
-    @Deprecated
     public Pair<SynchronousTransformClient,Object> getSupportedBy()
     {
         Pair<SynchronousTransformClient,Object> clientSupportedBy = client.get();
@@ -101,7 +100,6 @@ public class SwitchingSynchronousTransformClient implements SynchronousTransform
     }
 
     @Override
-    @Deprecated
     public void setSupportedBy(Pair<SynchronousTransformClient,Object> clientSupportedBy)
     {
         this.client.set(clientSupportedBy);

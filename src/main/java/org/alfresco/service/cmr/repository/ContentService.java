@@ -26,12 +26,9 @@
 package org.alfresco.service.cmr.repository;
 
 import org.alfresco.api.AlfrescoPublicApi;
-import org.alfresco.repo.content.transform.ContentTransformer;
 import org.alfresco.service.Auditable;
 import org.alfresco.service.cmr.dictionary.InvalidTypeException;
 import org.alfresco.service.namespace.QName;
-
-import java.util.List;
 
 /**
  * Provides methods for accessing and transforming content.
@@ -55,7 +52,7 @@ import java.util.List;
  * @author Derek Hulley
  */
 @AlfrescoPublicApi
-public interface ContentService
+public interface ContentService extends ContentTransformService
 {
     /**
      * Gets the total space of the underlying content store (not exclusively Alfresco-controlled binaries).
@@ -155,67 +152,4 @@ public interface ContentService
      */
     @Auditable
     public ContentWriter getTempWriter();
-    
-    /**
-     * Transforms the content from the reader and writes the content
-     * back out to the writer.
-     * 
-     * @param reader the source content location and mimetype
-     * @param writer the target content location and mimetype
-     * @param options the options for the transformation
-     * @throws NoTransformerException if no transformer exists for the
-     *      given source and target mimetypes of the reader and writer
-     * @throws ContentIOException if the transformation fails
-     *
-     * @deprecated The transformations code is being moved out of the codebase and replaced by the new async RenditionService2 or other external libraries.
-     */
-    @Deprecated
-    @Auditable(parameters = {"reader", "writer", "options"})
-    public void transform(ContentReader reader, ContentWriter writer, TransformationOptions options)
-            throws NoTransformerException, ContentIOException;
-    
-    /**
-     * Fetch the transformer that is capable of transforming the content in the
-     * given source mimetype to the given target mimetype with the provided transformation
-     * options.
-     * <p/>
-     * The transformation options provide a finer grain way of discovering the correct transformer, 
-     * since the values and type of the options provided are considered by the transformer when
-     * deciding whether it can satisfy the transformation request.
-     * @param sourceUrl TODO
-     * @param  sourceMimetype       the source mimetype
-     * @param  sourceSize           the source size (bytes). Ignored if negative. 
-     * @param  targetMimetype       the target mimetype
-     * @param  options              the transformation options
-     * 
-     * @return ContentTransformer   a transformer that can be used, or null if one was not available
-     * 
-     * @see ContentAccessor#getMimetype()
-     *
-     * @deprecated The transformations code is being moved out of the codebase and replaced by the new async RenditionService2 or other external libraries.
-     */
-    @Deprecated
-    @Auditable(parameters = {"sourceMimetype", "sourceSize", "targetMimetype", "options"})
-    public ContentTransformer getTransformer(String sourceUrl, String sourceMimetype, long sourceSize, String targetMimetype, TransformationOptions options);
-    
-    /**
-     * Returns the maximum source size of any content that may transformed between the supplied
-     * mimetypes using the supplied options.
-     * @param sourceMimetype source mime type
-     * @param targetMimetype target mime type
-     * @param options transformation options
-     * @return 0 if there are no transformers, -1 if there is no limit or if positive number the size in bytes.
-     *
-     * @deprecated The transformations code is being moved out of the codebase and replaced by the new async RenditionService2 or other external libraries.
-     */
-    @Deprecated
-    @Auditable(parameters = {"sourceMimetype", "targetMimetype", "options"})
-    public long getMaxSourceSizeBytes(String sourceMimetype, String targetMimetype, TransformationOptions options);
-
-    /**
-     * @deprecated
-     * @since 3.5
-     */
-    @Auditable(parameters = {"sourceMimetype", "sourceSize", "targetMimetype", "options"})
-    public List<ContentTransformer> getActiveTransformers(String sourceMimetype, long sourceSize, String targetMimetype, TransformationOptions options);
 }

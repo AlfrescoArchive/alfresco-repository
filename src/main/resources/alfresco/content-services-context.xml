@@ -148,9 +148,6 @@
       <property name="nodeService">
           <ref bean="nodeService" />
       </property>
-      <property name="transformerRegistry">
-          <ref bean="contentTransformerRegistry" />
-      </property>
       <property name="policyComponent">
           <ref bean="policyComponent" />
       </property>
@@ -166,9 +163,7 @@
       <property name="ignoreEmptyContent" >
          <value>${policy.content.update.ignoreEmpty}</value>
       </property>
-      <property name="transformerDebug">
-         <ref bean="transformerDebug" />
-      </property>
+       <property name="legacySynchronousTransformClient" ref="legacySynchronousTransformClient" />
    </bean>
    
    <bean id="contentService" parent="baseContentService">

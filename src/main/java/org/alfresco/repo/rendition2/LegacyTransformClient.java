@@ -62,6 +62,7 @@ public class LegacyTransformClient implements TransformClient, InitializingBean
     private ContentService contentService;
     private RenditionService2Impl renditionService2;
     private TransformationOptionsConverter converter;
+    private LegacySynchronousTransformClient legacySynchronousTransformClient;
 
     private ExecutorService executorService;
     private ThreadLocal<ContentTransformer> transform = new ThreadLocal<>();
@@ -86,6 +87,11 @@ public class LegacyTransformClient implements TransformClient, InitializingBean
         this.converter = converter;
     }
 
+    public void setLegacySynchronousTransformClient(LegacySynchronousTransformClient legacySynchronousTransformClient)
+    {
+        this.legacySynchronousTransformClient = legacySynchronousTransformClient;
+    }
+
     public void setExecutorService(ExecutorService executorService)
     {
         this.executorService = executorService;
@@ -98,6 +104,7 @@ public class LegacyTransformClient implements TransformClient, InitializingBean
         PropertyCheck.mandatory(this, "contentService", contentService);
         PropertyCheck.mandatory(this, "renditionService2", renditionService2);
         PropertyCheck.mandatory(this, "converter", converter);
+        PropertyCheck.mandatory(this, "legacySynchronousTransformClient", legacySynchronousTransformClient);
         if (executorService == null)
         {
             executorService = Executors.newCachedThreadPool();

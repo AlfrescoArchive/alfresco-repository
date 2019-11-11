@@ -26,16 +26,11 @@
 package org.alfresco.repo.rendition2;
 
 import org.alfresco.repo.content.transform.ContentTransformer;
-import org.alfresco.repo.content.transform.UnsupportedTransformationException;
-import org.alfresco.service.cmr.repository.ContentIOException;
 import org.alfresco.service.cmr.repository.ContentReader;
-import org.alfresco.service.cmr.repository.ContentService;
 import org.alfresco.service.cmr.repository.ContentWriter;
 import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.cmr.repository.TransformationOptions;
 import org.alfresco.util.PropertyCheck;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.InitializingBean;
 
 import java.util.Map;
@@ -48,19 +43,13 @@ import java.util.Map;
  * @author adavis
  */
 @Deprecated
-public class LegacySynchronousTransformClient implements SynchronousTransformClient<ContentTransformer>, InitializingBean
+public class LegacySynchronousTransformClient extends ContentTransformServiceImpl
+        implements SynchronousTransformClient<ContentTransformer>, InitializingBean
 {
     private static final String TRANSFORM = "Legacy synchronous transform ";
-    private static Log logger = LogFactory.getLog(LegacyTransformClient.class);
 
-    private ContentService contentService;
     private TransformationOptionsConverter converter;
     private ThreadLocal<ContentTransformer> transform = new ThreadLocal<>();
-
-    public void setContentService(ContentService contentService)
-    {
-        this.contentService = contentService;
-    }
 
     public void setConverter(TransformationOptionsConverter converter)
     {
@@ -70,7 +59,7 @@ public class LegacySynchronousTransformClient implements SynchronousTransformCli
     @Override
     public void afterPropertiesSet() throws Exception
     {
-        PropertyCheck.mandatory(this, "contentService", contentService);
+        super.afterPropertiesSet();
         PropertyCheck.mandatory(this, "converter", converter);
     }
 
@@ -82,7 +71,7 @@ public class LegacySynchronousTransformClient implements SynchronousTransformCli
         TransformationOptions transformationOptions = converter.getTransformationOptions(renditionName, actualOptions);
         transformationOptions.setSourceNodeRef(sourceNodeRef);
 
-        ContentTransformer legacyTransform = contentService.getTransformer(contentUrl, sourceMimetype,
+        ContentTransformer legacyTransform = getTransformer(contentUrl, sourceMimetype,
                 sourceSizeInBytes, targetMimetype, transformationOptions);
         transform.set(legacyTransform);
 
@@ -124,7 +113,7 @@ public class LegacySynchronousTransformClient implements SynchronousTransformCli
             // transforms (unlike Local and Transform Service) automatically fail over to the next
             // highest priority. This was not done for the newer transforms, as a fail over can always be
             // defined and that makes it simpler to understand what is going on.
-            contentService.transform(reader, writer, options);
+            transform(reader, writer, options);
 
             if (logger.isDebugEnabled())
             {
@@ -142,7 +131,6 @@ public class LegacySynchronousTransformClient implements SynchronousTransformCli
     }
 
     @Override
-    @Deprecated
     public ContentTransformer getSupportedBy()
     {
         ContentTransformer legacyTransform = transform.get();
@@ -155,7 +143,6 @@ public class LegacySynchronousTransformClient implements SynchronousTransformCli
     }
 
     @Override
-    @Deprecated
     public void setSupportedBy(ContentTransformer legacyTransform)
     {
         transform.set(legacyTransform);
