@@ -77,7 +77,7 @@ public class ContentTransformServiceAdaptor implements ContentTransformService
 
     @Deprecated
     @Override
-    public void transform(ContentReader reader, ContentWriter writer, TransformationOptions options)
+    public void transform(ContentReader reader, ContentWriter writer, TransformationOptions options) // TODO replace calls
             throws NoTransformerException, ContentIOException
     {
         legacySynchronousTransformClient.transform(reader, writer, options);
@@ -99,7 +99,7 @@ public class ContentTransformServiceAdaptor implements ContentTransformService
 
     @Deprecated
     @Override
-    public ContentTransformer getTransformer(String sourceUrl, String sourceMimetype, long sourceSize, String targetMimetype, TransformationOptions options)
+    public ContentTransformer getTransformer(String sourceUrl, String sourceMimetype, long sourceSize, String targetMimetype, TransformationOptions options) // TODO replace calls
     {
         return legacySynchronousTransformClient.getTransformer(sourceUrl, sourceMimetype, sourceSize, targetMimetype, options);
     }
@@ -113,7 +113,7 @@ public class ContentTransformServiceAdaptor implements ContentTransformService
 
     @Deprecated
     @Override
-    public long getMaxSourceSizeBytes(String sourceMimetype, String targetMimetype, TransformationOptions options)
+    public long getMaxSourceSizeBytes(String sourceMimetype, String targetMimetype, TransformationOptions options) // TODO replace call
     {
         return legacySynchronousTransformClient.getMaxSourceSizeBytes(sourceMimetype, targetMimetype, options);
     }

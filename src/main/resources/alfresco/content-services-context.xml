@@ -453,9 +453,7 @@
          abstract="true"
          init-method="register"
          parent="baseContentTransformer">
-      <property name="contentService">
-         <ref bean="contentService" />
-      </property>
+      <property name="legacySynchronousTransformClient" ref="legacySynchronousTransformClient" />
    </bean>
 
    <bean name="tikaRemoteTransformerClient"
