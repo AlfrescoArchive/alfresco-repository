@@ -148,7 +148,7 @@
     <bean id="localTransformServiceRegistryJsonObjectMapper" class="com.fasterxml.jackson.databind.ObjectMapper" />
 
     <bean id="legacyTransformServiceRegistry" class="org.alfresco.repo.rendition2.LegacyTransformServiceRegistry" >
-        <property name="contentService" ref="contentService" />
+        <property name="legacySynchronousTransformClient" ref="legacySynchronousTransformClient" />
         <property name="converter" ref="transformOptionsConverter" />
         <property name="enabled" value="${legacy.transform.service.enabled}" />
         <property name="transformerDebug" ref="transformerDebug" />

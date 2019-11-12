@@ -113,7 +113,7 @@ public class ContentTransformServiceAdaptor implements ContentTransformService
 
     @Deprecated
     @Override
-    public long getMaxSourceSizeBytes(String sourceMimetype, String targetMimetype, TransformationOptions options) // TODO replace call
+    public long getMaxSourceSizeBytes(String sourceMimetype, String targetMimetype, TransformationOptions options)
     {
         return legacySynchronousTransformClient.getMaxSourceSizeBytes(sourceMimetype, targetMimetype, options);
     }
