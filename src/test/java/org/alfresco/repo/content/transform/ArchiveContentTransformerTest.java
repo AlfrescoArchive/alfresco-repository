@@ -27,11 +27,13 @@ package org.alfresco.repo.content.transform;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Collections;
 
 import org.alfresco.repo.content.MimetypeMap;
 import org.alfresco.repo.content.filestore.FileContentReader;
 import org.alfresco.repo.content.filestore.FileContentWriter;
 import org.alfresco.repo.management.subsystems.ChildApplicationContextFactory;
+import org.alfresco.repo.rendition2.SynchronousTransformClient;
 import org.alfresco.repo.security.authentication.AuthenticationUtil;
 import org.alfresco.service.cmr.repository.ContentReader;
 import org.alfresco.service.cmr.repository.ContentWriter;
@@ -220,8 +222,8 @@ public class ArchiveContentTransformerTest extends AbstractContentTransformerTes
         }
 
         AuthenticationUtil.setFullyAuthenticatedUser(AuthenticationUtil.getSystemUserName());
-        ContentTransformer transformer = serviceRegistry.getContentService().getTransformer(null, sourceMimetype, -1, targetMimetype, new TransformationOptions());
-        assertNotNull(transformer);
+        assertTrue(serviceRegistry.getSynchronousTransformClient().isSupported(sourceMimetype, -1, null,
+                targetMimetype, Collections.emptyMap(), null, null));
 
         String sourceExtension = mimetypeService.getExtension(sourceMimetype);
         String targetExtension = mimetypeService.getExtension(targetMimetype);

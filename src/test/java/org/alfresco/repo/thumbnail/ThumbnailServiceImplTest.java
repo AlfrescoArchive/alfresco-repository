@@ -1116,10 +1116,12 @@ public class ThumbnailServiceImplTest extends BaseAlfrescoSpringTest
     {
         NodeRef nodeRef = createOriginalContent(this.folder, MimetypeMap.MIMETYPE_HTML);
         ThumbnailDefinition def = this.thumbnailService.getThumbnailRegistry().getThumbnailDefinition("medium");
-
-        ContentTransformer transformer = this.contentService.getTransformer(null, MimetypeMap.MIMETYPE_HTML, -1, def
-                                .getMimetype(), def.getTransformationOptions());
-        if (transformer != null)
+        TransformationOptions transformationOptions = def.getTransformationOptions();
+        Map options = synchronousTransformClient.convertOptions(transformationOptions);
+        String targetMimetype = def.getMimetype();
+        boolean supported = synchronousTransformClient.isSupported(MimetypeMap.MIMETYPE_HTML, -1, null,
+                targetMimetype, options, null, null);
+        if (supported)
         {
             NodeRef thumb = this.thumbnailService.createThumbnail(nodeRef, ContentModel.PROP_CONTENT,
                         def.getMimetype(), def.getTransformationOptions(), def.getName());
@@ -1131,7 +1133,7 @@ public class ThumbnailServiceImplTest extends BaseAlfrescoSpringTest
         }
 
         def = this.thumbnailService.getThumbnailRegistry().getThumbnailDefinition("webpreview");
-        if (transformer != null)
+        if (supported)
         {
             NodeRef thumb = this.thumbnailService.createThumbnail(nodeRef, ContentModel.PROP_CONTENT,
                         def.getMimetype(), def.getTransformationOptions(), def.getName());

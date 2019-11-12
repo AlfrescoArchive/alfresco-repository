@@ -121,7 +121,7 @@ public class LegacyTransformClient implements TransformClient, InitializingBean
         TransformationOptions transformationOptions = converter.getTransformationOptions(renditionName, options);
         transformationOptions.setSourceNodeRef(sourceNodeRef);
 
-        ContentTransformer legacyTransform = contentService.getTransformer(contentUrl, sourceMimetype, sourceSizeInBytes, targetMimetype, transformationOptions);
+        ContentTransformer legacyTransform = legacySynchronousTransformClient.getTransformer(contentUrl, sourceMimetype, sourceSizeInBytes, targetMimetype, transformationOptions);
         transform.set(legacyTransform);
 
         String message = TRANSFORM + renditionName + " from " + sourceMimetype +
@@ -172,7 +172,7 @@ public class LegacyTransformClient implements TransformClient, InitializingBean
                         // defined and that makes it simpler to understand what is going on.
                         ContentWriter writer = contentService.getTempWriter();
                         writer.setMimetype(targetMimetype);
-                        contentService.transform(reader, writer, options);
+                        legacySynchronousTransformClient.transform(reader, writer, options);
 
                         InputStream inputStream = writer.getReader().getContentInputStream();
                         if (logger.isDebugEnabled())
