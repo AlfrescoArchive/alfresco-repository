@@ -656,13 +656,13 @@ public class RhinoScriptProcessor extends BaseProcessor implements ScriptProcess
         else
         {
             // Initialise the secure scope
-            scope = cx.initStandardObjects(null, sealed);
-            // remove security issue related objects - this ensures the script may not access
-            // unsecure java.* libraries or import any other classes for direct access - only
-            // the configured root host objects will be available to the script writer
-            scope.delete("Packages");
-            scope.delete("getClass");
-            scope.delete("java");
+            // This sets up "scope" to have access to all the standard
+            // JavaScript classes,
+            // but does not create global objects for any top-level Java
+            // packages.
+            // In addition, the "Packages," "JavaAdapter," and "JavaImporter"
+            // classes, and the "getClass" function, are not initialized.
+            scope = cx.initSafeStandardObjects(null, sealed);
         }
         return scope;
     }
