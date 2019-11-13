@@ -96,7 +96,9 @@
     </bean>
 
     <!-- Deprecated -->
-    <bean id="synchronousTransformClient" class="org.alfresco.repo.rendition2.SwitchingSynchronousTransformClient">
+    <bean id="synchronousTransformClient" parent="switchingSynchronousTransformClient" />
+
+    <bean id="switchingSynchronousTransformClient" class="org.alfresco.repo.rendition2.SwitchingSynchronousTransformClient">
         <constructor-arg name="primary" ref="localSynchronousTransformClient" />
         <constructor-arg name="secondary" ref="legacySynchronousTransformClient" />
     </bean>

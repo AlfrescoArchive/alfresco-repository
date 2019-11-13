@@ -44,7 +44,7 @@ import java.util.Map;
  */
 public interface SynchronousTransformClient<T>
 {
-    String IS_SUPPORTED_NOT_CALLED = "isSupported was not called prior to transform in the same Thread.";
+    String IS_SUPPORTED_NOT_CALLED = "isSupported was not called prior to a synchronous transform in the same Thread.";
 
     /**
      * Works out if it is possible to transform content of a given source mimetype and size into a target mimetype

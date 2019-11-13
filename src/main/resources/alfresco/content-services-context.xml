@@ -163,7 +163,9 @@
       <property name="ignoreEmptyContent" >
          <value>${policy.content.update.ignoreEmpty}</value>
       </property>
-       <property name="legacySynchronousTransformClient" ref="legacySynchronousTransformClient" />
+      <property name="legacySynchronousTransformClient" ref="legacySynchronousTransformClient" />
+      <property name="synchronousTransformClient" ref="synchronousTransformClient" />
+       <property name="localTransformServiceRegistry" ref="localTransformServiceRegistry" />
    </bean>
    
    <bean id="contentService" parent="baseContentService">

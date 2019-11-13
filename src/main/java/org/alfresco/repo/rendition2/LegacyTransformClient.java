@@ -152,7 +152,7 @@ public class LegacyTransformClient implements TransformClient, InitializingBean
                     {
                         if (legacyTransform == null)
                         {
-                            throw new IllegalStateException("isSupported was not called prior to transform.");
+                            throw new IllegalStateException("isSupported was not called prior to an asynchronous transform.");
                         }
 
                         ContentReader reader = contentService.getReader(sourceNodeRef, ContentModel.PROP_CONTENT);

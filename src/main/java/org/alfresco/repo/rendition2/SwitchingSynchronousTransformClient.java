@@ -71,6 +71,7 @@ public class SwitchingSynchronousTransformClient implements SynchronousTransform
         }
         else
         {
+            setSupportedBy(null);
             supported = false;
         }
         return supported;

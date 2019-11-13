@@ -48,6 +48,7 @@ import org.springframework.beans.factory.InitializingBean;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Contains deprecated code originally from {@link org.alfresco.repo.content.ContentServiceImpl} that is used to perform

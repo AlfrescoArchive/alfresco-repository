@@ -27,19 +27,22 @@ package org.alfresco.repo.content;
 
 import org.alfresco.repo.content.transform.ContentTransformer;
 import org.alfresco.repo.rendition2.LegacySynchronousTransformClient;
+import org.alfresco.repo.rendition2.SynchronousTransformClient;
 import org.alfresco.service.cmr.repository.ContentIOException;
 import org.alfresco.service.cmr.repository.ContentReader;
-import org.alfresco.service.cmr.repository.ContentWriter;
 import org.alfresco.service.cmr.repository.ContentTransformService;
+import org.alfresco.service.cmr.repository.ContentWriter;
 import org.alfresco.service.cmr.repository.NoTransformerException;
 import org.alfresco.service.cmr.repository.TransformationOptions;
+import org.alfresco.transform.client.registry.TransformServiceRegistry;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
 /**
- * Contains deprecated code originally from {@link org.alfresco.repo.content.ContentServiceImpl} that is used to perform
- * Legacy transforms.
+ * Contains deprecated methods originally from {@link org.alfresco.repo.content.ContentServiceImpl} that is used to
+ * perform Legacy transforms.
  *
  * @author adavis
  */
@@ -48,6 +51,8 @@ public class ContentTransformServiceAdaptor implements ContentTransformService
 {
     private ContentTransformer imageMagickContentTransformer;
     private LegacySynchronousTransformClient legacySynchronousTransformClient;
+    private SynchronousTransformClient synchronousTransformClient;
+    private TransformServiceRegistry localTransformServiceRegistry;
 
     @Deprecated
     public void setImageMagickContentTransformer(ContentTransformer imageMagickContentTransformer)
@@ -60,75 +65,100 @@ public class ContentTransformServiceAdaptor implements ContentTransformService
         this.legacySynchronousTransformClient = legacySynchronousTransformClient;
     }
 
+    public void setSynchronousTransformClient(SynchronousTransformClient synchronousTransformClient)
+    {
+        this.synchronousTransformClient = synchronousTransformClient;
+    }
+
+    public void setLocalTransformServiceRegistry(TransformServiceRegistry localTransformServiceRegistry)
+    {
+        this.localTransformServiceRegistry = localTransformServiceRegistry;
+    }
+
     @Deprecated
     @Override
     public void transform(ContentReader reader, ContentWriter writer)
     {
-        this.transform(reader, writer, new TransformationOptions());
+        synchronousTransformClient.transform(reader, writer, Collections.emptyMap(), null, null);
     }
 
     @Deprecated
     @Override
-    public void transform(ContentReader reader, ContentWriter writer, Map<String, Object> options)
+    public void transform(ContentReader reader, ContentWriter writer, Map<String, Object> legacyOptionsMap)
             throws NoTransformerException, ContentIOException
     {
-        transform(reader, writer, new TransformationOptions(options));
+        TransformationOptions transformationOptions = new TransformationOptions(legacyOptionsMap);
+        Map<String, Object> options = synchronousTransformClient.convertOptions(transformationOptions);
+        synchronousTransformClient.transform(reader, writer, options, null, null);
     }
 
     @Deprecated
     @Override
-    public void transform(ContentReader reader, ContentWriter writer, TransformationOptions options) // TODO replace calls
+    public void transform(ContentReader reader, ContentWriter writer, TransformationOptions transformationOptions) // TODO replace calls
             throws NoTransformerException, ContentIOException
     {
-        legacySynchronousTransformClient.transform(reader, writer, options);
+        Map<String, Object> options = synchronousTransformClient.convertOptions(transformationOptions);
+        synchronousTransformClient.transform(reader, writer, options, null, null);
     }
 
     @Deprecated
     @Override
     public ContentTransformer getTransformer(String sourceMimetype, String targetMimetype)
     {
-        return getTransformer(null, sourceMimetype, -1, targetMimetype, new TransformationOptions());
+        return legacySynchronousTransformClient.getTransformer(null, sourceMimetype, -1,
+                targetMimetype, new TransformationOptions());
     }
 
     @Deprecated
     @Override
     public ContentTransformer getTransformer(String sourceMimetype, String targetMimetype, TransformationOptions options)
     {
-        return getTransformer(null, sourceMimetype, -1, targetMimetype, options);
+        return legacySynchronousTransformClient.getTransformer(null, sourceMimetype, -1, targetMimetype, options);
     }
 
     @Deprecated
     @Override
-    public ContentTransformer getTransformer(String sourceUrl, String sourceMimetype, long sourceSize, String targetMimetype, TransformationOptions options) // TODO replace calls
+    public ContentTransformer getTransformer(String sourceUrl, String sourceMimetype, long sourceSize,
+                                             String targetMimetype, TransformationOptions options)
     {
         return legacySynchronousTransformClient.getTransformer(sourceUrl, sourceMimetype, sourceSize, targetMimetype, options);
     }
 
     @Deprecated
     @Override
-    public List<ContentTransformer> getTransformers(String sourceUrl, String sourceMimetype, long sourceSize, String targetMimetype, TransformationOptions options)
+    // Same as getActiveTransformers, but with debug
+    public List<ContentTransformer> getTransformers(String sourceUrl, String sourceMimetype, long sourceSize,
+                                                    String targetMimetype, TransformationOptions options)
     {
         return legacySynchronousTransformClient.getTransformers(sourceUrl, sourceMimetype, sourceSize, targetMimetype, options);
     }
 
     @Deprecated
     @Override
-    public long getMaxSourceSizeBytes(String sourceMimetype, String targetMimetype, TransformationOptions options)
+    public long getMaxSourceSizeBytes(String sourceMimetype,
+                                      String targetMimetype, TransformationOptions transformationOptions)
     {
-        return legacySynchronousTransformClient.getMaxSourceSizeBytes(sourceMimetype, targetMimetype, options);
+        Map<String, String> options = synchronousTransformClient.convertOptions(transformationOptions);
+        return localTransformServiceRegistry.findMaxSize(sourceMimetype, targetMimetype, options, null);
     }
 
     @Deprecated
     @Override
-    public List<ContentTransformer> getActiveTransformers(String sourceMimetype, String targetMimetype, TransformationOptions options)
+    // Same as getTransformers, but without debug
+    public List<ContentTransformer> getActiveTransformers(String sourceMimetype,
+                                                          String targetMimetype, TransformationOptions options)
     {
         return getActiveTransformers(sourceMimetype, -1, targetMimetype, options);
     }
 
     @Deprecated
     @Override
-    public List<ContentTransformer> getActiveTransformers(String sourceMimetype, long sourceSize, String targetMimetype, TransformationOptions options)
+    // Same as getTransformers, but without debug
+    public List<ContentTransformer> getActiveTransformers(String sourceMimetype, long sourceSize,
+                                                          String targetMimetype, TransformationOptions options)
     {
+        // TODO if Local transforms are going to be used, create a ContentTransformer wrapper for each of them.
+        //      Also need to do it for other methods in this class that return ContentTransformers.
         return legacySynchronousTransformClient.getActiveTransformers(sourceMimetype, sourceSize, targetMimetype, options);
     }
 
@@ -143,13 +173,16 @@ public class ContentTransformServiceAdaptor implements ContentTransformService
     @Override
     public boolean isTransformable(ContentReader reader, ContentWriter writer)
     {
-        return isTransformable(reader, writer, new TransformationOptions());
+        return synchronousTransformClient.isSupported(reader, writer.getMimetype(), Collections.emptyMap(),
+                null, null);
     }
 
     @Deprecated
     @Override
-    public boolean isTransformable(ContentReader reader, ContentWriter writer, TransformationOptions options)
+    public boolean isTransformable(ContentReader reader, ContentWriter writer, TransformationOptions transformationOptions)
     {
-        return legacySynchronousTransformClient.isSupported(reader, writer.getMimetype(), legacySynchronousTransformClient.convertOptions(options), null, null);
+        Map<String, String> options = synchronousTransformClient.convertOptions(transformationOptions);
+        return synchronousTransformClient.isSupported(reader, writer.getMimetype(), options,
+                null, null);
     }
 }

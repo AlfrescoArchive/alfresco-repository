@@ -2,7 +2,7 @@
  * #%L
  * Alfresco Repository
  * %%
- * Copyright (C) 2005 - 2016 Alfresco Software Limited
+ * Copyright (C) 2005 - 2019 Alfresco Software Limited
  * %%
  * This file is part of the Alfresco software. 
  * If the software was purchased under a paid Alfresco license, the terms of 
@@ -41,9 +41,9 @@ import org.alfresco.model.RenditionModel;
 import org.alfresco.repo.action.evaluator.NoConditionEvaluator;
 import org.alfresco.repo.action.executer.AddFeaturesActionExecuter;
 import org.alfresco.repo.content.MimetypeMap;
-import org.alfresco.repo.content.transform.AbstractContentTransformer2;
 import org.alfresco.repo.content.transform.AbstractContentTransformerTest;
 import org.alfresco.repo.content.transform.ContentTransformer;
+import org.alfresco.repo.content.transform.LocalTransform;
 import org.alfresco.repo.content.transform.magick.ImageResizeOptions;
 import org.alfresco.repo.content.transform.magick.ImageTransformationOptions;
 import org.alfresco.repo.domain.dialect.Dialect;
@@ -51,6 +51,7 @@ import org.alfresco.repo.domain.dialect.Oracle9Dialect;
 import org.alfresco.repo.domain.dialect.SQLServerDialect;
 import org.alfresco.repo.jscript.ClasspathScriptLocation;
 import org.alfresco.repo.model.Repository;
+import org.alfresco.repo.rendition2.LocalSynchronousTransformClient;
 import org.alfresco.repo.rendition2.SynchronousTransformClient;
 import org.alfresco.repo.thumbnail.script.ScriptThumbnailService;
 import org.alfresco.repo.transaction.AlfrescoTransactionSupport;
@@ -65,7 +66,6 @@ import org.alfresco.service.cmr.lock.LockType;
 import org.alfresco.service.cmr.rendition.RenditionService;
 import org.alfresco.service.cmr.repository.ChildAssociationRef;
 import org.alfresco.service.cmr.repository.ContentData;
-import org.alfresco.service.cmr.repository.ContentIOException;
 import org.alfresco.service.cmr.repository.ContentReader;
 import org.alfresco.service.cmr.repository.ContentServiceTransientException;
 import org.alfresco.service.cmr.repository.ContentWriter;
@@ -89,8 +89,10 @@ import org.alfresco.service.namespace.QNamePattern;
 import org.alfresco.service.namespace.RegexQNamePattern;
 import org.alfresco.service.transaction.TransactionService;
 import org.alfresco.test_category.OwnJVMTestsCategory;
+import org.alfresco.transform.client.registry.TransformServiceRegistry;
 import org.alfresco.util.BaseAlfrescoSpringTest;
 import org.alfresco.util.GUID;
+import org.alfresco.util.Pair;
 import org.alfresco.util.TempFileProvider;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -1285,11 +1287,6 @@ public class ThumbnailServiceImplTest extends BaseAlfrescoSpringTest
 
         try
         {
-            // Reset our transformer count for each test
-            LongRunningTransformer transformer = (LongRunningTransformer) contentService
-                    .getTransformer(null, TEST_LONG_RUNNING_MIME_TYPE, -1, MimetypeMap.MIMETYPE_IMAGE_JPEG, new TransformationOptions());
-            transformer.setTransformCount(0);
-
             Map<QName, Serializable> props = new HashMap<QName, Serializable>(1);
             props.put(ContentModel.PROP_NAME, "original.test");
             final NodeRef source = secureNodeService.createNode(folder, ContentModel.ASSOC_CONTAINS,
@@ -1481,68 +1478,112 @@ public class ThumbnailServiceImplTest extends BaseAlfrescoSpringTest
 
         performLongRunningThumbnailTest(expectedThumbnails, expectedAssocs, new EmptyLongRunningConcurrentWork(), 1, 1);
     }
-    
-    /**
-     * Test transformer.
-     * 
-     * @since 4.0.1
-     */
-    private static class TransientFailTransformer extends AbstractContentTransformer2
+
+    public static class TestTransformServiceRegistry implements TransformServiceRegistry
     {
-        public boolean isTransformable(String sourceMimetype, String targetMimetype, TransformationOptions options)
+        private TransformServiceRegistry delegate;
+
+        public TestTransformServiceRegistry(TransformServiceRegistry delegate)
         {
-            return sourceMimetype.equals(MimetypeMap.MIMETYPE_PDF) && targetMimetype.equals(TEST_FAILING_MIME_TYPE);
+            this.delegate = delegate;
         }
-        
-        protected void transformInternal(ContentReader reader, ContentWriter writer, TransformationOptions options) throws Exception
+
+        @Override
+        public boolean isSupported(String sourceMimetype, long sourceSizeInBytes, String targetMimetype,
+                                   Map<String, String> actualOptions, String transformName)
         {
-            // fail every time.
-            throw new ContentServiceTransientException("Transformation intentionally failed for test purposes.");
+            return sourceMimetype.equals(TEST_FAILING_MIME_TYPE) || sourceMimetype.equals(TEST_LONG_RUNNING_MIME_TYPE)
+                    ? true
+                    : delegate.isSupported(sourceMimetype, sourceSizeInBytes, targetMimetype, actualOptions, transformName);
+        }
+
+        @Override
+        public long findMaxSize(String sourceMimetype, String targetMimetype, Map<String, String> actualOptions, String transformName)
+        {
+            return sourceMimetype.equals(TEST_FAILING_MIME_TYPE) || sourceMimetype.equals(TEST_LONG_RUNNING_MIME_TYPE)
+                    ? -1
+                    : delegate.findMaxSize(sourceMimetype, targetMimetype, actualOptions, transformName);
+        }
+
+        @Override
+        public String findTransformerName(String sourceMimetype, long sourceSizeInBytes,
+                                          String targetMimetype, Map<String, String> actualOptions, String renditionName)
+        {
+            throw new UnsupportedOperationException("not implemented");
         }
     }
-    
-    /**
-     * Bogus transformer that simulates a somewhat longer running transformation
-     */
-    private static class LongRunningTransformer extends AbstractContentTransformer2
+
+    public static class TestSynchronousTransformClient<T> implements SynchronousTransformClient<Pair<SynchronousTransformClient,Object>>
     {
-        private int transformCount = 0;
+        private SynchronousTransformClient<Pair<SynchronousTransformClient,Object>> delegate;
 
-        @Override
-        public void register()
+        public TestSynchronousTransformClient(SynchronousTransformClient<Pair<SynchronousTransformClient,Object>> delegate)
         {
-            super.register();
-            setStrictMimeTypeCheck(false);
-        }
-
-        public void setTransformCount(int transformCount)
-        {
-            this.transformCount = transformCount;
-        }
-
-        public int getTransformCount()
-        {
-            return transformCount;
-        }
-        
-        @Override
-        public boolean isTransformable(String sourceMimetype, String targetMimetype, TransformationOptions options)
-        {
-            return sourceMimetype.equals(TEST_LONG_RUNNING_MIME_TYPE) && 
-                    (targetMimetype.equals(MimetypeMap.MIMETYPE_IMAGE_JPEG) ||
-                            targetMimetype.equals(MimetypeMap.MIMETYPE_IMAGE_PNG));
+            this.delegate = delegate;
         }
 
         @Override
-        protected void transformInternal(ContentReader reader, ContentWriter writer, TransformationOptions options)
-                throws Exception
+        public boolean isSupported(String sourceMimetype, long sourceSizeInBytes, String contentUrl, String targetMimetype,
+                                   Map<String, String> actualOptions, String transformName, NodeRef sourceNodeRef)
         {
-            Thread.sleep(TEST_LONG_RUNNING_TRANSFORM_TIME);
-            writer.putContent("SUCCESS");
-            transformCount++;
+            boolean supported = true;
+            if (sourceMimetype.equals(TEST_FAILING_MIME_TYPE) || sourceMimetype.equals(TEST_LONG_RUNNING_MIME_TYPE))
+            {
+                setSupportedBy(new Pair(null, null));
+            }
+            else
+            {
+                delegate.isSupported(sourceMimetype, sourceSizeInBytes, contentUrl, targetMimetype, actualOptions,
+                        transformName, sourceNodeRef);
+            }
+            return supported;
+        }
+
+        @Override
+        public void transform(ContentReader reader, ContentWriter writer, Map<String, String> actualOptions, String transformName, NodeRef sourceNodeRef)
+        {
+            String sourceMimetype = reader.getMimetype();
+            if (sourceMimetype.equals(TEST_FAILING_MIME_TYPE))
+            {
+                throw new ContentServiceTransientException("Transformation intentionally failed for test purposes.");
+            }
+            else if (sourceMimetype.equals(TEST_LONG_RUNNING_MIME_TYPE))
+            {
+                try
+                {
+                    Thread.sleep(TEST_LONG_RUNNING_TRANSFORM_TIME);
+                }
+                catch (InterruptedException e)
+                {
+                    e.printStackTrace();
+                }
+                writer.putContent("SUCCESS");
+            }
+            else
+            {
+                delegate.transform(reader, writer, actualOptions, transformName, sourceNodeRef);
+            }
+        }
+
+        @Override
+        public Pair<SynchronousTransformClient,Object> getSupportedBy()
+        {
+            return delegate.getSupportedBy();
+        }
+
+        @Override
+        public void setSupportedBy(Pair<SynchronousTransformClient,Object> o)
+        {
+            delegate.setSupportedBy(o);
+        }
+
+        @Override
+        public Map<String, String> convertOptions(TransformationOptions options)
+        {
+            return delegate.convertOptions(options);
         }
     }
-    
+
     /**
      * Defines the work to be done while long running transformations are being performed
      * and the means to verify that work completed successfully.
