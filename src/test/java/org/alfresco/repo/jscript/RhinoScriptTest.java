@@ -395,7 +395,7 @@ public class RhinoScriptTest extends TestCase
                     NodeRef contentNodeRef = childRef.getChildRef();
                     ContentWriter writer = contentService.getWriter(contentNodeRef, BaseNodeServiceTest.PROP_QNAME_TEST_CONTENT, true);
                     writer.setMimetype("application/x-javascript");
-                    writer.putContent(TESTUNSECURESCRIPT);
+                    writer.putContent(BASIC_JAVA);
 
                     try
                     {
@@ -436,11 +436,9 @@ public class RhinoScriptTest extends TestCase
             "var xpathResults = root.childrenByXPath(\"/*\");\r\n" +
             "logger.log(\"children of root from xpath: \" + xpathResults.length);\r\n";
     
-    private static final String TESTUNSECURESCRIPT =
-    	    "list.add(\"/usr/bin/open\");\n" + 
-    	    "list.add(\"/Applications/Calculator.app\");\n" + 
-    	    "\n" + 
-    	    "root.nodeRef.getClass().forName(\"java.lang.ProcessBuilder\").getConstructors()[0].newInstance(list).start();";
-    
+    private static final String BASIC_JAVA = 
+            "var list = com.google.common.collect.Lists.newArrayList();\n" + 
+            "root.nodeRef.getClass().forName(\"java.lang.ProcessBuilder\")";
+            
 
 }
