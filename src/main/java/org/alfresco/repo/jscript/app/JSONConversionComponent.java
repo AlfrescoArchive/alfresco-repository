@@ -225,7 +225,7 @@ public class JSONConversionComponent
                 json.put("permissions", permissionsToJSON(nodeRef));
                 
                 // add properties
-                json.put("properties", propertiesToJSON(nodeRef, nodeInfo.getProperties(), useShortQNames));
+                json.put("properties", propertiesToJSON(nodeRef, nodeInfo, useShortQNames));
                 
                 // add aspects
                 json.put("aspects", apsectsToJSON(nodeRef, useShortQNames));
@@ -395,8 +395,9 @@ public class JSONConversionComponent
      * @return JSONObject
      */
     @SuppressWarnings("unchecked")
-    protected JSONObject propertiesToJSON(NodeRef nodeRef, Map<QName, Serializable> properties, boolean useShortQNames)
+    protected JSONObject propertiesToJSON(NodeRef nodeRef, FileInfo nodeInfo, boolean useShortQNames)
     {
+        Map<QName, Serializable> properties = nodeInfo.getProperties();
         JSONObject propertiesJSON = new JSONObject();
         
         for (QName propertyName : properties.keySet())
@@ -405,8 +406,13 @@ public class JSONConversionComponent
             {
                 String key = nameToString(propertyName, useShortQNames);
                 Serializable value = properties.get(propertyName);
-                
-                propertiesJSON.put(key, propertyToJSON(nodeRef, propertyName, key, value));
+                if( !nodeInfo.isLink()) {
+                    propertiesJSON.put(key, propertyToJSON(nodeRef, propertyName, key, value));
+                } else {
+                    if( propertyName.getPrefixString().equals(NamespaceService.CONTENT_MODEL_PREFIX)  ) {
+                        propertiesJSON.put(key, propertyToJSON(nodeRef, propertyName, key, value));
+                    }
+                }
             }
             catch (NamespaceException ne)
             {
