@@ -25,14 +25,10 @@
  */
 package org.alfresco.repo.rendition2;
 
-import org.alfresco.repo.content.transform.LocalTransform;
 import org.alfresco.repo.content.transform.UnsupportedTransformationException;
 import org.alfresco.service.cmr.repository.ContentReader;
 import org.alfresco.service.cmr.repository.ContentWriter;
 import org.alfresco.service.cmr.repository.NodeRef;
-import org.alfresco.service.cmr.repository.TransformationOptions;
-import org.alfresco.util.Pair;
-import org.alfresco.util.PropertyCheck;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.InitializingBean;
@@ -44,7 +40,7 @@ import java.util.Map;
  *
  * @author adavis
  */
-public abstract class AbstractSynchronousTransformClient<T> implements SynchronousTransformClient<T>, InitializingBean
+public abstract class AbstractSynchronousTransformClient<T> implements SynchronousTransformClient<T>
 {
     private static Log logger = LogFactory.getLog(SynchronousTransformClient.class);
 
@@ -57,8 +53,6 @@ public abstract class AbstractSynchronousTransformClient<T> implements Synchrono
         threadLocalSupportedBy.set(null);
         if (supportedBy == null)
         {
-            logger.debug(IS_SUPPORTED_NOT_CALLED);
-
             String sourceMimetype = reader.getMimetype();
             long sourceSizeInBytes = reader.getSize();
             String targetMimetype = writer.getMimetype();
@@ -74,14 +68,12 @@ public abstract class AbstractSynchronousTransformClient<T> implements Synchrono
         return supportedBy;
     }
 
-    // TODO make protected
-    public T getSupportedBy()
+    T getSupportedBy()
     {
         return threadLocalSupportedBy.get();
     }
 
-    // TODO make protected
-    public void setSupportedBy(T t)
+    void setSupportedBy(T t)
     {
         threadLocalSupportedBy.set(t);
     }

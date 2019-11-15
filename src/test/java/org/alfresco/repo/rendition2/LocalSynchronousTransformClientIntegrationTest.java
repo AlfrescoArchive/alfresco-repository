@@ -25,7 +25,9 @@
  */
 package org.alfresco.repo.rendition2;
 
+import org.alfresco.model.ContentModel;
 import org.alfresco.repo.security.authentication.AuthenticationUtil;
+import org.alfresco.service.cmr.repository.ContentData;
 import org.alfresco.service.cmr.repository.ContentReader;
 import org.alfresco.service.cmr.repository.ContentWriter;
 import org.alfresco.service.cmr.repository.NodeRef;
@@ -178,10 +180,6 @@ public class LocalSynchronousTransformClientIntegrationTest extends AbstractRend
         {
             NodeRef sourceNode = transactionService.getRetryingTransactionHelper().doInTransaction(() ->
                     createContentNodeFromQuickFile(testFileName));
-
-            assertTrue("Transform is unsupported",
-                    synchronousTransformClient.isSupported(nodeService, sourceNode, targetMimetype, actualOptions, null));
-
             ContentReader reader = contentService.getReader(sourceNode, PROP_CONTENT);
             ContentWriter writer = contentService.getTempWriter();
             writer.setMimetype(targetMimetype);

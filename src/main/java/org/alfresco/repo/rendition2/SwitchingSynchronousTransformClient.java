@@ -44,12 +44,12 @@ import java.util.Map;
  * @author adavis
  */
 @Deprecated
-public class SwitchingSynchronousTransformClient extends AbstractSynchronousTransformClient<Pair<SynchronousTransformClient,Object>>
+public class SwitchingSynchronousTransformClient extends AbstractSynchronousTransformClient<Pair<AbstractSynchronousTransformClient,Object>>
 {
-    private final SynchronousTransformClient primary;
-    private final SynchronousTransformClient secondary;
+    private final AbstractSynchronousTransformClient primary;
+    private final AbstractSynchronousTransformClient secondary;
 
-    public SwitchingSynchronousTransformClient(SynchronousTransformClient primary, SynchronousTransformClient secondary)
+    public SwitchingSynchronousTransformClient(AbstractSynchronousTransformClient primary, AbstractSynchronousTransformClient secondary)
     {
         this.primary = primary;
         this.secondary = secondary;
@@ -82,9 +82,9 @@ public class SwitchingSynchronousTransformClient extends AbstractSynchronousTran
     public void transform(ContentReader reader, ContentWriter writer, Map<String, String> actualOptions,
                           String transformName, NodeRef sourceNodeRef)
     {
-        Pair<SynchronousTransformClient, Object> supportedBy =
+        Pair<AbstractSynchronousTransformClient, Object> supportedBy =
                 getSupportedBy(reader, writer, actualOptions, transformName, sourceNodeRef);
-        SynchronousTransformClient client = supportedBy.getFirst();
+        AbstractSynchronousTransformClient client = supportedBy.getFirst();
         Object clientSupportedBy = supportedBy.getSecond();
         client.setSupportedBy(clientSupportedBy);
         client.transform(reader, writer, actualOptions, transformName, sourceNodeRef);

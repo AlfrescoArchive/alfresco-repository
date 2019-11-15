@@ -1528,11 +1528,7 @@ public class ThumbnailServiceImplTest extends BaseAlfrescoSpringTest
                                    Map<String, String> actualOptions, String transformName, NodeRef sourceNodeRef)
         {
             boolean supported = true;
-            if (sourceMimetype.equals(TEST_FAILING_MIME_TYPE) || sourceMimetype.equals(TEST_LONG_RUNNING_MIME_TYPE))
-            {
-                setSupportedBy(new Pair(null, null));
-            }
-            else
+            if (!sourceMimetype.equals(TEST_FAILING_MIME_TYPE) && !sourceMimetype.equals(TEST_LONG_RUNNING_MIME_TYPE))
             {
                 delegate.isSupported(sourceMimetype, sourceSizeInBytes, contentUrl, targetMimetype, actualOptions,
                         transformName, sourceNodeRef);
@@ -1564,18 +1560,6 @@ public class ThumbnailServiceImplTest extends BaseAlfrescoSpringTest
             {
                 delegate.transform(reader, writer, actualOptions, transformName, sourceNodeRef);
             }
-        }
-
-        @Override
-        public Pair<SynchronousTransformClient,Object> getSupportedBy()
-        {
-            return delegate.getSupportedBy();
-        }
-
-        @Override
-        public void setSupportedBy(Pair<SynchronousTransformClient,Object> o)
-        {
-            delegate.setSupportedBy(o);
         }
     }
 

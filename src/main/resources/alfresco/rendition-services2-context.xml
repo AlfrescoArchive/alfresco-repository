@@ -113,6 +113,7 @@
         <property name="mimetypeService" ref="mimetypeService" />
         <property name="transformerRegistry" ref="contentTransformerRegistry" />
         <property name="transformerDebug" ref="transformerDebug" />
+        <property name="converter" ref="transformOptionsConverter" />
     </bean>
 
     <!-- Deprecated bean that converts transform properties to the deprecated TransformationOptions format -->

@@ -46,7 +46,14 @@ public class LegacySynchronousTransformClient extends ContentTransformServiceImp
 {
     private static final String TRANSFORM = "Legacy synchronous transform ";
 
-     @Override
+    private TransformationOptionsConverter converter;
+
+    public void setConverter(TransformationOptionsConverter converter)
+    {
+        this.converter = converter;
+    }
+
+    @Override
     public boolean isSupported(String sourceMimetype, long sourceSizeInBytes, String contentUrl, String targetMimetype,
                                Map<String, String> actualOptions, String transformName, NodeRef sourceNodeRef)
     {
@@ -56,7 +63,8 @@ public class LegacySynchronousTransformClient extends ContentTransformServiceImp
 
         ContentTransformer legacyTransform = getTransformer(contentUrl, sourceMimetype,
                 sourceSizeInBytes, targetMimetype, transformationOptions);
-//      setSupportedBy(legacyTransform); - see note in transform(...
+
+        // No need to call setSupportedBy(legacyTransform); as transform method does not use it.
 
         if (logger.isDebugEnabled())
         {
@@ -75,8 +83,6 @@ public class LegacySynchronousTransformClient extends ContentTransformServiceImp
         {
             TransformationOptions options = converter.getTransformationOptions(renditionName, actualOptions);
             options.setSourceNodeRef(sourceNodeRef);
-            // See note below
-//          ContentTransformer transformer = getSupportedBy(reader, writer, actualOptions, transformName, sourceNodeRef);
 
             if (null == reader || !reader.exists())
             {
@@ -88,10 +94,10 @@ public class LegacySynchronousTransformClient extends ContentTransformServiceImp
                 logger.debug(TRANSFORM + "requested " + renditionName);
             }
 
-            // Note: we don't call transformer.transform(reader, writer, options) as the Legacy
-            // transforms (unlike Local and Transform Service) automatically fail over to the next
-            // highest priority. This was not done for the newer transforms, as a fail over can always be
-            // defined and that makes it simpler to understand what is going on.
+            // We don't obtain the Legacy transformer and then call its transform method as they unlike Local and
+            // Transform Service transforms automatically fail over to the next highest priority. This was not done
+            // for the newer transforms, as a fail over can always be defined and that makes it simpler to understand
+            // what is going on.
             transform(reader, writer, options);
 
             if (logger.isDebugEnabled())
