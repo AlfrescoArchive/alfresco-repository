@@ -140,6 +140,7 @@
    <bean id="baseTransformationRenderingEngine" abstract="true" parent="baseRenderingAction"
          class="org.alfresco.repo.rendition.executer.AbstractTransformationRenderingEngine">
        <property name="synchronousTransformClient" ref="synchronousTransformClient" />
+       <property name="converter" ref="transformOptionsConverter" />
    </bean>
 
    <bean id="baseTemplateRenderingAction" abstract="true" parent="baseRenderingAction"

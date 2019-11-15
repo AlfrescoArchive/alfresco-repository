@@ -138,6 +138,7 @@ public interface SynchronousTransformClient<T>
      *         pipeline, where an intermediate transform may not be performed after all because an intermediate
      *         converion is too big.
      * @throws ContentIOException  there is an unexpected communication or transformation failure.
+     * @throws UnsupportedTransformationException if isSupported has not been called and
      */
     void transform(ContentReader reader, ContentWriter writer, Map<String, String> actualOptions,
                    String transformName, NodeRef sourceNodeRef)
@@ -154,11 +155,4 @@ public interface SynchronousTransformClient<T>
      * See the description in {@link #transform(ContentReader, ContentWriter, Map, String, NodeRef)}.
      */
     void setSupportedBy(T t);
-
-    /**
-     * @deprecated Will be removed when legacy transforms are removed.
-     */
-    @Deprecated
-    // TODO try to remove calls to this method.
-    Map<String, String> convertOptions(TransformationOptions options);
 }

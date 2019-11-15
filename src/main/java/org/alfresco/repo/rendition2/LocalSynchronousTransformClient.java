@@ -45,23 +45,17 @@ import java.util.Map;
  *
  * @author adavis
  */
-public class LocalSynchronousTransformClient implements SynchronousTransformClient<LocalTransform>, InitializingBean
+public class LocalSynchronousTransformClient extends AbstractSynchronousTransformClient<LocalTransform>
+        implements SynchronousTransformClient<LocalTransform>, InitializingBean
 {
     private static final String TRANSFORM = "Local synchronous transform ";
     private static Log logger = LogFactory.getLog(LocalTransformClient.class);
 
     private LocalTransformServiceRegistry localTransformServiceRegistry;
-    private ThreadLocal<LocalTransform> transform = new ThreadLocal<>();
-    private TransformationOptionsConverter converter;
 
     public void setLocalTransformServiceRegistry(LocalTransformServiceRegistry localTransformServiceRegistry)
     {
         this.localTransformServiceRegistry = localTransformServiceRegistry;
-    }
-
-    public void setConverter(TransformationOptionsConverter converter)
-    {
-        this.converter = converter;
     }
 
     @Override
@@ -75,16 +69,16 @@ public class LocalSynchronousTransformClient implements SynchronousTransformClie
                                Map<String, String> actualOptions, String transformName, NodeRef sourceNodeRef)
     {
         String renditionName = TransformDefinition.convertToRenditionName(transformName);
-        LocalTransform localTransform = localTransformServiceRegistry.getLocalTransform(sourceMimetype,
+        LocalTransform transform = localTransformServiceRegistry.getLocalTransform(sourceMimetype,
                 sourceSizeInBytes, targetMimetype, actualOptions, renditionName);
-        setSupportedBy(localTransform);
+        setSupportedBy(transform);
 
         if (logger.isDebugEnabled())
         {
             logger.debug(TRANSFORM + renditionName + " from " + sourceMimetype +
-                    (localTransform == null ? " is unsupported" : " is supported"));
+                    (transform == null ? " is unsupported" : " is supported"));
         }
-        return localTransform != null;
+        return transform != null;
     }
 
     @Override
@@ -92,9 +86,10 @@ public class LocalSynchronousTransformClient implements SynchronousTransformClie
                           String transformName, NodeRef sourceNodeRef)
     {
         String renditionName = TransformDefinition.convertToRenditionName(transformName);
-        LocalTransform localTransform = getSupportedBy();
         try
         {
+            LocalTransform transform = getSupportedBy();
+
             if (null == reader || !reader.exists())
             {
                 throw new IllegalArgumentException("sourceNodeRef "+sourceNodeRef+" has no content.");
@@ -105,7 +100,7 @@ public class LocalSynchronousTransformClient implements SynchronousTransformClie
                 logger.debug(TRANSFORM + " requested " + renditionName);
             }
 
-            localTransform.transform(reader, writer, actualOptions, renditionName, sourceNodeRef);
+            transform.transform(reader, writer, actualOptions, renditionName, sourceNodeRef);
 
             if (logger.isDebugEnabled())
             {
@@ -120,30 +115,5 @@ public class LocalSynchronousTransformClient implements SynchronousTransformClie
             }
             throw e;
         }
-    }
-
-    @Override
-    public LocalTransform getSupportedBy()
-    {
-        LocalTransform localTransform = transform.get();
-        transform.set(null);
-        if (localTransform == null)
-        {
-            throw new IllegalStateException(IS_SUPPORTED_NOT_CALLED);
-        }
-        return localTransform;
-    }
-
-    @Override
-    public void setSupportedBy(LocalTransform localTransform)
-    {
-        transform.set(localTransform);
-    }
-
-    @Override
-    @Deprecated
-    public Map<String, String> convertOptions(TransformationOptions options)
-    {
-        return converter.getOptions(options);
     }
 }
