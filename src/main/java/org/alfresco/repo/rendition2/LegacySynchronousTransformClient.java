@@ -64,8 +64,6 @@ public class LegacySynchronousTransformClient extends ContentTransformServiceImp
         ContentTransformer legacyTransform = getTransformer(contentUrl, sourceMimetype,
                 sourceSizeInBytes, targetMimetype, transformationOptions);
 
-        // No need to call setSupportedBy(legacyTransform); as transform method does not use it.
-
         if (logger.isDebugEnabled())
         {
             logger.debug(TRANSFORM + renditionName + " from " + sourceMimetype +
