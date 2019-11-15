@@ -25,7 +25,10 @@
  */
 package org.alfresco.repo.content;
 
+import org.alfresco.repo.content.transform.AbstractContentTransformer2;
 import org.alfresco.repo.content.transform.ContentTransformer;
+import org.alfresco.repo.content.transform.LocalTransform;
+import org.alfresco.repo.content.transform.LocalTransformServiceRegistry;
 import org.alfresco.repo.rendition2.LegacySynchronousTransformClient;
 import org.alfresco.repo.rendition2.SynchronousTransformClient;
 import org.alfresco.service.cmr.repository.ContentIOException;
@@ -51,6 +54,7 @@ public class ContentTransformServiceAdaptor implements ContentTransformService
 {
     private ContentTransformer imageMagickContentTransformer;
     private LegacySynchronousTransformClient legacySynchronousTransformClient;
+    private LocalTransformServiceRegistry localTransformServiceRegistryImpl;
     private SynchronousTransformClient synchronousTransformClient;
     private TransformServiceRegistry localTransformServiceRegistry;
 
@@ -63,6 +67,11 @@ public class ContentTransformServiceAdaptor implements ContentTransformService
     public void setLegacySynchronousTransformClient(LegacySynchronousTransformClient legacySynchronousTransformClient)
     {
         this.legacySynchronousTransformClient = legacySynchronousTransformClient;
+    }
+
+    public void setLocalTransformServiceRegistryImpl(LocalTransformServiceRegistry localTransformServiceRegistryImpl)
+    {
+        this.localTransformServiceRegistryImpl = localTransformServiceRegistryImpl;
     }
 
     public void setSynchronousTransformClient(SynchronousTransformClient synchronousTransformClient)
@@ -105,15 +114,14 @@ public class ContentTransformServiceAdaptor implements ContentTransformService
     @Override
     public ContentTransformer getTransformer(String sourceMimetype, String targetMimetype)
     {
-        return legacySynchronousTransformClient.getTransformer(null, sourceMimetype, -1,
-                targetMimetype, new TransformationOptions());
+        return getTransformer(sourceMimetype, targetMimetype, new TransformationOptions());
     }
 
     @Deprecated
     @Override
     public ContentTransformer getTransformer(String sourceMimetype, String targetMimetype, TransformationOptions options)
     {
-        return legacySynchronousTransformClient.getTransformer(null, sourceMimetype, -1, targetMimetype, options);
+        return getTransformer(null, sourceMimetype, -1, targetMimetype, new TransformationOptions());
     }
 
     @Deprecated
@@ -121,7 +129,10 @@ public class ContentTransformServiceAdaptor implements ContentTransformService
     public ContentTransformer getTransformer(String sourceUrl, String sourceMimetype, long sourceSize,
                                              String targetMimetype, TransformationOptions options)
     {
-        return legacySynchronousTransformClient.getTransformer(sourceUrl, sourceMimetype, sourceSize, targetMimetype, options);
+        ContentTransformer localTransformer = wrapLocalTransformer(sourceUrl, sourceMimetype, sourceSize, targetMimetype, options);
+        return localTransformer == null
+                ? legacySynchronousTransformClient.getTransformer(sourceUrl, sourceMimetype, sourceSize, targetMimetype, options)
+                : localTransformer;
     }
 
     @Deprecated
@@ -130,16 +141,10 @@ public class ContentTransformServiceAdaptor implements ContentTransformService
     public List<ContentTransformer> getTransformers(String sourceUrl, String sourceMimetype, long sourceSize,
                                                     String targetMimetype, TransformationOptions options)
     {
-        return legacySynchronousTransformClient.getTransformers(sourceUrl, sourceMimetype, sourceSize, targetMimetype, options);
-    }
-
-    @Deprecated
-    @Override
-    public long getMaxSourceSizeBytes(String sourceMimetype,
-                                      String targetMimetype, TransformationOptions transformationOptions)
-    {
-        Map<String, String> options = synchronousTransformClient.convertOptions(transformationOptions);
-        return localTransformServiceRegistry.findMaxSize(sourceMimetype, targetMimetype, options, null);
+        ContentTransformer localTransformer = wrapLocalTransformer(sourceUrl, sourceMimetype, sourceSize, targetMimetype, options);
+        return localTransformer == null
+                ? legacySynchronousTransformClient.getTransformers(sourceUrl, sourceMimetype, sourceSize, targetMimetype, options)
+                : Collections.singletonList(localTransformer);
     }
 
     @Deprecated
@@ -157,9 +162,91 @@ public class ContentTransformServiceAdaptor implements ContentTransformService
     public List<ContentTransformer> getActiveTransformers(String sourceMimetype, long sourceSize,
                                                           String targetMimetype, TransformationOptions options)
     {
-        // TODO if Local transforms are going to be used, create a ContentTransformer wrapper for each of them.
-        //      Also need to do it for other methods in this class that return ContentTransformers.
-        return legacySynchronousTransformClient.getActiveTransformers(sourceMimetype, sourceSize, targetMimetype, options);
+        ContentTransformer localTransformer = wrapLocalTransformer(null, sourceMimetype, sourceSize, targetMimetype, options);
+        return localTransformer == null
+                ? legacySynchronousTransformClient.getActiveTransformers(sourceMimetype, sourceSize, targetMimetype, options)
+                : Collections.singletonList(localTransformer);
+    }
+
+    private ContentTransformer wrapLocalTransformer(String sourceUrl, String sourceMimetype, long sourceSize,
+                                                    String targetMimetype, TransformationOptions transformationOptions)
+    {
+        AbstractContentTransformer2 transformer = null;
+        Map<String, String> options = synchronousTransformClient.convertOptions(transformationOptions);
+        LocalTransform localTransform = localTransformServiceRegistryImpl.getLocalTransform(sourceMimetype,
+                sourceSize, targetMimetype, options, null);
+        if (localTransform != null)
+        {
+            transformer = new AbstractContentTransformer2() {
+
+                @Override
+                public void transform(ContentReader reader, ContentWriter writer, TransformationOptions options)
+                        throws ContentIOException
+                {
+                    try
+                    {
+                        transformInternal(reader, writer, transformationOptions);
+                    }
+                    catch (Exception e)
+                    {
+                        throw new ContentIOException(e.getMessage(), e);
+                    }
+                }
+
+
+                @Override
+                protected void transformInternal(ContentReader reader, ContentWriter writer, TransformationOptions transformationOptions) throws Exception
+                {
+                    localTransform.transform(reader, writer, options, null, null);
+                }
+
+                @Override
+                public void register()
+                {
+                }
+
+                @Override
+                public boolean isSupportedTransformation(String sourceMimetype, String targetMimetype, TransformationOptions options)
+                {
+                    return true;
+                }
+
+                @Override
+                public boolean isTransformable(String sourceMimetype, long sourceSize, String targetMimetype, TransformationOptions options)
+                {
+                    return true;
+                }
+
+                @Override
+                public boolean isTransformableMimetype(String sourceMimetype, String targetMimetype, TransformationOptions options)
+                {
+                    return true;
+                }
+
+                @Override
+                public boolean isTransformableSize(String sourceMimetype, long sourceSize, String targetMimetype, TransformationOptions options)
+                {
+                    return true;
+                }
+
+                @Override
+                public String getName()
+                {
+                    return "Wrapped<"+localTransformServiceRegistryImpl.findTransformerName(sourceMimetype, sourceSize,
+                            targetMimetype, options, null)+">";
+                }
+            };
+        }
+        return transformer;
+    }
+
+    @Deprecated
+    @Override
+    public long getMaxSourceSizeBytes(String sourceMimetype,
+                                      String targetMimetype, TransformationOptions transformationOptions)
+    {
+        Map<String, String> options = synchronousTransformClient.convertOptions(transformationOptions);
+        return localTransformServiceRegistry.findMaxSize(sourceMimetype, targetMimetype, options, null);
     }
 
     @Deprecated

@@ -26,16 +26,6 @@
 
 package org.alfresco.repo.thumbnail;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import org.alfresco.model.ContentModel;
 import org.alfresco.model.RenditionModel;
 import org.alfresco.repo.action.evaluator.NoConditionEvaluator;
@@ -43,7 +33,6 @@ import org.alfresco.repo.action.executer.AddFeaturesActionExecuter;
 import org.alfresco.repo.content.MimetypeMap;
 import org.alfresco.repo.content.transform.AbstractContentTransformerTest;
 import org.alfresco.repo.content.transform.ContentTransformer;
-import org.alfresco.repo.content.transform.LocalTransform;
 import org.alfresco.repo.content.transform.magick.ImageResizeOptions;
 import org.alfresco.repo.content.transform.magick.ImageTransformationOptions;
 import org.alfresco.repo.domain.dialect.Dialect;
@@ -51,7 +40,6 @@ import org.alfresco.repo.domain.dialect.Oracle9Dialect;
 import org.alfresco.repo.domain.dialect.SQLServerDialect;
 import org.alfresco.repo.jscript.ClasspathScriptLocation;
 import org.alfresco.repo.model.Repository;
-import org.alfresco.repo.rendition2.LocalSynchronousTransformClient;
 import org.alfresco.repo.rendition2.SynchronousTransformClient;
 import org.alfresco.repo.thumbnail.script.ScriptThumbnailService;
 import org.alfresco.repo.transaction.AlfrescoTransactionSupport;
@@ -107,6 +95,16 @@ import org.junit.experimental.categories.Category;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.transaction.TestTransaction;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.io.File;
+import java.io.IOException;
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Thumbnail service implementation unit test

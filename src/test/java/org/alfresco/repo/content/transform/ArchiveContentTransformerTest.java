@@ -2,6 +2,7 @@
  * #%L
  * Alfresco Repository
  * %%
+
  * Copyright (C) 2005 - 2019 Alfresco Software Limited
  * %%
  * This file is part of the Alfresco software. 
@@ -222,8 +223,8 @@ public class ArchiveContentTransformerTest extends AbstractContentTransformerTes
         }
 
         AuthenticationUtil.setFullyAuthenticatedUser(AuthenticationUtil.getSystemUserName());
-        assertTrue(serviceRegistry.getSynchronousTransformClient().isSupported(sourceMimetype, -1, null,
-                targetMimetype, Collections.emptyMap(), null, null));
+        ContentTransformer transformer = serviceRegistry.getContentService().getTransformer(sourceMimetype, targetMimetype);
+        assertNotNull(transformer);
 
         String sourceExtension = mimetypeService.getExtension(sourceMimetype);
         String targetExtension = mimetypeService.getExtension(targetMimetype);
