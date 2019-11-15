@@ -25,6 +25,7 @@
  */
 package org.alfresco.repo.content;
 
+import org.alfresco.error.AlfrescoRuntimeException;
 import org.alfresco.repo.content.transform.AbstractContentTransformer2;
 import org.alfresco.repo.content.transform.ContentTransformer;
 import org.alfresco.repo.content.transform.LocalTransform;
@@ -113,8 +114,19 @@ public class ContentTransformServiceAdaptor implements ContentTransformService
     public void transform(ContentReader reader, ContentWriter writer, TransformationOptions transformationOptions) // TODO replace calls
             throws NoTransformerException, ContentIOException
     {
-        Map<String, String> options = converter.getOptions(transformationOptions);
-        synchronousTransformClient.transform(reader, writer, options, null, null);
+        try
+        {
+            Map<String, String> options = converter.getOptions(transformationOptions);
+            synchronousTransformClient.transform(reader, writer, options, null, null);
+        }
+        catch (IllegalArgumentException iae)
+        {
+            if (iae.getMessage().contains("sourceNodeRef null has no content"))
+            {
+                throw new NoTransformerException(null, null);
+            }
+            throw new AlfrescoRuntimeException(iae.getMessage(), iae);
+        }
     }
 
     @Deprecated

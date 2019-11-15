@@ -30,7 +30,6 @@ import org.alfresco.repo.content.transform.LocalTransformServiceRegistry;
 import org.alfresco.service.cmr.repository.ContentReader;
 import org.alfresco.service.cmr.repository.ContentWriter;
 import org.alfresco.service.cmr.repository.NodeRef;
-import org.alfresco.service.cmr.repository.TransformationOptions;
 import org.alfresco.util.PropertyCheck;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -88,7 +87,7 @@ public class LocalSynchronousTransformClient extends AbstractSynchronousTransfor
         String renditionName = TransformDefinition.convertToRenditionName(transformName);
         try
         {
-            LocalTransform transform = getSupportedBy();
+            LocalTransform transform = getSupportedBy(reader, writer, actualOptions, transformName, sourceNodeRef);
 
             if (null == reader || !reader.exists())
             {

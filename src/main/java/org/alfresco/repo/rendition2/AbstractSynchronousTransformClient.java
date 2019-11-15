@@ -25,6 +25,7 @@
  */
 package org.alfresco.repo.rendition2;
 
+import org.alfresco.error.AlfrescoRuntimeException;
 import org.alfresco.repo.content.transform.UnsupportedTransformationException;
 import org.alfresco.service.cmr.repository.ContentReader;
 import org.alfresco.service.cmr.repository.ContentWriter;
@@ -53,9 +54,21 @@ public abstract class AbstractSynchronousTransformClient<T> implements Synchrono
         threadLocalSupportedBy.set(null);
         if (supportedBy == null)
         {
+            if (reader == null)
+            {
+                throw new IllegalArgumentException("The content reader must be set");
+            }
             String sourceMimetype = reader.getMimetype();
             long sourceSizeInBytes = reader.getSize();
+            if (sourceMimetype == null)
+            {
+                throw new IllegalArgumentException("The content reader mimetype must be set");
+            }
             String targetMimetype = writer.getMimetype();
+            if (targetMimetype == null)
+            {
+                throw new IllegalArgumentException("The content writer mimetype must be set");
+            }
             if (!isSupported(sourceMimetype, sourceSizeInBytes, null, targetMimetype,
                     actualOptions, transformName, sourceNodeRef))
             {
