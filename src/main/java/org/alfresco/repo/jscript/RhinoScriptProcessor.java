@@ -81,6 +81,9 @@ public class RhinoScriptProcessor extends BaseProcessor implements ScriptProcess
     /** Wrap Factory */
     private static final WrapFactory wrapFactory = new RhinoWrapFactory();
     
+    /** Sandbox Wrap Factory */
+    private static final SandboxWrapFactory sandboxFactory = new SandboxWrapFactory();
+    
     /** Base Value Converter */
     private final ValueConverter valueConverter = new ValueConverter();
     
@@ -453,14 +456,16 @@ public class RhinoScriptProcessor extends BaseProcessor implements ScriptProcess
         {
             // Create a thread-specific scope from one of the shared scopes.
             // See http://www.mozilla.org/rhino/scopes.html
-            cx.setWrapFactory(wrapFactory);
+            
             Scriptable scope;
             if (this.shareSealedScopes)
             {
                 Scriptable sharedScope = secure ? this.nonSecureScope : this.secureScope;
+                cx.setWrapFactory(secure ? wrapFactory : sandboxFactory);
                 scope = cx.newObject(sharedScope);
                 scope.setPrototype(sharedScope);
                 scope.setParentScope(null);
+
             }
             else
             {
@@ -594,6 +599,24 @@ public class RhinoScriptProcessor extends BaseProcessor implements ScriptProcess
             return super.wrapAsJavaObject(cx, scope, javaObject, staticType);
         }
     }
+    
+    
+    /**
+     * A {@link WrapFactory} that ensures {@link org.mozilla.javascript.NativeJavaObject} instances are of the
+     * {@link SandboxNativeJavaObject} variety.
+     */
+    private static class SandboxWrapFactory extends WrapFactory
+    {
+        /* (non-Javadoc)
+         * @see org.mozilla.javascript.WrapFactory#wrapAsJavaObject(org.mozilla.javascript.Context, org.mozilla.javascript.Scriptable, java.lang.Object, java.lang.Class)
+         */
+        @Override
+        public Scriptable wrapAsJavaObject(Context cx, Scriptable scope, Object javaObject, Class<?> staticType) {
+         
+            return new SandboxNativeJavaObject(scope, javaObject, staticType);
+        }
+
+    }
 
     
     /**
@@ -621,7 +644,7 @@ public class RhinoScriptProcessor extends BaseProcessor implements ScriptProcess
         cx = Context.enter();
         try
         {
-            cx.setWrapFactory(wrapFactory);
+            cx.setWrapFactory(sandboxFactory);
             this.nonSecureScope = initScope(cx, true, true);
         }
         finally

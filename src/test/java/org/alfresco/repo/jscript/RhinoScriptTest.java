@@ -406,6 +406,24 @@ public class RhinoScriptTest extends TestCase
                     {
                         // expected
                     }
+                    
+                    
+                    ChildAssociationRef childRef1 = nodeService.createNode(root, BaseNodeServiceTest.ASSOC_TYPE_QNAME_TEST_CHILDREN,
+                            QName.createQName(BaseNodeServiceTest.NAMESPACE, "script_content"), BaseNodeServiceTest.TYPE_QNAME_TEST_CONTENT, null);
+                    NodeRef contentNodeRef1 = childRef1.getChildRef();
+                    ContentWriter writer1 = contentService.getWriter(contentNodeRef1, BaseNodeServiceTest.PROP_QNAME_TEST_CONTENT, true);
+                    writer1.setMimetype("application/x-javascript");
+                    writer1.putContent(REFLECTION_GET_CLASS);
+                    
+                    try
+                    {
+                        scriptService.executeScript(contentNodeRef1, BaseNodeServiceTest.PROP_QNAME_TEST_CONTENT, model);
+                        fail("execution of nonsecure script on nodeRef is not allowed.");
+                    }
+                    catch (AlfrescoRuntimeException ex)
+                    {
+                        // expected
+                    }
                 }
                 finally
                 {
@@ -439,6 +457,9 @@ public class RhinoScriptTest extends TestCase
     private static final String BASIC_JAVA = 
             "var list = com.google.common.collect.Lists.newArrayList();\n" + 
             "root.nodeRef.getClass().forName(\"java.lang.ProcessBuilder\")";
+    
+    private static final String REFLECTION_GET_CLASS =
+          "root.nodeRef.getClass().forName(\"java.lang.ProcessBuilder\")";
             
 
 }
