@@ -456,12 +456,11 @@ public class RhinoScriptProcessor extends BaseProcessor implements ScriptProcess
         {
             // Create a thread-specific scope from one of the shared scopes.
             // See http://www.mozilla.org/rhino/scopes.html
-            
+            cx.setWrapFactory(secure ? wrapFactory : sandboxFactory);
             Scriptable scope;
             if (this.shareSealedScopes)
             {
                 Scriptable sharedScope = secure ? this.nonSecureScope : this.secureScope;
-                cx.setWrapFactory(secure ? wrapFactory : sandboxFactory);
                 scope = cx.newObject(sharedScope);
                 scope.setPrototype(sharedScope);
                 scope.setParentScope(null);
@@ -583,41 +582,44 @@ public class RhinoScriptProcessor extends BaseProcessor implements ScriptProcess
 
     
     /**
-     * Rhino script value wraper
+     * Rhino script value wrapper
      */
     private static class RhinoWrapFactory extends WrapFactory
     {
+        protected Scriptable wrapBasicJavaObject(Context cx, Scriptable scope, Object javaObject, Class<?> staticType)
+        {
+            return super.wrapAsJavaObject(cx, scope, javaObject, staticType);
+        }
+        
     	/* (non-Javadoc)
     	 * @see org.mozilla.javascript.WrapFactory#wrapAsJavaObject(org.mozilla.javascript.Context, org.mozilla.javascript.Scriptable, java.lang.Object, java.lang.Class)
     	 */
-        public Scriptable wrapAsJavaObject(Context cx, Scriptable scope, Object javaObject, Class staticType)
+        public Scriptable wrapAsJavaObject(Context cx, Scriptable scope, Object javaObject, Class<?> staticType)
         {
             if (javaObject instanceof Map && !(javaObject instanceof ScriptableHashMap))
             {
-                return new NativeMap(scope, (Map)javaObject);
+                return new NativeMap(scope, (Map) javaObject);
             }
-            return super.wrapAsJavaObject(cx, scope, javaObject, staticType);
+            return wrapBasicJavaObject(cx, scope, javaObject, staticType);
         }
     }
-    
     
     /**
      * A {@link WrapFactory} that ensures {@link org.mozilla.javascript.NativeJavaObject} instances are of the
      * {@link SandboxNativeJavaObject} variety.
      */
-    private static class SandboxWrapFactory extends WrapFactory
+    private static class SandboxWrapFactory extends RhinoWrapFactory
     {
         /* (non-Javadoc)
          * @see org.mozilla.javascript.WrapFactory#wrapAsJavaObject(org.mozilla.javascript.Context, org.mozilla.javascript.Scriptable, java.lang.Object, java.lang.Class)
          */
         @Override
-        public Scriptable wrapAsJavaObject(Context cx, Scriptable scope, Object javaObject, Class<?> staticType) {
-         
+        protected Scriptable wrapBasicJavaObject(Context cx, Scriptable scope, Object javaObject, Class<?> staticType)
+        {
             return new SandboxNativeJavaObject(scope, javaObject, staticType);
         }
 
     }
-
     
     /**
      * Pre initializes two scope objects (one secure and one not) with the standard objects preinitialised.
@@ -679,12 +681,8 @@ public class RhinoScriptProcessor extends BaseProcessor implements ScriptProcess
         else
         {
             // Initialise the secure scope
-            // This sets up "scope" to have access to all the standard
-            // JavaScript classes,
-            // but does not create global objects for any top-level Java
-            // packages.
-            // In addition, the "Packages," "JavaAdapter," and "JavaImporter"
-            // classes, and the "getClass" function, are not initialized.
+            // This sets up "scope" to have access to all the standard JavaScript classes, but does not create global objects for any top-level Java packages.
+            // In addition, the "Packages," "JavaAdapter," and "JavaImporter" classes, and the "getClass" function, are not initialized.
             scope = cx.initSafeStandardObjects(null, sealed);
         }
         return scope;
