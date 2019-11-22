@@ -25,14 +25,12 @@
  */
 package org.alfresco.repo.rendition2;
 
-import org.alfresco.error.AlfrescoRuntimeException;
 import org.alfresco.repo.content.transform.UnsupportedTransformationException;
 import org.alfresco.service.cmr.repository.ContentReader;
 import org.alfresco.service.cmr.repository.ContentWriter;
 import org.alfresco.service.cmr.repository.NodeRef;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.springframework.beans.factory.InitializingBean;
 
 import java.util.Map;
 
