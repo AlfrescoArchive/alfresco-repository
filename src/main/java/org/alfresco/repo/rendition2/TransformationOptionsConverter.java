@@ -336,104 +336,107 @@ public class TransformationOptionsConverter implements InitializingBean
     {
         Map<String, String> map = new HashMap<>();
         map.put(TIMEOUT, "-1");
-        if (options instanceof ImageTransformationOptions)
+        if (options != null)
         {
-            ImageTransformationOptions opts = (ImageTransformationOptions) options;
-
-            // TODO We don't support this any more for security reasons, however it might be possible to
-            // extract some of the well know values and add them to the newer ImageMagick transform options.
-            String commandOptions = opts.getCommandOptions();
-            if (commandOptions != null && !commandOptions.isBlank())
+            if (options instanceof ImageTransformationOptions)
             {
-                logger.error("ImageMagick commandOptions are no longer supported for security reasons: "+commandOptions);
-            }
+                ImageTransformationOptions opts = (ImageTransformationOptions) options;
 
-            ImageResizeOptions imageResizeOptions = opts.getResizeOptions();
-            if (imageResizeOptions != null)
-            {
-                int width = imageResizeOptions.getWidth();
-                int height = imageResizeOptions.getHeight();
-                ifSet(width != -1, map, RESIZE_WIDTH, width);
-                ifSet(height != -1, map, RESIZE_HEIGHT, height);
-                ifSet(imageResizeOptions.isResizeToThumbnail(), map, THUMBNAIL, true);
-                ifSet(imageResizeOptions.isPercentResize(), map, RESIZE_PERCENTAGE, true);
-                ifSet(!imageResizeOptions.getAllowEnlargement(), map, ALLOW_ENLARGEMENT, false);
-                ifSet(imageResizeOptions.isMaintainAspectRatio(), map, MAINTAIN_ASPECT_RATIO, true);
-            }
-
-            ifSet(!opts.isAutoOrient(), map, AUTO_ORIENT, false);
-
-            Collection<TransformationSourceOptions> sourceOptionsList = opts.getSourceOptionsList();
-            if (sourceOptionsList != null)
-            {
-                for (TransformationSourceOptions transformationSourceOptions : sourceOptionsList)
+                // TODO We don't support this any more for security reasons, however it might be possible to
+                // extract some of the well know values and add them to the newer ImageMagick transform options.
+                String commandOptions = opts.getCommandOptions();
+                if (commandOptions != null && !commandOptions.isBlank())
                 {
-                    if (transformationSourceOptions instanceof PagedSourceOptions)
-                    {
-                        PagedSourceOptions pagedSourceOptions = (PagedSourceOptions) transformationSourceOptions;
+                    logger.error("ImageMagick commandOptions are no longer supported for security reasons: " + commandOptions);
+                }
 
-                        // The legacy transformer options start at page 1, where as image magick and the local
-                        // transforms start at 0;
-                        Integer startPageNumber = pagedSourceOptions.getStartPageNumber() - 1;
-                        Integer endPageNumber = pagedSourceOptions.getEndPageNumber() - 1;
-                        if (startPageNumber == endPageNumber)
+                ImageResizeOptions imageResizeOptions = opts.getResizeOptions();
+                if (imageResizeOptions != null)
+                {
+                    int width = imageResizeOptions.getWidth();
+                    int height = imageResizeOptions.getHeight();
+                    ifSet(width != -1, map, RESIZE_WIDTH, width);
+                    ifSet(height != -1, map, RESIZE_HEIGHT, height);
+                    ifSet(imageResizeOptions.isResizeToThumbnail(), map, THUMBNAIL, true);
+                    ifSet(imageResizeOptions.isPercentResize(), map, RESIZE_PERCENTAGE, true);
+                    ifSet(!imageResizeOptions.getAllowEnlargement(), map, ALLOW_ENLARGEMENT, false);
+                    ifSet(imageResizeOptions.isMaintainAspectRatio(), map, MAINTAIN_ASPECT_RATIO, true);
+                }
+
+                ifSet(!opts.isAutoOrient(), map, AUTO_ORIENT, false);
+
+                Collection<TransformationSourceOptions> sourceOptionsList = opts.getSourceOptionsList();
+                if (sourceOptionsList != null)
+                {
+                    for (TransformationSourceOptions transformationSourceOptions : sourceOptionsList)
+                    {
+                        if (transformationSourceOptions instanceof PagedSourceOptions)
                         {
-                            map.put(PAGE, Integer.toString(startPageNumber));
+                            PagedSourceOptions pagedSourceOptions = (PagedSourceOptions) transformationSourceOptions;
+
+                            // The legacy transformer options start at page 1, where as image magick and the local
+                            // transforms start at 0;
+                            Integer startPageNumber = pagedSourceOptions.getStartPageNumber() - 1;
+                            Integer endPageNumber = pagedSourceOptions.getEndPageNumber() - 1;
+                            if (startPageNumber == endPageNumber)
+                            {
+                                map.put(PAGE, Integer.toString(startPageNumber));
+                            }
+                            else
+                            {
+                                map.put(START_PAGE, Integer.toString(startPageNumber));
+                                map.put(END_PAGE, Integer.toString(endPageNumber));
+                            }
+                        }
+                        else if (transformationSourceOptions instanceof CropSourceOptions)
+                        {
+                            CropSourceOptions cropSourceOptions = (CropSourceOptions) transformationSourceOptions;
+                            String gravity = cropSourceOptions.getGravity();
+                            boolean percentageCrop = cropSourceOptions.isPercentageCrop();
+                            int height = cropSourceOptions.getHeight();
+                            int width = cropSourceOptions.getWidth();
+                            int xOffset = cropSourceOptions.getXOffset();
+                            int yOffset = cropSourceOptions.getYOffset();
+                            ifSet(gravity != null, map, CROP_GRAVITY, gravity);
+                            ifSet(percentageCrop, map, CROP_PERCENTAGE, percentageCrop);
+                            ifSet(width != -1, map, CROP_WIDTH, width);
+                            ifSet(height != -1, map, CROP_HEIGHT, height);
+                            ifSet(xOffset != 0, map, CROP_X_OFFSET, xOffset);
+                            ifSet(yOffset != 0, map, CROP_Y_OFFSET, yOffset);
+                        }
+                        else if (transformationSourceOptions instanceof TemporalSourceOptions)
+                        {
+                            TemporalSourceOptions temporalSourceOptions = (TemporalSourceOptions) transformationSourceOptions;
+                            String duration = temporalSourceOptions.getDuration();
+                            String offset = temporalSourceOptions.getOffset();
+                            ifSet(duration != null, map, DURATION, duration);
+                            ifSet(offset != null, map, OFFSET, offset);
                         }
                         else
                         {
-                            map.put(START_PAGE, Integer.toString(startPageNumber));
-                            map.put(END_PAGE, Integer.toString(endPageNumber));
+                            logger.error("TransformationOption sourceOptionsList contained a " +
+                                    transformationSourceOptions.getClass().getName() +
+                                    ". It is not know how to convert this into newer transform options.");
                         }
-                    }
-                    else if (transformationSourceOptions instanceof CropSourceOptions)
-                    {
-                        CropSourceOptions cropSourceOptions = (CropSourceOptions) transformationSourceOptions;
-                        String gravity = cropSourceOptions.getGravity();
-                        boolean percentageCrop = cropSourceOptions.isPercentageCrop();
-                        int height = cropSourceOptions.getHeight();
-                        int width = cropSourceOptions.getWidth();
-                        int xOffset = cropSourceOptions.getXOffset();
-                        int yOffset = cropSourceOptions.getYOffset();
-                        ifSet(gravity != null, map, CROP_GRAVITY, gravity);
-                        ifSet(percentageCrop, map, CROP_PERCENTAGE, percentageCrop);
-                        ifSet(width != -1, map, CROP_WIDTH, width);
-                        ifSet(height != -1, map, CROP_HEIGHT, height);
-                        ifSet(xOffset != 0, map, CROP_X_OFFSET, xOffset);
-                        ifSet(yOffset != 0, map, CROP_Y_OFFSET, yOffset);
-                    }
-                    else if (transformationSourceOptions instanceof TemporalSourceOptions)
-                    {
-                        TemporalSourceOptions temporalSourceOptions = (TemporalSourceOptions) transformationSourceOptions;
-                        String duration = temporalSourceOptions.getDuration();
-                        String offset = temporalSourceOptions.getOffset();
-                        ifSet(duration != null, map, DURATION, duration);
-                        ifSet(offset != null, map, OFFSET, offset);
-                    }
-                    else
-                    {
-                        logger.error("TransformationOption sourceOptionsList contained a " +
-                                transformationSourceOptions.getClass().getName() +
-                                ". It is not know how to convert this into newer transform options.");
                     }
                 }
             }
-        }
-        else if (options instanceof SWFTransformationOptions)
-        {
-            SWFTransformationOptions opts = (SWFTransformationOptions) options;
-            map.put(FLASH_VERSION, opts.getFlashVersion());
-        }
-        else if (options instanceof RuntimeExecutableContentTransformerOptions)
-        {
-            RuntimeExecutableContentTransformerOptions opts = (RuntimeExecutableContentTransformerOptions)options;
-            map.putAll(opts.getPropertyValues());
-        }
-        else if (!options.getClass().equals(TransformationOptions.class))
-        {
-            throw new IllegalArgumentException("Unable to convert " +
-                    options.getClass().getSimpleName() + " to new transform options held in a Map<String,String>.\n" +
-                    "The TransformOptionConverter may need to be sub classed to support this conversion.");
+            else if (options instanceof SWFTransformationOptions)
+            {
+                SWFTransformationOptions opts = (SWFTransformationOptions) options;
+                map.put(FLASH_VERSION, opts.getFlashVersion());
+            }
+            else if (options instanceof RuntimeExecutableContentTransformerOptions)
+            {
+                RuntimeExecutableContentTransformerOptions opts = (RuntimeExecutableContentTransformerOptions) options;
+                map.putAll(opts.getPropertyValues());
+            }
+            else if (!options.getClass().equals(TransformationOptions.class))
+            {
+                throw new IllegalArgumentException("Unable to convert " +
+                        options.getClass().getSimpleName() + " to new transform options held in a Map<String,String>.\n" +
+                        "The TransformOptionConverter may need to be sub classed to support this conversion.");
+            }
         }
 
         return map;

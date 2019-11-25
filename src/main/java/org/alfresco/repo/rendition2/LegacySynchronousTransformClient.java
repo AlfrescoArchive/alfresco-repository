@@ -30,8 +30,6 @@ import org.alfresco.service.cmr.repository.ContentReader;
 import org.alfresco.service.cmr.repository.ContentWriter;
 import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.cmr.repository.TransformationOptions;
-import org.alfresco.util.PropertyCheck;
-import org.springframework.beans.factory.InitializingBean;
 
 import java.util.Map;
 
@@ -44,23 +42,15 @@ import java.util.Map;
  */
 @Deprecated
 public class LegacySynchronousTransformClient extends ContentTransformServiceImpl
-        implements SynchronousTransformClient<ContentTransformer>, InitializingBean
+        implements SynchronousTransformClient<ContentTransformer>
 {
     private static final String TRANSFORM = "Legacy synchronous transform ";
 
     private TransformationOptionsConverter converter;
-    private ThreadLocal<ContentTransformer> transform = new ThreadLocal<>();
 
     public void setConverter(TransformationOptionsConverter converter)
     {
         this.converter = converter;
-    }
-
-    @Override
-    public void afterPropertiesSet() throws Exception
-    {
-        super.afterPropertiesSet();
-        PropertyCheck.mandatory(this, "converter", converter);
     }
 
     @Override
@@ -73,7 +63,6 @@ public class LegacySynchronousTransformClient extends ContentTransformServiceImp
 
         ContentTransformer legacyTransform = getTransformer(contentUrl, sourceMimetype,
                 sourceSizeInBytes, targetMimetype, transformationOptions);
-        transform.set(legacyTransform);
 
         if (logger.isDebugEnabled())
         {
@@ -88,16 +77,10 @@ public class LegacySynchronousTransformClient extends ContentTransformServiceImp
                           String transformName, NodeRef sourceNodeRef)
     {
         String renditionName = TransformDefinition.convertToRenditionName(transformName);
-        TransformationOptions options = converter.getTransformationOptions(renditionName, actualOptions);
-        options.setSourceNodeRef(sourceNodeRef);
-        ContentTransformer legacyTransform = transform.get();
-        transform.set(null);
         try
         {
-            if (legacyTransform == null)
-            {
-                throw new IllegalStateException(IS_SUPPORTED_NOT_CALLED);
-            }
+            TransformationOptions options = converter.getTransformationOptions(renditionName, actualOptions);
+            options.setSourceNodeRef(sourceNodeRef);
 
             if (null == reader || !reader.exists())
             {
@@ -109,10 +92,10 @@ public class LegacySynchronousTransformClient extends ContentTransformServiceImp
                 logger.debug(TRANSFORM + "requested " + renditionName);
             }
 
-            // Note: we don't call legacyTransform.transform(reader, writer, options) as the Legacy
-            // transforms (unlike Local and Transform Service) automatically fail over to the next
-            // highest priority. This was not done for the newer transforms, as a fail over can always be
-            // defined and that makes it simpler to understand what is going on.
+            // We don't obtain the Legacy transformer and then call its transform method as they unlike Local and
+            // Transform Service transforms automatically fail over to the next highest priority. This was not done
+            // for the newer transforms, as a fail over can always be defined and that makes it simpler to understand
+            // what is going on.
             transform(reader, writer, options);
 
             if (logger.isDebugEnabled())
@@ -128,24 +111,6 @@ public class LegacySynchronousTransformClient extends ContentTransformServiceImp
             }
             throw e;
         }
-    }
-
-    @Override
-    public ContentTransformer getSupportedBy()
-    {
-        ContentTransformer legacyTransform = transform.get();
-        transform.set(null);
-        if (legacyTransform == null)
-        {
-            throw new IllegalStateException(IS_SUPPORTED_NOT_CALLED);
-        }
-        return legacyTransform;
-    }
-
-    @Override
-    public void setSupportedBy(ContentTransformer legacyTransform)
-    {
-        transform.set(legacyTransform);
     }
 
     @Override

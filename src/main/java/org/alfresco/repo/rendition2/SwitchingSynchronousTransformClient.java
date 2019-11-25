@@ -25,11 +25,14 @@
  */
 package org.alfresco.repo.rendition2;
 
+import org.alfresco.repo.content.transform.UnsupportedTransformationException;
 import org.alfresco.service.cmr.repository.ContentReader;
 import org.alfresco.service.cmr.repository.ContentWriter;
 import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.cmr.repository.TransformationOptions;
 import org.alfresco.util.Pair;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 import java.util.Map;
 
@@ -41,14 +44,12 @@ import java.util.Map;
  * @author adavis
  */
 @Deprecated
-public class SwitchingSynchronousTransformClient implements SynchronousTransformClient<Pair<SynchronousTransformClient,Object>>
+public class SwitchingSynchronousTransformClient extends AbstractSynchronousTransformClient<Pair<AbstractSynchronousTransformClient,Object>>
 {
-    private final SynchronousTransformClient primary;
-    private final SynchronousTransformClient secondary;
+    private final AbstractSynchronousTransformClient primary;
+    private final AbstractSynchronousTransformClient secondary;
 
-    private ThreadLocal<Pair<SynchronousTransformClient,Object>> client = new ThreadLocal<>();
-
-    public SwitchingSynchronousTransformClient(SynchronousTransformClient primary, SynchronousTransformClient secondary)
+    public SwitchingSynchronousTransformClient(AbstractSynchronousTransformClient primary, AbstractSynchronousTransformClient secondary)
     {
         this.primary = primary;
         this.secondary = secondary;
@@ -81,29 +82,12 @@ public class SwitchingSynchronousTransformClient implements SynchronousTransform
     public void transform(ContentReader reader, ContentWriter writer, Map<String, String> actualOptions,
                           String transformName, NodeRef sourceNodeRef)
     {
-        Pair<SynchronousTransformClient,Object> clientSupportedBy = getSupportedBy();
-        SynchronousTransformClient synchronousTransformClient = clientSupportedBy.getFirst();
-        Object supportedBy = clientSupportedBy.getSecond();
-        synchronousTransformClient.setSupportedBy(supportedBy);
-        synchronousTransformClient.transform(reader, writer, actualOptions, transformName, sourceNodeRef);
-    }
-
-    @Override
-    public Pair<SynchronousTransformClient,Object> getSupportedBy()
-    {
-        Pair<SynchronousTransformClient,Object> clientSupportedBy = client.get();
-        client.set(null);
-        if (clientSupportedBy == null)
-        {
-            throw new IllegalStateException(IS_SUPPORTED_NOT_CALLED);
-        }
-        return clientSupportedBy;
-    }
-
-    @Override
-    public void setSupportedBy(Pair<SynchronousTransformClient,Object> clientSupportedBy)
-    {
-        this.client.set(clientSupportedBy);
+        Pair<AbstractSynchronousTransformClient, Object> supportedBy =
+                getSupportedBy(reader, writer, actualOptions, transformName, sourceNodeRef);
+        AbstractSynchronousTransformClient client = supportedBy.getFirst();
+        Object clientSupportedBy = supportedBy.getSecond();
+        client.setSupportedBy(clientSupportedBy);
+        client.transform(reader, writer, actualOptions, transformName, sourceNodeRef);
     }
 
     @Override

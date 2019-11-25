@@ -44,8 +44,6 @@ import java.util.Map;
  */
 public interface SynchronousTransformClient<T>
 {
-    String IS_SUPPORTED_NOT_CALLED = "isSupported was not called prior to a synchronous transform in the same Thread.";
-
     /**
      * Works out if it is possible to transform content of a given source mimetype and size into a target mimetype
      * given a list of actual transform option names and values.
@@ -123,10 +121,7 @@ public interface SynchronousTransformClient<T>
     /**
      * Requests a synchronous transform. Not used for renditions.
      * The call to this method should be proceeded by a successful call to
-     * {@link #isSupported(String, long, String, String, Map, String, NodeRef)} ideally in the <b>SAME</b>
-     * {@code Thread}. If this is not possible, the thread that has called {@code isSupported}, should then call
-     * {@link #getSupportedBy()}. The returned value then needs to used as a parameter to
-     * {@link #setSupportedBy(Object)} by the thread that is about to call {@code transform}.
+     * {@link #isSupported(String, long, String, String, Map, String, NodeRef)}.
      * @param reader of the source content
      * @param writer to the target node's content
      * @param actualOptions the actual name value pairs available that could be passed to the Transform Service.
@@ -138,22 +133,11 @@ public interface SynchronousTransformClient<T>
      *         pipeline, where an intermediate transform may not be performed after all because an intermediate
      *         converion is too big.
      * @throws ContentIOException  there is an unexpected communication or transformation failure.
+     * @throws UnsupportedTransformationException if isSupported has not been called and
      */
     void transform(ContentReader reader, ContentWriter writer, Map<String, String> actualOptions,
                    String transformName, NodeRef sourceNodeRef)
             throws UnsupportedTransformationException, ContentIOException;
-
-    /**
-     * Only needed if {@code isSupported} and {@code transform} are called in different {@code Threads}.
-     * See the description in {@link #transform(ContentReader, ContentWriter, Map, String, NodeRef)}.
-     */
-    T getSupportedBy();
-
-    /**
-     * Only needed if {@code isSupported} and {@code transform} are called in different {@code Threads}.
-     * See the description in {@link #transform(ContentReader, ContentWriter, Map, String, NodeRef)}.
-     */
-    void setSupportedBy(T t);
 
     /**
      * @deprecated Will be removed when legacy transforms are removed.

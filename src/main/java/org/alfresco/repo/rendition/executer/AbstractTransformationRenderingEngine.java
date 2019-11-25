@@ -59,7 +59,6 @@ import org.alfresco.service.cmr.repository.TransformationOptionLimits;
 import org.alfresco.service.cmr.repository.TransformationOptions;
 import org.alfresco.service.cmr.repository.TransformationSourceOptions;
 import org.alfresco.service.cmr.repository.TransformationSourceOptions.TransformationSourceOptionsSerializer;
-import org.alfresco.service.namespace.QName;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -197,7 +196,6 @@ public abstract class AbstractTransformationRenderingEngine extends AbstractRend
         {
             throw new RenditionServiceException(String.format(NOT_TRANSFORMABLE_MESSAGE_PATTERN, sourceMimeType, targetMimeType));
         }
-        Object transformSupportedBy = synchronousTransformClient.getSupportedBy();
 
         long startTime = new Date().getTime();
         boolean actionCancelled = false;
@@ -221,7 +219,7 @@ public abstract class AbstractTransformationRenderingEngine extends AbstractRend
         // Call the transform in a different thread so we can move on if cancelled
         FutureTask<ContentWriter> transformTask = new FutureTask<ContentWriter>(
                 new TransformationCallable(contentReader, targetMimeType, transformationOptions, context,
-                        AuthenticationUtil.getFullyAuthenticatedUser(), transformSupportedBy));
+                        AuthenticationUtil.getFullyAuthenticatedUser()));
         getExecutorService().execute(transformTask);
         
         // Start checking for cancellation or timeout
@@ -415,18 +413,15 @@ public abstract class AbstractTransformationRenderingEngine extends AbstractRend
         private Map<String, String> options;
         private RenderingContext context;
         private String initiatingUsername;
-        private Object transformSupportedBy;
-        
+
         public TransformationCallable(ContentReader contentReader, String targetMimeType,
-                    TransformationOptions transformationOptions, RenderingContext context, String initiatingUsername,
-                    Object transformSupportedBy)
+                                      TransformationOptions transformationOptions, RenderingContext context, String initiatingUsername)
         {
             this.contentReader = contentReader;
             this.targetMimeType = targetMimeType;
             this.options = synchronousTransformClient.convertOptions(transformationOptions);
             this.context = context;
             this.initiatingUsername = initiatingUsername;
-            this.transformSupportedBy = transformSupportedBy;
         }
 
         @Override
@@ -448,7 +443,6 @@ public abstract class AbstractTransformationRenderingEngine extends AbstractRend
                     tempContentWriter.setMimetype(targetMimeType);
                     try
                     {
-                        synchronousTransformClient.setSupportedBy(transformSupportedBy);
                         synchronousTransformClient.transform(contentReader, tempContentWriter, options,
                                 renditionName, sourceNode);
                         return tempContentWriter;
