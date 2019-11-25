@@ -167,6 +167,7 @@
       <property name="synchronousTransformClient" ref="synchronousTransformClient" />
        <property name="localTransformServiceRegistry" ref="localTransformServiceRegistry" />
        <property name="localTransformServiceRegistryImpl" ref="localTransformServiceRegistryImpl" />
+       <property name="converter" ref="transformOptionsConverter" />
    </bean>
    
    <bean id="contentService" parent="baseContentService">

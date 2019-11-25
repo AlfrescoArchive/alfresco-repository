@@ -35,6 +35,7 @@ import org.alfresco.repo.action.ParameterDefinitionImpl;
 import org.alfresco.repo.content.transform.UnimportantTransformException;
 import org.alfresco.repo.content.transform.UnsupportedTransformationException;
 import org.alfresco.repo.rendition2.SynchronousTransformClient;
+import org.alfresco.repo.rendition2.TransformationOptionsConverter;
 import org.alfresco.service.cmr.action.Action;
 import org.alfresco.service.cmr.action.ParameterDefinition;
 import org.alfresco.service.cmr.coci.CheckOutCheckInService;
@@ -93,6 +94,7 @@ public class TransformActionExecuter extends ActionExecuterAbstractBase
     private CopyService copyService;
     private MimetypeService mimetypeService;
     private SynchronousTransformClient synchronousTransformClient;
+    private TransformationOptionsConverter converter;
 
     /**
      * Properties (needed to avoid changing method signatures)
@@ -106,11 +108,6 @@ public class TransformActionExecuter extends ActionExecuterAbstractBase
     public void setMimetypeService(MimetypeService mimetypeService) 
     {
         this.mimetypeService = mimetypeService;
-    }
-
-    public void setSynchronousTransformClient(SynchronousTransformClient synchronousTransformClient)
-    {
-        this.synchronousTransformClient = synchronousTransformClient;
     }
 
     /**
@@ -152,7 +149,17 @@ public class TransformActionExecuter extends ActionExecuterAbstractBase
     {
         this.copyService = copyService;
     }
-    
+
+    public void setSynchronousTransformClient(SynchronousTransformClient synchronousTransformClient)
+    {
+        this.synchronousTransformClient = synchronousTransformClient;
+    }
+
+    public void setConverter(TransformationOptionsConverter converter)
+    {
+        this.converter = converter;
+    }
+
     /**
      * Add parameter definitions
      */
@@ -204,7 +211,7 @@ public class TransformActionExecuter extends ActionExecuterAbstractBase
         String sourceMimetype = contentReader.getMimetype();
         long sourceSizeInBytes = contentReader.getSize();
         String contentUrl = contentReader.getContentUrl();
-        Map<String, String> options = synchronousTransformClient.convertOptions(transformationOptions);
+        Map<String, String> options = converter.getOptions(transformationOptions);
         if (!synchronousTransformClient.isSupported(sourceMimetype, sourceSizeInBytes,
                 contentUrl, mimeType, options, null, actionedUponNodeRef))
         {
@@ -341,7 +348,7 @@ public class TransformActionExecuter extends ActionExecuterAbstractBase
         // transform - will throw NoTransformerException if there are no transformers
         TransformationOptions transformationOptions = newTransformationOptions(ruleAction, sourceNodeRef);
         transformationOptions.setTargetNodeRef(destinationNodeRef);
-        Map options = synchronousTransformClient.convertOptions(transformationOptions);
+        Map<String, String> options = converter.getOptions(transformationOptions);
         synchronousTransformClient.transform(contentReader, contentWriter, options, null, sourceNodeRef);
     }
     

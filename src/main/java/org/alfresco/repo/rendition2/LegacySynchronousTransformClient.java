@@ -112,11 +112,4 @@ public class LegacySynchronousTransformClient extends ContentTransformServiceImp
             throw e;
         }
     }
-
-    @Override
-    @Deprecated
-    public Map<String, String> convertOptions(TransformationOptions options)
-    {
-        return converter.getOptions(options);
-    }
 }

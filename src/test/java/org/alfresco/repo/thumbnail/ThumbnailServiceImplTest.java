@@ -41,6 +41,7 @@ import org.alfresco.repo.domain.dialect.SQLServerDialect;
 import org.alfresco.repo.jscript.ClasspathScriptLocation;
 import org.alfresco.repo.model.Repository;
 import org.alfresco.repo.rendition2.SynchronousTransformClient;
+import org.alfresco.repo.rendition2.TransformationOptionsConverter;
 import org.alfresco.repo.thumbnail.script.ScriptThumbnailService;
 import org.alfresco.repo.transaction.AlfrescoTransactionSupport;
 import org.alfresco.repo.transaction.RetryingTransactionHelper;
@@ -137,6 +138,7 @@ public class ThumbnailServiceImplTest extends BaseAlfrescoSpringTest
     private LockService lockService;
     private CopyService copyService;
     private SynchronousTransformClient synchronousTransformClient;
+    private TransformationOptionsConverter converter;
 
     private NodeRef folder;
     private static final String TEST_FAILING_MIME_TYPE = "application/vnd.alfresco.test.transientfailure";
@@ -164,6 +166,7 @@ public class ThumbnailServiceImplTest extends BaseAlfrescoSpringTest
         this.lockService = (LockService) applicationContext.getBean("lockService");
         this.copyService = (CopyService) applicationContext.getBean("CopyService");
         synchronousTransformClient = (SynchronousTransformClient) applicationContext.getBean("synchronousTransformClient");
+        converter = (TransformationOptionsConverter) applicationContext.getBean("transformOptionsConverter");
 
         // Create a folder and some content
         Map<QName, Serializable> folderProps = new HashMap<QName, Serializable>(1);
@@ -1117,7 +1120,7 @@ public class ThumbnailServiceImplTest extends BaseAlfrescoSpringTest
         NodeRef nodeRef = createOriginalContent(this.folder, MimetypeMap.MIMETYPE_HTML);
         ThumbnailDefinition def = this.thumbnailService.getThumbnailRegistry().getThumbnailDefinition("medium");
         TransformationOptions transformationOptions = def.getTransformationOptions();
-        Map options = synchronousTransformClient.convertOptions(transformationOptions);
+        Map<String, String> options = converter.getOptions(transformationOptions);
         String targetMimetype = def.getMimetype();
         boolean supported = synchronousTransformClient.isSupported(MimetypeMap.MIMETYPE_HTML, -1, null,
                 targetMimetype, options, null, null);
@@ -1557,12 +1560,6 @@ public class ThumbnailServiceImplTest extends BaseAlfrescoSpringTest
             {
                 delegate.transform(reader, writer, actualOptions, transformName, sourceNodeRef);
             }
-        }
-
-        @Override
-        public Map<String, String> convertOptions(TransformationOptions options)
-        {
-            return delegate.convertOptions(options);
         }
     }
 

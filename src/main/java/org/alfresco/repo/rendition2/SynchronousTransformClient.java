@@ -120,8 +120,6 @@ public interface SynchronousTransformClient<T>
 
     /**
      * Requests a synchronous transform. Not used for renditions.
-     * The call to this method should be proceeded by a successful call to
-     * {@link #isSupported(String, long, String, String, Map, String, NodeRef)}.
      * @param reader of the source content
      * @param writer to the target node's content
      * @param actualOptions the actual name value pairs available that could be passed to the Transform Service.
@@ -138,11 +136,4 @@ public interface SynchronousTransformClient<T>
     void transform(ContentReader reader, ContentWriter writer, Map<String, String> actualOptions,
                    String transformName, NodeRef sourceNodeRef)
             throws UnsupportedTransformationException, ContentIOException;
-
-    /**
-     * @deprecated Will be removed when legacy transforms are removed.
-     */
-    @Deprecated
-    // TODO try to remove calls to this method.
-    Map<String, String> convertOptions(TransformationOptions options);
 }

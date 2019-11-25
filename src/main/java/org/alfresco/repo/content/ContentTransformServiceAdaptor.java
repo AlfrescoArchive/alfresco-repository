@@ -25,12 +25,14 @@
  */
 package org.alfresco.repo.content;
 
+import org.alfresco.error.AlfrescoRuntimeException;
 import org.alfresco.repo.content.transform.AbstractContentTransformer2;
 import org.alfresco.repo.content.transform.ContentTransformer;
 import org.alfresco.repo.content.transform.LocalTransform;
 import org.alfresco.repo.content.transform.LocalTransformServiceRegistry;
 import org.alfresco.repo.rendition2.LegacySynchronousTransformClient;
 import org.alfresco.repo.rendition2.SynchronousTransformClient;
+import org.alfresco.repo.rendition2.TransformationOptionsConverter;
 import org.alfresco.service.cmr.repository.ContentIOException;
 import org.alfresco.service.cmr.repository.ContentReader;
 import org.alfresco.service.cmr.repository.ContentTransformService;
@@ -57,6 +59,7 @@ public class ContentTransformServiceAdaptor implements ContentTransformService
     private LocalTransformServiceRegistry localTransformServiceRegistryImpl;
     private SynchronousTransformClient synchronousTransformClient;
     private TransformServiceRegistry localTransformServiceRegistry;
+    private TransformationOptionsConverter converter;
 
     @Deprecated
     public void setImageMagickContentTransformer(ContentTransformer imageMagickContentTransformer)
@@ -84,6 +87,11 @@ public class ContentTransformServiceAdaptor implements ContentTransformService
         this.localTransformServiceRegistry = localTransformServiceRegistry;
     }
 
+    public void setConverter(TransformationOptionsConverter converter)
+    {
+        this.converter = converter;
+    }
+
     @Deprecated
     @Override
     public void transform(ContentReader reader, ContentWriter writer)
@@ -97,7 +105,7 @@ public class ContentTransformServiceAdaptor implements ContentTransformService
             throws NoTransformerException, ContentIOException
     {
         TransformationOptions transformationOptions = new TransformationOptions(legacyOptionsMap);
-        Map<String, Object> options = synchronousTransformClient.convertOptions(transformationOptions);
+        Map<String, String> options = converter.getOptions(transformationOptions);
         synchronousTransformClient.transform(reader, writer, options, null, null);
     }
 
@@ -106,8 +114,19 @@ public class ContentTransformServiceAdaptor implements ContentTransformService
     public void transform(ContentReader reader, ContentWriter writer, TransformationOptions transformationOptions) // TODO replace calls
             throws NoTransformerException, ContentIOException
     {
-        Map<String, Object> options = synchronousTransformClient.convertOptions(transformationOptions);
-        synchronousTransformClient.transform(reader, writer, options, null, null);
+        try
+        {
+            Map<String, String> options = converter.getOptions(transformationOptions);
+            synchronousTransformClient.transform(reader, writer, options, null, null);
+        }
+        catch (IllegalArgumentException iae)
+        {
+            if (iae.getMessage().contains("sourceNodeRef null has no content"))
+            {
+                throw new NoTransformerException(null, null);
+            }
+            throw new AlfrescoRuntimeException(iae.getMessage(), iae);
+        }
     }
 
     @Deprecated
@@ -172,7 +191,7 @@ public class ContentTransformServiceAdaptor implements ContentTransformService
                                                     String targetMimetype, TransformationOptions transformationOptions)
     {
         AbstractContentTransformer2 transformer = null;
-        Map<String, String> options = synchronousTransformClient.convertOptions(transformationOptions);
+        Map<String, String> options = converter.getOptions(transformationOptions);
         LocalTransform localTransform = localTransformServiceRegistryImpl.getLocalTransform(sourceMimetype,
                 sourceSize, targetMimetype, options, null);
         if (localTransform != null)
@@ -245,7 +264,7 @@ public class ContentTransformServiceAdaptor implements ContentTransformService
     public long getMaxSourceSizeBytes(String sourceMimetype,
                                       String targetMimetype, TransformationOptions transformationOptions)
     {
-        Map<String, String> options = synchronousTransformClient.convertOptions(transformationOptions);
+        Map<String, String> options = converter.getOptions(transformationOptions);
         return localTransformServiceRegistry.findMaxSize(sourceMimetype, targetMimetype, options, null);
     }
 
@@ -260,15 +279,14 @@ public class ContentTransformServiceAdaptor implements ContentTransformService
     @Override
     public boolean isTransformable(ContentReader reader, ContentWriter writer)
     {
-        return synchronousTransformClient.isSupported(reader, writer.getMimetype(), Collections.emptyMap(),
-                null, null);
+        return isTransformable(reader, writer, null);
     }
 
     @Deprecated
     @Override
     public boolean isTransformable(ContentReader reader, ContentWriter writer, TransformationOptions transformationOptions)
     {
-        Map<String, String> options = synchronousTransformClient.convertOptions(transformationOptions);
+        Map<String, String> options = converter.getOptions(transformationOptions);
         return synchronousTransformClient.isSupported(reader, writer.getMimetype(), options,
                 null, null);
     }

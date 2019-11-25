@@ -42,6 +42,7 @@ import org.alfresco.repo.content.transform.UnsupportedTransformationException;
 
 import org.alfresco.repo.rendition2.RenditionService2Impl;
 import org.alfresco.repo.rendition2.SynchronousTransformClient;
+import org.alfresco.repo.rendition2.TransformationOptionsConverter;
 import org.alfresco.repo.security.authentication.AuthenticationUtil;
 import org.alfresco.service.cmr.action.ActionServiceException;
 import org.alfresco.service.cmr.action.ActionTrackingService;
@@ -143,7 +144,8 @@ public abstract class AbstractTransformationRenderingEngine extends AbstractRend
     private ExecutorService executorService;
 
     private SynchronousTransformClient synchronousTransformClient;
-    
+    private TransformationOptionsConverter converter;
+
     /**
      * Gets the <code>ExecutorService</code> to be used for cancel-aware
      * transforms.
@@ -162,6 +164,11 @@ public abstract class AbstractTransformationRenderingEngine extends AbstractRend
     public void setSynchronousTransformClient(SynchronousTransformClient synchronousTransformClient)
     {
         this.synchronousTransformClient = synchronousTransformClient;
+    }
+
+    public void setConverter(TransformationOptionsConverter converter)
+    {
+        this.converter = converter;
     }
 
     public void init()
@@ -190,7 +197,7 @@ public abstract class AbstractTransformationRenderingEngine extends AbstractRend
         TransformationOptions transformationOptions = getTransformOptions(context);
 
         long sourceSizeInBytes = contentReader.getSize();
-        Map<String, String> options = synchronousTransformClient.convertOptions(transformationOptions);
+        Map<String, String> options = converter.getOptions(transformationOptions);
         if (!synchronousTransformClient.isSupported(sourceMimeType, sourceSizeInBytes, contentUrl, targetMimeType,
                 options, null, null))
         {
@@ -419,7 +426,7 @@ public abstract class AbstractTransformationRenderingEngine extends AbstractRend
         {
             this.contentReader = contentReader;
             this.targetMimeType = targetMimeType;
-            this.options = synchronousTransformClient.convertOptions(transformationOptions);
+            this.options = converter.getOptions(transformationOptions);
             this.context = context;
             this.initiatingUsername = initiatingUsername;
         }

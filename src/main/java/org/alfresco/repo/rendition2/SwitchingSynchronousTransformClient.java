@@ -89,11 +89,4 @@ public class SwitchingSynchronousTransformClient extends AbstractSynchronousTran
         client.setSupportedBy(clientSupportedBy);
         client.transform(reader, writer, actualOptions, transformName, sourceNodeRef);
     }
-
-    @Override
-    @Deprecated
-    public Map<String, String> convertOptions(TransformationOptions options)
-    {
-        return secondary.convertOptions(options);
-    }
 }

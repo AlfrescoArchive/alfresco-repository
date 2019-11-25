@@ -106,7 +106,6 @@
     <!-- Deprecated -->
     <bean id="localSynchronousTransformClient" class="org.alfresco.repo.rendition2.LocalSynchronousTransformClient">
         <property name="localTransformServiceRegistry" ref="localTransformServiceRegistryImpl" />
-        <property name="converter" ref="transformOptionsConverter" />
     </bean>
 
     <!-- Deprecated -->
