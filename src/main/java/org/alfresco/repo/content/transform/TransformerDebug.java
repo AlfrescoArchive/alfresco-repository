@@ -1671,7 +1671,6 @@ public class TransformerDebug implements ApplicationContextAware
                 ContentReader reader = contentService.getReader(sourceNodeRef, ContentModel.PROP_CONTENT);
                 SynchronousTransformClient synchronousTransformClient = getSynchronousTransformClient();
                 Map<String, String> actualOptions = Collections.emptyMap();
-                synchronousTransformClient.isSupported(nodeService, sourceNodeRef, targetMimetype, actualOptions, null);
                 synchronousTransformClient.transform(reader, writer, actualOptions, null, sourceNodeRef);
             }
             catch (Exception e)
