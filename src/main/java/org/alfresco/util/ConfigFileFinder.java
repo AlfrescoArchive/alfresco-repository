@@ -37,6 +37,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -81,7 +82,7 @@ public abstract class ConfigFileFinder
             AtomicBoolean somethingRead = new AtomicBoolean(false);
 
             // Try reading resources in a jar
-            final File jarFile = new File(getClass().getProtectionDomain().getCodeSource().getLocation().getPath());
+            final File jarFile = new File(getClass().getProtectionDomain().getCodeSource().getLocation().toURI());
             if (jarFile.isFile())
             {
                 readFromJar(jarFile, path, log, successReadingConfig, somethingRead);
@@ -112,6 +113,8 @@ public abstract class ConfigFileFinder
         {
             log.error("Error reading from "+path, e);
             successReadingConfig.set(false);
+        } catch (URISyntaxException e) {
+            e.printStackTrace();
         }
         return successReadingConfig.get();
     }
