@@ -101,14 +101,10 @@ public class LocalSynchronousTransformClientIntegrationTest extends AbstractRend
         ExecutorService executorService = Executors.newWorkStealingPool(10);
         for (int i=0; i<50; i++)
         {
-            Callable<Void> callable = new Callable<>()
+            Callable<Void> callable = () ->
             {
-                @Override
-                public Void call() throws Exception
-                {
-                    checkTransform("quick.txt", "text/plain", Collections.emptyMap(), true);
-                    return null;
-                }
+                checkTransform("quick.txt", "text/plain", Collections.emptyMap(), true);
+                return null;
             };
             transforms.add(callable);
         }

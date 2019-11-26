@@ -30,7 +30,6 @@ import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import org.alfresco.model.ApplicationModel;
@@ -627,9 +626,8 @@ public abstract class BaseContentNode implements TemplateContent
                     String sourceMimetype = reader.getMimetype();
                     long sourceSizeInBytes = reader.getSize();
                     String contentUrl = reader.getContentUrl();
-                    String targetMimetype = writer.getMimetype();
                     if (synchronousTransformClient.isSupported(sourceMimetype, sourceSizeInBytes, contentUrl,
-                            targetMimetype, Collections.emptyMap(),null, null))
+                        "text/plain", Collections.emptyMap(), null, nodeRef))
                     {
                         synchronousTransformClient.transform(reader, writer, Collections.emptyMap(), null, nodeRef);
 

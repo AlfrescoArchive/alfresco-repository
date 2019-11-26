@@ -291,7 +291,7 @@ public class ContentTransformServiceAdaptor implements ContentTransformService
         String contentUrl = reader.getContentUrl();
         String targetMimetype = writer.getMimetype();
         Map<String, String> options = converter.getOptions(transformationOptions);
-        return synchronousTransformClient.isSupported(sourceMimetype, sourceSizeInBytes, contentUrl, targetMimetype, options,
-                null, null);
+        return synchronousTransformClient.isSupported(sourceMimetype, sourceSizeInBytes, contentUrl, targetMimetype,
+                options, null, null);
     }
 }
