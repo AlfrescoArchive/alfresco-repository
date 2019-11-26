@@ -12,6 +12,7 @@ branches:
   only:
     - master
     - /support\/.*/
+    - fix/REPO-4792
 
 install: travis_retry mvn install -DskipTests=true -B -V
 
@@ -34,7 +35,7 @@ jobs:
         - java -jar wss-unified-agent.jar -apiKey ${WHITESOURCE_API_KEY} -c .wss-unified-agent.config
     - stage: release
       name: "Push to Nexus"
-      if: fork = false AND (branch = master OR branch =~ /support\/.*/) AND type != pull_request AND commit_message !~ /\[no-release\]/
+      if: fork = false AND (branch = master OR branch =~ /support\/.*/ OR branch = fix/REPO-4792) AND type != pull_request AND commit_message !~ /\[no-release\]/
       before_install:
         - "cp .travis.settings.xml $HOME/.m2/settings.xml"
       script:
@@ -43,4 +44,4 @@ jobs:
         # Add email to link commits to user
         - git config user.email "${GIT_EMAIL}"
         # Skip building of release commits
-        - mvn --batch-mode -q -DscmCommentPrefix="[maven-release-plugin][skip ci] " -Dusername="${GIT_USERNAME}" -Dpassword="${GIT_PASSWORD}" -DskipTests -Darguments=-DskipTests release:clean release:prepare release:perform
+        - mvn --batch-mode -q -DscmCommentPrefix="[maven-release-plugin][skip ci] " -Dusername="${GIT_USERNAME}" -Dpassword="${GIT_PASSWORD}" -DskipTests -DreleaseVersion=repo-4792-1 -DdevelopmentVersion=8.54-SNAPSHOT -Darguments=-DskipTests release:clean release:prepare release:perform
