@@ -286,8 +286,12 @@ public class ContentTransformServiceAdaptor implements ContentTransformService
     @Override
     public boolean isTransformable(ContentReader reader, ContentWriter writer, TransformationOptions transformationOptions)
     {
+        String sourceMimetype = reader.getMimetype();
+        long sourceSizeInBytes = reader.getSize();
+        String contentUrl = reader.getContentUrl();
+        String targetMimetype = writer.getMimetype();
         Map<String, String> options = converter.getOptions(transformationOptions);
-        return synchronousTransformClient.isSupported(reader, writer.getMimetype(), options,
-                null, null);
+        return synchronousTransformClient.isSupported(sourceMimetype, sourceSizeInBytes, contentUrl, targetMimetype,
+                options, null, null);
     }
 }
