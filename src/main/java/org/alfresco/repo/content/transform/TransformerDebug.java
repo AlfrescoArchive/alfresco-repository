@@ -1369,7 +1369,7 @@ public class TransformerDebug implements ApplicationContextAware
 
         boolean componentTransformer = isComponentTransformer(transformer);
         
-        StringBuilder sb = new StringBuilder(name);
+        StringBuilder sb = new StringBuilder("Legacy:").append(name);
         if (componentTransformer || type.length() > 0)
         {
             sb.append("<<");

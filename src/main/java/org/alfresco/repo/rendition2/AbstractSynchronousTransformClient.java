@@ -41,15 +41,12 @@ import java.util.Map;
  */
 public abstract class AbstractSynchronousTransformClient<T> implements SynchronousTransformClient<T>
 {
-    private static Log logger = LogFactory.getLog(SynchronousTransformClient.class);
-
     private ThreadLocal<T> threadLocalSupportedBy = new ThreadLocal<>();
 
     protected T getSupportedBy(ContentReader reader, ContentWriter writer, Map<String, String> actualOptions,
                                String transformName, NodeRef sourceNodeRef)
     {
         T supportedBy = threadLocalSupportedBy.get();
-        threadLocalSupportedBy.set(null);
         if (supportedBy == null)
         {
             if (reader == null)
@@ -76,12 +73,15 @@ public abstract class AbstractSynchronousTransformClient<T> implements Synchrono
             }
             supportedBy = threadLocalSupportedBy.get();
         }
+        threadLocalSupportedBy.set(null);
         return supportedBy;
     }
 
     T getSupportedBy()
     {
-        return threadLocalSupportedBy.get();
+        T t = threadLocalSupportedBy.get();
+        threadLocalSupportedBy.set(null);
+        return t;
     }
 
     void setSupportedBy(T t)

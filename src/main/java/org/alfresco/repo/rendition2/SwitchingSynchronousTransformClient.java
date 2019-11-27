@@ -25,14 +25,10 @@
  */
 package org.alfresco.repo.rendition2;
 
-import org.alfresco.repo.content.transform.UnsupportedTransformationException;
 import org.alfresco.service.cmr.repository.ContentReader;
 import org.alfresco.service.cmr.repository.ContentWriter;
 import org.alfresco.service.cmr.repository.NodeRef;
-import org.alfresco.service.cmr.repository.TransformationOptions;
 import org.alfresco.util.Pair;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 
 import java.util.Map;
 
@@ -59,23 +55,19 @@ public class SwitchingSynchronousTransformClient extends AbstractSynchronousTran
     public boolean isSupported(String sourceMimetype, long sourceSizeInBytes, String contentUrl, String targetMimetype,
                                Map<String, String> actualOptions, String transformName, NodeRef sourceNodeRef)
     {
-        boolean supported = true;
+        Pair<AbstractSynchronousTransformClient,Object> supportedBy = null;
         if (primary.isSupported(sourceMimetype, sourceSizeInBytes, contentUrl, targetMimetype, actualOptions,
                 transformName, sourceNodeRef))
         {
-            setSupportedBy(new Pair(primary, primary.getSupportedBy()));
+            supportedBy = new Pair(primary, primary.getSupportedBy());
         }
         else if (secondary.isSupported(sourceMimetype, sourceSizeInBytes, contentUrl, targetMimetype, actualOptions,
                 transformName, sourceNodeRef))
         {
-            setSupportedBy(new Pair(secondary, secondary.getSupportedBy()));
+            supportedBy = new Pair(secondary, secondary.getSupportedBy());
         }
-        else
-        {
-            setSupportedBy(null);
-            supported = false;
-        }
-        return supported;
+        setSupportedBy(supportedBy);
+        return supportedBy != null;
     }
 
     @Override
