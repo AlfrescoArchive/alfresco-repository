@@ -45,4 +45,19 @@
     <bean id="clusteringBootstrap" class="java.lang.String"/>
     
     <bean id="ClusterService" class="java.lang.String"/>
+
+    <!-- Turn off cron job that checks the transform config (use a date in the past). This context is used in tests and very limited systems. -->
+    <bean id="localTransformServiceRegistryImpl" class="org.alfresco.repo.content.transform.LocalTransformServiceRegistry" >
+        <property name="jsonObjectMapper" ref="localTransformServiceRegistryJsonObjectMapper" />
+        <property name="pipelineConfigDir" value="${local.transform.pipeline.config.dir}" />
+        <property name="enabled" value="${local.transform.service.enabled}" />
+        <property name="cronExpression" value="0 0 0 1 JAN ? 2016"></property>
+        <property name="initialAndOnErrorCronExpression" value="${local.transform.service.initialAndOnError.cronExpression}"></property>
+        <property name="properties" ref="global-properties" />
+        <property name="transformerDebug" ref="transformerDebug" />
+        <property name="mimetypeService" ref="MimetypeService" />
+        <property name="strictMimeTypeCheck" value="${transformer.strict.mimetype.check}"/>
+        <property name="retryTransformOnDifferentMimeType" value="${content.transformer.retryOn.different.mimetype}"/>
+    </bean>
+
 </beans>
