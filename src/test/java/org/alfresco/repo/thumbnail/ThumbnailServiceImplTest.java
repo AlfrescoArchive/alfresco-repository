@@ -552,10 +552,17 @@ public class ThumbnailServiceImplTest extends BaseAlfrescoSpringTest
         final NodeRef testNode = this.secureNodeService.createNode(folder, ContentModel.ASSOC_CONTAINS,
                 QName.createQName(NamespaceService.CONTENT_MODEL_1_0_URI, "transientThumbnail.transientThumbnail"),
                 ContentModel.TYPE_CONTENT, props).getChildRef();
-        
+
+        // Modified test to add content. Having no content was failing to find a transformer with Legacy, but now
+        // does not with both Legacy and Local transforms. As a result the test was passing for the wrong reason.
         secureNodeService.setProperty(testNode, ContentModel.PROP_CONTENT,
                 new ContentData(null, TEST_FAILING_MIME_TYPE, 0L, null));
-        // We don't need to write any content into this node, as our test transformer will fail immediately.
+        File testFile = AbstractContentTransformerTest.loadNamedQuickTestFile("quick.pdf");
+        assertNotNull("Failed to load required test file.", testFile);
+        ContentWriter writer = contentService.getWriter(testNode, ContentModel.PROP_CONTENT, true);
+        writer.setMimetype(TEST_FAILING_MIME_TYPE);
+        writer.setEncoding("UTF-8");
+        writer.putContent(testFile);
 
         logger.debug("Running failing thumbnail on " + testNode);
         
@@ -1530,7 +1537,7 @@ public class ThumbnailServiceImplTest extends BaseAlfrescoSpringTest
             boolean supported = true;
             if (!sourceMimetype.equals(TEST_FAILING_MIME_TYPE) && !sourceMimetype.equals(TEST_LONG_RUNNING_MIME_TYPE))
             {
-                delegate.isSupported(sourceMimetype, sourceSizeInBytes, contentUrl, targetMimetype, actualOptions,
+                supported = delegate.isSupported(sourceMimetype, sourceSizeInBytes, contentUrl, targetMimetype, actualOptions,
                         transformName, sourceNodeRef);
             }
             return supported;
