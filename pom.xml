@@ -70,11 +70,6 @@
 
     <dependencyManagement>
         <dependencies>
-            <dependency>
-                <groupId>org.apache.commons</groupId>
-                <artifactId>commons-email</artifactId>
-                <version>1.5</version>
-            </dependency>
             <!-- upgrade dependency from TIKA -->
             <dependency>
                 <groupId>com.github.junrar</groupId>
