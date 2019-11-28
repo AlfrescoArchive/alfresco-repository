@@ -2,9 +2,8 @@
     <modelVersion>4.0.0</modelVersion>
     <artifactId>alfresco-repository</artifactId>
     <name>Alfresco Repository</name>
-    <version>8.23-SNAPSHOT</version>
+    <version>8.27-SNAPSHOT</version>
     <packaging>jar</packaging>
-
     <parent>
         <groupId>org.alfresco</groupId>
         <artifactId>alfresco-super-pom</artifactId>
@@ -62,7 +61,7 @@
         <dependency.keycloak.version>6.0.1</dependency.keycloak.version>
         <dependency.jboss.logging.version>3.4.1.Final</dependency.jboss.logging.version>
         <dependency.camel.version>2.24.2</dependency.camel.version>
-        <dependency.activemq.version>5.15.10</dependency.activemq.version>
+        <dependency.activemq.version>5.15.11</dependency.activemq.version>
         <dependency.pdfbox.version>2.0.17</dependency.pdfbox.version>
         <dependency.cxf.version>3.3.4</dependency.cxf.version>
         <dependency.jackson.version>2.10.1</dependency.jackson.version>
@@ -327,7 +326,7 @@
         <dependency>
             <groupId>org.apache.maven</groupId>
             <artifactId>maven-artifact</artifactId>
-            <version>3.6.2</version>
+            <version>3.6.3</version>
         </dependency>
         <dependency>
             <groupId>javax.xml.bind</groupId>
