@@ -235,7 +235,7 @@ public abstract class AbstractLocalTransform implements LocalTransform
             }
             else
             {
-                transformerDebug.debug("          Failed: Mime type was '" + differentType + "'", e);
+                transformerDebug.debug("          Failed: Mimetype was '" + differentType + "'", e);
                 String claimedMimetype = reader.getMimetype();
 
                 if (retryTransformOnDifferentMimeType)
