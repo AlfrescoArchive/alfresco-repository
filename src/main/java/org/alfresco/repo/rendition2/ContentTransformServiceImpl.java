@@ -57,7 +57,7 @@ import java.util.Map;
  * @author adavis
  */
 @Deprecated
-public abstract class ContentTransformServiceImpl extends AbstractSynchronousTransformClient<ContentTransformer> implements InitializingBean
+public abstract class ContentTransformServiceImpl implements InitializingBean
 {
     protected static Log logger = LogFactory.getLog(LegacyTransformClient.class);
 

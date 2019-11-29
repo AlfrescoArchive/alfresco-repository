@@ -42,11 +42,12 @@ import java.util.Map;
  *
  * @author adavis
  */
-public interface SynchronousTransformClient<T>
+public interface SynchronousTransformClient
 {
     /**
      * Works out if it is possible to transform content of a given source mimetype and size into a target mimetype
-     * given a list of actual transform option names and values.
+     * given a list of actual transform option names and values. Ideally, just call the transform method and catch the
+     * UnsupportedTransformationException to avoid extra work.
      *
      * @param sourceMimetype the mimetype of the source content
      * @param sourceSizeInBytes the size in bytes of the source content. Ignored if negative.
@@ -63,7 +64,7 @@ public interface SynchronousTransformClient<T>
                         Map<String, String> actualOptions, String transformName, NodeRef sourceNodeRef);
 
     /**
-     * Requests a synchronous transform. Not used for renditions.
+     * Requests a synchronous transform.
      * @param reader of the source content
      * @param writer to the target node's content
      * @param actualOptions the actual name value pairs available that could be passed to the Transform Service.

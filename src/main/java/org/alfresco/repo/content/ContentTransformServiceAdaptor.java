@@ -39,6 +39,7 @@ import org.alfresco.service.cmr.repository.ContentReader;
 import org.alfresco.service.cmr.repository.ContentTransformService;
 import org.alfresco.service.cmr.repository.ContentWriter;
 import org.alfresco.service.cmr.repository.NoTransformerException;
+import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.cmr.repository.TransformationOptions;
 import org.alfresco.transform.client.registry.TransformServiceRegistry;
 
@@ -136,8 +137,8 @@ public class ContentTransformServiceAdaptor implements ContentTransformService
 
     private NoTransformerException newNoTransformerException(ContentReader reader, ContentWriter writer)
     {
-        String sourceMimetype = reader.getMimetype();
-        String targetMimetype = writer.getMimetype();
+        String sourceMimetype = reader == null ? "null" : reader.getMimetype();
+        String targetMimetype = writer == null ? "null" : writer.getMimetype();
         return new NoTransformerException(sourceMimetype, targetMimetype);
     }
 
@@ -302,8 +303,9 @@ public class ContentTransformServiceAdaptor implements ContentTransformService
         long sourceSizeInBytes = reader.getSize();
         String contentUrl = reader.getContentUrl();
         String targetMimetype = writer.getMimetype();
+        NodeRef sourceNodeRef = transformationOptions.getSourceNodeRef();
         Map<String, String> options = converter.getOptions(transformationOptions);
         return synchronousTransformClient.isSupported(sourceMimetype, sourceSizeInBytes, contentUrl, targetMimetype,
-                options, null, null);
+                options, null, sourceNodeRef);
     }
 }

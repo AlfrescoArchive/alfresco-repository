@@ -198,8 +198,9 @@ public abstract class AbstractTransformationRenderingEngine extends AbstractRend
 
         long sourceSizeInBytes = contentReader.getSize();
         Map<String, String> options = converter.getOptions(transformationOptions);
+        NodeRef sourceNodeRef = transformationOptions.getSourceNodeRef();
         if (!synchronousTransformClient.isSupported(sourceMimeType, sourceSizeInBytes, contentUrl, targetMimeType,
-                options, null, null))
+                options, null, sourceNodeRef))
         {
             throw new RenditionServiceException(String.format(NOT_TRANSFORMABLE_MESSAGE_PATTERN, sourceMimeType, targetMimeType));
         }

@@ -1521,11 +1521,11 @@ public class ThumbnailServiceImplTest extends BaseAlfrescoSpringTest
         }
     }
 
-    public static class TestSynchronousTransformClient<T> implements SynchronousTransformClient<Pair<SynchronousTransformClient,Object>>
+    public static class TestSynchronousTransformClient<T> implements SynchronousTransformClient
     {
-        private SynchronousTransformClient<Pair<SynchronousTransformClient,Object>> delegate;
+        private SynchronousTransformClient delegate;
 
-        public TestSynchronousTransformClient(SynchronousTransformClient<Pair<SynchronousTransformClient,Object>> delegate)
+        public TestSynchronousTransformClient(SynchronousTransformClient delegate)
         {
             this.delegate = delegate;
         }

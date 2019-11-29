@@ -61,7 +61,7 @@ public interface TransformClient
      * @param sourceContentHashCode the hash code of the source node's content URL. Used to check the transform result
      * @throws UnsupportedTransformationException if there is an unexpected failure to transform, normally in a
      *         pipeline, where an intermediate transform may not be performed after all because an intermediate
-     *         converion is too big.
+     *         conversion is too big.
      * @throws ContentIOException  there is an unexpected communication or transformation failure.
      */
     void transform(NodeRef sourceNodeRef, RenditionDefinition2 renditionDefinition, String user,

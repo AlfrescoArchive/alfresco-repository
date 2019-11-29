@@ -623,11 +623,7 @@ public abstract class BaseContentNode implements TemplateContent
                 // try and transform the content
                 try
                 {
-                    String sourceMimetype = reader.getMimetype();
-                    long sourceSizeInBytes = reader.getSize();
-                    String contentUrl = reader.getContentUrl();
-                    if (synchronousTransformClient.isSupported(sourceMimetype, sourceSizeInBytes, contentUrl,
-                        "text/plain", Collections.emptyMap(), null, nodeRef))
+                    try
                     {
                         synchronousTransformClient.transform(reader, writer, Collections.emptyMap(), null, nodeRef);
 
@@ -643,6 +639,9 @@ public abstract class BaseContentNode implements TemplateContent
                                 result = resultReader.getContentString();
                             }
                         }
+                    }
+                    catch (UnsupportedTransformationException ignore)
+                    {
                     }
                 }
                 catch (NoTransformerException|UnsupportedTransformationException| ContentIOException e)

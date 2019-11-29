@@ -710,6 +710,16 @@ public class TransformerDebug implements ApplicationContextAware
         }
     }
 
+    public void debug(String sourceMimetype, String targetMimetype, NodeRef sourceNodeRef, long sourceSize,
+                      String renditionName, String message)
+    {
+        String fileName = getFileName(sourceNodeRef, true, -1);
+        log("              "+getMimetypeExt(sourceMimetype)+getMimetypeExt(targetMimetype) +
+                ((fileName != null) ? fileName+' ' : "")+
+                ((sourceSize >= 0) ? fileSize(sourceSize)+' ' : "") +
+                (renditionName != null ? "-- "+renditionName+" -- " : "") + message);
+    }
+
     /**
      * Called after working out what transformers are available and any
      * resulting transform has been called.

@@ -41,8 +41,7 @@ import java.util.Map;
  * @author adavis
  */
 @Deprecated
-public class LegacySynchronousTransformClient extends ContentTransformServiceImpl
-        implements SynchronousTransformClient<ContentTransformer>
+public class LegacySynchronousTransformClient extends ContentTransformServiceImpl implements SynchronousTransformClient
 {
     private static final String TRANSFORM = "Legacy synchronous transform ";
 
