@@ -112,7 +112,7 @@ public class ContentTransformServiceAdaptor implements ContentTransformService
 
     @Deprecated
     @Override
-    public void transform(ContentReader reader, ContentWriter writer, TransformationOptions transformationOptions) // TODO replace calls
+    public void transform(ContentReader reader, ContentWriter writer, TransformationOptions transformationOptions)
             throws NoTransformerException, ContentIOException
     {
         try
