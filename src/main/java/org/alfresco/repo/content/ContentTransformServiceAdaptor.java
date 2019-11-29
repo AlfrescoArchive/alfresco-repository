@@ -30,6 +30,7 @@ import org.alfresco.repo.content.transform.AbstractContentTransformer2;
 import org.alfresco.repo.content.transform.ContentTransformer;
 import org.alfresco.repo.content.transform.LocalTransform;
 import org.alfresco.repo.content.transform.LocalTransformServiceRegistry;
+import org.alfresco.repo.content.transform.UnsupportedTransformationException;
 import org.alfresco.repo.rendition2.LegacySynchronousTransformClient;
 import org.alfresco.repo.rendition2.SynchronousTransformClient;
 import org.alfresco.repo.rendition2.TransformationOptionsConverter;
@@ -119,14 +120,25 @@ public class ContentTransformServiceAdaptor implements ContentTransformService
             Map<String, String> options = converter.getOptions(transformationOptions);
             synchronousTransformClient.transform(reader, writer, options, null, null);
         }
+        catch (UnsupportedTransformationException ute)
+        {
+            throw newNoTransformerException(reader, writer);
+        }
         catch (IllegalArgumentException iae)
         {
             if (iae.getMessage().contains("sourceNodeRef null has no content"))
             {
-                throw new NoTransformerException(null, null);
+                throw newNoTransformerException(reader, writer);
             }
             throw new AlfrescoRuntimeException(iae.getMessage(), iae);
         }
+    }
+
+    private NoTransformerException newNoTransformerException(ContentReader reader, ContentWriter writer)
+    {
+        String sourceMimetype = reader.getMimetype();
+        String targetMimetype = writer.getMimetype();
+        return new NoTransformerException(sourceMimetype, targetMimetype);
     }
 
     @Deprecated
