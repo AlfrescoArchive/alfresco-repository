@@ -606,12 +606,6 @@ public class LegacyTransformerDebug extends AdminUiTransformerDebug
     @Deprecated
     public Collection<ContentTransformer> sortTransformersByName(String transformerName)
     {
-        return sortTransformersByName(transformerRegistry, transformerName);
-    }
-
-    public static Collection<ContentTransformer>  sortTransformersByName(
-            ContentTransformerRegistry transformerRegistry, String transformerName)
-    {
         Collection<ContentTransformer> transformers = (transformerName != null)
                 ? Collections.singleton(transformerRegistry.getTransformer(transformerName))
                 : transformerRegistry.getAllTransformers();

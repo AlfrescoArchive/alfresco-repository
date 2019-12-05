@@ -85,7 +85,7 @@ public class TransformerConfigMBeanImpl implements TransformerConfigMBean
     public String[] getTransformerNames()
     {
         List<String> transformerNames = new ArrayList<String>();
-        Collection<ContentTransformer> transformers = LegacyTransformerDebug.sortTransformersByName(transformerRegistry, null);
+        Collection<ContentTransformer> transformers = ((LegacyTransformerDebug)transformerDebug).sortTransformersByName(null);
         for (ContentTransformer transformer: transformers)
         {
             String name = transformer.getName();
@@ -171,7 +171,7 @@ public class TransformerConfigMBeanImpl implements TransformerConfigMBean
             sourceExtension = nullDefaultLowerParam(sourceExtension);
             targetExtension = nullDefaultLowerParam(targetExtension);
 
-            Collection<ContentTransformer> transformers = LegacyTransformerDebug.sortTransformersByName(transformerRegistry, transformerName);
+            Collection<ContentTransformer> transformers = ((LegacyTransformerDebug)transformerDebug).sortTransformersByName(transformerName);
             Collection<String> sourceMimetypes = transformerDebug.getSourceMimetypes(sourceExtension);
             Collection<String> targetMimetypes = transformerDebug.getTargetMimetypes(sourceExtension, targetExtension, sourceMimetypes);
 

@@ -59,7 +59,7 @@ public class TransformerConfigMBeanImplTest
     private ContentTransformerRegistry transformerRegistry;
 
     @Mock
-    private AdminUiTransformerDebug transformerDebug;
+    private LegacyTransformerDebug transformerDebug;
 
     @Mock
     private TransformerConfig transformerConfig;
@@ -235,9 +235,9 @@ public class TransformerConfigMBeanImplTest
         ContentTransformer transformer1 = (ContentTransformer) new DummyContentTransformer("transformer.transformer1");
         ContentTransformer transformer2 = (ContentTransformer) new DummyContentTransformer("transformer.transformer2");
 
-        when(LegacyTransformerDebug.sortTransformersByName(transformerRegistry, "transformer.transformer1")).thenReturn(
+        when(transformerDebug.sortTransformersByName("transformer.transformer1")).thenReturn(
                 Arrays.asList(new ContentTransformer[] {transformer1}));
-        when(LegacyTransformerDebug.sortTransformersByName(transformerRegistry, null)).thenReturn(
+        when(transformerDebug.sortTransformersByName(null)).thenReturn(
                 Arrays.asList(new ContentTransformer[] {transformer1, transformer2}));
 
         when(transformerDebug.getSourceMimetypes("pdf")).thenReturn(Collections.singletonList("application/pdf"));
