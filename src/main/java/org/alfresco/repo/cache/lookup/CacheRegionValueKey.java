@@ -44,7 +44,7 @@ public class CacheRegionValueKey implements Serializable
     {
         this.cacheRegion = cacheRegion;
         this.cacheValueKey = cacheValueKey;
-        this.hashCode = cacheRegion.hashCode() + cacheValueKey.hashCode();
+        this.hashCode = cacheRegion.hashCode() + cacheValueKey.hashCode() + cacheValueKey.getClass().hashCode();
     }
     @Override
     public String toString()
@@ -63,7 +63,8 @@ public class CacheRegionValueKey implements Serializable
             return false;
         }
         CacheRegionValueKey that = (CacheRegionValueKey) obj;
-        return this.cacheRegion.equals(that.cacheRegion) && this.cacheValueKey.equals(that.cacheValueKey);
+        return this.cacheRegion.equals(that.cacheRegion) && this.cacheValueKey.equals(that.cacheValueKey)
+                && this.cacheValueKey.getClass().equals(that.cacheValueKey.getClass());
     }
     @Override
     public int hashCode()
