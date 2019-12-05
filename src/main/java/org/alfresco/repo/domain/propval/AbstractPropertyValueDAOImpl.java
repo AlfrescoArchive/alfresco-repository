@@ -788,6 +788,11 @@ public abstract class AbstractPropertyValueDAOImpl implements PropertyValueDAO
             {
                 return CrcHelper.getStringCrcPair((String)value, 128, true, true);
             }
+            else if (value instanceof Map<?, ?>)
+            {
+                // Performance hit as maps won't be retrieved from cached - could improve to only do this for empty maps..
+                return null;
+            }
             else
             {
                 // We've dodged Serializable and String; everything else is OK as a key.
