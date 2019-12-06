@@ -2,7 +2,7 @@
  * #%L
  * Alfresco Repository
  * %%
- * Copyright (C) 2005 - 2016 Alfresco Software Limited
+ * Copyright (C) 2005 - 2019 Alfresco Software Limited
  * %%
  * This file is part of the Alfresco software. 
  * If the software was purchased under a paid Alfresco license, the terms of 
@@ -99,6 +99,7 @@ public class TransformerDebug implements ApplicationContextAware
     private Log logger;
     private NodeService nodeService;
     private MimetypeService mimetypeService;
+    private LocalTransformServiceRegistry localTransformServiceRegistryImpl;
     private ContentTransformerRegistry transformerRegistry;
     private TransformerConfig transformerConfig;
 
@@ -312,6 +313,11 @@ public class TransformerDebug implements ApplicationContextAware
     public void setMimetypeService(MimetypeService mimetypeService)
     {
         this.mimetypeService = mimetypeService;
+    }
+
+    public void setLocalTransformServiceRegistryImpl(LocalTransformServiceRegistry localTransformServiceRegistryImpl)
+    {
+        this.localTransformServiceRegistryImpl = localTransformServiceRegistryImpl;
     }
 
     public void setTransformerRegistry(ContentTransformerRegistry transformerRegistry)
@@ -653,17 +659,23 @@ public class TransformerDebug implements ApplicationContextAware
             int transformerCount, ContentTransformer transformer, long maxSourceSizeKBytes,
             boolean firstTransformer)
     {
+        String priority = gePriority(transformer, sourceMimetype, targetMimetype);
+        activeTransformer(sourceMimetype, targetMimetype, transformerCount, priority, getName(transformer),
+                maxSourceSizeKBytes, firstTransformer);
+    }
+
+    private void activeTransformer(String sourceMimetype, String targetMimetype, int transformerCount, String priority, String transformName, long maxSourceSizeKBytes, boolean firstTransformer)
+    {
         String mimetypes = firstTransformer
                 ? getMimetypeExt(sourceMimetype)+getMimetypeExt(targetMimetype)
                 : spaces(10);
         char c = (char)('a'+transformerCount);
-        String priority = gePriority(transformer, sourceMimetype, targetMimetype);
         log(mimetypes+
-                "  "+c+") " + priority + ' ' + getName(transformer)+' '+ms(transformer.getTransformationTime(sourceMimetype, targetMimetype))+
-                ' '+fileSize((maxSourceSizeKBytes > 0) ? maxSourceSizeKBytes*1024 : maxSourceSizeKBytes)+
+                "  "+c+") " + priority + ' '+transformName+' '+
+                fileSize((maxSourceSizeKBytes > 0) ? maxSourceSizeKBytes*1024 : maxSourceSizeKBytes)+
                 (maxSourceSizeKBytes == 0 ? " disabled" : ""));
     }
-    
+
     private int getLongestTransformerNameLength(List<ContentTransformer> transformers,
             Frame frame)
     {
@@ -708,6 +720,16 @@ public class TransformerDebug implements ApplicationContextAware
                 log(nodeRef);
             }
         }
+    }
+
+    public void debug(String sourceMimetype, String targetMimetype, NodeRef sourceNodeRef, long sourceSize,
+                      String renditionName, String message)
+    {
+        String fileName = getFileName(sourceNodeRef, true, -1);
+        log("              "+getMimetypeExt(sourceMimetype)+getMimetypeExt(targetMimetype) +
+                ((fileName != null) ? fileName+' ' : "")+
+                ((sourceSize >= 0) ? fileSize(sourceSize)+' ' : "") +
+                (renditionName != null ? "-- "+renditionName+" -- " : "") + message);
     }
 
     /**
@@ -1192,6 +1214,20 @@ public class TransformerDebug implements ApplicationContextAware
                         {
                             pushMisc();
                             int transformerCount = 0;
+                            LocalTransform localTransform = localTransformServiceRegistryImpl == null
+                                ? null
+                                : localTransformServiceRegistryImpl.getLocalTransform(sourceMimetype,
+                                    -1, targetMimetype, Collections.emptyMap(), null);
+                            if (localTransform != null)
+                            {
+                                long maxSourceSizeKBytes = localTransformServiceRegistryImpl.findMaxSize(sourceMimetype,
+                                        targetMimetype, Collections.emptyMap(), null);
+                                String transformName = localTransform instanceof AbstractLocalTransform
+                                    ? "Local:"+((AbstractLocalTransform)localTransform).getName()
+                                    : "";
+                                activeTransformer(sourceMimetype, targetMimetype, transformerCount, "  [0]",
+                                        transformName, maxSourceSizeKBytes, transformerCount++ == 0);
+                            }
                             for (ContentTransformer transformer: availableTransformer)
                             {
                                 if (!onlyNonDeterministic || transformerCount < 2 ||
@@ -1199,8 +1235,8 @@ public class TransformerDebug implements ApplicationContextAware
                                 {
                                     long maxSourceSizeKBytes = transformer.getMaxSourceSizeKBytes(
                                             sourceMimetype, targetMimetype, options);
-                                    activeTransformer(sourceMimetype, targetMimetype,
-                                            transformerCount, transformer, maxSourceSizeKBytes, transformerCount++ == 0);
+                                    activeTransformer(sourceMimetype, targetMimetype, transformerCount,
+                                            transformer, maxSourceSizeKBytes, transformerCount++ == 0);
                                 }
                             }
                         }
@@ -1369,7 +1405,7 @@ public class TransformerDebug implements ApplicationContextAware
 
         boolean componentTransformer = isComponentTransformer(transformer);
         
-        StringBuilder sb = new StringBuilder(name);
+        StringBuilder sb = new StringBuilder("Legacy:").append(name);
         if (componentTransformer || type.length() > 0)
         {
             sb.append("<<");
@@ -1546,9 +1582,8 @@ public class TransformerDebug implements ApplicationContextAware
         debug(getMimetypeExt(sourceMimetype)+getMimetypeExt(targetMimetype) +
               ((fileName != null) ? fileName+' ' : "")+
               ((sourceSize >= 0) ? fileSize(sourceSize)+' ' : "") +
-              (renditionName != null ? "-- "+renditionName+" -- " : "") + " RenditionService2");
+              (renditionName != null ? "-- "+renditionName+" -- " : "") + " TransformService");
         debug(sourceNodeRef.toString() + ' ' +contentHashcode);
-        debug(" **a)  [01] TransformService");
         return pop(Call.AVAILABLE, true, false);
     }
 
@@ -1671,7 +1706,6 @@ public class TransformerDebug implements ApplicationContextAware
                 ContentReader reader = contentService.getReader(sourceNodeRef, ContentModel.PROP_CONTENT);
                 SynchronousTransformClient synchronousTransformClient = getSynchronousTransformClient();
                 Map<String, String> actualOptions = Collections.emptyMap();
-                synchronousTransformClient.isSupported(sourceNodeRef, targetMimetype, actualOptions, null, nodeService);
                 synchronousTransformClient.transform(reader, writer, actualOptions, null, sourceNodeRef);
             }
             catch (Exception e)
