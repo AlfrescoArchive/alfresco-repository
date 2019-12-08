@@ -495,14 +495,7 @@ public class TransformerDebug
                 // Use TRACE logging for all but the first TRANSFORM
                 debug = size == 1 || (size == 2 && ThreadInfo.getStack().peekLast().callType != Call.TRANSFORM);
             }
-// Comment out for the moment
-//            else if (firstLevel && frame.callType == Call.AVAILABLE)
-//            {
-//                level = "INFO";
-//                debug = true;
-//                failureReason = "checking availability";
-//            }
-            
+
             if (level != null)
             {
                 infoLog(getReference(debug, false), sourceExt, targetExt, level, fileName, sourceSize, transformerName, failureReason, ms, debug);
@@ -763,7 +756,7 @@ public class TransformerDebug
             }
             catch (RuntimeException e)
             {
-                ; // ignore (normally InvalidNodeRefException) but we should ignore other RuntimeExceptions too
+                // ignore (normally InvalidNodeRefException) but we should ignore other RuntimeExceptions too
             }
         }
         if (result == null)
@@ -883,12 +876,6 @@ public class TransformerDebug
         if (!suppressFinish)
         {
             frame.start = requested;
-// TODO Create a dummy (available == false) transformer for TransformService before we can record the TS's stats
-//            String sourceMimetype = mimetypeService.getMimetype(sourceExt);
-//            String targetMimetype = mimetypeService.getMimetype(targetExt);
-//            long ms = System.currentTimeMillis()-requested;
-//            AbstractContentTransformer2 transformer = null;
-//            transformer.recordTime(sourceMimetype, targetMimetype, ms);
         }
         debug(msg);
         debug(sourceNodeRef.toString() + ' ' +contentHashcode);

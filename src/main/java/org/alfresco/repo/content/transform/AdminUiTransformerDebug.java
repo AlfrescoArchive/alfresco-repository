@@ -241,7 +241,7 @@ public class AdminUiTransformerDebug extends TransformerDebug implements Applica
 
     /**
      * Removes the final "Finished in..." message from a StringBuilder
-     * @param sb
+     * @param sb which contains the debug message.
      */
     void stripFinishedLine(StringBuilder sb)
     {
@@ -259,6 +259,7 @@ public class AdminUiTransformerDebug extends TransformerDebug implements Applica
 
     /**
      * Strips the leading number in a reference
+     * @param sb which contains the debug message.
      */
     String stripLeadingNumber(StringBuilder sb)
     {
@@ -339,18 +340,9 @@ public class AdminUiTransformerDebug extends TransformerDebug implements Applica
         final URL result;
 
         URL url = this.getClass().getClassLoader().getResource("quick/quick." + extension);
-        if (url == null)
-        {
-            result = null;
-        }
-        else
-        {
-            // Note that this URL may point to a file on the filesystem or to an entry in a jar file.
-            // The handling should be the same either way.
-            result = url;
-        }
-
-        return result;
+        // Note that this URL may point to a file on the filesystem or to an entry in a jar file.
+        // The handling should be the same either way.
+        return url == null ? null : url;
     }
 
     @Deprecated

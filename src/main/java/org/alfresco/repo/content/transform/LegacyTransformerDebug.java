@@ -212,7 +212,6 @@ public class LegacyTransformerDebug extends AdminUiTransformerDebug
             {
                 String name = getName(trans);
                 int padName = longestNameLength - name.length() + 1;
-                // TODO replace with call to RenditionService2 or leave as a deprecated method using ContentService.
                 TransformationOptions options = new TransformationOptions();
                 options.setUse(frame.renditionName);
                 options.setSourceNodeRef(frame.sourceNodeRef);
@@ -241,11 +240,10 @@ public class LegacyTransformerDebug extends AdminUiTransformerDebug
     private String gePriority(ContentTransformer transformer, String sourceMimetype, String targetMimetype)
     {
         String priority =
-                '[' +
-                        (isComponentTransformer(transformer)
-                                ? "---"
-                                : Integer.toString(transformerConfig.getPriority(transformer, sourceMimetype, targetMimetype))) +
-                        ']';
+            '[' + (isComponentTransformer(transformer)
+            ? "---"
+            : Integer.toString(transformerConfig.getPriority(transformer, sourceMimetype, targetMimetype))) +
+            ']';
         priority = spaces(5-priority.length())+priority;
         return priority;
     }
