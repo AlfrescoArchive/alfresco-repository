@@ -138,7 +138,7 @@ public class RenditionService2Test
             }
             renditionService2.consume(sourceNodeRef, null, renditionDefinition, sourceContentHashCode);
             return null;
-        }).when(transformClient).transform(any(), any(), anyString(), anyInt());
+        }).when(transformClient).transform(any(), any(), nullable(String.class), anyInt());
 
         renditionService2.setTransactionService(transactionService);
         renditionService2.setNodeService(nodeService);
