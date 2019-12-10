@@ -220,7 +220,7 @@ public class RenditionService2Test
         renditionService2.render(nodeRef, TEST_RENDITION);
 
         verify(transformClient, times(1)).transform(any(), any(), any(), anyInt());
-        verify(transformClient, times(1)).transform(any(), any(), anyString(), anyInt());
+        verify(transformClient, times(1)).transform(any(), any(), nullable(String.class), anyInt());
         verify(transformReplyProvider, times(0)).produceTransformEvent(any(), any(), any(), anyInt());
     }
 
@@ -228,7 +228,7 @@ public class RenditionService2Test
     public void useLocalTransformForTransforms()
     {
         renditionService2.transform(nodeRef, TEST_TRANSFORM);
-        verify(transformClient, times(1)).transform(any(), any(), anyString(), anyInt());
+        verify(transformClient, times(1)).transform(any(), any(), nullable(String.class), anyInt());
         verify(transformReplyProvider, times(1)).produceTransformEvent(any(), any(), any(), anyInt());
 
     }
