@@ -39,7 +39,6 @@ import java.util.Locale;
 import java.util.Map;
 
 import javax.transaction.UserTransaction;
-import javax.xml.ws.Holder;
 
 import junit.framework.TestCase;
 
@@ -8190,5 +8189,17 @@ public class ContentDiskDriverTest extends TestCase
         {
             is.close();
         }
+    }
+    
+    public final class Holder<T> {
+
+        public Holder() {
+        }
+
+        public Holder(T value) {
+            this.value = value;
+        }
+
+        public T value;
     }
 }
