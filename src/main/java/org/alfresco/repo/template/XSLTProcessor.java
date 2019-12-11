@@ -55,7 +55,6 @@ import org.alfresco.service.cmr.repository.TemplateException;
 import org.alfresco.service.cmr.repository.TemplateProcessor;
 import org.alfresco.service.namespace.QName;
 import org.alfresco.util.XMLUtil;
-import org.apache.bsf.BSFManager;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -141,7 +140,7 @@ public class XSLTProcessor extends BaseProcessor implements TemplateProcessor
         }
 
         XSLTemplateModel xsltModel = (XSLTemplateModel) model;
-        System.setProperty("org.apache.xalan.extensions.bsf.BSFManager", BSFManager.class.getName());
+        System.setProperty("org.apache.xalan.extensions.bsf.BSFManager", "org.apache.bsf.BSFManager");
 
         Document xslTemplate;
         try

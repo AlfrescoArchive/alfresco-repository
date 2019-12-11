@@ -357,11 +357,6 @@
             <version>0.6</version>
         </dependency>
         <dependency>
-            <groupId>bsf</groupId>
-            <artifactId>bsf</artifactId>
-            <version>2.4.0</version>
-        </dependency>
-        <dependency>
             <groupId>com.beetstra.jutf7</groupId>
             <artifactId>jutf7</artifactId>
             <version>1.0.0</version>
