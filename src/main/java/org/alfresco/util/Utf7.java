@@ -29,8 +29,6 @@ import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 import java.nio.charset.Charset;
 
-import com.beetstra.jutf7.CharsetProvider;
-
 /**
  * 
  * @author Mike Shavnev
@@ -56,8 +54,7 @@ public class Utf7
         {
             return string;
         }
-        CharsetProvider provider = new CharsetProvider();
-        Charset charset = provider.charsetForName(charsetName);
+        Charset charset = Charset.forName(charsetName);
         CharBuffer charBuffer = charset.decode(ByteBuffer.wrap(string.getBytes()));
         return charBuffer.toString();
     }
@@ -74,8 +71,7 @@ public class Utf7
         {
             return string;
         }
-        CharsetProvider provider = new CharsetProvider();
-        Charset charset = provider.charsetForName(charsetName);
+        Charset charset = Charset.forName(charsetName);
         ByteBuffer byteBuffer = charset.encode(string);
         return new String(byteBuffer.array()).substring(0, byteBuffer.limit());
     }
