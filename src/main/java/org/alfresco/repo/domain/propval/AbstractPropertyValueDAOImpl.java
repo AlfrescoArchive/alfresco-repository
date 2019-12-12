@@ -784,14 +784,15 @@ public abstract class AbstractPropertyValueDAOImpl implements PropertyValueDAO
                 // It will be Serialized, so no search key
                 return null;
             }
+            else if (value instanceof Map<?, ?> && ((Map) value).isEmpty())
+            {
+                // See MNT-20992 - Maps and their subclasses do not have a good enough equals method for use as a key
+                // in caches. For example empty HashMap "equals" empty MLText
+                return null;
+            }
             else if (value instanceof String)
             {
                 return CrcHelper.getStringCrcPair((String)value, 128, true, true);
-            }
-            else if (value instanceof Map<?, ?>)
-            {
-                // Performance hit as maps won't be retrieved from cached - could improve to only do this for empty maps..
-                return null;
             }
             else
             {
