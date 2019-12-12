@@ -798,17 +798,6 @@
         </dependency>
         <dependency>
             <groupId>org.keycloak</groupId>
-            <artifactId>keycloak-common</artifactId>
-            <version>${dependency.keycloak.version}</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>*</groupId>
-                    <artifactId>*</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
-            <groupId>org.keycloak</groupId>
             <artifactId>keycloak-adapter-core</artifactId>
             <version>${dependency.keycloak.version}</version>
             <exclusions>
@@ -1149,6 +1138,12 @@
             <version>${dependency.activemq.version}</version>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>org.keycloak</groupId>
+            <artifactId>keycloak-common</artifactId>
+            <version>${dependency.keycloak.version}</version>
+            <scope>test</scope>
+        </dependency>        
     </dependencies>
 
     <profiles>
