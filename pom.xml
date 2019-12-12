@@ -2,7 +2,7 @@
     <modelVersion>4.0.0</modelVersion>
     <artifactId>alfresco-repository</artifactId>
     <name>Alfresco Repository</name>
-    <version>8.39-SNAPSHOT</version>
+    <version>8.42-SNAPSHOT</version>
     <packaging>jar</packaging>
     <parent>
         <groupId>org.alfresco</groupId>
@@ -55,7 +55,7 @@
         <dependency.opencmis.version>1.0.0</dependency.opencmis.version>
         <dependency.activiti-engine.version>5.23.0</dependency.activiti-engine.version>
         <dependency.activiti.version>5.23.0</dependency.activiti.version>
-        <dependency.postgresql.version>42.2.8</dependency.postgresql.version>
+        <dependency.postgresql.version>42.2.9</dependency.postgresql.version>
         <dependency.mysql.version>5.1.48</dependency.mysql.version>
         <dependency.mariadb.version>2.2.5</dependency.mariadb.version>
         <dependency.antlr.version>3.5.2</dependency.antlr.version>
@@ -1052,8 +1052,8 @@
         <!-- Test dependencies -->
         <dependency>
             <groupId>org.mockito</groupId>
-            <artifactId>mockito-all</artifactId>
-            <version>1.10.19</version>
+            <artifactId>mockito-core</artifactId>
+            <version>3.0.0</version>
             <scope>test</scope>
         </dependency>
         <dependency>
