@@ -1144,6 +1144,12 @@
             <version>${dependency.activemq.version}</version>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>org.apache.geronimo.specs</groupId>
+            <artifactId>geronimo-jaxws_2.1_spec</artifactId>
+            <version>1.0</version>
+            <scope>test</scope> 
+        </dependency>        
     </dependencies>
 
     <profiles>
