@@ -521,12 +521,6 @@
             <version>1.2.17</version>
         </dependency>
         <dependency>
-            <groupId>org.codehaus.groovy</groupId>
-            <artifactId>groovy-all</artifactId>
-            <version>2.4.17</version>
-            <classifier>indy</classifier>
-        </dependency>
-        <dependency>
             <groupId>org.alfresco</groupId>
             <artifactId>alfresco-jodconverter-core</artifactId>
             <version>3.0.1.1</version>
@@ -1149,6 +1143,13 @@
             <version>${dependency.activemq.version}</version>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>org.codehaus.groovy</groupId>
+            <artifactId>groovy-all</artifactId>
+            <version>2.4.17</version>
+            <classifier>indy</classifier>
+            <scope>test</scope>            
+        </dependency>        
     </dependencies>
 
     <profiles>
