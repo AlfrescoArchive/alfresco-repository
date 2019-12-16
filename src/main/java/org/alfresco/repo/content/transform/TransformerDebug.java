@@ -229,6 +229,11 @@ public class TransformerDebug
         {
             return transformerName;
         }
+
+        public String getRenditionName()
+        {
+            return renditionName;
+        }
     }
 
     @Deprecated
@@ -390,7 +395,7 @@ public class TransformerDebug
         log("              "+getMimetypeExt(sourceMimetype)+getMimetypeExt(targetMimetype) +
                 ((fileName != null) ? fileName+' ' : "")+
                 ((sourceSize >= 0) ? fileSize(sourceSize)+' ' : "") +
-                (renditionName != null ? "-- "+renditionName+" -- " : "") + message);
+                (getRenditionName(renditionName)) + message);
     }
 
     /**
@@ -460,6 +465,7 @@ public class TransformerDebug
             String fileName = getFileName(frame.sourceNodeRef, firstLevel, frame.sourceSize);
             long sourceSize = frame.getSourceSize();
             String transformerName = frame.getTransformerName();
+            String renditionName = frame.getRenditionName();
             String level = null;
             boolean debug = false;
             if (NO_TRANSFORMERS.equals(failureReason))
@@ -498,13 +504,14 @@ public class TransformerDebug
 
             if (level != null)
             {
-                infoLog(getReference(debug, false), sourceExt, targetExt, level, fileName, sourceSize, transformerName, failureReason, ms, debug);
+                infoLog(getReference(debug, false), sourceExt, targetExt, level, fileName, sourceSize,
+                        transformerName, renditionName, failureReason, ms, debug);
             }
         }
     }
     
     private void infoLog(String reference, String sourceExt, String targetExt, String level, String fileName,
-            long sourceSize, String transformerName, String failureReason, String ms, boolean debug)
+            long sourceSize, String transformerName, String renditionName, String failureReason, String ms, boolean debug)
     {
         String message =
                 reference +
@@ -513,8 +520,9 @@ public class TransformerDebug
                 (level == null ? "" : level+' ') +
                 (fileName == null ? "" : fileName) +
                 (sourceSize >= 0 ? ' '+fileSize(sourceSize) : "") +
-                ' '+ms +
+                (ms == null || ms.isEmpty() ? "" : ' '+ms)+
                 (transformerName == null ? "" : ' '+transformerName) +
+                (renditionName == null ? "" : ' '+getRenditionName(renditionName)) +
                 (failureReason == null ? "" : ' '+failureReason.trim());
         if (debug)
         {
@@ -855,12 +863,22 @@ public class TransformerDebug
                                             String renditionName)
     {
         pushMisc();
-        debug(getMimetypeExt(sourceMimetype)+getMimetypeExt(targetMimetype) +
+        String sourceExt = getMimetypeExt(sourceMimetype);
+        String targetExt = getMimetypeExt(targetMimetype);
+        debug(sourceExt + targetExt +
               ((fileName != null) ? fileName+' ' : "")+
               ((sourceSize >= 0) ? fileSize(sourceSize)+' ' : "") +
-              (renditionName != null ? "-- "+renditionName+" -- " : "") + " TransformService");
+                getRenditionName(renditionName) + " TransformService");
         debug(sourceNodeRef.toString() + ' ' +contentHashcode);
+        String reference = getReference(true, false);
+        infoLog(reference, sourceExt, targetExt, null, fileName, sourceSize, "TransformService",
+                renditionName, null, "", true);
         return pop(Call.AVAILABLE, true, false);
+    }
+
+    private String getRenditionName(String renditionName)
+    {
+        return renditionName != null ? "-- "+renditionName+" -- " : "";
     }
 
     /**
