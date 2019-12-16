@@ -41,7 +41,7 @@ public class TestSynchronousTransformClient<T> implements SynchronousTransformCl
 {
     public static final String TEST_FAILING_MIME_TYPE = "application/vnd.alfresco.test.transientfailure";
     public static final String TEST_LONG_RUNNING_MIME_TYPE = "application/vnd.alfresco.test.longrunning";
-    public static final String TEST_USER_MIME_TYPE = "application/vnd.alfresco.test.user";
+    public static final String TEST_USER_MIME_TYPE = "image/alfresco.test.user";
 
     public static final long TEST_LONG_RUNNING_TRANSFORM_TIME = 5000;
     public static final String TEST_LONG_RUNNING_PROPERTY_VALUE = "NewValue";
@@ -97,6 +97,7 @@ public class TestSynchronousTransformClient<T> implements SynchronousTransformCl
                 throw new ContentIOException(
                         "Expected username '" + EXPECTED_USER + "' but found '" + username + "'");
             }
+            writer.putContent("SUCCESS");
         }
         else
         {
