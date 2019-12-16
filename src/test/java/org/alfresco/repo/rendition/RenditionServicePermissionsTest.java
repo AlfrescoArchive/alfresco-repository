@@ -74,6 +74,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.junit.rules.RuleChain;
+import org.springframework.test.context.ContextConfiguration;
 
 import static org.alfresco.repo.rendition2.TestSynchronousTransformClient.EXPECTED_USER;
 import static org.alfresco.repo.rendition2.TestSynchronousTransformClient.TEST_USER_MIME_TYPE;
@@ -87,6 +88,8 @@ import static org.junit.Assert.*;
  */
 @Deprecated
 @Category(OwnJVMTestsCategory.class)
+@ContextConfiguration({"classpath:alfresco/application-context.xml",
+        "classpath:org/alfresco/repo/rendition2/test-transform-context.xml"})
 public class RenditionServicePermissionsTest
 {
     /** Logger */

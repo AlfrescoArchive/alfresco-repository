@@ -446,13 +446,12 @@ public abstract class AbstractTransformationRenderingEngine extends AbstractRend
                 {
                     // ALF-15715: Use temporary write to avoid operating on the real node for fear of row locking while long transforms are in progress
                     ContentWriter tempContentWriter = contentService.getTempWriter();
-                    String renditionName = context.getDefinition().getRenditionName().getLocalName();
                     NodeRef sourceNode = context.getSourceNode();
                     tempContentWriter.setMimetype(targetMimeType);
                     try
                     {
                         synchronousTransformClient.transform(contentReader, tempContentWriter, options,
-                                renditionName, sourceNode);
+                                null, sourceNode);
                         return tempContentWriter;
                     }
                     catch (NoTransformerException|UnsupportedTransformationException ntx)

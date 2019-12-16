@@ -81,6 +81,7 @@ import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.transaction.TestTransaction;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -111,6 +112,8 @@ import static org.alfresco.repo.rendition2.TestSynchronousTransformClient.TEST_L
 @SuppressWarnings("deprecation")
 @Category({OwnJVMTestsCategory.class})
 @Transactional
+@ContextConfiguration({"classpath:alfresco/application-context.xml",
+        "classpath:org/alfresco/repo/rendition2/test-transform-context.xml"})
 public class RenditionServiceIntegrationTest extends BaseAlfrescoSpringTest
 {
     private static final String WHITE = "ffffff";
