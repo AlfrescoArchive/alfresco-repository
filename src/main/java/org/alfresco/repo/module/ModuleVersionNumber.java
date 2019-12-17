@@ -31,7 +31,7 @@ import java.io.ObjectInput;
 import java.io.ObjectOutput;
 
 import org.alfresco.util.VersionNumber;
-import org.apache.maven.artifact.versioning.ComparableVersion;
+import lib3party.org.apache.maven.artifact.versioning.ComparableVersion;
 
 /**
  * The exising Alfresco VersionNumber can only be numeric.
