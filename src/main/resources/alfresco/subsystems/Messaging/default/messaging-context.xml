@@ -14,7 +14,7 @@
     <bean id="messagingObjectMapper" class="org.gytheio.messaging.jackson.ObjectMapperFactory" 
         factory-method="createInstance" />
         
-    <bean id="defaultDataFormat" class="org.apache.camel.component.jackson.JacksonDataFormat">
+    <bean id="defaultDataFormat" class="lib3party.org.apache.camel.component.jackson.JacksonDataFormat">
         <constructor-arg ref="messagingObjectMapper" />
         <constructor-arg value="java.lang.Object" />
     </bean>
