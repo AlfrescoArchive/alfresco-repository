@@ -3201,6 +3201,7 @@ public class CMISConnector implements ApplicationContextAware, ApplicationListen
         aspectsToIgnore.add(ContentModel.ASPECT_REFERENCEABLE);
         aspectsToIgnore.add(ContentModel.ASPECT_LOCALIZED);
         aspectsToIgnore.add(ContentModel.ASPECT_WORKING_COPY);
+        aspectsToIgnore.add(ContentModel.ASPECT_CHECKED_OUT);
 
         Set<String> namespacesToIgnore = new HashSet<>(singletonList(NamespaceService.SYSTEM_MODEL_1_0_URI));
 
