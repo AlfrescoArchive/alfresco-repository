@@ -33,6 +33,8 @@ import org.alfresco.util.PropertyCheck;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import lib3party.org.springframework.security.crypto.bcrypt.PasswordEncoder;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -104,7 +106,7 @@ public class CompositePasswordEncoder
             {
                 Object encoder = encoders.get(encoderKey);
                 if (encoder == null) throw new AlfrescoRuntimeException("Invalid encoder specified: "+encoderKey);
-                if (encoder instanceof org.springframework.security.crypto.password.PasswordEncoder)
+                if (encoder instanceof PasswordEncoder)
                 {
                     //BCRYPT uses its own internal salt so its NOT safe to use it more than once in an encoding chain.
                     //the Spring PasswordEncoder class doesn't require a salt and BCRYPTEncoder implements this, so
@@ -201,9 +203,9 @@ public class CompositePasswordEncoder
            }
            return pEncoder.encodePassword(rawPassword, salt);
        }
-       if (encoder instanceof org.springframework.security.crypto.password.PasswordEncoder)
+       if (encoder instanceof PasswordEncoder)
        {
-           org.springframework.security.crypto.password.PasswordEncoder passEncoder = (org.springframework.security.crypto.password.PasswordEncoder) encoder;
+           PasswordEncoder passEncoder = (PasswordEncoder) encoder;
            if (logger.isDebugEnabled()) {
                logger.debug("Encoding using spring PasswordEncoder: "+encoderKey);
            }
@@ -268,9 +270,9 @@ public class CompositePasswordEncoder
             }
             return pEncoder.isPasswordValid(encodedPassword, rawPassword, salt);
         }
-        if (encoder instanceof org.springframework.security.crypto.password.PasswordEncoder)
+        if (encoder instanceof PasswordEncoder)
         {
-            org.springframework.security.crypto.password.PasswordEncoder passEncoder = (org.springframework.security.crypto.password.PasswordEncoder) encoder;
+            PasswordEncoder passEncoder = (PasswordEncoder) encoder;
             if (logger.isDebugEnabled()) {
                 logger.debug("Matching using spring PasswordEncoder: "+encoderKey);
             }

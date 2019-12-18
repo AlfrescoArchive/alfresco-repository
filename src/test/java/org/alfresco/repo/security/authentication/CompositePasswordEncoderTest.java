@@ -36,7 +36,7 @@ import org.alfresco.error.AlfrescoRuntimeException;
 import org.alfresco.util.GUID;
 import org.junit.Before;
 import org.junit.Test;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import lib3party.org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 import java.util.ArrayList;
 import java.util.Arrays;

@@ -149,7 +149,7 @@
                 </entry>
                 <entry key="sha256" value-ref="sha256PasswordEncoder" />
                 <entry key="bcrypt10">
-                    <bean class="org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder">
+                    <bean class="lib3party.org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder">
                         <constructor-arg value="10" />
                     </bean>
                 </entry>
