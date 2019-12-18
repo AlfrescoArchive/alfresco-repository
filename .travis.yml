@@ -18,7 +18,6 @@ branches:
   only:
     - master
     - /support\/.*/
-    - feature/repo-4710_prep_use_local
 
 stages:
   - test
@@ -121,7 +120,7 @@ jobs:
       script: travis_wait 20 mvn test -B -Dtest=AllDBTestsTestSuite -Ddb.name=alfresco -Ddb.url=jdbc:mariadb://localhost:3307/alfresco?useUnicode=yes\&characterEncoding=UTF-8 -Ddb.username=alfresco -Ddb.password=alfresco -Ddb.driver=org.mariadb.jdbc.Driver
     - stage: release
       name: "Push to Nexus"
-      if: fork = false AND (branch = feature/repo-4710_prep_use_local OR branch = master OR branch =~ /support\/.*/) AND type != pull_request AND commit_message !~ /\[no-release\]/
+      if: fork = false AND (branch = master OR branch =~ /support\/.*/) AND type != pull_request AND commit_message !~ /\[no-release\]/
       before_install:
         - "cp .travis.settings.xml $HOME/.m2/settings.xml"
       script:
@@ -130,4 +129,4 @@ jobs:
         # Add email to link commits to user
         - git config user.email "${GIT_EMAIL}"
         # Skip building of release commits
-        - mvn --batch-mode -q -DscmCommentPrefix="[maven-release-plugin][skip ci] " -Dusername="${GIT_USERNAME}" -Dpassword="${GIT_PASSWORD}" -DskipTests -Darguments=-DskipTests -DreleaseVersion=repo-4710-1 -DdevelopmentVersion=8.40-SNAPSHOT release:clean release:prepare release:perform
+        - mvn --batch-mode -q -DscmCommentPrefix="[maven-release-plugin][skip ci] " -Dusername="${GIT_USERNAME}" -Dpassword="${GIT_PASSWORD}" -DskipTests -Darguments=-DskipTests release:clean release:prepare release:perform
