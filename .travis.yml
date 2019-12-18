@@ -18,7 +18,7 @@ branches:
   only:
     - master
     - /support\/.*/
-    - /fix/repo-4613_add_aspect_to_private_working_copy_cmis_11
+    - fix/repo-4613_add_aspect_to_private_working_copy_cmis_11
 
 stages:
   - test
