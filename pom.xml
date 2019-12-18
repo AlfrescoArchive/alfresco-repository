@@ -2,7 +2,7 @@
     <modelVersion>4.0.0</modelVersion>
     <artifactId>alfresco-repository</artifactId>
     <name>Alfresco Repository</name>
-    <version>8.40-SNAPSHOT</version>
+    <version>8.49-SNAPSHOT</version>
     <packaging>jar</packaging>
     <parent>
         <groupId>org.alfresco</groupId>
@@ -36,8 +36,8 @@
 
         <maven.build.sourceVersion>11</maven.build.sourceVersion>
 
-        <dependency.alfresco-data-model.version>8.60</dependency.alfresco-data-model.version>
-        <dependency.alfresco-core.version>8.2</dependency.alfresco-core.version>
+        <dependency.alfresco-data-model.version>8.68</dependency.alfresco-data-model.version>
+        <dependency.alfresco-core.version>8.6</dependency.alfresco-core.version>
 
         <dependency.alfresco-legacy-lucene.version>6.2</dependency.alfresco-legacy-lucene.version>
         <dependency.alfresco-greenmail.version>6.1</dependency.alfresco-greenmail.version>
@@ -55,7 +55,7 @@
         <dependency.opencmis.version>1.0.0</dependency.opencmis.version>
         <dependency.activiti-engine.version>5.23.0</dependency.activiti-engine.version>
         <dependency.activiti.version>5.23.0</dependency.activiti.version>
-        <dependency.postgresql.version>42.2.8</dependency.postgresql.version>
+        <dependency.postgresql.version>42.2.9</dependency.postgresql.version>
         <dependency.mysql.version>5.1.48</dependency.mysql.version>
         <dependency.mariadb.version>2.2.5</dependency.mariadb.version>
         <dependency.antlr.version>3.5.2</dependency.antlr.version>
@@ -66,7 +66,7 @@
         <dependency.pdfbox.version>2.0.17</dependency.pdfbox.version>
         <dependency.cxf.version>3.3.4</dependency.cxf.version>
         <dependency.jackson.version>2.10.1</dependency.jackson.version>
-        <dependency.jackson-databind.version>2.9.10</dependency.jackson-databind.version>
+        <dependency.jackson-databind.version>2.10.1</dependency.jackson-databind.version>
     </properties>
 
     <dependencyManagement>
@@ -374,12 +374,12 @@
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
-            <version>1.7.29</version>
+            <version>1.7.30</version>
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-log4j12</artifactId>
-            <version>1.7.29</version>
+            <version>1.7.30</version>
         </dependency>
         <dependency>
             <groupId>xerces</groupId>
@@ -389,7 +389,7 @@
         <dependency>
             <groupId>xalan</groupId>
             <artifactId>xalan</artifactId>
-            <version>2.7.2</version>
+            <version>2.7.2-alfresco</version>
         </dependency>
         <dependency>
             <groupId>xml-apis</groupId>
@@ -577,12 +577,6 @@
             <artifactId>livetribe-jsr223</artifactId>
             <version>2.0.7</version>
         </dependency>
-        <dependency>
-            <groupId>edu.ucar</groupId>
-            <artifactId>netcdf</artifactId>
-            <version>4.2.20</version>
-        </dependency>
-
         <dependency>
             <groupId>javax.servlet</groupId>
             <artifactId>jstl</artifactId>
@@ -1052,8 +1046,8 @@
         <!-- Test dependencies -->
         <dependency>
             <groupId>org.mockito</groupId>
-            <artifactId>mockito-all</artifactId>
-            <version>1.10.19</version>
+            <artifactId>mockito-core</artifactId>
+            <version>3.2.4</version>
             <scope>test</scope>
         </dependency>
         <dependency>
