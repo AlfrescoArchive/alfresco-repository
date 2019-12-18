@@ -64,16 +64,16 @@ import java.util.regex.Pattern;
  */
 public class AdminUiTransformerDebug extends TransformerDebug implements ApplicationContextAware
 {
-    protected LocalTransformServiceRegistry localTransformServiceRegistryImpl;
+    protected LocalTransformServiceRegistry localTransformServiceRegistry;
     private ApplicationContext applicationContext;
     private ContentService contentService;
     private SynchronousTransformClient synchronousTransformClient;
     private Repository repositoryHelper;
     private TransactionService transactionService;
 
-    public void setLocalTransformServiceRegistryImpl(LocalTransformServiceRegistry localTransformServiceRegistryImpl)
+    public void setLocalTransformServiceRegistry(LocalTransformServiceRegistry localTransformServiceRegistry)
     {
-        this.localTransformServiceRegistryImpl = localTransformServiceRegistryImpl;
+        this.localTransformServiceRegistry = localTransformServiceRegistry;
     }
 
     @Override
@@ -100,7 +100,7 @@ public class AdminUiTransformerDebug extends TransformerDebug implements Applica
     {
         if (synchronousTransformClient == null)
         {
-            synchronousTransformClient = (SynchronousTransformClient) applicationContext.getBean("legacySynchronousTransformClient");
+            synchronousTransformClient = (SynchronousTransformClient) applicationContext.getBean("synchronousTransformClient");
         }
         return synchronousTransformClient;
     }
@@ -142,7 +142,7 @@ public class AdminUiTransformerDebug extends TransformerDebug implements Applica
     public void afterPropertiesSet() throws Exception
     {
         super.afterPropertiesSet();
-        PropertyCheck.mandatory(this, "localTransformServiceRegistryImpl", localTransformServiceRegistryImpl);
+        PropertyCheck.mandatory(this, "localTransformServiceRegistry", localTransformServiceRegistry);
     }
 
     /**
@@ -151,13 +151,9 @@ public class AdminUiTransformerDebug extends TransformerDebug implements Applica
      * @param sourceExtension restricts the list to one source extension. Unrestricted if null.
      * @param targetExtension restricts the list to one target extension. Unrestricted if null.
      * @param toString indicates that a String value should be returned in addition to any debug.
-     * @param format42 ignored
-     * @param onlyNonDeterministic ignored
-     * @param renditionName ignored
      * @deprecated The transformations code is being moved out of the codebase and replaced by the new async RenditionService2 or other external libraries.
      */
-    public String transformationsByExtension(String sourceExtension, String targetExtension, boolean toString,
-                                             boolean format42, boolean onlyNonDeterministic, String renditionName)
+    public String transformationsByExtension(String sourceExtension, String targetExtension, boolean toString)
     {
         // Do not generate this type of debug if already generating other debug to a StringBuilder
         // (for example a test transform).
@@ -166,10 +162,10 @@ public class AdminUiTransformerDebug extends TransformerDebug implements Applica
             return null;
         }
 
-        Collection<String> sourceMimetypes = format42 || sourceExtension != null
+        Collection<String> sourceMimetypes = sourceExtension != null
                 ? getSourceMimetypes(sourceExtension)
                 : mimetypeService.getMimetypes();
-        Collection<String> targetMimetypes = format42 || targetExtension != null
+        Collection<String> targetMimetypes =  targetExtension != null
                 ? getTargetMimetypes(sourceExtension, targetExtension, sourceMimetypes)
                 : mimetypeService.getMimetypes();
 
@@ -187,9 +183,9 @@ public class AdminUiTransformerDebug extends TransformerDebug implements Applica
                 for (String targetMimetype: targetMimetypes)
                 {
                     // Log the transformers
-                    LocalTransform localTransform = localTransformServiceRegistryImpl == null
+                    LocalTransform localTransform = localTransformServiceRegistry == null
                             ? null
-                            : localTransformServiceRegistryImpl.getLocalTransform(sourceMimetype,
+                            : localTransformServiceRegistry.getLocalTransform(sourceMimetype,
                             -1, targetMimetype, Collections.emptyMap(), null);
                     if (localTransform != null)
                     {
@@ -199,7 +195,7 @@ public class AdminUiTransformerDebug extends TransformerDebug implements Applica
                             int transformerCount = 0;
                             if (localTransform != null)
                             {
-                                long maxSourceSizeKBytes = localTransformServiceRegistryImpl.findMaxSize(sourceMimetype,
+                                long maxSourceSizeKBytes = localTransformServiceRegistry.findMaxSize(sourceMimetype,
                                         targetMimetype, Collections.emptyMap(), null);
                                 String transformName = localTransform instanceof AbstractLocalTransform
                                         ? "Local:" + ((AbstractLocalTransform) localTransform).getName()
@@ -308,9 +304,9 @@ public class AdminUiTransformerDebug extends TransformerDebug implements Applica
     }
 
 
-    public String testTransform(String sourceExtension, String targetExtension, String renditionName)
+    public String testTransform(String sourceExtension, String targetExtension)
     {
-        return new TestTransform().run(sourceExtension, targetExtension, renditionName);
+        return new TestTransform().run(sourceExtension, targetExtension);
     }
 
     public String[] getTestFileExtensionsAndMimetypes()
@@ -350,7 +346,7 @@ public class AdminUiTransformerDebug extends TransformerDebug implements Applica
     {
         protected LinkedList<NodeRef> nodesToDeleteAfterTest = new LinkedList<NodeRef>();
 
-        String run(String sourceExtension, String targetExtension, String renditionName)
+        String run(String sourceExtension, String targetExtension)
         {
             RetryingTransactionHelper.RetryingTransactionCallback<String> makeNodeCallback = new RetryingTransactionHelper.RetryingTransactionCallback<String>()
             {
@@ -384,7 +380,7 @@ public class AdminUiTransformerDebug extends TransformerDebug implements Applica
             }
             catch (Exception e)
             {
-                logger.debug("Unexpected test transform error", e);
+                sb.append(e.getMessage());
             }
             finally
             {

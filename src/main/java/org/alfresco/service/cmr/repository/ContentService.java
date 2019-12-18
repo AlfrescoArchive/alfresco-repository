@@ -52,7 +52,7 @@ import org.alfresco.service.namespace.QName;
  * @author Derek Hulley
  */
 @AlfrescoPublicApi
-public interface ContentService extends ContentTransformService
+public interface ContentService
 {
     /**
      * Gets the total space of the underlying content store (not exclusively Alfresco-controlled binaries).

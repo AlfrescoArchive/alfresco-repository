@@ -78,7 +78,7 @@ import java.util.Set;
  * @author Derek Hulley
  * @since 3.2
  */
-public class ContentServiceImpl extends ContentTransformServiceAdaptor implements ContentService, ApplicationContextAware
+public class ContentServiceImpl implements ContentService, ApplicationContextAware
 {
     private static Log logger = LogFactory.getLog(ContentServiceImpl.class);
     

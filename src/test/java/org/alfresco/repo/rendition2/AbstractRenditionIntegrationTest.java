@@ -113,9 +113,6 @@ public abstract class AbstractRenditionIntegrationTest extends BaseSpringTest
     protected LocalTransformServiceRegistry localTransformServiceRegistry;
 
     @Autowired
-    protected LegacyTransformServiceRegistry legacyTransformServiceRegistry;
-
-    @Autowired
     protected TransformationOptionsConverter converter;
 
     static String PASSWORD = "password";
@@ -129,13 +126,6 @@ public abstract class AbstractRenditionIntegrationTest extends BaseSpringTest
     @BeforeClass
     public static void before()
     {
-        // Use the docker images for transforms (legacy)
-        System.setProperty("alfresco-pdf-renderer.url", "http://localhost:8090/");
-        System.setProperty("img.url", "http://localhost:8091/");
-        System.setProperty("jodconverter.url", "http://localhost:8092/");
-        System.setProperty("tika.url", "http://localhost:8093/");
-        System.setProperty("transform.misc.url", "http://localhost:8094/");
-
         // Use the docker images for transforms (local)
         System.setProperty("localTransform.pdfrenderer.url", "http://localhost:8090/");
         System.setProperty("localTransform.imagemagick.url", "http://localhost:8091/");
@@ -148,21 +138,12 @@ public abstract class AbstractRenditionIntegrationTest extends BaseSpringTest
     {
         System.setProperty("transform.service.enabled", "false");
         System.setProperty("local.transform.service.enabled", "false");
-        System.setProperty("legacy.transform.service.enabled", "false");
-    }
-
-    protected static void legacy()
-    {
-        System.setProperty("transform.service.enabled", "false");
-        System.setProperty("local.transform.service.enabled", "false");
-        System.setProperty("legacy.transform.service.enabled", "true");
     }
 
     protected static void local()
     {
         System.setProperty("transform.service.enabled", "false");
         System.setProperty("local.transform.service.enabled", "true");
-        System.setProperty("legacy.transform.service.enabled", "false");
 
         // Strict MimetypeCheck
         System.setProperty("transformer.strict.mimetype.check", "true");
@@ -174,30 +155,18 @@ public abstract class AbstractRenditionIntegrationTest extends BaseSpringTest
     {
         System.setProperty("transform.service.enabled", "true");
         System.setProperty("local.transform.service.enabled", "false");
-        System.setProperty("legacy.transform.service.enabled", "false");
     }
 
-    protected static void legacyLocal()
-    {
-        System.setProperty("transform.service.enabled", "false");
-        System.setProperty("local.transform.service.enabled", "true");
-        System.setProperty("legacy.transform.service.enabled", "true");
-    }
-
-    protected static void legacyLocalService()
+    protected static void localService()
     {
         System.setProperty("transform.service.enabled", "true");
         System.setProperty("local.transform.service.enabled", "true");
-        System.setProperty("legacy.transform.service.enabled", "true");
     }
 
     @Before
     public void setUp() throws Exception
     {
         assertTrue("The RenditionService2 needs to be enabled", renditionService2.isEnabled());
-
-        legacyTransformServiceRegistry.setEnabled(Boolean.parseBoolean(System.getProperty("legacy.transform.service.enabled")));
-        legacyTransformServiceRegistry.afterPropertiesSet();
 
         origLocalTransCron = localTransformServiceRegistry.getCronExpression();
         localTransformServiceRegistry.setCronExpression(null);
