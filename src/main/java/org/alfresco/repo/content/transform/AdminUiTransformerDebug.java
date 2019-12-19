@@ -204,7 +204,7 @@ public class AdminUiTransformerDebug extends TransformerDebug implements Applica
                                 String transformName = localTransform instanceof AbstractLocalTransform
                                         ? "Local:" + ((AbstractLocalTransform) localTransform).getName()
                                         : "";
-                                activeTransformer(sourceMimetype, targetMimetype, transformerCount, "  [0]",
+                                activeTransformer(sourceMimetype, targetMimetype, transformerCount, "     ",
                                         transformName, maxSourceSizeKBytes, transformerCount++ == 0);
                             }
                         }
