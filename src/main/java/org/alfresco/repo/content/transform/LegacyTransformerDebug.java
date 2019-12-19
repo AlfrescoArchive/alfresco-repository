@@ -86,8 +86,8 @@ public class LegacyTransformerDebug extends AdminUiTransformerDebug
     {
         if (isEnabled())
         {
-            push(null, fromUrl, sourceMimetype, targetMimetype, -1, renditionName,
-                    sourceNodeRef, Call.AVAILABLE);
+            push(null, fromUrl, sourceMimetype, targetMimetype, -1,
+                    null, renditionName, sourceNodeRef, Call.AVAILABLE);
         }
     }
 
@@ -121,7 +121,7 @@ public class LegacyTransformerDebug extends AdminUiTransformerDebug
         if (isEnabled())
         {
             push(getName(transformer), fromUrl, sourceMimetype, targetMimetype, sourceSize,
-                    renditionName, sourceNodeRef, Call.TRANSFORM);
+                    null, renditionName, sourceNodeRef, Call.TRANSFORM);
         }
     }
 
@@ -202,7 +202,7 @@ public class LegacyTransformerDebug extends AdminUiTransformerDebug
             frame.setSourceSize(sourceSize);
 
             // Log the basic info about this transformation
-            logBasicDetails(frame, sourceSize, renditionName,
+            logBasicDetails(frame, sourceSize, null, renditionName,
                     calledFrom + ((transformers.size() == 0) ? " NO transformers" : ""), firstLevel);
 
             // Report available and unavailable transformers
