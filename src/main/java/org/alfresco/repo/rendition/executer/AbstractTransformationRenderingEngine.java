@@ -37,6 +37,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.FutureTask;
 
 import org.alfresco.repo.action.ParameterDefinitionImpl;
+import org.alfresco.repo.content.transform.TransformerDebug;
 import org.alfresco.repo.content.transform.UnsupportedTransformationException;
 
 import org.alfresco.repo.rendition2.RenditionService2Impl;
@@ -120,8 +121,7 @@ public abstract class AbstractTransformationRenderingEngine extends AbstractRend
     public static final String PARAM_USE = ".use.".replaceAll("\\.", "");
 
     /* Error messages */
-    private static final String TRANSFORMER_NOT_EXISTS_MESSAGE_PATTERN = "Transformer for '%s' source mime type and '%s' target mime type was not found. Operation can't be performed";
-    private static final String NOT_TRANSFORMABLE_MESSAGE_PATTERN = "Content not transformable for '%s' source mime type and '%s' target mime type. Operation can't be performed";
+    private static final String NOT_TRANSFORMABLE_MESSAGE_PATTERN = "Content not transformable for '%s' source mime type and '%s' target mime type with options: '%s'. Operation can't be performed";
     private static final String TRANSFORMING_ERROR_MESSAGE = RenditionService2Impl.TRANSFORMING_ERROR_MESSAGE;
     
     private Collection<TransformationSourceOptionsSerializer> sourceOptionsSerializers;
@@ -201,7 +201,9 @@ public abstract class AbstractTransformationRenderingEngine extends AbstractRend
         if (!synchronousTransformClient.isSupported(sourceMimeType, sourceSizeInBytes, contentUrl, targetMimeType,
                 options, null, sourceNodeRef))
         {
-            throw new RenditionServiceException(String.format(NOT_TRANSFORMABLE_MESSAGE_PATTERN, sourceMimeType, targetMimeType));
+            String optionsString = TransformerDebug.toString(options);
+            throw new RenditionServiceException(String.format(NOT_TRANSFORMABLE_MESSAGE_PATTERN, sourceMimeType,
+                    targetMimeType, optionsString));
         }
 
         long startTime = new Date().getTime();
