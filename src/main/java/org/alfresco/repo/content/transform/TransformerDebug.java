@@ -59,6 +59,7 @@ public class TransformerDebug
 {
     protected static final String FINISHED_IN = "Finished in ";
     protected static final String NO_TRANSFORMERS = "No transformers";
+    protected static final String TRANSFORM_SERVICE_NAME = "TransformService";
 
     private Log info;
     protected Log logger;
@@ -860,11 +861,11 @@ public class TransformerDebug
             debug(sourceExt + targetExt +
                     ((fileName != null) ? fileName + ' ' : "") +
                     ((sourceSize >= 0) ? fileSize(sourceSize) + ' ' : "") +
-                    getRenditionName(renditionName) + " TransformService");
+                    getRenditionName(renditionName) + " "+ TRANSFORM_SERVICE_NAME);
             log(options);
             log(sourceNodeRef.toString() + ' ' + contentHashcode);
             String reference = getReference(true, false);
-            infoLog(reference, sourceExt, targetExt, null, fileName, sourceSize, "TransformService",
+            infoLog(reference, sourceExt, targetExt, null, fileName, sourceSize, TRANSFORM_SERVICE_NAME,
                     renditionName, null, "", true);
         }
         return pop(Call.AVAILABLE, true, false);
