@@ -43,6 +43,9 @@ import java.util.Set;
 import java.util.StringJoiner;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import static org.alfresco.repo.rendition2.RenditionDefinition2.SOURCE_ENCODING;
+import static org.alfresco.repo.rendition2.RenditionDefinition2.SOURCE_NODE_REF;
+import static org.alfresco.repo.rendition2.RenditionDefinition2.TARGET_ENCODING;
 import static org.alfresco.repo.rendition2.RenditionDefinition2.TIMEOUT;
 
 /**
@@ -383,7 +386,15 @@ public class TransformerDebug
                 String key = option.getKey();
                 if (!TIMEOUT.equals(key))
                 {
-                    log("  " + key + "=\"" + option.getValue().replaceAll("\"", "\\\"") + "\"");
+                    String value = option.getValue();
+                    value = value != null
+                            ? "=\"" + value.replaceAll("\"", "\\\"") + "\""
+                            : "=null"+
+                              (SOURCE_NODE_REF.equals(key) ||
+                               SOURCE_ENCODING.equals(key) ||
+                               TARGET_ENCODING.equals(key)
+                               ? " - set automatically" : "");
+                    log("  " + key + value);
                 }
             }
         }
