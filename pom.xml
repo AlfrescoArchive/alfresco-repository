@@ -1035,6 +1035,11 @@
                 </exclusion>
             </exclusions>
         </dependency>
+        <dependency>
+            <groupId>org.gagravarr</groupId>
+            <artifactId>vorbis-java-core</artifactId>
+            <version>0.8</version>
+        </dependency>        
 
         <!-- Transform dependencies -->
         <dependency>
@@ -1086,13 +1091,7 @@
         <dependency>
             <groupId>org.alfresco</groupId>
             <artifactId>alfresco-data-model</artifactId>
-            <version>${dependency.alfresco-data-model.version}</version>
-            </exclusions>
-                <exclusion>
-                    <groupId>org.gagravarr</groupId>
-                    <artifactId>vorbis-java-core</artifactId>
-                </exclusion>                
-            </exclusions>            
+            <version>${dependency.alfresco-data-model.version}</version>         
         </dependency>
         <dependency>
             <groupId>org.alfresco</groupId>
