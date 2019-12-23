@@ -1087,6 +1087,12 @@
             <groupId>org.alfresco</groupId>
             <artifactId>alfresco-data-model</artifactId>
             <version>${dependency.alfresco-data-model.version}</version>
+            </exclusions>
+                <exclusion>
+                    <groupId>org.gagravarr</groupId>
+                    <artifactId>vorbis-java-core</artifactId>
+                </exclusion>                
+            </exclusions>            
         </dependency>
         <dependency>
             <groupId>org.alfresco</groupId>
