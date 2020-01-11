@@ -43,6 +43,9 @@ import java.util.Set;
 import java.util.StringJoiner;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import static org.alfresco.repo.rendition2.RenditionDefinition2.SOURCE_ENCODING;
+import static org.alfresco.repo.rendition2.RenditionDefinition2.SOURCE_NODE_REF;
+import static org.alfresco.repo.rendition2.RenditionDefinition2.TARGET_ENCODING;
 import static org.alfresco.repo.rendition2.RenditionDefinition2.TIMEOUT;
 
 /**
@@ -52,13 +55,13 @@ import static org.alfresco.repo.rendition2.RenditionDefinition2.TIMEOUT;
  * messages include a prefix to identify the transformation. A numeric dot notation
  * is used (such as {@code 123.1.2} indicating the second third level transformation
  * of the 123rd top level transformation).
- * 
  * @author Alan Davis
  */
 public class TransformerDebug
 {
     protected static final String FINISHED_IN = "Finished in ";
     protected static final String NO_TRANSFORMERS = "No transformers";
+    protected static final String TRANSFORM_SERVICE_NAME = "TransformService";
 
     private Log info;
     protected Log logger;
@@ -382,7 +385,14 @@ public class TransformerDebug
                 String key = option.getKey();
                 if (!TIMEOUT.equals(key))
                 {
-                    log("  " + key + "=\"" + option.getValue().replaceAll("\"", "\\\"") + "\"");
+                    String value = option.getValue();
+                    value = value != null
+                            : "=null"+
+                              (SOURCE_NODE_REF.equals(key) ||
+                               SOURCE_ENCODING.equals(key) ||
+                               TARGET_ENCODING.equals(key)
+                               ? " - set automatically" : "");
+                    log("  " + key + value);
                 }
             }
         }
@@ -860,11 +870,11 @@ public class TransformerDebug
             debug(sourceExt + targetExt +
                     ((fileName != null) ? fileName + ' ' : "") +
                     ((sourceSize >= 0) ? fileSize(sourceSize) + ' ' : "") +
-                    getRenditionName(renditionName) + " TransformService");
+                    getRenditionName(renditionName) + " "+ TRANSFORM_SERVICE_NAME);
             log(options);
             log(sourceNodeRef.toString() + ' ' + contentHashcode);
             String reference = getReference(true, false);
-            infoLog(reference, sourceExt, targetExt, null, fileName, sourceSize, "TransformService",
+            infoLog(reference, sourceExt, targetExt, null, fileName, sourceSize, TRANSFORM_SERVICE_NAME,
                     renditionName, null, "", true);
         }
         return pop(Call.AVAILABLE, true, false);
