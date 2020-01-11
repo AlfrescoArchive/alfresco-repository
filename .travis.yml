@@ -18,7 +18,7 @@ branches:
   only:
     - master
     - /support\/.*/
-    - feature/repo-4710_prep_use_local
+    - feature/repo-4710_remove_legacy_transforms
 
 stages:
   - test
