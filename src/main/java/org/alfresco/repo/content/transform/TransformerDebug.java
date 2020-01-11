@@ -387,6 +387,7 @@ public class TransformerDebug
                 {
                     String value = option.getValue();
                     value = value != null
+                            ? "=\"" + value.replaceAll("\"", "\\\"") + "\""
                             : "=null"+
                               (SOURCE_NODE_REF.equals(key) ||
                                SOURCE_ENCODING.equals(key) ||
