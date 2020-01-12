@@ -378,11 +378,12 @@ public class TransformationOptionsConverter implements InitializingBean
                             // transforms start at 0;
                             Integer startPageNumber = pagedSourceOptions.getStartPageNumber() - 1;
                             Integer endPageNumber = pagedSourceOptions.getEndPageNumber() - 1;
-                            if (startPageNumber == endPageNumber)
-                            {
-                                map.put(PAGE, Integer.toString(startPageNumber));
-                            }
-                            else
+// PAGE is not ann imagemagick option
+//                            if (startPageNumber == endPageNumber)
+//                            {
+//                                map.put(PAGE, Integer.toString(startPageNumber));
+//                            }
+//                            else
                             {
                                 map.put(START_PAGE, Integer.toString(startPageNumber));
                                 map.put(END_PAGE, Integer.toString(endPageNumber));

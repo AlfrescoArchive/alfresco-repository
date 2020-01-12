@@ -71,7 +71,7 @@ public class TransformActionExecuter extends ActionExecuterAbstractBase
     private static final String CONTENT_READER_NOT_FOUND_MESSAGE = "Can not find Content Reader for document. Operation can't be performed";
     private static final String TRANSFORMING_ERROR_MESSAGE = "Some error occurred during document transforming. Error message: ";
 
-    private static final String TRANSFORMER_NOT_EXISTS_MESSAGE_PATTERN = "Transformer for '%s' source mime type and '%s' target mime type with options '%s' was not found. Operation can't be performed";
+    public static final String TRANSFORMER_NOT_EXISTS_MESSAGE_PATTERN = "Transformer for '%s' -> '%s' with options '%s' was not found.";
     
     private static Log logger = LogFactory.getLog(TransformActionExecuter.class); 
     

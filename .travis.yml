@@ -42,6 +42,7 @@ jobs:
     - name: "AppContext01TestSuite"
       before_install:
         - docker run -d -p 5433:5432 -e POSTGRES_PASSWORD=alfresco -e POSTGRES_USER=alfresco -e POSTGRES_DB=alfresco postgres:11.4 postgres -c 'max_connections=300'
+        - docker run -d -p 8093:8090 -e JAVA_OPTS=" -Xms256m -Xmx256m" alfresco/alfresco-tika:2.1.0-RC3
         - docker run -d -p 61616:61616 -p 5672:5672 alfresco/alfresco-activemq:5.15.8
       script: travis_wait 20 mvn test -B -Dtest=AppContext01TestSuite -Ddb.driver=org.postgresql.Driver -Ddb.name=alfresco -Ddb.url=jdbc:postgresql://localhost:5433/alfresco -Ddb.username=alfresco -Ddb.password=alfresco
     - name: "AppContext02TestSuite"
