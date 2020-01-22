@@ -994,54 +994,9 @@ public class SOLRTrackingComponentImpl implements SOLRTrackingComponent
          
             nodeMetaData.setTenantDomain(tenantService.getDomain(nodeRef.getStoreRef().getIdentifier()));
             
-            if(includeChildAssociations)
+            if(includeChildAssociations || includeChildIds)
             {
                 final List<ChildAssociationRef> childAssocs = new ArrayList<ChildAssociationRef>(100);
-                nodeDAO.getChildAssocs(nodeId, null, null, null, null, null, new ChildAssocRefQueryCallback()
-                {
-                    @Override
-                    public boolean preLoadNodes()
-                    {
-                        return false;
-                    }
-                    
-                    @Override
-                    public boolean orderResults()
-                    {
-                        return false;
-                    }
-
-                    @Override
-                    public boolean handle(Pair<Long, ChildAssociationRef> childAssocPair, Pair<Long, NodeRef> parentNodePair,
-                            Pair<Long, NodeRef> childNodePair)
-                    {
-                        boolean addCurrentChildAssoc = true;
-                        if (typeIndexFilter.isIgnorePathsForSpecificTypes())
-                        {
-                            QName nodeType = nodeDAO.getNodeType(childNodePair.getFirst());
-                            addCurrentChildAssoc = !typeIndexFilter.shouldBeIgnored(nodeType);
-                        }
-                        if (!addCurrentChildAssoc && aspectIndexFilter.isIgnorePathsForSpecificAspects())
-                        {
-                            addCurrentChildAssoc = !aspectIndexFilter.shouldBeIgnored(getNodeAspects(childNodePair.getFirst()));
-                        }
-                        if (addCurrentChildAssoc)
-                        {
-                            childAssocs.add(tenantService.getBaseName(childAssocPair.getSecond(), true));
-                        }
-                        return true;
-                    }
-                    
-                    @Override
-                    public void done()
-                    {
-                    }
-                });
-                nodeMetaData.setChildAssocs(childAssocs);
-            }
-            
-            if(includeChildIds)
-            {
                 final List<Long> childIds = new ArrayList<Long>(100);
                 nodeDAO.getChildAssocs(nodeId, null, null, null, null, null, new ChildAssocRefQueryCallback()
                 {
@@ -1061,19 +1016,39 @@ public class SOLRTrackingComponentImpl implements SOLRTrackingComponent
                     public boolean handle(Pair<Long, ChildAssociationRef> childAssocPair, Pair<Long, NodeRef> parentNodePair,
                             Pair<Long, NodeRef> childNodePair)
                     {
-                        boolean addCurrentId = true;
-                        if (typeIndexFilter.isIgnorePathsForSpecificTypes())
+                        QName nodeType = nodeDAO.getNodeType(childNodePair.getFirst());
+                        if (includeChildAssociations)
                         {
-                            QName nodeType = nodeDAO.getNodeType(childNodePair.getFirst());
-                            addCurrentId = !typeIndexFilter.shouldBeIgnored(nodeType);
+                            boolean addCurrentChildAssoc = true;
+                            if (typeIndexFilter.isIgnorePathsForSpecificTypes())
+                            {
+                                addCurrentChildAssoc = !typeIndexFilter.shouldBeIgnored(nodeType);
+                            }
+                            if (!addCurrentChildAssoc && aspectIndexFilter.isIgnorePathsForSpecificAspects())
+                            {
+                                addCurrentChildAssoc = !aspectIndexFilter.shouldBeIgnored(getNodeAspects(childNodePair.getFirst()));
+                            }
+                            if (addCurrentChildAssoc)
+                            {
+                                childAssocs.add(tenantService.getBaseName(childAssocPair.getSecond(), true));
+                            }
                         }
-                        if (!addCurrentId)
+
+                        if (includeChildIds)
                         {
-                            addCurrentId = !aspectIndexFilter.shouldBeIgnored(getNodeAspects(childNodePair.getFirst()));
-                        }
-                        if (addCurrentId)
-                        {
-                            childIds.add(childNodePair.getFirst());
+                            boolean addCurrentId = true;
+                            if (typeIndexFilter.isIgnorePathsForSpecificTypes())
+                            {
+                                addCurrentId = !typeIndexFilter.shouldBeIgnored(nodeType);
+                            }
+                            if (!addCurrentId)
+                            {
+                                addCurrentId = !aspectIndexFilter.shouldBeIgnored(getNodeAspects(childNodePair.getFirst()));
+                            }
+                            if (addCurrentId)
+                            {
+                                childIds.add(childNodePair.getFirst());
+                            }
                         }
                         return true;
                     }
@@ -1083,6 +1058,7 @@ public class SOLRTrackingComponentImpl implements SOLRTrackingComponent
                     {
                     }
                 });
+                nodeMetaData.setChildAssocs(childAssocs);
                 nodeMetaData.setChildIds(childIds);
             }
             
