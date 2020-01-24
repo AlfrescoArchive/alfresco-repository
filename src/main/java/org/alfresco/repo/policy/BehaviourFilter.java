@@ -25,7 +25,8 @@
  */
 package org.alfresco.repo.policy;
 
-import org.alfresco.api.AlfrescoPublicApi;  
+import org.alfresco.api.AlfrescoPublicApi;
+import org.alfresco.service.Auditable;
 import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.namespace.QName;
 
@@ -67,16 +68,19 @@ public interface BehaviourFilter
     /**
      * @deprecated Since 4.0 use {@link #enableBehaviour(NodeRef)}
      */
+    @Auditable(parameters = { "nodeRef" })
     public void enableBehaviours(NodeRef nodeRef);
     
     /**
      * @deprecated Since 4.0 use {@link #enableBehaviour(NodeRef)}
      */
+    @Auditable
     public void disableAllBehaviours();
     
     /**
      * @deprecated Since 4.0 use {@link #disableBehaviour()}
      */
+    @Auditable
     public void enableAllBehaviours();
     
     /**
@@ -84,6 +88,7 @@ public interface BehaviourFilter
      * <p>
      * The change applies <b>ONLY</b> to the current transaction.
      */
+    @Auditable
     public void disableBehaviour();
     
     /**
@@ -98,6 +103,7 @@ public interface BehaviourFilter
      *
      * @param className         the type/aspect behaviour to disable
      */
+    @Auditable(parameters = { "className" })
     public void disableBehaviour(QName className);
 
     /**
@@ -114,6 +120,7 @@ public interface BehaviourFilter
      * 
      * @since 5.1
      */
+    @Auditable(parameters = { "className", "includeSubClasses" })
     public void disableBehaviour(QName className, boolean includeSubClasses);
 
     /**
@@ -124,6 +131,7 @@ public interface BehaviourFilter
      * @param nodeRef           the node to disable for
      * @param className         the type/aspect behaviour to disable
      */
+    @Auditable(parameters = { "nodeRef", "className" })
     public void disableBehaviour(NodeRef nodeRef, QName className);
     
     /**
@@ -131,6 +139,7 @@ public interface BehaviourFilter
      * 
      * @param nodeRef           the node to disable for
      */
+    @Auditable(parameters = { "nodeRef" })
     public void disableBehaviour(NodeRef nodeRef);
 
     /**
@@ -138,6 +147,7 @@ public interface BehaviourFilter
      * <p>
      * The change applies <b>ONLY</b> to the current transaction.
      */
+    @Auditable
     public void enableBehaviour();
     
     /**
@@ -148,6 +158,7 @@ public interface BehaviourFilter
      * 
      * @param className         the type/aspect behaviour to enable
      */
+    @Auditable(parameters = { "className" })
     public void enableBehaviour(QName className);
     
     /**
@@ -158,6 +169,7 @@ public interface BehaviourFilter
      * @param nodeRef           the node to enable for
      * @param className         the type/aspect behaviour to enable or <tt>null</tt> for all classes
      */
+    @Auditable(parameters = { "nodeRef", "className" })
     public void enableBehaviour(NodeRef nodeRef, QName className);
     
     /**
@@ -169,6 +181,7 @@ public interface BehaviourFilter
      * 
      * @since 4.0
      */
+    @Auditable(parameters = { "nodeRef" })
     public void enableBehaviour(NodeRef nodeRef);
 
     /**
@@ -180,6 +193,7 @@ public interface BehaviourFilter
      * 
      * @since 4.0
      */
+    @Auditable
     public boolean isEnabled();
     
     /**
@@ -190,6 +204,7 @@ public interface BehaviourFilter
      * @param className     the behaviour to test for
      * @return              true => behaviour is enabled
      */
+    @Auditable(parameters = { "className" })
     public boolean isEnabled(QName className);
 
     /**
@@ -205,6 +220,7 @@ public interface BehaviourFilter
      * @param className     the behaviour to test for
      * @return              true => behaviour is enabled
      */
+    @Auditable(parameters = { "nodeRef", "className" })
     public boolean isEnabled(NodeRef nodeRef, QName className);
     
     /**
@@ -215,6 +231,7 @@ public interface BehaviourFilter
      * @param nodeRef       the node to test for
      * @return              true => behaviour is enabled
      */
+    @Auditable(parameters = { "nodeRef" })
     public boolean isEnabled(NodeRef nodeRef);
     
     /**
@@ -224,5 +241,6 @@ public interface BehaviourFilter
      * 
      * @return               true => behaviours have been altered
      */
+    @Auditable
     public boolean isActivated();
 }
