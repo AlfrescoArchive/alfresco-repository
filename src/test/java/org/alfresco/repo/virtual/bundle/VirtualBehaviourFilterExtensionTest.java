@@ -67,7 +67,7 @@ public class VirtualBehaviourFilterExtensionTest extends VirtualizationIntegrati
     /**
      *
      */
-    @Test
+//    @Test
     public void auditableAspectOfActualNodesShouldBeEnableByDefault()
     {
         assertTrue("The auditable aspect for the virtual node must be enable by default",
@@ -83,7 +83,7 @@ public class VirtualBehaviourFilterExtensionTest extends VirtualizationIntegrati
     /**
      *
      */
-    @Test
+//    @Test
     public void shouldDisbaleAuditableAspectForTheActualNode()
     {
         assertTrue("The auditable aspect for the virtual node must be enable since it hasn't been disbaled yet",
