@@ -130,7 +130,7 @@ public class VirtualBehaviourFilterExtension
     @Override
     public void enableBehaviours(NodeRef nodeRef)
     {
-        getTrait().enableBehaviours(nodeRef);
+        getTrait().enableBehaviours(smartStore.materializeIfPossible(nodeRef));
     }
 
     @Deprecated
