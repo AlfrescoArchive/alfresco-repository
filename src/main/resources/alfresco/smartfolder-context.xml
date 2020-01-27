@@ -236,7 +236,7 @@
 
    <bean id="behaviourFilterExtension" class="org.alfresco.repo.virtual.bundle.VirtualBehaviourFilterExtension">
       <property name="smartStore" ref="smartStore" />
-      <property name="extensionPoint" ref="behaviourFilterExtensionExtensionPoint" />
+      <property name="extensionPoint" ref="behaviourFilterExtensionPoint" />
    </bean>
 
    <!-- BUNDLE -->
@@ -319,7 +319,7 @@
       <property name="trait" value="org.alfresco.repo.copy.traitextender.DefaultCopyBehaviourCallbackTrait" />
    </bean>
 
-   <bean id="behaviourFilterExtensionExtensionPoint" class="org.alfresco.traitextender.SpringExtensionPoint">
+   <bean id="behaviourFilterExtensionPoint" class="org.alfresco.traitextender.SpringExtensionPoint">
       <property name="extension" value="org.alfresco.repo.policy.traitextender.BehaviourFilterExtension" />
       <property name="trait" value="org.alfresco.repo.policy.traitextender.BehaviourFilterTrait" />
    </bean>
