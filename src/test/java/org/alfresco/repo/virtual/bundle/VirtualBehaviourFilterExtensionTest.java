@@ -29,12 +29,10 @@ package org.alfresco.repo.virtual.bundle;
 import org.alfresco.model.ContentModel;
 import org.alfresco.repo.content.MimetypeMap;
 import org.alfresco.repo.policy.BehaviourFilter;
-import org.alfresco.repo.virtual.VirtualizationConfigTestBootstrap;
 import org.alfresco.repo.virtual.VirtualizationIntegrationTest;
 import org.alfresco.repo.virtual.ref.Reference;
 import org.alfresco.repo.virtual.store.VirtualStoreImpl;
 import org.alfresco.service.cmr.repository.NodeRef;
-import org.alfresco.util.ApplicationContextHelper;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -53,15 +51,8 @@ public class VirtualBehaviourFilterExtensionTest extends VirtualizationIntegrati
 
 
     @Before
-    @Override
     public void setUp() throws Exception
     {
-        ctx = ApplicationContextHelper.getApplicationContext(CONFIG_LOCATIONS);
-
-        virtualizationConfigTestBootstrap = ctx.getBean(VIRTUALIZATION_CONFIG_TEST_BOOTSTRAP_BEAN_ID,
-                VirtualizationConfigTestBootstrap.class);
-        virtualizationConfigTestBootstrap.setVirtualFoldersEnabled(true);
-
         super.setUp();
 
         behaviourFilter = ctx.getBean("policyBehaviourFilter", BehaviourFilter.class);
@@ -83,7 +74,6 @@ public class VirtualBehaviourFilterExtensionTest extends VirtualizationIntegrati
     }
 
     @After
-    @Override
     public void tearDown() throws Exception
     {
         super.tearDown();
@@ -91,41 +81,59 @@ public class VirtualBehaviourFilterExtensionTest extends VirtualizationIntegrati
     }
 
     /**
-     *
+     * Checks the aspect auditable is enabled when asking for both actual and virtual nodes
      */
-//    @Test
+    @Test
     public void auditableAspectOfActualNodesShouldBeEnableByDefault()
     {
-        assertTrue("The auditable aspect for the virtual node must be enable by default",
-                behaviourFilter.isEnabled(virtualNodeRef, ContentModel.ASPECT_AUDITABLE));
-
         NodeRef actualNodeRef = smartStore.materialize(Reference.fromNodeRef(virtualNodeRef));
 
-        assertTrue("The auditable aspect for the actual node must be enable by default",
+        assertTrue("The auditable aspect for the actual node must be enabled by default",
                 behaviourFilter.isEnabled(actualNodeRef, ContentModel.ASPECT_AUDITABLE));
+
+        assertTrue("The auditable aspect must be enabled by default even when the virtual node is used",
+                behaviourFilter.isEnabled(virtualNodeRef, ContentModel.ASPECT_AUDITABLE));
 
     }
 
     /**
-     *
+     * Checks the disabling for a specific aspect
      */
-//    @Test
+    @Test
     public void shouldDisbaleAuditableAspectForTheActualNode()
     {
-        assertTrue("The auditable aspect for the virtual node must be enable since it hasn't been disbaled yet",
+        assertTrue("The auditable aspect must be enabled by default even when the virtual node is used, since it hasn't been disabled yet",
                 behaviourFilter.isEnabled(virtualNodeRef, ContentModel.ASPECT_AUDITABLE));
 
         NodeRef actualNodeRef = smartStore.materialize(Reference.fromNodeRef(virtualNodeRef));
-        assertTrue("The auditable aspect for the actual node must be enable since it hasn't been disbaled yet",
-                behaviourFilter.isEnabled(actualNodeRef, ContentModel.ASPECT_AUDITABLE));
 
-        // Disabling the aspect auditable for the virtual node
+        // Disable the aspect auditable using the virtual node
         behaviourFilter.disableBehaviour(virtualNodeRef, ContentModel.ASPECT_AUDITABLE);
 
-        assertFalse("The auditable aspect for the actual node must not be enable since it has been disbaled",
+        assertFalse("The auditable aspect for the actual node must not be enable since it has been disabled",
                 behaviourFilter.isEnabled(actualNodeRef, ContentModel.ASPECT_AUDITABLE));
 
 
+    }
+
+    /**
+     * Checks the disabling for the entire node
+     */
+    @Test
+    public void shouldDisableTheActualNode()
+    {
+        assertTrue("The node must be enabled by default even when the virtual node is used, since it hasn't been disabled yet",
+                behaviourFilter.isEnabled(virtualNodeRef));
+
+        NodeRef actualNodeRef = smartStore.materialize(Reference.fromNodeRef(virtualNodeRef));
+        assertTrue("The actual node must be enable since it hasn't been disabled yet",
+                behaviourFilter.isEnabled(actualNodeRef));
+
+        // Disabling the aspect auditable for the virtual node
+        behaviourFilter.disableBehaviour(virtualNodeRef);
+
+        assertFalse("The actual node must not be enable since it has been disabled",
+                behaviourFilter.isEnabled(actualNodeRef));
 
     }
 
