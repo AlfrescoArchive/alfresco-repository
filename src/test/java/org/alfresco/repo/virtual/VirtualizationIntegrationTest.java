@@ -77,7 +77,6 @@ import org.alfresco.service.namespace.QName;
 import org.alfresco.service.transaction.TransactionService;
 import org.alfresco.traitextender.SpringExtensionBundle;
 import org.alfresco.util.ApplicationContextHelper;
-import org.alfresco.util.BaseSpringTest;
 import org.alfresco.util.testing.category.LuceneTests;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -89,11 +88,9 @@ import org.mockito.Mock;
 import static org.mockito.ArgumentMatchers.argThat;
 import org.mockito.stubbing.Answer;
 import org.springframework.context.ApplicationContext;
-import org.springframework.test.context.ContextConfiguration;
 
 @Category(LuceneTests.class)
-@ContextConfiguration({"classpath:alfresco/application-context.xml", "classpath:**/virtualization-test-context.xml"})
-public abstract class VirtualizationIntegrationTest extends BaseSpringTest
+public abstract class VirtualizationIntegrationTest implements VirtualizationTest
 {
     private static Log logger = LogFactory.getLog(VirtualizationIntegrationTest.class);
 
@@ -205,9 +202,9 @@ public abstract class VirtualizationIntegrationTest extends BaseSpringTest
     @Before
     public void setUp() throws Exception
     {
-        ctx = this.applicationContext;
+        ctx = ApplicationContextHelper.getApplicationContext(CONFIG_LOCATIONS);;
         
-        virtualizationConfigTestBootstrap = ctx.getBean("virtualizationConfigTestBootstrap",
+        virtualizationConfigTestBootstrap = ctx.getBean(VIRTUALIZATION_CONFIG_TEST_BOOTSTRAP_BEAN_ID,
                                                         VirtualizationConfigTestBootstrap.class);
 
         // Get the required services
