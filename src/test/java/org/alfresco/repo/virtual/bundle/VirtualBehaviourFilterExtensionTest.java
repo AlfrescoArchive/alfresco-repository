@@ -43,12 +43,9 @@ import static org.junit.Assert.assertTrue;
 public class VirtualBehaviourFilterExtensionTest extends VirtualizationIntegrationTest
 {
 
-
     NodeRef virtualNodeRef;
-
     BehaviourFilter behaviourFilter;
     VirtualStoreImpl smartStore;
-
 
     @Before
     public void setUp() throws Exception
@@ -57,7 +54,6 @@ public class VirtualBehaviourFilterExtensionTest extends VirtualizationIntegrati
 
         behaviourFilter = ctx.getBean("policyBehaviourFilter", BehaviourFilter.class);
         smartStore = ctx.getBean("smartStore", VirtualStoreImpl.class);
-
 
         NodeRef nodeRef = nodeService.getChildByName(
                 virtualFolder1NodeRef,
@@ -70,14 +66,12 @@ public class VirtualBehaviourFilterExtensionTest extends VirtualizationIntegrati
                 "0",
                 MimetypeMap.MIMETYPE_TEXT_PLAIN,
                 "UTF-8").getChildRef();
-
     }
 
     @After
     public void tearDown() throws Exception
     {
         super.tearDown();
-
     }
 
     /**
@@ -93,7 +87,6 @@ public class VirtualBehaviourFilterExtensionTest extends VirtualizationIntegrati
 
         assertTrue("The auditable aspect must be enabled by default even when the virtual node is used",
                 behaviourFilter.isEnabled(virtualNodeRef, ContentModel.ASPECT_AUDITABLE));
-
     }
 
     /**
@@ -112,8 +105,6 @@ public class VirtualBehaviourFilterExtensionTest extends VirtualizationIntegrati
 
         assertFalse("The auditable aspect for the actual node must not be enable since it has been disabled",
                 behaviourFilter.isEnabled(actualNodeRef, ContentModel.ASPECT_AUDITABLE));
-
-
     }
 
     /**
@@ -134,7 +125,5 @@ public class VirtualBehaviourFilterExtensionTest extends VirtualizationIntegrati
 
         assertFalse("The actual node must not be enable since it has been disabled",
                 behaviourFilter.isEnabled(actualNodeRef));
-
     }
-
 }
