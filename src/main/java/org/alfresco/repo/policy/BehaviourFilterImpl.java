@@ -72,7 +72,8 @@ public class BehaviourFilterImpl implements BehaviourFilter, Extensible
 
     private final ExtendedTrait<BehaviourFilterTrait> behaviourFilterTrait;
 
-    public BehaviourFilterImpl() {
+    public BehaviourFilterImpl()
+    {
         super();
         this.behaviourFilterTrait = new ExtendedTrait<>(AJProxyTrait.create(this, BehaviourFilterTrait.class));
     }

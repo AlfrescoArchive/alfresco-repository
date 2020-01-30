@@ -32,5 +32,6 @@ import org.alfresco.traitextender.Trait;
 /**
  * @author Oussama Messeguem
  */
-public interface BehaviourFilterTrait extends Trait, BehaviourFilter {
+public interface BehaviourFilterTrait extends Trait, BehaviourFilter
+{
 }
