@@ -2,7 +2,7 @@
     <modelVersion>4.0.0</modelVersion>
     <artifactId>alfresco-repository</artifactId>
     <name>Alfresco Repository</name>
-    <version>mnt-18895-behaviour-extension</version>
+    <version>8.95-SNAPSHOT</version>
     <packaging>jar</packaging>
     <parent>
         <groupId>org.alfresco</groupId>
@@ -14,7 +14,7 @@
         <connection>scm:git:https://github.com/Alfresco/alfresco-repository.git</connection>
         <developerConnection>scm:git:https://github.com/Alfresco/alfresco-repository.git</developerConnection>
         <url>https://github.com/Alfresco/alfresco-repository</url>
-        <tag>alfresco-repository-mnt-18895-behaviour-extension</tag>
+        <tag>HEAD</tag>
     </scm>
 
     <distributionManagement>
@@ -36,15 +36,15 @@
 
         <maven.build.sourceVersion>11</maven.build.sourceVersion>
 
-        <dependency.alfresco-data-model.version>8.84</dependency.alfresco-data-model.version>
-        <dependency.alfresco-core.version>8.19</dependency.alfresco-core.version>
+        <dependency.alfresco-data-model.version>8.87</dependency.alfresco-data-model.version>
+        <dependency.alfresco-core.version>8.21</dependency.alfresco-core.version>
 
         <dependency.alfresco-legacy-lucene.version>6.2</dependency.alfresco-legacy-lucene.version>
         <dependency.alfresco-greenmail.version>6.1</dependency.alfresco-greenmail.version>
         <dependency.alfresco-jlan.version>7.1</dependency.alfresco-jlan.version>
         <dependency.alfresco-pdf-renderer.version>1.1</dependency.alfresco-pdf-renderer.version>
         <dependency.alfresco-hb-data-sender.version>1.0.12</dependency.alfresco-hb-data-sender.version>
-        <dependency.transform.model.version>1.0.2.7</dependency.transform.model.version>
+        <dependency.transform.model.version>1.0.2.8</dependency.transform.model.version>
 
         <dependency.spring.version>5.2.3.RELEASE</dependency.spring.version>
         <dependency.spring-security.version>5.2.1.RELEASE</dependency.spring-security.version>
@@ -749,7 +749,7 @@
         <dependency>
             <groupId>org.gytheio</groupId>
             <artifactId>gytheio-messaging-camel</artifactId>
-            <version>0.11.2</version>
+            <version>0.11.3</version>
             <exclusions>
                 <exclusion>
                     <groupId>commons-logging</groupId>
