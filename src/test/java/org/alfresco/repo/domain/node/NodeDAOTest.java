@@ -368,4 +368,31 @@ public class NodeDAOTest extends TestCase
             Assert.assertEquals(node, clonedNode);          // Does NPE check implicitly
         }
     }
+
+    public void testGetMinTxInNodeIdRange()
+    {
+        Long fromNodeId = nodeDAO.getMinNodeId();
+        Long toNodeId = nodeDAO.getMaxNodeId();
+        
+        Long minTxId = nodeDAO.getMinTxInNodeIdRange(fromNodeId, toNodeId);
+        assertNotNull(minTxId);
+    }
+    
+    public void testGetMaxTxInNodeIdRange()
+    {
+        Long fromNodeId = nodeDAO.getMinNodeId();
+        Long toNodeId = nodeDAO.getMaxNodeId();
+        
+        Long maxTxId = nodeDAO.getMaxTxInNodeIdRange(fromNodeId, toNodeId);
+        assertNotNull(maxTxId);
+    }
+    
+    public void testGetNextTxCommitTime()
+    {
+        Long fromCommitTime = nodeDAO.getMinTxnCommitTime();
+        
+        Long minTxnCommitTime = nodeDAO.getNextTxCommitTime(fromCommitTime);
+        assertNotNull(minTxnCommitTime);
+    }
+
 }
