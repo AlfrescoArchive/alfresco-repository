@@ -395,8 +395,8 @@ public class NodeDAOTest extends TestCase
     {
         Long fromCommitTime = nodeDAO.getMinTxnCommitTime();
         
-        Long minTxnCommitTime = nodeDAO.getNextTxCommitTime(fromCommitTime);
-        assertEquals(fromCommitTime, minTxnCommitTime);
+        Long nextTxnCommitTime = nodeDAO.getNextTxCommitTime(fromCommitTime);
+        assertTrue(nextTxnCommitTime >= fromCommitTime);
     }
 
 }
