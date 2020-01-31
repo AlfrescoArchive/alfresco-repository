@@ -374,8 +374,10 @@ public class NodeDAOTest extends TestCase
         Long fromNodeId = nodeDAO.getMinNodeId();
         Long toNodeId = nodeDAO.getMaxNodeId();
         
-        Long minTxId = nodeDAO.getMinTxInNodeIdRange(fromNodeId, toNodeId);
-        assertNotNull(minTxId);
+        Long minTxCommitTime = nodeDAO.getMinTxnCommitTime();
+        
+        Long minTxCommitTimeInRange = nodeDAO.getMinTxInNodeIdRange(fromNodeId, toNodeId);
+        assertEquals(minTxCommitTime, minTxCommitTimeInRange);
     }
     
     public void testGetMaxTxInNodeIdRange()
@@ -383,8 +385,10 @@ public class NodeDAOTest extends TestCase
         Long fromNodeId = nodeDAO.getMinNodeId();
         Long toNodeId = nodeDAO.getMaxNodeId();
         
-        Long maxTxId = nodeDAO.getMaxTxInNodeIdRange(fromNodeId, toNodeId);
-        assertNotNull(maxTxId);
+        Long maxTxCommitTime = nodeDAO.getMaxTxnCommitTime();
+        
+        Long maxTxCommitTimeInRange = nodeDAO.getMaxTxInNodeIdRange(fromNodeId, toNodeId);
+        assertEquals(maxTxCommitTime, maxTxCommitTimeInRange);
     }
     
     public void testGetNextTxCommitTime()
@@ -392,7 +396,7 @@ public class NodeDAOTest extends TestCase
         Long fromCommitTime = nodeDAO.getMinTxnCommitTime();
         
         Long minTxnCommitTime = nodeDAO.getNextTxCommitTime(fromCommitTime);
-        assertNotNull(minTxnCommitTime);
+        assertEquals(fromCommitTime, minTxnCommitTime);
     }
 
 }
