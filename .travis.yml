@@ -18,6 +18,7 @@ branches:
   only:
     - master
     - /support\/.*/
+    - fix/search-2074-tracking-performance-6.2hf
 
 stages:
   - test
