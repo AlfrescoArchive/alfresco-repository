@@ -27,6 +27,7 @@ package org.alfresco.repo.domain.schema.script;
 
 import org.alfresco.util.LogUtil;
 import org.alfresco.util.Pair;
+import org.alfresco.util.PropertyCheck;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -91,11 +92,13 @@ public class DeleteNotExistsExecutor implements StatementExecutor
 
     public void checkProperties()
     {
-        // TODO add mandatory pro check
+         PropertyCheck.mandatory(this, "globalProperties", globalProperties);
     }
-    
+
     public void execute() throws Exception
     {
+        checkProperties();
+
         logger.info("**sql**: " + sql);
 
         // --DELETE_NOT_EXISTS table.column batch.size.property
