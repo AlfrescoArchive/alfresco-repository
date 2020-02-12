@@ -349,6 +349,23 @@ public class ScriptExecutorImpl implements ScriptExecutor
                     }
                     continue;
                 }
+                else if (sql.startsWith("--DELETE_NOT_EXISTS"))
+                {
+                    DeleteNotExistsExecutor deleteNotExists = new DeleteNotExistsExecutor(connection, sql, line, scriptFile, false, globalProperties);
+                    deleteNotExists.execute();
+
+                    // Reset
+                    sb.setLength(0);
+                    fetchVarName = null;
+                    fetchColumnName = null;
+                    defaultFetchValue = null;
+                    batchTableName = null;
+                    doBatch = false;
+                    batchUpperLimit = 0;
+                    batchSize = 1;
+
+                    continue;
+                }
                 // Allow transaction delineation
                 else if (sql.startsWith("--BEGIN TXN"))
                 {
