@@ -129,12 +129,6 @@ public interface LicenseDescriptor
     
     
     /**
-     * Get the cloud sync key or <code>null</code>
-     * @return the cloud sync key
-     */
-    public String getCloudSyncKey();
-    
-    /**
      * Does this license allow clustering?
      * 
      * @return <code>true</code> if the license allows clustering
