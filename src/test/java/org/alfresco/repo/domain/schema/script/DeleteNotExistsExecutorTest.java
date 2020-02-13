@@ -36,13 +36,11 @@ import java.util.Properties;
 import javax.sql.DataSource;
 
 import org.alfresco.util.ApplicationContextHelper;
-import org.alfresco.util.testing.category.LuceneTests;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.junit.experimental.categories.Category;
 import org.mockito.Mockito;
 import org.springframework.context.ApplicationContext;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -52,7 +50,6 @@ import org.springframework.jdbc.core.JdbcTemplate;
  * 
  * @author Cristian Turlica
  */
-@Category(LuceneTests.class)
 public class DeleteNotExistsExecutorTest
 {
     private final static Log log = LogFactory.getLog(DeleteNotExistsExecutorTest.class);
