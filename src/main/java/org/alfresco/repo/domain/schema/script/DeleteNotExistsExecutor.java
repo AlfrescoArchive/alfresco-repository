@@ -55,7 +55,6 @@ import java.util.Set;
  * The statement can be executed in read only mode using: <br>
  * <code>new DeleteNotExistsExecutor(connection, sql, line, scriptFile, true)</code>
  * <p/>
- * The statement 
  * 
  * @author Cristian Turlica
  */
@@ -119,12 +118,10 @@ public class DeleteNotExistsExecutor implements StatementExecutor
 
                 batchSize = batchSizeString == null ? 10000 : Integer.parseInt(batchSizeString);
 
-
                 // Read the batch size from the named property
                 String deleteBatchSizeString = globalProperties.getProperty(PROPERTY_DEFAULT_DELETE_BATCH_SIZE);
-                deleteBatchSize = deleteBatchSizeString == null ? 10000 : Integer.parseInt(deleteBatchSizeString);
-                
-                
+                deleteBatchSize = deleteBatchSizeString == null ? 500 : Integer.parseInt(deleteBatchSizeString);
+
                 // Compute upper limits
                 int[] tableUpperLimits = new int[tableColumnArgs.length];
                 Pair<String, String>[] tableColumn = new Pair[tableColumnArgs.length];
@@ -145,7 +142,7 @@ public class DeleteNotExistsExecutor implements StatementExecutor
         }
     }
 
-    private void process(Pair<String, String>[] tableColumn, int[] tableUpperLimits) throws Exception
+    private void process(Pair<String, String>[] tableColumn, int[] tableUpperLimits) throws SQLException
     {
         String primaryTableName = tableColumn[0].getFirst();
         String primaryColumnName = tableColumn[0].getSecond();
@@ -213,7 +210,7 @@ public class DeleteNotExistsExecutor implements StatementExecutor
     }
 
     private Long processPrimaryTableResultSet(PreparedStatement primaryPrepStmt, PreparedStatement[] secondaryPrepStmts, Set<Long> deleteIds, String primaryTableName,
-            String primaryColumnName, Pair<String, String>[] tableColumn) throws Exception
+            String primaryColumnName, Pair<String, String>[] tableColumn) throws SQLException
     {
         int rowsProcessed = 0;
         Long primaryId = null;
@@ -227,8 +224,6 @@ public class DeleteNotExistsExecutor implements StatementExecutor
             {
                 ++rowsProcessed;
                 primaryId = resultSet.getLong(primaryColumnName);
-
-//                logger.info("Processing row " + rowsProcessed + " rows from table " + primaryTableName + ".");
 
                 while (isLess(primaryId, secondaryIds))
                 {
@@ -246,8 +241,6 @@ public class DeleteNotExistsExecutor implements StatementExecutor
 
                     ++rowsProcessed;
                     primaryId = resultSet.getLong(primaryColumnName);
-
-//                    logger.info("Processing row " + rowsProcessed + " rows from table " + primaryTableName + ".");
 
                     // Try to limit processing to a reasonable size.
                     if (rowsProcessed == batchSize)
@@ -273,7 +266,7 @@ public class DeleteNotExistsExecutor implements StatementExecutor
         return primaryId;
     }
 
-    private void deleteFromPrimaryTable(Set<Long> deleteIds, String primaryTableName, String primaryColumnName) throws Exception
+    private void deleteFromPrimaryTable(Set<Long> deleteIds, String primaryTableName, String primaryColumnName) throws SQLException
     {
         if (!readOnly)
         {
@@ -288,73 +281,77 @@ public class DeleteNotExistsExecutor implements StatementExecutor
     }
 
     /**
-     * Execute the given SQL statement, absorbing exceptions that we expect during
-     * schema creation or upgrade.
+     * Execute the given SQL statement, absorbing exceptions that we expect.
      *
-     * @param fetchColumnName the name of the column value to return
+     * @param fetchColumnName
+     *            the name of the column value to return
      */
-    private Object executeStatement(
-            Connection connection,
-            String sql,
-            String fetchColumnName,
-            boolean optional,
-            int line,
-            File file) throws Exception {
-//        StringBuilder executedStatements = executedStatementsThreadLocal.get();
-//        if (executedStatements == null)
-//        {
-//            throw new IllegalArgumentException("The executedStatementsThreadLocal must be populated");
-//        }
+    private Object executeStatement(Connection connection, String sql, String fetchColumnName, boolean optional, int line, File file) throws SQLException
+    {
 
-        Statement stmt = connection.createStatement();
+        Statement stmt = null;
         Object ret = null;
-        try {
-            if (logger.isDebugEnabled()) {
+        try
+        {
+            stmt = connection.createStatement();
+            if (logger.isDebugEnabled())
+            {
                 LogUtil.debug(logger, MSG_EXECUTING_STATEMENT, sql);
             }
             boolean haveResults = stmt.execute(sql);
-            // Record the statement
-//            executedStatements.append(sql).append(";\n\n");
-            if (haveResults && fetchColumnName != null) {
-                ResultSet rs = stmt.getResultSet();
-                if (rs.next()) {
-                    // Get the result value
-                    ret = rs.getObject(fetchColumnName);
+            if (haveResults && fetchColumnName != null)
+            {
+                try (ResultSet rs = stmt.getResultSet())
+                {
+                    if (rs.next())
+                    {
+                        // Get the result value
+                        ret = rs.getObject(fetchColumnName);
+                    }
                 }
             }
-        } catch (SQLException e) {
-            if (optional) {
+        }
+        catch (SQLException e)
+        {
+            if (optional)
+            {
                 // it was marked as optional, so we just ignore it
                 LogUtil.debug(logger, MSG_OPTIONAL_STATEMENT_FAILED, sql, e.getMessage(), file.getAbsolutePath(), line);
-            } else {
+            }
+            else
+            {
                 LogUtil.error(logger, ERR_STATEMENT_FAILED, sql, e.getMessage(), file.getAbsolutePath(), line);
                 throw e;
             }
-        } finally {
-            try {
-                stmt.close();
-            } catch (Throwable e) {
-            }
+        }
+        finally
+        {
+            closeQuietly(stmt);
         }
         return ret;
     }
 
-    private int getBatchUpperLimit(Connection connection, String tableName, String columnName, int line, File scriptFile) throws Exception {
+    private int getBatchUpperLimit(Connection connection, String tableName, String columnName, int line, File scriptFile) throws SQLException
+    {
         int batchUpperLimit = 0;
 
         String stmt = "SELECT MAX(" + columnName + ") AS upper_limit FROM " + tableName;
         Object fetchedVal = executeStatement(connection, stmt, "upper_limit", false, line, scriptFile);
 
-        if (fetchedVal instanceof Number) {
+        if (fetchedVal instanceof Number)
+        {
             batchUpperLimit = ((Number) fetchedVal).intValue();
         }
 
         return batchUpperLimit;
     }
 
-    private boolean isLess(Long primaryId, Long[] secondaryIds) {
-        for (Long secondaryId : secondaryIds) {
-            if (secondaryId != null && primaryId >= secondaryId) {
+    private boolean isLess(Long primaryId, Long[] secondaryIds)
+    {
+        for (Long secondaryId : secondaryIds)
+        {
+            if (secondaryId != null && primaryId >= secondaryId)
+            {
                 return false;
             }
         }
@@ -367,8 +364,11 @@ public class DeleteNotExistsExecutor implements StatementExecutor
         return "SELECT " + columnName + " FROM " + tableName + " WHERE " + columnName + " > ? AND " + columnName + " <= ? ORDER BY " + columnName + " ASC";
     }
 
-    private void createAndExecuteDeleteStatement(Connection connection, String tableName, String idColumnName, Set<Long> deleteIds, int maxBatchSize, int line, File scriptFile) throws Exception {
-        if (deleteIds.isEmpty()) {
+    private void createAndExecuteDeleteStatement(Connection connection, String tableName, String idColumnName, Set<Long> deleteIds, int maxBatchSize, int line, File scriptFile)
+            throws SQLException
+    {
+        if (deleteIds.isEmpty())
+        {
             return;
         }
 
@@ -379,67 +379,53 @@ public class DeleteNotExistsExecutor implements StatementExecutor
 
         StringBuilder stmtBuilder = new StringBuilder("DELETE FROM " + tableName + " WHERE " + idColumnName + " IN ");
         stmtBuilder.append("(");
-        int i = 1;
-        for (Long deleteId : deleteIds) {
-            if (i < maxBatchSize) {
+
+        for (int i = 1; i <= maxBatchSize; i++)
+        {
+            if (i < maxBatchSize)
+            {
                 stmtBuilder.append("?,");
-            } else {
-                stmtBuilder.append("?");
             }
-
-            i++;
-        }
-
-        for (int j = i; j <= maxBatchSize; j++) {
-            if (j < maxBatchSize) {
-                stmtBuilder.append("?,");
-            } else {
+            else
+            {
                 stmtBuilder.append("?");
             }
         }
         stmtBuilder.append(")");
 
-
-//        StringBuilder executedStatements = executedStatementsThreadLocal.get();
-//        if (executedStatements == null)
-//        {
-//            throw new IllegalArgumentException("The executedStatementsThreadLocal must be populated");
-//        }
-
         String sql = stmtBuilder.toString();
         PreparedStatement stmt = null;
-        try {
+        try
+        {
             stmt = connection.prepareStatement(sql);
 
-            i = 1;
-            for (Long deleteId : deleteIds) {
+            int i = 1;
+            for (Long deleteId : deleteIds)
+            {
                 stmt.setObject(i, deleteId);
                 i++;
             }
 
-            for (int j = i; j <= maxBatchSize; j++) {
+            for (int j = i; j <= maxBatchSize; j++)
+            {
                 stmt.setObject(j, 0);
             }
 
-
-            if (logger.isDebugEnabled()) {
+            if (logger.isDebugEnabled())
+            {
                 LogUtil.debug(logger, MSG_EXECUTING_STATEMENT, sql);
             }
 
             stmt.execute();
-            // Record the statement
-//            executedStatements.append(sql).append(";\n\n");
-        } catch (SQLException e) {
+        }
+        catch (SQLException e)
+        {
             LogUtil.error(logger, ERR_STATEMENT_FAILED, sql, e.getMessage(), scriptFile.getAbsolutePath(), line);
             throw e;
-        } finally {
-            if (stmt != null) {
-                try {
-                    stmt.close();
-                } catch (Exception e) {
-                    // Little can be done at this stage.
-                }
-            }
+        }
+        finally
+        {
+            closeQuietly(stmt);
         }
 
         logger.info("Finished deleting " + deleteIds.size() + " items from table " + tableName + ".");
