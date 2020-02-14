@@ -76,6 +76,13 @@ public class TransformServiceRegistryConfigTest extends TransformRegistryTest
     {
         super.setUp();
         LogManager.getLogger(TransformServiceRegistryConfigTest.class).setLevel(Level.DEBUG);
+        System.setProperty("localTransform.appleIWorks.url", "http://imagemagick:8090/");
+    }
+
+    @After
+    public void cleanUp()
+    {
+        System.clearProperty("localTransform.appleIWorks.url");
     }
 
     @Override
@@ -271,6 +278,10 @@ public class TransformServiceRegistryConfigTest extends TransformRegistryTest
 
     protected int getExpectedTransformsForTestJsonPipeline()
     {
+//        {"sourceMediaType": "application/msword",  "targetMediaType": "image/gif" },
+//        {"sourceMediaType": "application/msword",  "targetMediaType": "image/jpeg"},
+//        {"sourceMediaType": "application/msword",  "targetMediaType": "image/png" },
+//        {"sourceMediaType": "application/msword",  "targetMediaType": "image/tiff"}
         return 4;
     }
 

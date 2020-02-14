@@ -191,7 +191,31 @@ public class LocalTransformServiceRegistryConfigTest extends TransformServiceReg
     @Override
     protected int getExpectedTransformsForTestJsonPipeline()
     {
-        return 4 + 2 + 3 + 6;
+// imagemagick
+//        {"sourceMediaType": "image/jpeg", "targetMediaType": "image/jpeg"},
+//        {"sourceMediaType": "image/jpeg", "targetMediaType": "image/png"},
+//        {"sourceMediaType": "image/jpeg", "targetMediaType": "image/bmp"}
+// pdfrendere
+//        {"sourceMediaType": "application/pdf", "targetMediaType": "image/png" }
+// libreoffice
+//         {"sourceMediaType": "application/vnd.ms-outlook", "targetMediaType": "application/pdf"}
+// officeToImageViaPdf
+//        {"sourceMediaType": "application/msword",  "targetMediaType": "image/gif" },
+//        {"sourceMediaType": "application/msword",  "targetMediaType": "image/jpeg"},
+//        {"sourceMediaType": "application/msword",  "targetMediaType": "image/png" },
+//        {"sourceMediaType": "application/msword",  "targetMediaType": "image/tiff"}
+// AppleIWorks (have to use misc as the name as the localTransformer.misc.url exists)
+//        {"sourceMediaType": "application/vnd.apple.keynote",                 "targetMediaType": "image/jpeg"},
+//        {"sourceMediaType": "application/vnd.apple.numbers",                 "targetMediaType": "image/jpeg"},
+//        {"sourceMediaType": "application/vnd.apple.pages",                   "targetMediaType": "image/jpeg"}
+// iWorksToImageViaJpg      (AppleIWorks|image/jpeg|imagemagick) => 6 (3*3-3   excludes the 3 to jpeg already done by AppleIWorks)
+//        {"sourceMediaType": "application/vnd.apple.keynote",                 "targetMediaType": "image/png"},
+//        {"sourceMediaType": "application/vnd.apple.pages",                   "targetMediaType": "image/bmp"}
+//        {"sourceMediaType": "application/vnd.apple.numbers",                 "targetMediaType": "image/png"},
+//        {"sourceMediaType": "application/vnd.apple.keynote",                 "targetMediaType": "image/png"},
+//        {"sourceMediaType": "application/vnd.apple.pages",                   "targetMediaType": "image/png"}
+//        {"sourceMediaType": "application/vnd.apple.numbers",                 "targetMediaType": "image/png"},
+        return 3 + 1 + 1 + 4 + 3 + 6;   // 18
     }
 
     /**
