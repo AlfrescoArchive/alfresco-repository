@@ -7,73 +7,6 @@
         {"transformerName": "imagemagick"}
       ],
       "supportedSourceAndTargetList": [
-        {"sourceMediaType": "application/pdf",                            "targetMediaType": "image/x-raw-hasselblad" },
-        {"sourceMediaType": "application/pdf",                            "targetMediaType": "image/x-raw-sony" },
-        {"sourceMediaType": "application/pdf",                            "targetMediaType": "image/bmp" },
-        {"sourceMediaType": "application/pdf",                            "targetMediaType": "image/cgm" },
-        {"sourceMediaType": "application/pdf",                            "targetMediaType": "image/x-raw-canon" },
-        {"sourceMediaType": "application/pdf",                            "targetMediaType": "image/x-raw-adobe" },
-        {"sourceMediaType": "application/pdf",                            "targetMediaType": "application/eps" },
-        {"sourceMediaType": "application/pdf",                            "targetMediaType": "image/gif" },
-        {"sourceMediaType": "application/pdf",                            "targetMediaType": "image/ief" },
-        {"sourceMediaType": "application/pdf",                            "targetMediaType": "image/jp2" },
-        {"sourceMediaType": "application/pdf",                            "targetMediaType": "image/jpeg" },
-        {"sourceMediaType": "application/pdf",                            "targetMediaType": "image/x-raw-kodak" },
-        {"sourceMediaType": "application/pdf",                            "targetMediaType": "image/x-raw-minolta" },
-        {"sourceMediaType": "application/pdf",                            "targetMediaType": "image/x-raw-nikon" },
-        {"sourceMediaType": "application/pdf",                            "targetMediaType": "image/x-raw-olympus" },
-        {"sourceMediaType": "application/pdf",                            "targetMediaType": "image/x-portable-bitmap" },
-        {"sourceMediaType": "application/pdf",                            "targetMediaType": "image/x-raw-pentax" },
-        {"sourceMediaType": "application/pdf",                            "targetMediaType": "image/x-portable-graymap" },
-        {"sourceMediaType": "application/pdf",                            "targetMediaType": "image/x-portable-anymap" },
-        {"sourceMediaType": "application/pdf",                            "targetMediaType": "image/vnd.adobe.premiere" },
-        {"sourceMediaType": "application/pdf",                            "targetMediaType": "image/x-portable-pixmap" },
-        {"sourceMediaType": "application/pdf",                            "targetMediaType": "image/vnd.adobe.photoshop" },
-        {"sourceMediaType": "application/pdf",                            "targetMediaType": "image/x-raw-red" },
-        {"sourceMediaType": "application/pdf",                            "targetMediaType": "image/x-raw-fuji" },
-        {"sourceMediaType": "application/pdf",          "priority": "60", "targetMediaType": "image/png" },
-        {"sourceMediaType": "application/pdf",                            "targetMediaType": "image/x-raw-panasonic" },
-        {"sourceMediaType": "application/pdf",                            "targetMediaType": "image/x-raw-leica" },
-        {"sourceMediaType": "application/pdf",                            "targetMediaType": "image/x-cmu-raster" },
-        {"sourceMediaType": "application/pdf",                            "targetMediaType": "image/tiff" },
-        {"sourceMediaType": "application/pdf",                            "targetMediaType": "image/x-raw-sigma" },
-        {"sourceMediaType": "application/pdf",                            "targetMediaType": "image/x-xbitmap" },
-        {"sourceMediaType": "application/pdf",                            "targetMediaType": "image/x-xpixmap" },
-        {"sourceMediaType": "application/pdf",                            "targetMediaType": "image/x-xwindowdump" },
-
-        {"sourceMediaType": "application/illustrator",                    "targetMediaType": "image/x-raw-hasselblad" },
-        {"sourceMediaType": "application/illustrator",                    "targetMediaType": "image/x-raw-sony" },
-        {"sourceMediaType": "application/illustrator",                    "targetMediaType": "image/bmp" },
-        {"sourceMediaType": "application/illustrator",                    "targetMediaType": "image/cgm" },
-        {"sourceMediaType": "application/illustrator",                    "targetMediaType": "image/x-raw-canon" },
-        {"sourceMediaType": "application/illustrator",                    "targetMediaType": "image/x-raw-adobe" },
-        {"sourceMediaType": "application/illustrator",                    "targetMediaType": "application/eps" },
-        {"sourceMediaType": "application/illustrator",                    "targetMediaType": "image/gif" },
-        {"sourceMediaType": "application/illustrator",                    "targetMediaType": "image/ief" },
-        {"sourceMediaType": "application/illustrator",                    "targetMediaType": "image/jp2" },
-        {"sourceMediaType": "application/illustrator",                    "targetMediaType": "image/jpeg" },
-        {"sourceMediaType": "application/illustrator",                    "targetMediaType": "image/x-raw-kodak" },
-        {"sourceMediaType": "application/illustrator",                    "targetMediaType": "image/x-raw-minolta" },
-        {"sourceMediaType": "application/illustrator",                    "targetMediaType": "image/x-raw-nikon" },
-        {"sourceMediaType": "application/illustrator",                    "targetMediaType": "image/x-raw-olympus" },
-        {"sourceMediaType": "application/illustrator",                    "targetMediaType": "image/x-portable-bitmap" },
-        {"sourceMediaType": "application/illustrator",                    "targetMediaType": "image/x-raw-pentax" },
-        {"sourceMediaType": "application/illustrator",                    "targetMediaType": "image/x-portable-graymap" },
-        {"sourceMediaType": "application/illustrator",                    "targetMediaType": "image/x-portable-anymap" },
-        {"sourceMediaType": "application/illustrator",                    "targetMediaType": "image/vnd.adobe.premiere" },
-        {"sourceMediaType": "application/illustrator",                    "targetMediaType": "image/x-portable-pixmap" },
-        {"sourceMediaType": "application/illustrator",                    "targetMediaType": "image/vnd.adobe.photoshop" },
-        {"sourceMediaType": "application/illustrator",                    "targetMediaType": "image/x-raw-red" },
-        {"sourceMediaType": "application/illustrator",                    "targetMediaType": "image/x-raw-fuji" },
-        {"sourceMediaType": "application/illustrator",  "priority": "60", "targetMediaType": "image/png" },
-        {"sourceMediaType": "application/illustrator",                    "targetMediaType": "image/x-raw-panasonic" },
-        {"sourceMediaType": "application/illustrator",                    "targetMediaType": "image/x-raw-leica" },
-        {"sourceMediaType": "application/illustrator",                    "targetMediaType": "image/x-cmu-raster" },
-        {"sourceMediaType": "application/illustrator",                    "targetMediaType": "image/tiff" },
-        {"sourceMediaType": "application/illustrator",                    "targetMediaType": "image/x-raw-sigma" },
-        {"sourceMediaType": "application/illustrator",                    "targetMediaType": "image/x-xbitmap" },
-        {"sourceMediaType": "application/illustrator",                    "targetMediaType": "image/x-xpixmap" },
-        {"sourceMediaType": "application/illustrator",                    "targetMediaType": "image/x-xwindowdump" }
       ],
       "transformOptions": [
         "pdfRendererOptions",
@@ -87,20 +20,6 @@
         {"transformerName": "imagemagick"}
       ],
       "supportedSourceAndTargetList": [
-        {"sourceMediaType": "application/vnd.apple.keynote",                    "targetMediaType": "image/gif" },
-        {"sourceMediaType": "application/vnd.apple.keynote",  "priority": "60", "targetMediaType": "image/jpeg"},
-        {"sourceMediaType": "application/vnd.apple.keynote",                    "targetMediaType": "image/png" },
-        {"sourceMediaType": "application/vnd.apple.keynote",                    "targetMediaType": "image/tiff"},
-
-        {"sourceMediaType": "application/vnd.apple.numbers",                    "targetMediaType": "image/gif" },
-        {"sourceMediaType": "application/vnd.apple.numbers",  "priority": "60", "targetMediaType": "image/jpeg"},
-        {"sourceMediaType": "application/vnd.apple.numbers",                    "targetMediaType": "image/png" },
-        {"sourceMediaType": "application/vnd.apple.numbers",                    "targetMediaType": "image/tiff"},
-
-        {"sourceMediaType": "application/vnd.apple.pages",                      "targetMediaType": "image/gif" },
-        {"sourceMediaType": "application/vnd.apple.pages",    "priority": "60", "targetMediaType": "image/jpeg"},
-        {"sourceMediaType": "application/vnd.apple.pages",                      "targetMediaType": "image/png" },
-        {"sourceMediaType": "application/vnd.apple.pages",                      "targetMediaType": "image/tiff"}
       ],
       "transformOptions": [
         "imageMagickOptions"
@@ -113,10 +32,6 @@
         {"transformerName": "textToImageViaPdf"}
       ],
       "supportedSourceAndTargetList": [
-        {"sourceMediaType": "application/vnd.ms-outlook",  "priority": "55", "targetMediaType": "image/gif" },
-        {"sourceMediaType": "application/vnd.ms-outlook",  "priority": "55", "targetMediaType": "image/jpeg"},
-        {"sourceMediaType": "application/vnd.ms-outlook",  "priority": "55", "targetMediaType": "image/png" },
-        {"sourceMediaType": "application/vnd.ms-outlook",  "priority": "55", "targetMediaType": "image/tiff"}
       ],
       "transformOptions": [
         "tikaOptions",
@@ -156,10 +71,6 @@
         {"transformerName": "textToImageViaPdf"}
       ],
       "supportedSourceAndTargetList": [
-        {"sourceMediaType": "message/rfc822",                   "targetMediaType": "image/gif" },
-        {"sourceMediaType": "message/rfc822",                   "targetMediaType": "image/jpeg"},
-        {"sourceMediaType": "message/rfc822",                   "targetMediaType": "image/tiff"},
-        {"sourceMediaType": "message/rfc822",                   "targetMediaType": "image/png" }
       ],
       "transformOptions": [
         "pdfRendererOptions",
@@ -200,7 +111,7 @@
         {"transformerName": "libreoffice"}
       ],
       "supportedSourceAndTargetList": [
-        {"sourceMediaType": "text/html",                    "targetMediaType": "application/pdf" }
+        {"sourceMediaType": "text/html",                    "priority": "150", "targetMediaType": "application/pdf" }
       ],
       "transformOptions": [
       ]
@@ -212,10 +123,6 @@
         {"transformerName": "pdfToImageViaPng"}
       ],
       "supportedSourceAndTargetList": [
-        {"sourceMediaType": "text/html",                     "targetMediaType": "image/gif" },
-        {"sourceMediaType": "text/html",                     "targetMediaType": "image/jpeg"},
-        {"sourceMediaType": "text/html",                     "targetMediaType": "image/tiff"},
-        {"sourceMediaType": "text/html",                     "targetMediaType": "image/png" }
       ],
       "transformOptions": [
         "pdfRendererOptions",
@@ -229,25 +136,6 @@
         {"transformerName": "textToImageViaPdf"}
       ],
       "supportedSourceAndTargetList": [
-        {"sourceMediaType": "application/vnd.openxmlformats-officedocument.wordprocessingml.template",     "targetMediaType": "image/gif" },
-        {"sourceMediaType": "application/vnd.openxmlformats-officedocument.wordprocessingml.template",     "targetMediaType": "image/jpeg"},
-        {"sourceMediaType": "application/vnd.openxmlformats-officedocument.wordprocessingml.template",     "targetMediaType": "image/tiff"},
-        {"sourceMediaType": "application/vnd.openxmlformats-officedocument.wordprocessingml.template",     "targetMediaType": "image/png" },
-
-        {"sourceMediaType": "application/vnd.ms-powerpoint.slideshow.macroenabled.12",                     "targetMediaType": "image/gif" },
-        {"sourceMediaType": "application/vnd.ms-powerpoint.slideshow.macroenabled.12",                     "targetMediaType": "image/jpeg"},
-        {"sourceMediaType": "application/vnd.ms-powerpoint.slideshow.macroenabled.12",                     "targetMediaType": "image/tiff"},
-        {"sourceMediaType": "application/vnd.ms-powerpoint.slideshow.macroenabled.12",                     "targetMediaType": "image/png" },
-
-        {"sourceMediaType": "application/vnd.openxmlformats-officedocument.presentationml.slideshow",      "targetMediaType": "image/gif" },
-        {"sourceMediaType": "application/vnd.openxmlformats-officedocument.presentationml.slideshow",      "targetMediaType": "image/jpeg"},
-        {"sourceMediaType": "application/vnd.openxmlformats-officedocument.presentationml.slideshow",      "targetMediaType": "image/tiff"},
-        {"sourceMediaType": "application/vnd.openxmlformats-officedocument.presentationml.slideshow",      "targetMediaType": "image/png" },
-
-        {"sourceMediaType": "application/vnd.ms-excel.addin.macroenabled.12",                              "targetMediaType": "image/gif" },
-        {"sourceMediaType": "application/vnd.ms-excel.addin.macroenabled.12",                              "targetMediaType": "image/jpeg"},
-        {"sourceMediaType": "application/vnd.ms-excel.addin.macroenabled.12",                              "targetMediaType": "image/tiff"},
-        {"sourceMediaType": "application/vnd.ms-excel.addin.macroenabled.12",                              "targetMediaType": "image/png" }
       ],
       "transformOptions": [
         "tikaOptions",
@@ -262,25 +150,6 @@
         {"transformerName": "textToImageViaPdf"}
       ],
       "supportedSourceAndTargetList": [
-        {"sourceMediaType": "application/x-cpio",                                                          "targetMediaType": "image/gif" },
-        {"sourceMediaType": "application/x-cpio",                                                          "targetMediaType": "image/jpeg"},
-        {"sourceMediaType": "application/x-cpio",                                                          "targetMediaType": "image/tiff"},
-        {"sourceMediaType": "application/x-cpio",                                                          "targetMediaType": "image/png" },
-
-        {"sourceMediaType": "application/java-archive",                                                    "targetMediaType": "image/gif" },
-        {"sourceMediaType": "application/java-archive",                                                    "targetMediaType": "image/jpeg"},
-        {"sourceMediaType": "application/java-archive",                                                    "targetMediaType": "image/tiff"},
-        {"sourceMediaType": "application/java-archive",                                                    "targetMediaType": "image/png" },
-
-        {"sourceMediaType": "application/x-tar",                                                           "targetMediaType": "image/gif" },
-        {"sourceMediaType": "application/x-tar",                                                           "targetMediaType": "image/jpeg"},
-        {"sourceMediaType": "application/x-tar",                                                           "targetMediaType": "image/tiff"},
-        {"sourceMediaType": "application/x-tar",                                                           "targetMediaType": "image/png" },
-
-        {"sourceMediaType": "application/zip",                                                             "targetMediaType": "image/gif" },
-        {"sourceMediaType": "application/zip",                                                             "targetMediaType": "image/jpeg"},
-        {"sourceMediaType": "application/zip",                                                             "targetMediaType": "image/tiff"},
-        {"sourceMediaType": "application/zip",                                                             "targetMediaType": "image/png" }
       ],
       "transformOptions": [
         "archiveOptions",
@@ -295,10 +164,6 @@
         {"transformerName": "libreoffice"}
       ],
       "supportedSourceAndTargetList": [
-        {"sourceMediaType": "application/vnd.openxmlformats-officedocument.wordprocessingml.template",    "priority": "55", "targetMediaType": "application/pdf"},
-        {"sourceMediaType": "application/vnd.ms-powerpoint.slideshow.macroenabled.12",                     "targetMediaType": "application/pdf" },
-        {"sourceMediaType": "application/vnd.openxmlformats-officedocument.presentationml.slideshow",      "targetMediaType": "application/pdf" },
-        {"sourceMediaType": "application/vnd.ms-excel.addin.macroenabled.12",                              "targetMediaType": "application/pdf" }
       ],
       "transformOptions": [
         "tikaOptions"
@@ -327,10 +192,6 @@
         {"transformerName": "textToImageViaPdf"}
       ],
       "supportedSourceAndTargetList": [
-        {"sourceMediaType": "application/dita+xml",                   "targetMediaType": "image/gif" },
-        {"sourceMediaType": "application/dita+xml",                   "targetMediaType": "image/jpeg"},
-        {"sourceMediaType": "application/dita+xml",                   "targetMediaType": "image/tiff"},
-        {"sourceMediaType": "application/dita+xml",                   "targetMediaType": "image/png" }
       ],
       "transformOptions": [
         "pdfRendererOptions",

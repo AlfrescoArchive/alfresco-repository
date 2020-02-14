@@ -174,7 +174,6 @@ public class TransformServiceRegistryConfigTest extends TransformRegistryTest
         SupportedTransform supportedTransform = supportedTransforms.get(0);
 
         Set<TransformOption> transformOptionsSet = supportedTransform.getTransformOptions().getTransformOptions();
-        System.out.println("Nothing");
 
         Iterator<TransformOption> iterator = transformOptionsSet.iterator();
         assertTrue("Expected transform values", iterator.hasNext());

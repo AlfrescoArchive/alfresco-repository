@@ -49,11 +49,17 @@ import org.apache.http.util.EntityUtils;
 import java.io.IOException;
 import java.io.StringReader;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * This class reads multiple T-Engine config and local files and registers them all with a registry as if they were all
@@ -79,6 +85,11 @@ public class CombinedConfig
             this.transformer = transformer;
             this.baseUrl = baseUrl;
             this.readFrom = readFrom;
+        }
+
+        public Transformer getTransformer()
+        {
+            return transformer;
         }
     }
 
@@ -233,7 +244,7 @@ public class CombinedConfig
     }
 
     /**
-     * Adds a PassThrough transform were the source and target mimetypes are identical, or transforms to "text/plain"
+     * Adds a PassThrough transform where the source and target mimetypes are identical, or transforms to "text/plain"
      * from selected text based types.
      * @param mimetypeService to find all the mimetypes
      */
@@ -251,6 +262,8 @@ public class CombinedConfig
         data.setFileCount(configFileFinder.getFileCount());
 
         combinedTransformers = sortTransformers(combinedTransformers);
+
+        addWildcardSupportedSourceAndTarget(combinedTransformers);
 
         combinedTransformers.forEach(transformer ->
             registry.register(transformer.transformer, combinedTransformOptions,
@@ -316,5 +329,96 @@ public class CombinedConfig
         transformers.addAll(todo);
 
         return transformers;
+    }
+
+    private void addWildcardSupportedSourceAndTarget(List<TransformAndItsOrigin> combinedTransformers)
+    {
+        Map<String, Transformer> transformers = new HashMap<>();
+        combinedTransformers.forEach(ct -> transformers.put(ct.transformer.getTransformerName(), ct.transformer));
+
+        combinedTransformers.forEach(transformAndItsOrigin ->
+        {
+            Transformer transformer = transformAndItsOrigin.transformer;
+
+            // If there are no SupportedSourceAndTarget, then work out all the wildcard combinations.
+            if (transformer.getSupportedSourceAndTargetList().isEmpty())
+            {
+                List<TransformStep> pipeline = transformer.getTransformerPipeline();
+                List<String> failover = transformer.getTransformerFailover();
+                boolean isPipeline = pipeline != null && !pipeline.isEmpty();
+                boolean isFailover = failover != null && !failover.isEmpty();
+                if (isFailover)
+                {
+                    // Copy all SupportedSourceAndTarget values from each step transformer
+                    Set<SupportedSourceAndTarget> supportedSourceAndTargets = failover.stream().flatMap(
+                            name -> transformers.get(name).getSupportedSourceAndTargetList().stream()).
+                            collect(Collectors.toSet());
+                    transformer.setSupportedSourceAndTargetList(supportedSourceAndTargets);
+                }
+                else if (isPipeline)
+                {
+                    // Build up SupportedSourceAndTarget values. The list of source types and max sizes will come from the
+                    // initial step transformer that have a target mimetype that matches the first intermediate mimetype.
+                    // We then step through all intermediate transformers checking the next intermediate type is supported.
+                    // When we get to the last step transformer, it provides all the target mimetypes based on the previous
+                    // intermediate mimeype. Any combinations supported by the first transformer are excluded.
+                    boolean first = true;
+                    String sourceMediaType = null;
+                    Set<SupportedSourceAndTarget> sourceMediaTypesAndMaxSizes = null;
+                    for (TransformStep step : pipeline)
+                    {
+                        String name = step.getTransformerName();
+                        Transformer stepTransformer = transformers.get(name);
+                        if (stepTransformer == null)
+                        {
+                            break;
+                        }
+
+                        String stepTrg = step.getTargetMediaType();
+                        if (first)
+                        {
+                            first = false;
+                            sourceMediaTypesAndMaxSizes = stepTransformer.getSupportedSourceAndTargetList();
+                            sourceMediaType = stepTrg;
+                        }
+                        else
+                        {
+                            final String src = sourceMediaType;
+                            if (stepTrg == null) // if final step
+                            {
+                                // Create a cartesian product of sourceMediaType,MaxSourceSize and TargetMediaType where
+                                // the source matches the last intermediate.
+                                Set<SupportedSourceAndTarget>  supportedSourceAndTargets = sourceMediaTypesAndMaxSizes.stream().
+                                        flatMap(s -> stepTransformer.getSupportedSourceAndTargetList().stream().
+                                                filter(st -> st.getSourceMediaType().equals(src)).
+                                                map(t -> t.getTargetMediaType()).
+                                                map(trg -> SupportedSourceAndTarget.builder().
+                                                        withSourceMediaType(s.getSourceMediaType()).
+                                                        withMaxSourceSizeBytes(s.getMaxSourceSizeBytes()).
+                                                        withTargetMediaType(trg).build())).
+                                        collect(Collectors.toSet());
+
+                                // Exclude duplicates with the first transformer, as there is no point doing more work.
+                                supportedSourceAndTargets.removeAll(sourceMediaTypesAndMaxSizes);
+
+                                transformer.setSupportedSourceAndTargetList(supportedSourceAndTargets);
+                            }
+                            else // if intermediate step
+                            {
+                                // Check source to target is supported (it normally is)
+                                if (!stepTransformer.getSupportedSourceAndTargetList().stream().
+                                        anyMatch(st -> st.getSourceMediaType().equals(src) &&
+                                                       st.getTargetMediaType().equals(stepTrg)))
+                                {
+                                    break;
+                                }
+
+                                sourceMediaType = stepTrg;
+                            }
+                        }
+                    }
+                }
+            }
+        });
     }
 }

@@ -1,6 +1,6 @@
 {
   "transformOptions": {
-    "imagemagickOptions": [
+    "imageMagickOptions": [
       {"value": {"name": "alphaRemove"}},
       {"value": {"name": "autoOrient"}},
       {"value": {"name": "startPage"}},
@@ -34,10 +34,12 @@
     {
       "transformerName": "imagemagick",
       "supportedSourceAndTargetList": [
-        {"sourceMediaType": "image/tiff", "targetMediaType": "image/tiff"}
+        {"sourceMediaType": "image/jpeg", "targetMediaType": "image/jpeg"},
+        {"sourceMediaType": "image/jpeg", "targetMediaType": "image/png"},
+        {"sourceMediaType": "image/jpeg", "targetMediaType": "image/bmp"}
       ],
       "transformOptions": [
-        "imagemagickOptions"
+        "imageMagickOptions"
       ]
     },
     {
@@ -70,7 +72,29 @@
       ],
       "transformOptions": [
         "pdfRendererOptions",
-        "imagemagickOptions"
+        "imageMagickOptions"
+      ]
+    },
+    {
+      "transformerName": "appleIWorks",
+      "supportedSourceAndTargetList": [
+        {"sourceMediaType": "application/vnd.apple.keynote",                 "targetMediaType": "image/jpeg"},
+        {"sourceMediaType": "application/vnd.apple.numbers",                 "targetMediaType": "image/jpeg"},
+        {"sourceMediaType": "application/vnd.apple.pages",                   "targetMediaType": "image/jpeg"}
+      ],
+      "transformOptions": [
+      ]
+    },
+    {
+      "transformerName": "iWorksToImageViaJpg",
+      "transformerPipeline" : [
+        {"transformerName": "appleIWorks",                                      "targetMediaType": "image/jpeg"},
+        {"transformerName": "imagemagick"}
+      ],
+      "supportedSourceAndTargetList": [
+      ],
+      "transformOptions": [
+        "imageMagickOptions"
       ]
     }
   ]
