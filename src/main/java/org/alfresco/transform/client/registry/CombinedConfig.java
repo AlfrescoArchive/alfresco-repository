@@ -28,7 +28,6 @@ package org.alfresco.transform.client.registry;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.alfresco.error.AlfrescoRuntimeException;
-import org.alfresco.repo.content.MimetypeMap;
 import org.alfresco.repo.content.transform.LocalPassThroughTransform;
 import org.alfresco.service.cmr.repository.MimetypeService;
 import org.alfresco.transform.client.model.config.SupportedSourceAndTarget;
@@ -49,17 +48,12 @@ import org.apache.http.util.EntityUtils;
 import java.io.IOException;
 import java.io.StringReader;
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
-import java.util.function.Function;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * This class reads multiple T-Engine config and local files and registers them all with a registry as if they were all
@@ -378,7 +372,9 @@ public class CombinedConfig
                         if (first)
                         {
                             first = false;
-                            sourceMediaTypesAndMaxSizes = stepTransformer.getSupportedSourceAndTargetList();
+                            sourceMediaTypesAndMaxSizes = stepTransformer.getSupportedSourceAndTargetList().stream().
+                                    filter(s -> stepTrg.equals(s.getTargetMediaType())).
+                                    collect(Collectors.toSet());
                             sourceMediaType = stepTrg;
                         }
                         else
@@ -395,6 +391,7 @@ public class CombinedConfig
                                                 map(trg -> SupportedSourceAndTarget.builder().
                                                         withSourceMediaType(s.getSourceMediaType()).
                                                         withMaxSourceSizeBytes(s.getMaxSourceSizeBytes()).
+                                                        withPriority(s.getPriority()).
                                                         withTargetMediaType(trg).build())).
                                         collect(Collectors.toSet());
 
