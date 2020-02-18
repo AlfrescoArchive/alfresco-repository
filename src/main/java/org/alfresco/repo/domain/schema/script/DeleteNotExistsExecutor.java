@@ -37,9 +37,9 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.HashSet;
 import java.util.Properties;
 import java.util.Set;
+import java.util.TreeSet;
 
 /**
  * The
@@ -134,7 +134,10 @@ public class DeleteNotExistsExecutor implements StatementExecutor
                     tableColumn[i] = new Pair<>(tableName, columnName);
                     tableUpperLimits[i] = getBatchUpperLimit(connection, tableName, columnName, line, scriptFile);
 
-                    logger.info("BatchUpperLimit " + tableUpperLimits[i] + " for " + tableName + "." + columnName);
+                    if(logger.isDebugEnabled())
+                    {
+                        logger.debug("BatchUpperLimit " + tableUpperLimits[i] + " for " + tableName + "." + columnName);
+                    }
                 }
 
                 process(tableColumn, tableUpperLimits);
@@ -151,7 +154,7 @@ public class DeleteNotExistsExecutor implements StatementExecutor
         PreparedStatement primaryPrepStmt = null;
         PreparedStatement[] secondaryPrepStmts = null;
         PreparedStatement deletePrepStmt = null;
-        Set<Long> deleteIds = new HashSet<>();
+        Set<Long> deleteIds = new TreeSet<>();
         try
         {
             connection.setAutoCommit(false);
@@ -181,11 +184,8 @@ public class DeleteNotExistsExecutor implements StatementExecutor
                 while (hasResults)
                 {
                     // Process batch
-                    long startTime = System.currentTimeMillis();
                     primaryId = processPrimaryTableResultSet(primaryPrepStmt, secondaryPrepStmts, deletePrepStmt, deleteIds, primaryTableName, primaryColumnName, tableColumn);
                     connection.commit();
-                    long endTime = (System.currentTimeMillis() - startTime);
-                    logger.info("processPrimaryTableResultSet: " + endTime);
 
                     if (primaryId == null)
                     {
@@ -203,17 +203,14 @@ public class DeleteNotExistsExecutor implements StatementExecutor
                         secStmt.setLong(2, tableUpperLimits[i]);
                     }
 
-                    startTime = System.currentTimeMillis();
                     hasResults = primaryPrepStmt.execute();
-                    endTime = (System.currentTimeMillis() - startTime);
-                    logger.info("primaryPrepStmt.execute(): " + endTime);
                 }
             }
 
             // Check if we have any more ids to delete
             if (!deleteIds.isEmpty())
             {
-                deleteFromPrimaryTable(deletePrepStmt, deleteIds, primaryTableName, primaryColumnName);
+                deleteFromPrimaryTable(deletePrepStmt, deleteIds, primaryTableName);
                 connection.commit();
             }
         }
@@ -233,11 +230,8 @@ public class DeleteNotExistsExecutor implements StatementExecutor
         ResultSet[] secondaryResultSets = null;
         try (ResultSet resultSet = primaryPrepStmt.getResultSet())
         {
-            long startTime = System.currentTimeMillis();
             secondaryResultSets = getSecondaryResultSets(secondaryPrepStmts);
             Long[] secondaryIds = getSecondaryIds(secondaryResultSets, tableColumn);
-            long endTime = (System.currentTimeMillis() - startTime);
-            logger.info("getSecondary: " + endTime);
 
             while (resultSet.next())
             {
@@ -250,10 +244,7 @@ public class DeleteNotExistsExecutor implements StatementExecutor
 
                     if (deleteIds.size() == deleteBatchSize)
                     {
-                        startTime = System.currentTimeMillis();
-                        deleteFromPrimaryTable(deletePrepStmt, deleteIds, primaryTableName, primaryColumnName);
-                        endTime = (System.currentTimeMillis() - startTime);
-                        logger.info("deleteFromPrimaryTable: " + endTime);
+                        deleteFromPrimaryTable(deletePrepStmt, deleteIds, primaryTableName);
                     }
 
                     if (!resultSet.next())
@@ -278,10 +269,7 @@ public class DeleteNotExistsExecutor implements StatementExecutor
                     break;
                 }
 
-                startTime = System.currentTimeMillis();
                 updateSecondaryIds(primaryId, secondaryIds, secondaryResultSets, tableColumn);
-                endTime = (System.currentTimeMillis() - startTime);
-                logger.info("updateSecondaryIds: " + endTime);
             }
         }
         finally
@@ -292,11 +280,11 @@ public class DeleteNotExistsExecutor implements StatementExecutor
         return primaryId;
     }
 
-    private void deleteFromPrimaryTable(PreparedStatement deletePrepStmt, Set<Long> deleteIds, String primaryTableName, String primaryColumnName) throws SQLException
+    private void deleteFromPrimaryTable(PreparedStatement deletePrepStmt, Set<Long> deleteIds, String primaryTableName) throws SQLException
     {
         if (!readOnly)
         {
-            createAndExecuteDeleteStatement(deletePrepStmt, primaryTableName, primaryColumnName, deleteIds, deleteBatchSize, line, scriptFile);
+            executeDeleteStatement(deletePrepStmt, primaryTableName, deleteIds, deleteBatchSize, line, scriptFile);
         }
         else
         {
@@ -410,7 +398,7 @@ public class DeleteNotExistsExecutor implements StatementExecutor
         return stmtBuilder.toString();
     }
 
-    private void createAndExecuteDeleteStatement(PreparedStatement stmt, String tableName, String idColumnName, Set<Long> deleteIds, int deleteBatchSize, int line, File scriptFile)
+    private void executeDeleteStatement(PreparedStatement stmt, String tableName, Set<Long> deleteIds, int deleteBatchSize, int line, File scriptFile)
             throws SQLException
     {
         if (deleteIds.isEmpty())
@@ -450,8 +438,10 @@ public class DeleteNotExistsExecutor implements StatementExecutor
             throw e;
         }
 
-        // logger.info("Finished deleting " + deleteIds.size() + " items from table " +
-        // tableName + ".");
+        if (logger.isDebugEnabled())
+        {
+            logger.debug("Finished deleting " + deleteIds.size() + " items from table " + tableName + ".");
+        }
     }
 
     private Long getColumnValueById(ResultSet resultSet, String columnId) throws SQLException
