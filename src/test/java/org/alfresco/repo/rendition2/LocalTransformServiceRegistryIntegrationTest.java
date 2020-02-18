@@ -96,20 +96,20 @@ public class LocalTransformServiceRegistryIntegrationTest extends AbstractRendit
     {
         // +ve
         // No props
-        Assert.assertTrue(transformServiceRegistry.isSupported(MIMETYPE_IWORK_PAGES, 1234, MIMETYPE_IMAGE_JPEG, options, RENDITION_NAME));
+        Assert.assertTrue(transformServiceRegistry.isSupported(MIMETYPE_IWORK_PAGES, 1234, "rubbish", options, RENDITION_NAME));
 
         // -ve
         // Bad Source
-        Assert.assertFalse(transformServiceRegistry.isSupported("docxBad", 1234, MIMETYPE_IMAGE_JPEG, options, RENDITION_NAME));
+        Assert.assertFalse(transformServiceRegistry.isSupported("docxBad", 1234, "rubbish", options, RENDITION_NAME));
         // Bad Target
         Assert.assertFalse(transformServiceRegistry.isSupported(MIMETYPE_IWORK_PAGES, 1234, "pdfBad", options, "pdfBad"));
 
         // Good MaxSize docx max size is 768K
-        Assert.assertTrue(transformServiceRegistry.isSupported(MIMETYPE_IWORK_PAGES, 768L*1024, MIMETYPE_IMAGE_JPEG, options, RENDITION_NAME));
+        Assert.assertTrue(transformServiceRegistry.isSupported(MIMETYPE_IWORK_PAGES, 768L*1024, "rubbish", options, RENDITION_NAME));
 
         // -ve
         // Bad MaxSize docx max size is 768K
-        Assert.assertFalse(transformServiceRegistry.isSupported(MIMETYPE_IWORK_PAGES, 768L*1024+1, MIMETYPE_IMAGE_JPEG, options, RENDITION_NAME));
+        Assert.assertFalse(transformServiceRegistry.isSupported(MIMETYPE_IWORK_PAGES, 768L*1024+1, "rubbish", options, RENDITION_NAME));
     }
 
     @Test

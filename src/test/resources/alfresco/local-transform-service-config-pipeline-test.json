@@ -74,28 +74,6 @@
         "pdfRendererOptions",
         "imageMagickOptions"
       ]
-    },
-    {
-      "transformerName": "appleIWorks",
-      "supportedSourceAndTargetList": [
-        {"sourceMediaType": "application/vnd.apple.keynote",                 "targetMediaType": "image/jpeg"},
-        {"sourceMediaType": "application/vnd.apple.numbers",                 "targetMediaType": "image/jpeg"},
-        {"sourceMediaType": "application/vnd.apple.pages", "maxSourceSizeBytes": 786432, "targetMediaType": "image/jpeg"}
-      ],
-      "transformOptions": [
-      ]
-    },
-    {
-      "transformerName": "iWorksToImageViaJpg",
-      "transformerPipeline" : [
-        {"transformerName": "appleIWorks",                                      "targetMediaType": "image/jpeg"},
-        {"transformerName": "imagemagick"}
-      ],
-      "supportedSourceAndTargetList": [
-      ],
-      "transformOptions": [
-        "imageMagickOptions"
-      ]
     }
   ]
 }
