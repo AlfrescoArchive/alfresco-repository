@@ -345,7 +345,7 @@ public class LocalTransformServiceRegistryConfigTest extends TransformServiceReg
     public void testJsonConfig() throws IOException
     {
         // Not 60, 60 as we have added source->target1..3 to three transformers
-        internalTestJsonConfig(63, 77);
+        internalTestJsonConfig(63, 69);
     }
 
     @Test
@@ -439,7 +439,7 @@ public class LocalTransformServiceRegistryConfigTest extends TransformServiceReg
                     break;
 
                 case "officeToImageViaPdf":
-                    assertEquals(t.transformer.getTransformerName() + " incorrect number of supported transform", 36, t.transformer.getSupportedSourceAndTargetList().size());
+                    assertEquals(t.transformer.getTransformerName() + " incorrect number of supported transform", 28, t.transformer.getSupportedSourceAndTargetList().size());
                     assertEquals( t.transformer.getTransformerName() + "incorrect number of transform option names", 2, t.transformer.getTransformOptions().size());
                     assertEquals( t.transformer.getTransformerName() + "incorrect number of transform options", 11, countTopLevelOptions(t.transformer.getTransformOptions()));
                     assertEquals(t.transformer.getTransformerName() + " expected to be a transformer pipeline", t.transformer.getTransformerPipeline().size(), 3);
