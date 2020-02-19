@@ -2,7 +2,8 @@
     <modelVersion>4.0.0</modelVersion>
     <artifactId>alfresco-repository</artifactId>
     <name>Alfresco Repository</name>
-    <version>repo-4710-3</version>
+    <version>8.104-SNAPSHOT</version>
+
     <packaging>jar</packaging>
     <parent>
         <groupId>org.alfresco</groupId>
@@ -51,7 +52,7 @@
         <dependency.httpcomponents.version>4.5.10</dependency.httpcomponents.version>
         <dependency.truezip.version>7.7.10</dependency.truezip.version>
         <dependency.poi.version>4.1.1</dependency.poi.version>
-        <dependency.webscripts.version>8.1</dependency.webscripts.version>
+        <dependency.webscripts.version>8.2</dependency.webscripts.version>
         <dependency.opencmis.version>1.0.0</dependency.opencmis.version>
         <dependency.activiti-engine.version>5.23.0</dependency.activiti-engine.version>
         <dependency.activiti.version>5.23.0</dependency.activiti.version>
@@ -86,7 +87,7 @@
             <dependency>
                 <groupId>org.jsoup</groupId>
                 <artifactId>jsoup</artifactId>
-                <version>1.12.1</version>
+                <version>1.12.2</version>
             </dependency>
             <!-- upgrade cxf libraries -->
             <dependency>
