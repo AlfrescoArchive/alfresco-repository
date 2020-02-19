@@ -48,6 +48,7 @@ import static org.alfresco.transform.client.model.Mimetype.MIMETYPE_IWORK_PAGES;
 public class LocalTransformServiceRegistryIntegrationTest extends AbstractRenditionIntegrationTest
 {
     private static final String RENDITION_NAME = "pdf";
+    protected String targetMimetype = "rubbish";
 
     @Autowired
     private LocalTransformServiceRegistry localTransformServiceRegistry;
@@ -94,22 +95,26 @@ public class LocalTransformServiceRegistryIntegrationTest extends AbstractRendit
     @Test
     public void testIsSupported()
     {
+        // Need to make sure we don't fall back to a transformer without limits.
+        List<SupportedTransform> transformers = localTransformServiceRegistry.findTransformers(MIMETYPE_IWORK_PAGES, targetMimetype, options, RENDITION_NAME);
+        assertEquals(1, transformers.size());
+
         // +ve
         // No props
-        Assert.assertTrue(transformServiceRegistry.isSupported(MIMETYPE_IWORK_PAGES, 1234, "rubbish", options, RENDITION_NAME));
+        Assert.assertTrue(transformServiceRegistry.isSupported(MIMETYPE_IWORK_PAGES, 1234, targetMimetype, options, RENDITION_NAME));
 
         // -ve
         // Bad Source
-        Assert.assertFalse(transformServiceRegistry.isSupported("docxBad", 1234, "rubbish", options, RENDITION_NAME));
+        Assert.assertFalse(transformServiceRegistry.isSupported("docxBad", 1234, targetMimetype, options, RENDITION_NAME));
         // Bad Target
         Assert.assertFalse(transformServiceRegistry.isSupported(MIMETYPE_IWORK_PAGES, 1234, "pdfBad", options, "pdfBad"));
 
         // Good MaxSize docx max size is 768K
-        Assert.assertTrue(transformServiceRegistry.isSupported(MIMETYPE_IWORK_PAGES, 768L*1024, "rubbish", options, RENDITION_NAME));
+        Assert.assertTrue(transformServiceRegistry.isSupported(MIMETYPE_IWORK_PAGES, 768L*1024, targetMimetype, options, RENDITION_NAME));
 
         // -ve
         // Bad MaxSize docx max size is 768K
-        Assert.assertFalse(transformServiceRegistry.isSupported(MIMETYPE_IWORK_PAGES, 768L*1024+1, "rubbish", options, RENDITION_NAME));
+        Assert.assertFalse(transformServiceRegistry.isSupported(MIMETYPE_IWORK_PAGES, 768L*1024+1, targetMimetype, options, RENDITION_NAME));
     }
 
     @Test
@@ -136,17 +141,13 @@ public class LocalTransformServiceRegistryIntegrationTest extends AbstractRendit
         boolean origEnabled = isEnabled(); // should be true
         try
         {
-            // Need to make sure we don't fall back to a transformer without limits.
-            List<SupportedTransform> transformers = localTransformServiceRegistry.findTransformers(MIMETYPE_IWORK_PAGES, MIMETYPE_IMAGE_JPEG, options, RENDITION_NAME);
-            assertEquals(1, transformers.size());
-
-            Assert.assertTrue(transformServiceRegistry.isSupported(MIMETYPE_IWORK_PAGES, 1234, MIMETYPE_IMAGE_JPEG, options, RENDITION_NAME));
+            Assert.assertTrue(transformServiceRegistry.isSupported(MIMETYPE_IWORK_PAGES, 1234, targetMimetype, options, RENDITION_NAME));
 
             setEnabled(false);
-            Assert.assertFalse(transformServiceRegistry.isSupported(MIMETYPE_IWORK_PAGES, 1234, MIMETYPE_IMAGE_JPEG, options, RENDITION_NAME));
+            Assert.assertFalse(transformServiceRegistry.isSupported(MIMETYPE_IWORK_PAGES, 1234, targetMimetype, options, RENDITION_NAME));
 
             setEnabled(true);
-            Assert.assertTrue(transformServiceRegistry.isSupported(MIMETYPE_IWORK_PAGES, 1234, MIMETYPE_IMAGE_JPEG, options, RENDITION_NAME));
+            Assert.assertTrue(transformServiceRegistry.isSupported(MIMETYPE_IWORK_PAGES, 1234, targetMimetype, options, RENDITION_NAME));
         }
         finally
         {
