@@ -37,9 +37,10 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.Date;
+import java.util.HashSet;
 import java.util.Properties;
 import java.util.Set;
-import java.util.TreeSet;
 
 /**
  * The
@@ -66,26 +67,31 @@ public class DeleteNotExistsExecutor implements StatementExecutor
     private static final String ERR_STATEMENT_FAILED = "schema.update.err.statement_failed";
     private static final String MSG_OPTIONAL_STATEMENT_FAILED = "schema.update.msg.optional_statement_failed";
 
-    public static final String PROPERTY_DEFAULT_BATCH_SIZE = "system.upgrade.default.batchsize";
-    public static final String PROPERTY_DEFAULT_DELETE_BATCH_SIZE = "system.upgrade.default.delete.batchsize";
+    public static final String PROPERTY_BATCH_SIZE = "system.upgrade.delete_not_exists.batchsize";
+    public static final String PROPERTY_DELETE_BATCH_SIZE = "system.upgrade.delete_not_exists.delete_batchsize";
+    public static final String PROPERTY_READ_ONLY = "system.upgrade.delete_not_exists.read_only";
+    public static final String PROPERTY_TIMEOUT_SECONDS = "system.upgrade.delete_not_exists.timeout_seconds";
 
     private Connection connection;
     private String sql;
     private int line;
     private File scriptFile;
     private Properties globalProperties;
-    
-    private boolean readOnly = false;
+
+    private boolean readOnly;
     private int deleteBatchSize;
     private int batchSize;
+    private long timeoutSec;
 
-    public DeleteNotExistsExecutor(Connection connection, String sql, int line, File scriptFile, boolean readOnly, Properties globalProperties)
+    private long deletedCount;
+    private Date startTime;
+
+    public DeleteNotExistsExecutor(Connection connection, String sql, int line, File scriptFile, Properties globalProperties)
     {
         this.connection = connection;
         this.sql = sql;
         this.line = line;
         this.scriptFile = scriptFile;
-        this.readOnly = readOnly;
         this.globalProperties = globalProperties;
     }
 
@@ -98,12 +104,14 @@ public class DeleteNotExistsExecutor implements StatementExecutor
     {
         checkProperties();
 
-        logger.info("**sql**: " + sql);
+        if (logger.isTraceEnabled())
+        {
+            logger.trace("Execute statement: " + sql);
+        }
 
-        // --DELETE_NOT_EXISTS table.column batch.size.property
+        // --DELETE_NOT_EXISTS primaryTable.key,secondaryTable1.key1,... batch.size.property
         String[] args = sql.split("[ \\t]+");
-        int sepIndex;
-        if (args.length == 3 && (sepIndex = args[1].indexOf('.')) != -1)
+        if (args.length == 3 && (args[1].indexOf('.')) != -1)
         {
             String[] tableColumnArgs = args[1].split(",");
             if (tableColumnArgs.length >= 2)
@@ -113,14 +121,20 @@ public class DeleteNotExistsExecutor implements StatementExecutor
                 // Fall back to the default property
                 if (batchSizeString == null)
                 {
-                    batchSizeString = globalProperties.getProperty(PROPERTY_DEFAULT_BATCH_SIZE);
+                    batchSizeString = globalProperties.getProperty(PROPERTY_BATCH_SIZE);
                 }
 
                 batchSize = batchSizeString == null ? 100000 : Integer.parseInt(batchSizeString);
 
                 // Read the batch size from the named property
-                String deleteBatchSizeString = globalProperties.getProperty(PROPERTY_DEFAULT_DELETE_BATCH_SIZE);
+                String deleteBatchSizeString = globalProperties.getProperty(PROPERTY_DELETE_BATCH_SIZE);
                 deleteBatchSize = deleteBatchSizeString == null ? 1000 : Integer.parseInt(deleteBatchSizeString);
+
+                String readOnlyString = globalProperties.getProperty(PROPERTY_READ_ONLY);
+                readOnly = readOnlyString != null && Boolean.parseBoolean(readOnlyString);
+
+                String timeoutSecString = globalProperties.getProperty(PROPERTY_TIMEOUT_SECONDS);
+                timeoutSec = timeoutSecString == null ? -1 : Long.parseLong(timeoutSecString);
 
                 // Compute upper limits
                 Long[] tableUpperLimits = new Long[tableColumnArgs.length];
@@ -134,9 +148,9 @@ public class DeleteNotExistsExecutor implements StatementExecutor
                     tableColumn[i] = new Pair<>(tableName, columnName);
                     tableUpperLimits[i] = getBatchUpperLimit(connection, tableName, columnName, line, scriptFile);
 
-                    if(logger.isDebugEnabled())
+                    if (logger.isTraceEnabled())
                     {
-                        logger.debug("BatchUpperLimit " + tableUpperLimits[i] + " for " + tableName + "." + columnName);
+                        logger.trace("BatchUpperLimit " + tableUpperLimits[i] + " for " + tableName + "." + columnName);
                     }
                 }
 
@@ -154,7 +168,10 @@ public class DeleteNotExistsExecutor implements StatementExecutor
         PreparedStatement primaryPrepStmt = null;
         PreparedStatement[] secondaryPrepStmts = null;
         PreparedStatement deletePrepStmt = null;
-        Set<Long> deleteIds = new TreeSet<>();
+        Set<Long> deleteIds = new HashSet<>();
+
+        deletedCount = 0L;
+        startTime = new Date();
         try
         {
             connection.setAutoCommit(false);
@@ -181,7 +198,7 @@ public class DeleteNotExistsExecutor implements StatementExecutor
 
                 deletePrepStmt = connection.prepareStatement(createPreparedDeleteStatement(primaryTableName, primaryColumnName, deleteBatchSize));
 
-                while (hasResults)
+                while (hasResults && !isTimeoutExceeded())
                 {
                     // Process batch
                     primaryId = processPrimaryTableResultSet(primaryPrepStmt, secondaryPrepStmts, deletePrepStmt, deleteIds, primaryTableName, primaryColumnName, tableColumn);
@@ -213,13 +230,32 @@ public class DeleteNotExistsExecutor implements StatementExecutor
                 deleteFromPrimaryTable(deletePrepStmt, deleteIds, primaryTableName);
                 connection.commit();
             }
+
+            if (logger.isDebugEnabled())
+            {
+                String msg = ((readOnly) ? "Script would have" : "Script") + " deleted a total of " + deletedCount + " items from table " + primaryTableName + ".";
+                logger.debug(msg);
+            }
         }
         finally
         {
             closeQuietly(deletePrepStmt);
             closeQuietly(secondaryPrepStmts);
             closeQuietly(primaryPrepStmt);
+
+            connection.setAutoCommit(true);
         }
+    }
+
+    private boolean isTimeoutExceeded()
+    {
+        if (timeoutSec <= 0)
+        {
+            return false;
+        }
+
+        Date now = new Date();
+        return (now.getTime() > startTime.getTime() + (timeoutSec * 1000));
     }
 
     private Long processPrimaryTableResultSet(PreparedStatement primaryPrepStmt, PreparedStatement[] secondaryPrepStmts, PreparedStatement deletePrepStmt, Set<Long> deleteIds, String primaryTableName,
@@ -265,7 +301,10 @@ public class DeleteNotExistsExecutor implements StatementExecutor
                 // Try to limit processing to a reasonable size.
                 if (rowsProcessed == batchSize)
                 {
-                    logger.info("RowsProcessed " + rowsProcessed + " from primary table " + primaryTableName);
+                    if (logger.isTraceEnabled())
+                    {
+                        logger.trace("RowsProcessed " + rowsProcessed + " from primary table " + primaryTableName);
+                    }
                     break;
                 }
 
@@ -282,13 +321,27 @@ public class DeleteNotExistsExecutor implements StatementExecutor
 
     private void deleteFromPrimaryTable(PreparedStatement deletePrepStmt, Set<Long> deleteIds, String primaryTableName) throws SQLException
     {
+        if (deleteIds.isEmpty())
+        {
+            // Nothing to do at this point.
+            return;
+        }
+
+        int deletedBatchCount = deleteIds.size();
         if (!readOnly)
         {
-            executeDeleteStatement(deletePrepStmt, primaryTableName, deleteIds, deleteBatchSize, line, scriptFile);
+            if (logger.isTraceEnabled())
+            {
+                logger.trace("Prepare to delete " + deleteIds.size() + " items from table " + primaryTableName + ".");
+            }
+
+            deletedBatchCount = executeDeleteStatement(deletePrepStmt, primaryTableName, deleteIds, deleteBatchSize, line, scriptFile);
         }
-        else
+
+        if (logger.isTraceEnabled())
         {
-            logger.debug("Script would have deleted " + deleteIds.size() + " items from table " + primaryTableName + ".");
+            String msg = ((readOnly) ? "Script would have" : "Script") + " deleted a batch of " + deletedBatchCount + " items from table " + primaryTableName + ".";
+            logger.trace(msg);
         }
 
         deleteIds.clear();
@@ -398,19 +451,9 @@ public class DeleteNotExistsExecutor implements StatementExecutor
         return stmtBuilder.toString();
     }
 
-    private void executeDeleteStatement(PreparedStatement stmt, String tableName, Set<Long> deleteIds, int deleteBatchSize, int line, File scriptFile)
+    private int executeDeleteStatement(PreparedStatement stmt, String tableName, Set<Long> deleteIds, int deleteBatchSize, int line, File scriptFile)
             throws SQLException
     {
-        if (deleteIds.isEmpty())
-        {
-            return;
-        }
-
-        if (logger.isDebugEnabled())
-        {
-            logger.debug("Prepare to delete " + deleteIds.size() + " items from table " + tableName + ".");
-        }
-
         try
         {
             int i = 1;
@@ -430,17 +473,14 @@ public class DeleteNotExistsExecutor implements StatementExecutor
                 LogUtil.debug(logger, MSG_EXECUTING_STATEMENT, sql);
             }
 
-            stmt.executeUpdate();
+            int deletedItems = stmt.executeUpdate();
+            deletedCount += deletedItems;
+            return deletedItems;
         }
         catch (SQLException e)
         {
             LogUtil.error(logger, ERR_STATEMENT_FAILED, sql, e.getMessage(), scriptFile.getAbsolutePath(), line);
             throw e;
-        }
-
-        if (logger.isDebugEnabled())
-        {
-            logger.debug("Finished deleting " + deleteIds.size() + " items from table " + tableName + ".");
         }
     }
 

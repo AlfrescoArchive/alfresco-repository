@@ -44,8 +44,7 @@ import java.util.Properties;
  */
 public class PropTablesCleaner
 {
-    private static final String PROPERTY_PROP_TABLE_CLEANER_ENABLED = "system.upgrade.default.prop_table_cleaner.enabled";
-    private static final String PROPERTY_PROP_TABLE_CLEANER_ALG = "system.upgrade.default.prop_table_cleaner.algorithm";
+    private static final String PROPERTY_PROP_TABLE_CLEANER_ALG = "system.upgrade.prop_table_cleaner.algorithm";
     private static final String PROP_TABLE_CLEANER_ALG_V2 = "V2";
 
     private PropertyValueDAO propertyValueDAO;
@@ -87,17 +86,7 @@ public class PropTablesCleaner
     public void execute()
     {
         checkProperties();
-        
-        if (!isEnabled())
-        {
-            if (logger.isDebugEnabled())
-            {
-                logger.debug("Skipping prop tables cleaning (disabled).");
-            }
 
-            return;
-        }
-        
         String propCleanUplockToken = null;
         String ldapSyncLockTocken = null;
         try
@@ -107,7 +96,7 @@ public class PropTablesCleaner
             // Get a lock for LDAP sync as well, see REPO-4556
             ldapSyncLockTocken = jobLockService.getLock(ChainingUserRegistrySynchronizer.LOCK_QNAME, LOCK_TTL);
 
-            if (PROP_TABLE_CLEANER_ALG_V2.equals(getAlgorithm()))
+            if (PROP_TABLE_CLEANER_ALG_V2.equalsIgnoreCase(getAlgorithm()))
             {
                 propertyValueDAO.cleanupUnusedValuesV2();
             }
@@ -148,12 +137,6 @@ public class PropTablesCleaner
                 }
             }
         }
-    }
-
-    private boolean isEnabled()
-    {
-        String isEnabledString = globalProperties.getProperty(PROPERTY_PROP_TABLE_CLEANER_ENABLED);
-        return isEnabledString == null || Boolean.parseBoolean(isEnabledString);
     }
 
     private String getAlgorithm()

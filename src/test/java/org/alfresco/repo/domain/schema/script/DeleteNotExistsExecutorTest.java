@@ -36,8 +36,6 @@ import java.util.Properties;
 import javax.sql.DataSource;
 
 import org.alfresco.util.ApplicationContextHelper;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -52,7 +50,6 @@ import org.springframework.jdbc.core.JdbcTemplate;
  */
 public class DeleteNotExistsExecutorTest
 {
-    private final static Log log = LogFactory.getLog(DeleteNotExistsExecutorTest.class);
     private static ApplicationContext ctx;
     private ScriptExecutor scriptExecutor;
     private DataSource dataSource;
@@ -78,7 +75,7 @@ public class DeleteNotExistsExecutorTest
     {
         scriptExecutor.executeScriptUrl("scriptexec/${db.script.dialect}/delete-not-exists/test-data1.sql");
 
-        String sql = "--DELETE_NOT_EXISTS temp_tst_tbl_1.id,temp_tst_tbl_2.tbl_2_id,temp_tst_tbl_3.tbl_3_id,temp_tst_tbl_4.tbl_4_id system.upgrade.clean_alf_prop_tables.batchsize";
+        String sql = "--DELETE_NOT_EXISTS temp_tst_tbl_1.id,temp_tst_tbl_2.tbl_2_id,temp_tst_tbl_3.tbl_3_id,temp_tst_tbl_4.tbl_4_id system.upgrade.delete_not_exists.batchsize";
         int line = 1;
         File scriptFile = Mockito.mock(File.class);
         Properties properties = Mockito.mock(Properties.class);
@@ -91,7 +88,9 @@ public class DeleteNotExistsExecutorTest
 
             // Test read only
             {
-                DeleteNotExistsExecutor deleteNotExistsExecutor = new DeleteNotExistsExecutor(connection, sql, line, scriptFile, true, properties);
+                when(properties.getProperty(DeleteNotExistsExecutor.PROPERTY_READ_ONLY)).thenReturn("true");
+                when(properties.getProperty(DeleteNotExistsExecutor.PROPERTY_TIMEOUT_SECONDS)).thenReturn("-1");
+                DeleteNotExistsExecutor deleteNotExistsExecutor = new DeleteNotExistsExecutor(connection, sql, line, scriptFile, properties);
                 deleteNotExistsExecutor.execute();
 
                 List<String> res = jdbcTmpl.queryForList(select, String.class);
@@ -99,7 +98,9 @@ public class DeleteNotExistsExecutorTest
             }
 
             {
-                DeleteNotExistsExecutor deleteNotExistsExecutor = new DeleteNotExistsExecutor(connection, sql, line, scriptFile, false, properties);
+                when(properties.getProperty(DeleteNotExistsExecutor.PROPERTY_READ_ONLY)).thenReturn("false");
+                when(properties.getProperty(DeleteNotExistsExecutor.PROPERTY_TIMEOUT_SECONDS)).thenReturn("-1");
+                DeleteNotExistsExecutor deleteNotExistsExecutor = new DeleteNotExistsExecutor(connection, sql, line, scriptFile, properties);
                 deleteNotExistsExecutor.execute();
 
                 List<String> res = jdbcTmpl.queryForList(select, String.class);
@@ -119,7 +120,7 @@ public class DeleteNotExistsExecutorTest
     {
         scriptExecutor.executeScriptUrl("scriptexec/${db.script.dialect}/delete-not-exists/test-data1.sql");
 
-        String sql = "--DELETE_NOT_EXISTS temp_tst_tbl_1.id,temp_tst_tbl_2.tbl_2_id,temp_tst_tbl_3.tbl_3_id,temp_tst_tbl_4.tbl_4_id system.upgrade.clean_alf_prop_tables.batchsize";
+        String sql = "--DELETE_NOT_EXISTS temp_tst_tbl_1.id,temp_tst_tbl_2.tbl_2_id,temp_tst_tbl_3.tbl_3_id,temp_tst_tbl_4.tbl_4_id system.upgrade.delete_not_exists.batchsize";
         int line = 1;
         File scriptFile = Mockito.mock(File.class);
         Properties properties = Mockito.mock(Properties.class);
@@ -130,8 +131,9 @@ public class DeleteNotExistsExecutorTest
         {
             connection.setAutoCommit(true);
             {
-                when(properties.getProperty(DeleteNotExistsExecutor.PROPERTY_DEFAULT_DELETE_BATCH_SIZE)).thenReturn("1");
-                DeleteNotExistsExecutor deleteNotExistsExecutor = new DeleteNotExistsExecutor(connection, sql, line, scriptFile, false, properties);
+                when(properties.getProperty(DeleteNotExistsExecutor.PROPERTY_DELETE_BATCH_SIZE)).thenReturn("1");
+                when(properties.getProperty(DeleteNotExistsExecutor.PROPERTY_READ_ONLY)).thenReturn("false");
+                DeleteNotExistsExecutor deleteNotExistsExecutor = new DeleteNotExistsExecutor(connection, sql, line, scriptFile, properties);
                 deleteNotExistsExecutor.execute();
 
                 List<String> res = jdbcTmpl.queryForList(select, String.class);
@@ -151,7 +153,7 @@ public class DeleteNotExistsExecutorTest
     {
         scriptExecutor.executeScriptUrl("scriptexec/${db.script.dialect}/delete-not-exists/test-data1.sql");
 
-        String sql = "--DELETE_NOT_EXISTS temp_tst_tbl_1.id,temp_tst_tbl_2.tbl_2_id,temp_tst_tbl_3.tbl_3_id,temp_tst_tbl_4.tbl_4_id system.upgrade.clean_alf_prop_tables.batchsize";
+        String sql = "--DELETE_NOT_EXISTS temp_tst_tbl_1.id,temp_tst_tbl_2.tbl_2_id,temp_tst_tbl_3.tbl_3_id,temp_tst_tbl_4.tbl_4_id system.upgrade.delete_not_exists.batchsize";
         int line = 1;
         File scriptFile = Mockito.mock(File.class);
         Properties properties = Mockito.mock(Properties.class);
@@ -162,8 +164,10 @@ public class DeleteNotExistsExecutorTest
         {
             connection.setAutoCommit(true);
             {
-                when(properties.getProperty(DeleteNotExistsExecutor.PROPERTY_DEFAULT_BATCH_SIZE)).thenReturn("2");
-                DeleteNotExistsExecutor deleteNotExistsExecutor = new DeleteNotExistsExecutor(connection, sql, line, scriptFile, false, properties);
+                when(properties.getProperty(DeleteNotExistsExecutor.PROPERTY_BATCH_SIZE)).thenReturn("2");
+                when(properties.getProperty(DeleteNotExistsExecutor.PROPERTY_READ_ONLY)).thenReturn("false");
+                when(properties.getProperty(DeleteNotExistsExecutor.PROPERTY_TIMEOUT_SECONDS)).thenReturn("-1");
+                DeleteNotExistsExecutor deleteNotExistsExecutor = new DeleteNotExistsExecutor(connection, sql, line, scriptFile, properties);
                 deleteNotExistsExecutor.execute();
 
                 List<String> res = jdbcTmpl.queryForList(select, String.class);
