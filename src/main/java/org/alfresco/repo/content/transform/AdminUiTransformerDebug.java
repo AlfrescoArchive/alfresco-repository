@@ -67,16 +67,16 @@ import java.util.regex.Pattern;
 public class AdminUiTransformerDebug extends TransformerDebug implements ApplicationContextAware
 {
     protected TransformServiceRegistry remoteTransformServiceRegistry;
-    protected LocalTransformServiceRegistry localTransformServiceRegistry;
+    protected LocalTransformServiceRegistry localTransformServiceRegistryImpl;
     private ApplicationContext applicationContext;
     private ContentService contentService;
     private SynchronousTransformClient synchronousTransformClient;
     private Repository repositoryHelper;
     private TransactionService transactionService;
 
-    public void setLocalTransformServiceRegistry(LocalTransformServiceRegistry localTransformServiceRegistry)
+    public void setLocalTransformServiceRegistryImpl(LocalTransformServiceRegistry localTransformServiceRegistryImpl)
     {
-        this.localTransformServiceRegistry = localTransformServiceRegistry;
+        this.localTransformServiceRegistryImpl = localTransformServiceRegistryImpl;
     }
 
     public void setRemoteTransformServiceRegistry(TransformServiceRegistry remoteTransformServiceRegistry)
@@ -150,7 +150,7 @@ public class AdminUiTransformerDebug extends TransformerDebug implements Applica
     public void afterPropertiesSet() throws Exception
     {
         super.afterPropertiesSet();
-        PropertyCheck.mandatory(this, "localTransformServiceRegistry", localTransformServiceRegistry);
+        PropertyCheck.mandatory(this, "localTransformServiceRegistryImpl", localTransformServiceRegistryImpl);
         PropertyCheck.mandatory(this, "remoteTransformServiceRegistry", remoteTransformServiceRegistry);
     }
 
