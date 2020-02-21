@@ -67,16 +67,16 @@ import java.util.regex.Pattern;
 public class AdminUiTransformerDebug extends TransformerDebug implements ApplicationContextAware
 {
     protected TransformServiceRegistry remoteTransformServiceRegistry;
-    protected LocalTransformServiceRegistry localTransformServiceRegistryImpl;
+    protected LocalTransformServiceRegistry localTransformServiceRegistry;
     private ApplicationContext applicationContext;
     private ContentService contentService;
     private SynchronousTransformClient synchronousTransformClient;
     private Repository repositoryHelper;
     private TransactionService transactionService;
 
-    public void setLocalTransformServiceRegistryImpl(LocalTransformServiceRegistry localTransformServiceRegistryImpl)
+    public void setLocalTransformServiceRegistry(LocalTransformServiceRegistry localTransformServiceRegistry)
     {
-        this.localTransformServiceRegistryImpl = localTransformServiceRegistryImpl;
+        this.localTransformServiceRegistry = localTransformServiceRegistry;
     }
 
     public void setRemoteTransformServiceRegistry(TransformServiceRegistry remoteTransformServiceRegistry)
@@ -150,7 +150,7 @@ public class AdminUiTransformerDebug extends TransformerDebug implements Applica
     public void afterPropertiesSet() throws Exception
     {
         super.afterPropertiesSet();
-        PropertyCheck.mandatory(this, "localTransformServiceRegistryImpl", localTransformServiceRegistryImpl);
+        PropertyCheck.mandatory(this, "localTransformServiceRegistry", localTransformServiceRegistry);
         PropertyCheck.mandatory(this, "remoteTransformServiceRegistry", remoteTransformServiceRegistry);
     }
 
@@ -196,9 +196,9 @@ public class AdminUiTransformerDebug extends TransformerDebug implements Applica
                             ? false
                             : remoteTransformServiceRegistry.isSupported(sourceMimetype,
                             -1, targetMimetype, Collections.emptyMap(), null);
-                    List<SupportedTransform> localTransformers = localTransformServiceRegistryImpl == null
+                    List<SupportedTransform> localTransformers = localTransformServiceRegistry == null
                             ? Collections.emptyList()
-                            : localTransformServiceRegistryImpl.findTransformers(sourceMimetype,
+                            : localTransformServiceRegistry.findTransformers(sourceMimetype,
                                     targetMimetype, Collections.emptyMap(), null);
                     if (!localTransformers.isEmpty() || supportedByTransformService)
                     {
