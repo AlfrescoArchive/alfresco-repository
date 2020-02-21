@@ -44,7 +44,7 @@ import java.util.Properties;
  */
 public class PropTablesCleaner
 {
-    private static final String PROPERTY_PROP_TABLE_CLEANER_ALG = "system.upgrade.prop_table_cleaner.algorithm";
+    private static final String PROPERTY_PROP_TABLE_CLEANER_ALG = "system.prop_table_cleaner.algorithm";
     private static final String PROP_TABLE_CLEANER_ALG_V2 = "V2";
 
     private PropertyValueDAO propertyValueDAO;

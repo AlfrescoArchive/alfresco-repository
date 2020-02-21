@@ -49,13 +49,11 @@ import java.util.Set;
  * key in any of the secondary tables (e.g. secondaryTable1.columnName1,...,secondaryTableN.columnNameN).
  * <p/>
  * The processing of the tables and the actual deletes are done in batches to support a high volume of data. It can be influenced using: <br>
- * <code>deleteNotExistsExecutor.setMaxBatchSize</code>
- * and/or<br>
- * <code>deleteNotExistsExecutor.setMaxDeleteBatchSize</code>
+ * <code>system.delete_not_exists.batchsize</code> and/or <code>system.delete_not_exists.delete_batchsize</code>
  * <p/>
- * The statement can be executed in read only mode using: <br>
- * <code>new DeleteNotExistsExecutor(connection, sql, line, scriptFile, true)</code>
+ * The statement can be executed in read only mode using: <code>system.delete_not_exists.read_only</code>.
  * <p/>
+ * In case of high volume of data we can limit the processing time using: <code>system.delete_not_exists.timeout_seconds</code>.
  * 
  * @author Cristian Turlica
  */
@@ -67,10 +65,10 @@ public class DeleteNotExistsExecutor implements StatementExecutor
     private static final String ERR_STATEMENT_FAILED = "schema.update.err.statement_failed";
     private static final String MSG_OPTIONAL_STATEMENT_FAILED = "schema.update.msg.optional_statement_failed";
 
-    public static final String PROPERTY_BATCH_SIZE = "system.upgrade.delete_not_exists.batchsize";
-    public static final String PROPERTY_DELETE_BATCH_SIZE = "system.upgrade.delete_not_exists.delete_batchsize";
-    public static final String PROPERTY_READ_ONLY = "system.upgrade.delete_not_exists.read_only";
-    public static final String PROPERTY_TIMEOUT_SECONDS = "system.upgrade.delete_not_exists.timeout_seconds";
+    public static final String PROPERTY_BATCH_SIZE = "system.delete_not_exists.batchsize";
+    public static final String PROPERTY_DELETE_BATCH_SIZE = "system.delete_not_exists.delete_batchsize";
+    public static final String PROPERTY_READ_ONLY = "system.delete_not_exists.read_only";
+    public static final String PROPERTY_TIMEOUT_SECONDS = "system.delete_not_exists.timeout_seconds";
 
     private Connection connection;
     private String sql;
@@ -161,6 +159,15 @@ public class DeleteNotExistsExecutor implements StatementExecutor
 
     private void process(Pair<String, String>[] tableColumn, Long[] tableUpperLimits) throws SQLException
     {
+        // The approach is to fetch ordered row ids from all referencer/secondary (e.g.
+        // alf_audit_app, alf_audit_entry, alf_prop_unique_ctx) tables and
+        // referenced/primary table (e.g. alf_prop_root) concurrently, so that it is
+        // possible skip over id gaps efficiently while at the same time being able to
+        // work out which ids are obsolete and delete them in batches.
+
+        // The algorithm can be further improved by iterating over the rows in descending order.
+        // This is due to the fact that older data should be more stable in time.
+
         String primaryTableName = tableColumn[0].getFirst();
         String primaryColumnName = tableColumn[0].getSecond();
 
@@ -198,6 +205,8 @@ public class DeleteNotExistsExecutor implements StatementExecutor
 
                 deletePrepStmt = connection.prepareStatement(createPreparedDeleteStatement(primaryTableName, primaryColumnName, deleteBatchSize));
 
+                // Timeout is only checked at each bach start.
+                // It can be further refined by being verified at each primary row processing.
                 while (hasResults && !isTimeoutExceeded())
                 {
                     // Process batch
@@ -321,21 +330,15 @@ public class DeleteNotExistsExecutor implements StatementExecutor
 
     private void deleteFromPrimaryTable(PreparedStatement deletePrepStmt, Set<Long> deleteIds, String primaryTableName) throws SQLException
     {
-        if (deleteIds.isEmpty())
-        {
-            // Nothing to do at this point.
-            return;
-        }
-
         int deletedBatchCount = deleteIds.size();
-        if (!readOnly)
+        if (!readOnly && !deleteIds.isEmpty())
         {
             if (logger.isTraceEnabled())
             {
                 logger.trace("Prepare to delete " + deleteIds.size() + " items from table " + primaryTableName + ".");
             }
 
-            deletedBatchCount = executeDeleteStatement(deletePrepStmt, primaryTableName, deleteIds, deleteBatchSize, line, scriptFile);
+            deletedBatchCount = executeDeleteStatement(deletePrepStmt, deleteIds, deleteBatchSize, line, scriptFile);
         }
 
         if (logger.isTraceEnabled())
@@ -451,7 +454,7 @@ public class DeleteNotExistsExecutor implements StatementExecutor
         return stmtBuilder.toString();
     }
 
-    private int executeDeleteStatement(PreparedStatement stmt, String tableName, Set<Long> deleteIds, int deleteBatchSize, int line, File scriptFile)
+    private int executeDeleteStatement(PreparedStatement stmt, Set<Long> deleteIds, int deleteBatchSize, int line, File scriptFile)
             throws SQLException
     {
         try

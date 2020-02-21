@@ -75,7 +75,7 @@ public class DeleteNotExistsExecutorTest
     {
         scriptExecutor.executeScriptUrl("scriptexec/${db.script.dialect}/delete-not-exists/test-data1.sql");
 
-        String sql = "--DELETE_NOT_EXISTS temp_tst_tbl_1.id,temp_tst_tbl_2.tbl_2_id,temp_tst_tbl_3.tbl_3_id,temp_tst_tbl_4.tbl_4_id system.upgrade.delete_not_exists.batchsize";
+        String sql = "--DELETE_NOT_EXISTS temp_tst_tbl_1.id,temp_tst_tbl_2.tbl_2_id,temp_tst_tbl_3.tbl_3_id,temp_tst_tbl_4.tbl_4_id system.delete_not_exists.batchsize";
         int line = 1;
         File scriptFile = Mockito.mock(File.class);
         Properties properties = Mockito.mock(Properties.class);
@@ -120,7 +120,7 @@ public class DeleteNotExistsExecutorTest
     {
         scriptExecutor.executeScriptUrl("scriptexec/${db.script.dialect}/delete-not-exists/test-data1.sql");
 
-        String sql = "--DELETE_NOT_EXISTS temp_tst_tbl_1.id,temp_tst_tbl_2.tbl_2_id,temp_tst_tbl_3.tbl_3_id,temp_tst_tbl_4.tbl_4_id system.upgrade.delete_not_exists.batchsize";
+        String sql = "--DELETE_NOT_EXISTS temp_tst_tbl_1.id,temp_tst_tbl_2.tbl_2_id,temp_tst_tbl_3.tbl_3_id,temp_tst_tbl_4.tbl_4_id system.delete_not_exists.batchsize";
         int line = 1;
         File scriptFile = Mockito.mock(File.class);
         Properties properties = Mockito.mock(Properties.class);
@@ -153,7 +153,7 @@ public class DeleteNotExistsExecutorTest
     {
         scriptExecutor.executeScriptUrl("scriptexec/${db.script.dialect}/delete-not-exists/test-data1.sql");
 
-        String sql = "--DELETE_NOT_EXISTS temp_tst_tbl_1.id,temp_tst_tbl_2.tbl_2_id,temp_tst_tbl_3.tbl_3_id,temp_tst_tbl_4.tbl_4_id system.upgrade.delete_not_exists.batchsize";
+        String sql = "--DELETE_NOT_EXISTS temp_tst_tbl_1.id,temp_tst_tbl_2.tbl_2_id,temp_tst_tbl_3.tbl_3_id,temp_tst_tbl_4.tbl_4_id system.delete_not_exists.batchsize";
         int line = 1;
         File scriptFile = Mockito.mock(File.class);
         Properties properties = Mockito.mock(Properties.class);
