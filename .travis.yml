@@ -24,8 +24,8 @@ stages:
   - release
 
 env:
-  - KEYSTORE_CONF=" -Dmetadata-keystore.aliases=metadata -Dmetadata-keystore.password=mp6yc0UD9e -Dmetadata-keystore.metadata.algorithm=DESede -Dmetadata-keystore.metadata.password=oKIWzVdEdA "
-  - DB_CONF=" -Ddb.driver=org.postgresql.Driver -Ddb.name=alfresco -Ddb.url=jdbc:postgresql://localhost:5433/alfresco -Ddb.username=alfresco -Ddb.password=alfresco "
+  - KEYSTORE_CONF=-Dmetadata-keystore.aliases=metadata -Dmetadata-keystore.password=mp6yc0UD9e -Dmetadata-keystore.metadata.algorithm=DESede -Dmetadata-keystore.metadata.password=oKIWzVdEdA
+  - DB_CONF=-Ddb.driver=org.postgresql.Driver -Ddb.name=alfresco -Ddb.url=jdbc:postgresql://localhost:5433/alfresco -Ddb.username=alfresco -Ddb.password=alfresco
 
 install: travis_retry mvn install -DskipTests=true -Dmaven.javadoc.skip=true -B -V
 
