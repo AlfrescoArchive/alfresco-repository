@@ -111,7 +111,7 @@
         {"transformerName": "libreoffice"}
       ],
       "supportedSourceAndTargetList": [
-        {"sourceMediaType": "text/html",                    "priority": "150", "targetMediaType": "application/pdf" }
+        {"sourceMediaType": "text/html",                    "targetMediaType": "application/pdf" }
       ],
       "transformOptions": [
       ]

@@ -204,7 +204,7 @@ public class LocalTransformServiceRegistryConfigTest extends TransformServiceReg
 //        {"sourceMediaType": "application/msword",  "targetMediaType": "image/jpeg"},
 //        {"sourceMediaType": "application/msword",  "targetMediaType": "image/png" },
 //        {"sourceMediaType": "application/msword",  "targetMediaType": "image/tiff"}
-        return 3 + 1 + 1 + 4;   // 18
+        return 3 + 1 + 1 + 4;   // 9
     }
 
     /**

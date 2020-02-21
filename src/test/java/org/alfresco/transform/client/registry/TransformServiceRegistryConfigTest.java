@@ -76,13 +76,6 @@ public class TransformServiceRegistryConfigTest extends TransformRegistryTest
     {
         super.setUp();
         LogManager.getLogger(TransformServiceRegistryConfigTest.class).setLevel(Level.DEBUG);
-        System.setProperty("localTransform.appleIWorks.url", "http://imagemagick:8090/");
-    }
-
-    @After
-    public void cleanUp()
-    {
-        System.clearProperty("localTransform.appleIWorks.url");
     }
 
     @Override
