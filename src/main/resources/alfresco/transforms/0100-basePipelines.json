@@ -1,6 +1,19 @@
 {
   "transformers": [
     {
+      "transformerName": "officeToImageViaPdf",
+      "transformerPipeline" : [
+        {"transformerName": "libreoffice", "targetMediaType": "application/pdf"},
+        {"transformerName": "pdfToImageViaPng"}
+      ],
+      "supportedSourceAndTargetList": [
+      ],
+      "transformOptions": [
+        "pdfRendererOptions",
+        "imageMagickOptions"
+      ]
+    },
+    {
       "transformerName": "pdfToImageViaPng",
       "transformerPipeline" : [
         {"transformerName": "pdfrenderer",      "targetMediaType": "image/png"},
