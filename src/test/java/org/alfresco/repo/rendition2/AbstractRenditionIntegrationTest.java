@@ -195,18 +195,6 @@ public abstract class AbstractRenditionIntegrationTest extends BaseSpringTest
     @AfterClass
     public static void after()
     {
-        System.clearProperty("alfresco-pdf-renderer.url");
-        System.clearProperty("img.url");
-        System.clearProperty("jodconverter.url");
-        System.clearProperty("tika.url");
-        System.clearProperty("transform.misc.url");
-
-        System.clearProperty("localTransform.pdfrenderer.url");
-        System.clearProperty("localTransform.imagemagick.url");
-        System.clearProperty("localTransform.libreoffice.url");
-        System.clearProperty("localTransform.tika.url");
-        System.clearProperty("localTransform.misc.url");
-
         System.clearProperty("transform.service.enabled");
         System.clearProperty("local.transform.service.enabled");
         System.clearProperty("legacy.transform.service.enabled");
