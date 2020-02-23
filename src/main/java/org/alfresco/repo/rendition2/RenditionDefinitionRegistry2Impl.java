@@ -268,6 +268,7 @@ public class RenditionDefinitionRegistry2Impl implements RenditionDefinitionRegi
 
     public Data createData()
     {
+        // Reload static XML definitions
         Data currentData = null;
         if (firstTime)
         {

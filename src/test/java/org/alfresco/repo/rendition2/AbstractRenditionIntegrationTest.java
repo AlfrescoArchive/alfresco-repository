@@ -170,17 +170,24 @@ public abstract class AbstractRenditionIntegrationTest extends BaseSpringTest
 
         origLocalTransCron = localTransformServiceRegistry.getCronExpression();
         localTransformServiceRegistry.setCronExpression(null);
-        localTransformServiceRegistry.setEnabled(Boolean.parseBoolean(System.getProperty("local.transform.service.enabled")));
+        boolean localTransformServiceEnabled = Boolean.parseBoolean(System.getProperty("local.transform.service.enabled"));
+        localTransformServiceRegistry.setEnabled(localTransformServiceEnabled);
         localTransformServiceRegistry.afterPropertiesSet();
 
-        origRenditionCron = renditionDefinitionRegistry2.getCronExpression();
-        renditionDefinitionRegistry2.setCronExpression(null);
-        renditionDefinitionRegistry2.setTransformServiceRegistry(transformServiceRegistry);
-        renditionDefinitionRegistry2.afterPropertiesSet();
+        if (transformServiceRegistry instanceof LocalTransformServiceRegistry)
+        {
+            ((LocalTransformServiceRegistry)transformServiceRegistry).setEnabled(localTransformServiceEnabled);
+        }
 
         thumbnailRegistry.setTransformServiceRegistry(transformServiceRegistry);
         thumbnailRegistry.setLocalTransformServiceRegistry(localTransformServiceRegistry);
         thumbnailRegistry.setConverter(converter);
+
+        origRenditionCron = renditionDefinitionRegistry2.getCronExpression();
+        renditionDefinitionRegistry2.setCronExpression(null);
+        renditionDefinitionRegistry2.setTransformServiceRegistry(transformServiceRegistry);
+        renditionDefinitionRegistry2.setTransformServiceRegistry(localTransformServiceRegistry);
+        renditionDefinitionRegistry2.afterPropertiesSet();
     }
 
     @After
