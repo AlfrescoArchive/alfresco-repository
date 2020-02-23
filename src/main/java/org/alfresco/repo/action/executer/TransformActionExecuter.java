@@ -212,7 +212,7 @@ public class TransformActionExecuter extends ActionExecuterAbstractBase
         String sourceMimetype = contentReader.getMimetype();
         long sourceSizeInBytes = contentReader.getSize();
         String contentUrl = contentReader.getContentUrl();
-        Map<String, String> options = converter.getOptions(transformationOptions);
+        Map<String, String> options = converter.getOptions(transformationOptions, sourceMimetype);
         if (!synchronousTransformClient.isSupported(sourceMimetype, sourceSizeInBytes,
                 contentUrl, mimeType, options, null, actionedUponNodeRef))
         {
@@ -351,7 +351,8 @@ public class TransformActionExecuter extends ActionExecuterAbstractBase
         // transform - will throw NoTransformerException if there are no transformers
         TransformationOptions transformationOptions = newTransformationOptions(ruleAction, sourceNodeRef);
         transformationOptions.setTargetNodeRef(destinationNodeRef);
-        Map<String, String> options = converter.getOptions(transformationOptions);
+        String sourceMimetype = contentReader.getMimetype();
+        Map<String, String> options = converter.getOptions(transformationOptions, sourceMimetype);
         synchronousTransformClient.transform(contentReader, contentWriter, options, null, sourceNodeRef);
     }
     

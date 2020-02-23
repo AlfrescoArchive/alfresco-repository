@@ -50,6 +50,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.StringJoiner;
 
+import static org.alfresco.repo.content.MimetypeMap.MIMETYPE_PDF;
 import static org.alfresco.repo.rendition2.RenditionDefinition2.ALLOW_ENLARGEMENT;
 import static org.alfresco.repo.rendition2.RenditionDefinition2.ALLOW_PDF_ENLARGEMENT;
 import static org.alfresco.repo.rendition2.RenditionDefinition2.AUTO_ORIENT;
@@ -332,8 +333,9 @@ public class TransformationOptionsConverter implements InitializingBean
         }
     }
 
-    public Map<String, String> getOptions(TransformationOptions options)
+    public Map<String, String> getOptions(TransformationOptions options, String sourceMimetype)
     {
+        boolean sourceIsPdf = MIMETYPE_PDF.equals(sourceMimetype);
         Map<String, String> map = new HashMap<>();
         map.put(TIMEOUT, "-1");
         if (options != null)
@@ -378,12 +380,12 @@ public class TransformationOptionsConverter implements InitializingBean
                             // transforms start at 0;
                             Integer startPageNumber = pagedSourceOptions.getStartPageNumber() - 1;
                             Integer endPageNumber = pagedSourceOptions.getEndPageNumber() - 1;
-// PAGE is not an imagemagick option
-//                            if (startPageNumber == endPageNumber)
-//                            {
-//                                map.put(PAGE, Integer.toString(startPageNumber));
-//                            }
-//                            else
+                            // PAGE is not an imagemagick option, but pdfRederer was incorrectly created initially using these options
+                            if (startPageNumber == endPageNumber && sourceIsPdf)
+                            {
+                                map.put(PAGE, Integer.toString(startPageNumber));
+                            }
+                            else
                             {
                                 map.put(START_PAGE, Integer.toString(startPageNumber));
                                 map.put(END_PAGE, Integer.toString(endPageNumber));
