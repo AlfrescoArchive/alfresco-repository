@@ -82,10 +82,8 @@
         <property name="renditionService2" ref="renditionService2" />
     </bean>
 
-    <!-- Deprecated -->
     <bean id="synchronousTransformClient" parent="localSynchronousTransformClient" />
 
-    <!-- Deprecated -->
     <bean id="localSynchronousTransformClient" class="org.alfresco.repo.rendition2.LocalSynchronousTransformClient">
         <property name="localTransformServiceRegistry" ref="localTransformServiceRegistry" />
     </bean>
