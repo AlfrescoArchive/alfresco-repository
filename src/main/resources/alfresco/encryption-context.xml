@@ -20,7 +20,8 @@
        <property name="location" value="${encryption.keystore.location}"/>
        <property name="provider" value="${encryption.keystore.provider}"/>
        <property name="type"     value="${encryption.keystore.type}"/>
-<!--       <property name="keyMetaDataFileLocation" value="${encryption.keystore.keyMetaData.location}"/>-->
+       <!-- This property is left for backwards compatibility -->
+       <property name="keyMetaDataFileLocation" value="${encryption.keystore.keyMetaData.location}"/>
     </bean>
 
     <bean id="encryptionKeysRegistry" class="org.alfresco.encryption.EncryptionKeysRegistryImpl" init-method="init">
@@ -36,7 +37,8 @@
         <property name="location" value="${encryption.ssl.keystore.location}"/>
         <property name="type" value="${encryption.ssl.keystore.type}"/>
         <property name="provider" value="${encryption.ssl.keystore.provider}"/>
-<!--        <property name="keyMetaDataFileLocation" value="${encryption.ssl.keystore.keyMetaData.location}"/>-->
+        <!-- This property is left for backwards compatibility -->
+        <property name="keyMetaDataFileLocation" value="${encryption.ssl.keystore.keyMetaData.location}"/>
     </bean>
 
     <bean id="sslTrustStoreParameters" class="org.alfresco.encryption.KeyStoreParameters" init-method="init">
@@ -45,7 +47,8 @@
         <property name="location" value="${encryption.ssl.truststore.location}"/>
         <property name="type" value="${encryption.ssl.truststore.type}"/>
         <property name="provider" value="${encryption.ssl.truststore.provider}"/>
-<!--        <property name="keyMetaDataFileLocation" value="${encryption.ssl.truststore.keyMetaData.location}"/>-->
+        <!-- This property is left for backwards compatibility -->
+        <property name="keyMetaDataFileLocation" value="${encryption.ssl.truststore.keyMetaData.location}"/>
     </bean>
 
     <bean id="sslEncryptionParameters" class="org.alfresco.encryption.ssl.SSLEncryptionParameters">
@@ -79,7 +82,8 @@
        <property name="location" value="${encryption.keystore.backup.location}"/>
        <property name="provider" value="${encryption.keystore.backup.provider}"/>
        <property name="type"     value="${encryption.keystore.backup.type}"/>
-<!--       <property name="keyMetaDataFileLocation" value="${encryption.keystore.backup.keyMetaData.location}"/>-->
+       <!-- This property is left for backwards compatibility -->
+       <property name="keyMetaDataFileLocation" value="${encryption.keystore.backup.keyMetaData.location}"/>
     </bean>
     
     <bean id="keyStore" class="org.alfresco.encryption.AlfrescoKeyStoreImpl" init-method="init">
