@@ -16,6 +16,8 @@
                 <value>alfresco/model/deprecated/slidesharePublishingModel.xml</value>
                 <value>alfresco/model/deprecated/twitterPublishingModel.xml</value>
                 <value>alfresco/model/deprecated/youtubePublishingModel.xml</value>
+                <value>alfresco/model/deprecated/syncModel.xml</value>
+                <value>alfresco/model/deprecated/hybridWorkflowModel.xml</value>
             </list>
         </property>
     </bean>
