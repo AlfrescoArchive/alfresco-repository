@@ -2,7 +2,7 @@
     <modelVersion>4.0.0</modelVersion>
     <artifactId>alfresco-repository</artifactId>
     <name>Alfresco Repository</name>
-    <version>8.112-SNAPSHOT</version>
+    <version>8.117-SNAPSHOT</version>
     <packaging>jar</packaging>
     <parent>
         <groupId>org.alfresco</groupId>
@@ -46,7 +46,7 @@
         <dependency.alfresco-hb-data-sender.version>1.0.12</dependency.alfresco-hb-data-sender.version>
         <dependency.transform.model.version>1.0.2.8</dependency.transform.model.version>
 
-        <dependency.spring.version>5.2.3.RELEASE</dependency.spring.version>
+        <dependency.spring.version>5.2.4.RELEASE</dependency.spring.version>
         <dependency.spring-security.version>5.2.1.RELEASE</dependency.spring-security.version>
         <dependency.httpcomponents.version>4.5.10</dependency.httpcomponents.version>
         <dependency.truezip.version>7.7.10</dependency.truezip.version>
@@ -67,7 +67,7 @@
         <dependency.cxf.version>3.3.5</dependency.cxf.version>
         <dependency.jackson.version>2.10.2</dependency.jackson.version>
         <dependency.jackson-databind.version>2.10.2</dependency.jackson-databind.version>
-        <dependency.apache.taglibs.version>1.2.3</dependency.apache.taglibs.version>
+        <dependency.apache.taglibs.version>1.2.5</dependency.apache.taglibs.version>
     </properties>
 
     <dependencyManagement>
@@ -131,6 +131,16 @@
                 <groupId>com.fasterxml.jackson.core</groupId>
                 <artifactId>jackson-annotations</artifactId>
                 <version>${dependency.jackson.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.httpcomponents</groupId>
+                <artifactId>httpclient</artifactId>
+                <version>4.5.11</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.httpcomponents</groupId>
+                <artifactId>httpcore</artifactId>
+                <version>4.4.13</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
@@ -910,6 +920,11 @@
                 </exclusion>
             </exclusions>
         </dependency>
+        <dependency>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-codec-http</artifactId>
+            <version>4.1.45.Final</version>
+        </dependency>        
         <!-- Transform dependencies -->
         <dependency>
             <groupId>org.alfresco</groupId>
