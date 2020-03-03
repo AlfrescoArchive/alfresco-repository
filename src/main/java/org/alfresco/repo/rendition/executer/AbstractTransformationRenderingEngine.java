@@ -197,7 +197,7 @@ public abstract class AbstractTransformationRenderingEngine extends AbstractRend
         TransformationOptions transformationOptions = getTransformOptions(context);
 
         long sourceSizeInBytes = contentReader.getSize();
-        Map<String, String> options = converter.getOptions(transformationOptions, sourceMimeType);
+        Map<String, String> options = converter.getOptions(transformationOptions, sourceMimeType, targetMimeType);
         NodeRef sourceNodeRef = transformationOptions.getSourceNodeRef();
         if (!synchronousTransformClient.isSupported(sourceMimeType, sourceSizeInBytes, contentUrl, targetMimeType,
                 options, null, sourceNodeRef))
@@ -430,7 +430,7 @@ public abstract class AbstractTransformationRenderingEngine extends AbstractRend
             this.contentReader = contentReader;
             this.targetMimeType = targetMimeType;
             String sourceMimetype = contentReader.getMimetype();
-            this.options = converter.getOptions(transformationOptions, sourceMimetype);
+            this.options = converter.getOptions(transformationOptions, sourceMimetype, targetMimeType);
             this.context = context;
             this.initiatingUsername = initiatingUsername;
         }

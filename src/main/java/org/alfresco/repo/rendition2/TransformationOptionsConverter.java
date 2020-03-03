@@ -25,6 +25,7 @@
  */
 package org.alfresco.repo.rendition2;
 
+import org.alfresco.repo.content.MimetypeMap;
 import org.alfresco.repo.content.transform.RuntimeExecutableContentTransformerOptions;
 import org.alfresco.repo.content.transform.magick.ImageResizeOptions;
 import org.alfresco.repo.content.transform.magick.ImageTransformationOptions;
@@ -53,6 +54,7 @@ import java.util.StringJoiner;
 import static org.alfresco.repo.content.MimetypeMap.MIMETYPE_PDF;
 import static org.alfresco.repo.rendition2.RenditionDefinition2.ALLOW_ENLARGEMENT;
 import static org.alfresco.repo.rendition2.RenditionDefinition2.ALLOW_PDF_ENLARGEMENT;
+import static org.alfresco.repo.rendition2.RenditionDefinition2.ALPHA_REMOVE;
 import static org.alfresco.repo.rendition2.RenditionDefinition2.AUTO_ORIENT;
 import static org.alfresco.repo.rendition2.RenditionDefinition2.CROP_GRAVITY;
 import static org.alfresco.repo.rendition2.RenditionDefinition2.CROP_HEIGHT;
@@ -118,6 +120,7 @@ public class TransformationOptionsConverter implements InitializingBean
         IMAGE_OPTIONS.addAll(TEMPORAL_OPTIONS);
         IMAGE_OPTIONS.addAll(RESIZE_OPTIONS);
         IMAGE_OPTIONS.add(AUTO_ORIENT);
+        IMAGE_OPTIONS.add(ALPHA_REMOVE);
     }
 
     private static Set<String> PDF_OPTIONS = new HashSet<>(Arrays.asList(new String[]
@@ -235,6 +238,7 @@ public class TransformationOptionsConverter implements InitializingBean
                 }
 
                 ifSet(options, AUTO_ORIENT, (v) ->opts.setAutoOrient(Boolean.parseBoolean(v)));
+                // ALPHA_REMOVE can be ignored as it is automatically added in the legacy code if the sourceMimetype is jpeg
 
                 boolean containsPaged = containsAny(subclassOptionNames, PAGED_OPTIONS);
                 boolean containsCrop = containsAny(subclassOptionNames, CROP_OPTIONS);
@@ -333,7 +337,13 @@ public class TransformationOptionsConverter implements InitializingBean
         }
     }
 
-    public Map<String, String> getOptions(TransformationOptions options, String sourceMimetype)
+    @Deprecated
+    public Map<String, String> getOptions(TransformationOptions options)
+    {
+        return getOptions(options, null, null);
+    }
+
+    public Map<String, String> getOptions(TransformationOptions options, String sourceMimetype, String targetMimetype)
     {
         boolean sourceIsPdf = MIMETYPE_PDF.equals(sourceMimetype);
         Map<String, String> map = new HashMap<>();
@@ -361,11 +371,12 @@ public class TransformationOptionsConverter implements InitializingBean
                     ifSet(height != -1, map, RESIZE_HEIGHT, height);
                     ifSet(imageResizeOptions.isResizeToThumbnail(), map, THUMBNAIL, true);
                     ifSet(imageResizeOptions.isPercentResize(), map, RESIZE_PERCENTAGE, true);
-                    ifSet(!imageResizeOptions.getAllowEnlargement(), map, ALLOW_ENLARGEMENT, false);
+                    ifSet(imageResizeOptions.getAllowEnlargement(), map, ALLOW_ENLARGEMENT, true);
                     ifSet(imageResizeOptions.isMaintainAspectRatio(), map, MAINTAIN_ASPECT_RATIO, true);
                 }
 
-                ifSet(!opts.isAutoOrient(), map, AUTO_ORIENT, false);
+                ifSet(MimetypeMap.MIMETYPE_IMAGE_JPEG.equalsIgnoreCase(targetMimetype), map, ALPHA_REMOVE, true);
+                ifSet(opts.isAutoOrient(), map, AUTO_ORIENT, true);
 
                 Collection<TransformationSourceOptions> sourceOptionsList = opts.getSourceOptionsList();
                 if (sourceOptionsList != null)
