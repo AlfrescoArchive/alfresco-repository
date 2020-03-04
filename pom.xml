@@ -869,6 +869,13 @@
             <groupId>org.apache.camel</groupId>
             <artifactId>camel-jackson</artifactId>
             <version>${dependency.camel.version}</version>
+            <exclusions>
+                <!-- Duplicate classes from com.sun.activation:jakarta.activation-->
+                <exclusion>
+                    <groupId>jakarta.activation</groupId>
+                    <artifactId>jakarta.activation-api</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.apache.activemq</groupId>
