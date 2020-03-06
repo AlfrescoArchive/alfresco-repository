@@ -133,9 +133,6 @@ public class SolrStoreMappingWrapperTest
     @Mock
     private BeanFactory beanFactory;
     
-   
-    
-    
     @Before
     public void init()
     {
@@ -145,8 +142,10 @@ public class SolrStoreMappingWrapperTest
         doReturn(999).when(hostConfigurationCommon).getPort();
         doReturn(protocol).when(hostConfigurationCommon).getProtocol();
 
+
         doReturn("host").when(hostConfiguration1).getHost();
         doReturn(999).when(hostConfiguration1).getPort();
+        // getProtocol() is not called for hostConfiguration1
 
         doReturn("common").when(hostConfiguration2).getHost();
         doReturn(123).when(hostConfiguration2).getPort();
