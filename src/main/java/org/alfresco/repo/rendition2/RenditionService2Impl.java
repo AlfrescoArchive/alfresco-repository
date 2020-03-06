@@ -787,7 +787,7 @@ public class RenditionService2Impl implements RenditionService2, InitializingBea
     @Override
     public void onContentUpdate(NodeRef sourceNodeRef, boolean newContent)
     {
-        if (isEnabled())
+        if (isEnabled() && nodeService.exists(sourceNodeRef))
         {
             logger.debug("onContentUpdate on " + sourceNodeRef);
             List<ChildAssociationRef> childAssocs = getRenditionChildAssociations(sourceNodeRef);
