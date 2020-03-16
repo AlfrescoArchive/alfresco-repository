@@ -19,6 +19,16 @@
         <tag>6.28</tag>
     </scm>
 
+    <repositories>
+        <repository>
+            <id>redhat-ea</id>
+            <url>https://maven.repository.redhat.com/earlyaccess/all/</url>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </repository>
+    </repositories>
+
     <distributionManagement>
         <repository>
             <id>alfresco-public</id>
@@ -172,7 +182,7 @@
         <dependency>
             <groupId>org.codehaus.jackson</groupId>
             <artifactId>jackson-core-asl</artifactId>
-            <version>1.9.13</version>
+            <version>1.9.13.redhat-00006</version>
         </dependency>
 
         <dependency>
