@@ -2,7 +2,7 @@
  * #%L
  * Alfresco Repository
  * %%
- * Copyright (C) 2005 - 2019 Alfresco Software Limited
+ * Copyright (C) 2005 - 2020 Alfresco Software Limited
  * %%
  * This file is part of the Alfresco software.
  * If the software was purchased under a paid Alfresco license, the terms of
@@ -89,6 +89,7 @@ import static org.springframework.util.CollectionUtils.containsAny;
 @Deprecated
 public class TransformationOptionsConverter implements InitializingBean
 {
+    public static final String FALSE_STRING = Boolean.FALSE.toString();
     private static Set<String> PAGED_OPTIONS = new HashSet<>(Arrays.asList(new String[]
             {
                     PAGE, START_PAGE, END_PAGE
@@ -233,12 +234,12 @@ public class TransformationOptionsConverter implements InitializingBean
                     ifSet(options, RESIZE_HEIGHT, (v) -> imageResizeOptions.setHeight(Integer.parseInt(v)));
                     ifSet(options, THUMBNAIL, (v) ->imageResizeOptions.setResizeToThumbnail(Boolean.parseBoolean(v)));
                     ifSet(options, RESIZE_PERCENTAGE, (v) ->imageResizeOptions.setPercentResize(Boolean.parseBoolean(v)));
-                    ifSet(options, ALLOW_ENLARGEMENT, (v) ->imageResizeOptions.setAllowEnlargement(Boolean.parseBoolean(v)));
-                    ifSet(options, MAINTAIN_ASPECT_RATIO, (v) ->imageResizeOptions.setMaintainAspectRatio(Boolean.parseBoolean(v)));
+                    set(options, ALLOW_ENLARGEMENT, (v) ->imageResizeOptions.setAllowEnlargement(Boolean.parseBoolean(v == null ? "true" : v)));
+                    set(options, MAINTAIN_ASPECT_RATIO, (v) ->imageResizeOptions.setMaintainAspectRatio(Boolean.parseBoolean(v == null ? "true" : v)));
                 }
 
-                ifSet(options, AUTO_ORIENT, (v) ->opts.setAutoOrient(Boolean.parseBoolean(v)));
                 // ALPHA_REMOVE can be ignored as it is automatically added in the legacy code if the sourceMimetype is jpeg
+                set(options, AUTO_ORIENT, (v) ->opts.setAutoOrient(Boolean.parseBoolean(v == null ? "true" : v)));
 
                 boolean containsPaged = containsAny(subclassOptionNames, PAGED_OPTIONS);
                 boolean containsCrop = containsAny(subclassOptionNames, CROP_OPTIONS);
@@ -328,6 +329,12 @@ public class TransformationOptionsConverter implements InitializingBean
         return transformationOptions;
     }
 
+    protected <T> void set(Map<String, String> options, String key, TransformationOptionsConverter.Setter setter)
+    {
+        String value = options.get(key);
+        setter.set(value);
+    }
+
     protected <T> void ifSet(Map<String, String> options, String key, TransformationOptionsConverter.Setter setter)
     {
         String value = options.get(key);
@@ -371,12 +378,12 @@ public class TransformationOptionsConverter implements InitializingBean
                     ifSet(height != -1, map, RESIZE_HEIGHT, height);
                     ifSet(imageResizeOptions.isResizeToThumbnail(), map, THUMBNAIL, true);
                     ifSet(imageResizeOptions.isPercentResize(), map, RESIZE_PERCENTAGE, true);
-                    ifSet(imageResizeOptions.getAllowEnlargement(), map, ALLOW_ENLARGEMENT, true);
-                    ifSet(imageResizeOptions.isMaintainAspectRatio(), map, MAINTAIN_ASPECT_RATIO, true);
+                    map.put(ALLOW_ENLARGEMENT, Boolean.toString(imageResizeOptions.getAllowEnlargement()));
+                    map.put(MAINTAIN_ASPECT_RATIO, Boolean.toString(imageResizeOptions.isMaintainAspectRatio()));
                 }
 
                 ifSet(MimetypeMap.MIMETYPE_IMAGE_JPEG.equalsIgnoreCase(targetMimetype), map, ALPHA_REMOVE, true);
-                ifSet(opts.isAutoOrient(), map, AUTO_ORIENT, true);
+                map.put(AUTO_ORIENT, Boolean.toString(opts.isAutoOrient()));
 
                 Collection<TransformationSourceOptions> sourceOptionsList = opts.getSourceOptionsList();
                 if (sourceOptionsList != null)
@@ -415,8 +422,8 @@ public class TransformationOptionsConverter implements InitializingBean
                             ifSet(percentageCrop, map, CROP_PERCENTAGE, percentageCrop);
                             ifSet(width != -1, map, CROP_WIDTH, width);
                             ifSet(height != -1, map, CROP_HEIGHT, height);
-                            ifSet(xOffset != 0, map, CROP_X_OFFSET, xOffset);
-                            ifSet(yOffset != 0, map, CROP_Y_OFFSET, yOffset);
+                            map.put(CROP_X_OFFSET, Integer.toString(xOffset));
+                            map.put(CROP_Y_OFFSET, Integer.toString(yOffset));
                         }
                         else if (transformationSourceOptions instanceof TemporalSourceOptions)
                         {
