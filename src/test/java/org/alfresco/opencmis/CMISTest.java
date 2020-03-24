@@ -36,6 +36,7 @@ import static org.junit.Assert.fail;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
+import java.io.IOException;
 import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
 import java.math.BigDecimal;
@@ -51,13 +52,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import org.alfresco.model.ContentModel;
 import org.alfresco.opencmis.dictionary.CMISDictionaryService;
 import org.alfresco.opencmis.dictionary.PropertyDefinitionWrapper;
 import org.alfresco.opencmis.dictionary.TypeDefinitionWrapper;
-import org.alfresco.opencmis.search.CMISQueryOptions;
-import org.alfresco.opencmis.search.CMISQueryOptions.CMISQueryMode;
 import org.alfresco.repo.action.evaluator.ComparePropertyValueEvaluator;
 import org.alfresco.repo.action.executer.AddFeaturesActionExecuter;
 import org.alfresco.repo.audit.AuditComponent;
@@ -94,7 +95,6 @@ import org.alfresco.service.cmr.lock.LockService;
 import org.alfresco.service.cmr.lock.LockType;
 import org.alfresco.service.cmr.model.FileFolderService;
 import org.alfresco.service.cmr.model.FileInfo;
-import org.alfresco.service.cmr.repository.ChildAssociationRef;
 import org.alfresco.service.cmr.repository.ContentService;
 import org.alfresco.service.cmr.repository.ContentWriter;
 import org.alfresco.service.cmr.repository.NodeRef;
@@ -159,13 +159,10 @@ import org.apache.chemistry.opencmis.commons.impl.dataobjects.PropertyIdImpl;
 import org.apache.chemistry.opencmis.commons.impl.dataobjects.PropertyIntegerDefinitionImpl;
 import org.apache.chemistry.opencmis.commons.impl.dataobjects.PropertyIntegerImpl;
 import org.apache.chemistry.opencmis.commons.impl.dataobjects.PropertyStringImpl;
-import org.apache.chemistry.opencmis.commons.impl.server.AbstractServiceFactory;
 import org.apache.chemistry.opencmis.commons.server.CallContext;
 import org.apache.chemistry.opencmis.commons.server.CmisService;
 import org.apache.chemistry.opencmis.commons.server.ObjectInfo;
 import org.apache.chemistry.opencmis.commons.spi.Holder;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -182,8 +179,6 @@ import org.springframework.extensions.webscripts.GUID;
 @Category(LuceneTests.class)
 public class CMISTest
 {
-    private static Log logger = LogFactory.getLog(CMISTest.class);
-
     private static final QName TEST_START_TASK = QName.createQName("http://www.alfresco.org/model/workflow/test/1.0", "startTaskVarScriptAssign");
     private static final QName TEST_WORKFLOW_TASK = QName.createQName("http://www.alfresco.org/model/workflow/test/1.0", "assignVarTask");
     
@@ -222,60 +217,6 @@ public class CMISTest
     private CMISConnector cmisConnector;
     
     private NodeDAO nodeDAO;
-    
-    /**
-     * Test class to provide the service factory
-     * 
-     * @author Derek Hulley
-     * @since 4.0
-     */
-    public static class TestCmisServiceFactory extends AbstractServiceFactory
-    {
-        private static AlfrescoCmisServiceFactory serviceFactory = (AlfrescoCmisServiceFactory) ctx.getBean("CMISServiceFactory");
-        @Override
-        public void init(Map<String, String> parameters)
-        {
-        	serviceFactory.init(parameters);
-        }
-
-        @Override
-        public void destroy()
-        {
-        }
-
-        @Override
-        public CmisService getService(CallContext context)
-        {
-            return serviceFactory.getService(context);
-        }
-    }
-    
-    /**
-     * Test class to provide the service factory
-     * 
-     * @author Derek Hulley
-     * @since 4.0
-     */
-    public static class TestCmisServiceFactory11 extends AbstractServiceFactory
-    {
-        private static AlfrescoCmisServiceFactory serviceFactory = (AlfrescoCmisServiceFactory) ctx.getBean("CMISServiceFactory1.1");
-        @Override
-        public void init(Map<String, String> parameters)
-        {
-            serviceFactory.init(parameters);
-        }
-
-        @Override
-        public void destroy()
-        {
-        }
-
-        @Override
-        public CmisService getService(CallContext context)
-        {
-            return serviceFactory.getService(context);
-        }
-    }
 
     public static class SimpleCallContext implements CallContext
     {
@@ -2466,80 +2407,6 @@ public class CMISTest
             assertTrue(o.getClass() + " found but String expected", o instanceof String);
         }
     }
-    
-    /**
-     * MNT-8804 related test :
-     * Check CMISConnector.query for search nodes in environment with corrupted indexes
-     */
-    @Test
-    public void testQueryNodesWithCorruptedIndexes()
-    {
-        AuthenticationUtil.pushAuthentication();
-        AuthenticationUtil.setFullyAuthenticatedUser(AuthenticationUtil.getAdminUserName());
-        
-        final String TEST_NAME = "mnt8804test-";
-        final String docName = TEST_NAME + GUID.generate();
-        
-        /* Create node */
-        final FileInfo document = transactionService.getRetryingTransactionHelper().doInTransaction(
-                new RetryingTransactionCallback<FileInfo>()
-                {
-                    @Override
-                    public FileInfo execute() throws Throwable
-                    {
-                        NodeRef companyHomeNodeRef = repositoryHelper.getCompanyHome();
-                        
-                        /* Create folder within companyHome */
-                        String folderName = TEST_NAME + GUID.generate();
-                        FileInfo folderInfo = fileFolderService.create(companyHomeNodeRef, folderName, ContentModel.TYPE_FOLDER);
-                        nodeService.setProperty(folderInfo.getNodeRef(), ContentModel.PROP_NAME, folderName);
-                        assertNotNull(folderInfo);
-                        
-                        /* Create document to query */
-                        FileInfo document = fileFolderService.create(folderInfo.getNodeRef(), docName, ContentModel.TYPE_CONTENT);
-                        assertNotNull(document);
-                        nodeService.setProperty(document.getNodeRef(), ContentModel.PROP_NAME, docName);
-                        
-                        return document;
-                    }
-                });
-        
-        final Pair<Long, NodeRef> nodePair = nodeDAO.getNodePair(document.getNodeRef());
-        
-        /* delete node's metadata directly */
-        transactionService.getRetryingTransactionHelper().doInTransaction(
-                new RetryingTransactionCallback<Void>()
-                {
-                    @Override
-                    public Void execute() throws Throwable
-                    {
-                        Pair<Long, ChildAssociationRef> childAssocPair = nodeDAO.getPrimaryParentAssoc(nodePair.getFirst());
-                        nodeDAO.deleteChildAssoc(childAssocPair.getFirst());
-                        nodeDAO.deleteNode(nodePair.getFirst());
-                        return null;
-                    }
-                });
-        
-        /* ensure the node does not exist */
-        assertTrue(!nodeService.exists(nodePair.getSecond()));
-        
-        String queryString = "SELECT * FROM cmis:document WHERE cmis:name='" + docName + "'";
-        
-        ObjectList resultList = cmisConnector.query(queryString, Boolean.FALSE, IncludeRelationships.NONE, "cmis:none", BigInteger.ONE, BigInteger.ZERO);
-        assertEquals(resultList.getNumItems(), BigInteger.ZERO);
-        
-        // prepare cmis query
-        CMISQueryOptions options = new CMISQueryOptions(queryString, cmisConnector.getRootStoreRef());
-        CmisVersion cmisVersion = cmisConnector.getRequestCmisVersion();
-        options.setCmisVersion(cmisVersion);
-        options.setQueryMode(CMISQueryMode.CMS_WITH_ALFRESCO_EXTENSIONS);
-        options.setSkipCount(0);
-        options.setMaxItems(100);
-        
-        /* make query bypassing CMISConnector */
-        org.alfresco.opencmis.search.CMISResultSet rs = cmisConnector.getOpenCMISQueryService().query(options);
-        assertEquals(rs.getNumberFound(), 0);
-   }
 
     /**
      * CMIS 1.0 aspect properties should provide the following CMIS attributes:
@@ -4139,6 +4006,110 @@ public class CMISTest
         List<String> secondaryTypeIds = (List<String>) currentProperties.getProperties().get(PropertyIds.SECONDARY_OBJECT_TYPE_IDS).getValues();
         assertTrue(secondaryTypeIds.contains(aspectName));
         assertEquals(currentProperties.getProperties().get(propertyName).getValues().get(0),  propertyValue);
+    }
+
+    @Test
+    public void testSearchPreviousDelete()
+    {
+        final ExecutorService executorService = Executors.newSingleThreadExecutor();
+        AuthenticationUtil.setFullyAuthenticatedUser(AuthenticationUtil.getAdminUserName());
+        try
+        {
+            final NodeRef companyHome = repositoryHelper.getCompanyHome();
+            // create parentFolder
+            RetryingTransactionCallback<Object> testCallbackFolder = new RetryingTransactionCallback<Object>()
+            {
+                public Object execute() throws Throwable
+                {
+                    NodeRef parentFolder = createFolder(companyHome, "testCreateParent" + GUID.generate(), ContentModel.TYPE_FOLDER);
+                    return parentFolder;
+                }
+            };
+            final NodeRef parentFolder = (NodeRef) transactionService.getRetryingTransactionHelper().doInTransaction(testCallbackFolder, false, true);
+
+            // create children Folders
+            final List<NodeRef> folders = new ArrayList<NodeRef>();
+            RetryingTransactionCallback<Object> testCallbackChilds = new RetryingTransactionCallback<Object>()
+            {
+                public Object execute() throws Throwable
+                {
+                    for (int i = 0; i < 10; i++)
+                    {
+                        folders.add(createFolder(parentFolder, "testCreateList-" + GUID.generate() + i, ContentModel.TYPE_FOLDER));
+                    }
+                    return folders;
+                }
+            };
+            transactionService.getRetryingTransactionHelper().doInTransaction(testCallbackChilds, false, true);
+
+            // remove children nodes
+            executorService.submit(new Runnable()
+            {
+                public void run()
+                {
+                    for (final NodeRef node : folders)
+                    {
+                        AuthenticationUtil.runAs(new AuthenticationUtil.RunAsWork<Void>()
+                        {
+                            public Void doWork() throws Exception
+                            {
+                                transactionService.getRetryingTransactionHelper().doInTransaction(new RetryingTransactionCallback<Void>()
+                                {
+                                    public Void execute() throws Throwable
+                                    {
+                                        nodeService.deleteNode(node);
+                                        return null;
+                                    }
+                                }, false, true);
+                                return null;
+                            }
+                        }, AuthenticationUtil.getAdminUserName());
+                    }
+                }
+            });
+
+            // select children nodes removed
+            withCmisService(new CmisServiceCallback<String>()
+            {
+                @Override
+                public String execute(CmisService cmisService)
+                {
+                    List<RepositoryInfo> repositories = cmisService.getRepositoryInfos(null);
+                    assertTrue(repositories.size() > 0);
+                    RepositoryInfo repo = repositories.get(0);
+                    String repositoryId = repo.getId();
+
+                    // prepare cmis query
+                    String queryString = "SELECT cmis:name, cmis:objectId FROM cmis:folder WHERE IN_FOLDER('" + parentFolder + "')";
+                    cmisService.query(repositoryId, queryString, Boolean.FALSE, Boolean.TRUE, IncludeRelationships.NONE, "", BigInteger.TEN,
+                            BigInteger.ZERO, null);
+                    return "";
+                };
+            }, CmisVersion.CMIS_1_1);
+        }
+        catch (Exception e)
+        {
+            fail(e.toString());
+        }
+        finally
+        {
+            executorService.shutdownNow();
+        }
+    }
+
+    private NodeRef createFolder(NodeRef parentNodeRef, String folderName, QName folderType) throws IOException
+    {
+        Map<QName, Serializable> properties = new HashMap<QName, Serializable>();
+        properties.put(ContentModel.PROP_NAME, folderName);
+        NodeRef nodeRef = nodeService.getChildByName(parentNodeRef, ContentModel.ASSOC_CONTAINS, folderName);
+        if (nodeRef != null)
+        {
+            nodeService.deleteNode(nodeRef);
+        }
+        QName assocQName = QName.createQName(NamespaceService.CONTENT_MODEL_1_0_URI, QName.createValidLocalName(folderName));
+        nodeRef = nodeService.createNode(parentNodeRef, ContentModel.ASSOC_CONTAINS, assocQName, folderType, properties)
+                .getChildRef();
+        return nodeRef;
     }
 
 }
