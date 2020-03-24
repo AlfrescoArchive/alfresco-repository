@@ -542,4 +542,35 @@ public class TransformationOptionsConverterTest
 
         assertEquals("Maps are different", sortedNewOptions, sortedOldOptions);
     }
+
+    // ImageTransformationOptions [commandOptions=, resizeOptions=ImageResizeOptions [width=20, height=30, maintainAspectRatio=true, percentResize=false,
+    //                            resizeToThumbnail=false, allowEnlargement=true], autoOrient=true], sourceOptions={ PagedSourceOptionsPagedSourceOptions {1, 1}} ]
+    @Test
+    public void testResize()
+    {
+        ImageTransformationOptions oldOptions = new ImageTransformationOptions();
+        ImageResizeOptions imageResizeOptions = new ImageResizeOptions();
+        imageResizeOptions.setAllowEnlargement(false);
+        imageResizeOptions.setWidth(20);
+        imageResizeOptions.setHeight(30);
+        oldOptions.setResizeOptions(imageResizeOptions);
+        PagedSourceOptions pagedSourceOptions = new PagedSourceOptions();
+        pagedSourceOptions.setStartPageNumber(1);
+        pagedSourceOptions.setEndPageNumber(1);
+        oldOptions.addSourceOptions(pagedSourceOptions);
+
+        assertConverterToMapAndBack(oldOptions, MIMETYPE_IMAGE_JPEG, MIMETYPE_IMAGE_PNG,
+                "ImageTransformationOptions [commandOptions=, " +
+                        "resizeOptions=ImageResizeOptions [width=20, height=30, maintainAspectRatio=true, " +
+                        "percentResize=false, resizeToThumbnail=false, allowEnlargement=false], autoOrient=true], " +
+                        "sourceOptions={ PagedSourceOptionsPagedSourceOptions {1, 1}} ]",
+                "autoOrient=true " +
+                        "endPage=0 " +
+                        "maintainAspectRatio=true " +
+                        "resizeHeight=30 " +
+                        "resizeWidth=20 " +
+                        "startPage=0 " +
+                        "timeout=-1 ",
+                true);
+    }
 }
