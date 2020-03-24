@@ -69,17 +69,17 @@ public interface ShardRegistry
     /**
      * Returns the property used for EXPLICIT_ID Sharding methods if exists. Null otherwise.
      * 
-     * @param coreName is the name of the SOLR core: alfresco, archive
+     * @param storeRef is the name of the SOLR storeRef: workspace://spaceStore, archive://spaceStore
      * @return QName of the property used for EXPLICIT_ID Sharding methods or null.
      */
-    QName getExplicitIdProperty(String coreName);
+    QName getExplicitIdProperty(String storeRef);
     
     /**
      * Returns the list with the numbers of the registered Shard Instances.
      * 
-     * @param coreName is the name of the SOLR core: alfresco, archive
+     * @param storeRef is the name of the SOLR storeRef: workspace://spaceStore, archive://spaceStore
      * @return Ordered list of numbers of the registered Shard Instances
      */
-    Set<Integer> getShardInstanceList(String coreName);
+    Set<Integer> getShardInstanceList(String storeRef);
     
 }
