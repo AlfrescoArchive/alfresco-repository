@@ -69,6 +69,7 @@
         <dependency.jackson.version>2.10.3</dependency.jackson.version>
         <dependency.jackson-databind.version>2.10.2</dependency.jackson-databind.version>
         <dependency.apache.taglibs.version>1.2.5</dependency.apache.taglibs.version>
+        <dependency.acs-event-model.version>0.0.1</dependency.acs-event-model.version>
     </properties>
 
     <dependencyManagement>
@@ -1200,6 +1201,12 @@
            <groupId>com.sun.activation</groupId>
            <artifactId>jakarta.activation</artifactId>
            <version>1.2.2</version>
+        </dependency>
+        <!-- Repo Event Model-->
+        <dependency>
+            <groupId>org.alfresco</groupId>
+            <artifactId>acs-event-model</artifactId>
+            <version>${dependency.acs-event-model.version}</version>
         </dependency>
     </dependencies>
 

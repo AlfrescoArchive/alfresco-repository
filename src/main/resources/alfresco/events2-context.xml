@@ -1,0 +1,34 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE beans PUBLIC '-//SPRING//DTD BEAN//EN' 'http://www.springframework.org/dtd/spring-beans.dtd'>
+
+<beans>
+
+    <!-- Event Filters -->
+    <bean id="eventFilterRegistry" class="org.alfresco.repo.event2.filter.EventFilterRegistry"/>
+
+    <bean id="abstractEventFilter" class="org.alfresco.repo.event2.filter.AbstractEventFilter" abstract="true" init-method="init">
+        <property name="dictionaryService" ref="dictionaryService"/>
+        <property name="namespaceService" ref="namespaceService"/>
+        <property name="eventFilterRegistry" ref="eventFilterRegistry"/>
+    </bean>
+
+    <bean id="nodeTypeFilter" class="org.alfresco.repo.event2.filter.NodeTypeFilter" parent="abstractEventFilter">
+        <constructor-arg value="${repo.event2.filter.nodeTypes}"/>
+    </bean>
+
+    <bean id="nodeAspectFilter" class="org.alfresco.repo.event2.filter.NodeAspectFilter" parent="abstractEventFilter">
+        <constructor-arg value="${repo.event2.filter.nodeAspects}"/>
+    </bean>
+
+    <bean id="nodePropertyFilter" class="org.alfresco.repo.event2.filter.NodePropertyFilter" parent="abstractEventFilter"/>
+    <!-- End of Event Filters -->
+
+    <bean id="eventGeneratorV2" class="org.alfresco.repo.event2.EventGenerator">
+        <property name="policyComponent" ref="policyComponent"/>
+        <property name="nodeService" ref="nodeService"/>
+        <property name="namespaceService" ref="namespaceService"/>
+        <property name="dictionaryService" ref="dictionaryService"/>
+        <property name="descriptorService" ref="descriptorComponent"/>
+        <property name="eventFilterRegistry" ref="eventFilterRegistry"/>
+    </bean>
+</beans>
