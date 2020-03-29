@@ -2,7 +2,7 @@
     <modelVersion>4.0.0</modelVersion>
     <artifactId>alfresco-repository</artifactId>
     <name>Alfresco Repository</name>
-    <version>8.141-SNAPSHOT</version>
+    <version>8.145-SNAPSHOT</version>
     <packaging>jar</packaging>
     <parent>
         <groupId>org.alfresco</groupId>
@@ -36,8 +36,8 @@
 
         <maven.build.sourceVersion>11</maven.build.sourceVersion>
 
-        <dependency.alfresco-data-model.version>8.93</dependency.alfresco-data-model.version>
-        <dependency.alfresco-core.version>8.26</dependency.alfresco-core.version>
+        <dependency.alfresco-data-model.version>8.97</dependency.alfresco-data-model.version>
+        <dependency.alfresco-core.version>8.27</dependency.alfresco-core.version>
 
         <dependency.alfresco-legacy-lucene.version>6.2</dependency.alfresco-legacy-lucene.version>
         <dependency.alfresco-greenmail.version>6.1</dependency.alfresco-greenmail.version>
@@ -243,7 +243,7 @@
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-lang3</artifactId>
-            <version>3.9</version>
+            <version>3.10</version>
         </dependency>
         <dependency>
             <groupId>commons-codec</groupId>
@@ -488,7 +488,7 @@
         <dependency>
             <groupId>com.sun.xml.fastinfoset</groupId>
             <artifactId>FastInfoset</artifactId>
-            <version>1.2.17</version>
+            <version>1.2.18</version>
         </dependency>
         <dependency>
             <groupId>org.alfresco</groupId>
