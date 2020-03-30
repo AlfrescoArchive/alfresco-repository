@@ -107,4 +107,11 @@ public class AlfrescoProcessEngineConfiguration extends SpringProcessEngineConfi
     {
         this.unprotectedNodeService = unprotectedNodeService;
     }
+
+    @Override
+    public void initDatabaseType()
+    {
+        databaseTypeMappings.setProperty("MariaDB", DATABASE_TYPE_MYSQL);
+        super.initDatabaseType();
+    }
 }
