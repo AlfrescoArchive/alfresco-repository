@@ -25,69 +25,183 @@
  */
 package org.alfresco.repo.event2;
 
-import java.util.Collections;
-import java.util.LinkedList;
-import java.util.List;
+import java.io.Serializable;
+import java.util.ArrayDeque;
+import java.util.Deque;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
+import org.alfresco.model.ContentModel;
 import org.alfresco.repo.event.v1.model.EventData;
 import org.alfresco.repo.event.v1.model.NodeResource;
 import org.alfresco.repo.event.v1.model.RepoEvent;
-import org.alfresco.repo.event.v1.model.Resource;
-import org.alfresco.repo.event2.NodeResourceInfoFactory.NodeResourceInfo;
+import org.alfresco.service.cmr.repository.ChildAssociationRef;
 import org.alfresco.service.cmr.repository.NodeRef;
+import org.alfresco.service.namespace.QName;
 
 /**
  * Encapsulates events occurred in a single transaction.
  *
  * @author Jamal Kaabi-Mofrad
  */
-public class EventConsolidator
+public class EventConsolidator implements EventSupportedPolicies
 {
-    private NodeResourceInfoFactory nodeInfoFactory;
-    private List<RepoEvent<? extends Resource>> events;
+    private NodeResourceHelper nodeResourceHelper;
+    private NodeResource.Builder builder;
+    private Deque<EventType> eventTypes;
+    private Set<QName> aspectsAdded;
+    private Set<QName> aspectsRemoved;
+    private NodeRef nodeRef;
+    private String nodeName;
+    // A flag to avoid a DB call
+    private boolean isPropertiesSet;
 
-    public EventConsolidator(NodeResourceInfoFactory nodeInfoFactory)
+    public EventConsolidator(NodeResourceHelper nodeResourceHelper)
     {
-        this.nodeInfoFactory = nodeInfoFactory;
-        this.events = new LinkedList<>();
+        this.nodeResourceHelper = nodeResourceHelper;
+        this.eventTypes = new ArrayDeque<>();
+        this.aspectsAdded = new HashSet<>();
+        this.aspectsRemoved = new HashSet<>();
     }
 
-    public void append(NodeRef nodeRef, EventInfo eventInfo)
+    /**
+     * Builds and returns the {@link RepoEvent} instance.
+     *
+     * @param eventInfo the object holding the event information
+     * @return the {@link RepoEvent} instance
+     */
+    public RepoEvent<NodeResource> getRepoEvent(EventInfo eventInfo)
     {
-        NodeResourceInfo nodeInfo = nodeInfoFactory.getNodeInfo(nodeRef);
-        events.add(toRepoEvent(nodeInfo, eventInfo));
-    }
-
-    private RepoEvent<NodeResource> toRepoEvent(NodeResourceInfo nodeInfo, EventInfo eventInfo)
-    {
-        NodeResource resource = NodeResource.builder()
-                    .setId(nodeInfo.getId())
-                    .setPrimaryHierarchy(nodeInfo.getNodePaths())
-                    .setIsFile(nodeInfo.isFile())
-                    .setIsFolder(nodeInfo.isFolder())
-                    .setNodeType(nodeInfo.getNodeType())
-                    .setProperties(nodeInfo.getProperties())
-                    .build();
-        EventData<NodeResource> eventData = EventData.<NodeResource>builder().setPrincipal(eventInfo.getPrincipal())
+        NodeResource resource = buildNodeResource();
+        EventData<NodeResource> eventData = EventData.<NodeResource>builder()
+                    .setPrincipal(eventInfo.getPrincipal())
                     .setEventGroupId(eventInfo.getTxnId())
                     .setResource(resource)
                     .build();
-        return RepoEvent.<NodeResource>builder().setId(eventInfo.getId())
+        return RepoEvent.<NodeResource>builder()
+                    .setId(eventInfo.getId())
                     .setSource(eventInfo.getSource())
                     .setTime(eventInfo.getTimestamp())
-                    .setType(eventInfo.getEventType().getType())
-                    .setSubject(nodeInfo.getName())
+                    .setType(eventTypes.getFirst().getType())
+                    .setSubject(nodeName)
                     .setData(eventData)
                     .build();
     }
 
-    public List<RepoEvent<? extends Resource>> getEvents()
+    private NodeResource.Builder getBuilder(NodeRef nodeRef)
     {
-        return Collections.unmodifiableList(events);
+        if (builder == null)
+        {
+            this.builder = nodeResourceHelper.createNodeResourceBuilder(nodeRef);
+            this.nodeRef = nodeRef;
+            this.nodeName = (String) nodeResourceHelper.getProperty(nodeRef, ContentModel.PROP_NAME);
+        }
+        return builder;
     }
 
-    public RepoEvent<? extends Resource> getSelectedEvent()
+    @Override
+    public void onCreateNode(ChildAssociationRef childAssocRef)
     {
-        return EventSelector.getEventToSend(events);
+        eventTypes.add(EventType.NODE_CREATED);
+        getBuilder(childAssocRef.getChildRef());
+    }
+
+    @Override
+    public void onUpdateProperties(NodeRef nodeRef, Map<QName, Serializable> before, Map<QName, Serializable> after)
+    {
+        eventTypes.add(EventType.NODE_UPDATED);
+        if (before.isEmpty() || eventTypes.getFirst() == EventType.NODE_CREATED)
+        {
+            // For 'Created' event we don't care about the affected properties
+            getBuilder(nodeRef).setProperties(nodeResourceHelper.mapToNodeProperties(after));
+        }
+        else
+        {
+            nodeResourceHelper.setBuilderProperties(getBuilder(nodeRef), before, after);
+        }
+        // If this method gets invoked, then we have set the properties
+        isPropertiesSet = true;
+    }
+
+    @Override
+    public void beforeDeleteNode(NodeRef nodeRef)
+    {
+        eventTypes.add(EventType.NODE_DELETED);
+        // Set the properties and aspects while the node exists
+        getBuilder(nodeRef).setProperties(nodeResourceHelper.getProperties(nodeRef))
+                           .setAspectNames(nodeResourceHelper.getAspects(nodeRef));
+    }
+
+    @Override
+    public void onAddAspect(NodeRef nodeRef, QName aspectTypeQName)
+    {
+        eventTypes.add(EventType.NODE_UPDATED);
+        aspectsAdded.add(aspectTypeQName);
+        getBuilder(nodeRef);
+    }
+
+    @Override
+    public void onRemoveAspect(NodeRef nodeRef, QName aspectTypeQName)
+    {
+        eventTypes.add(EventType.NODE_UPDATED);
+        aspectsRemoved.add(aspectTypeQName);
+        getBuilder(nodeRef);
+    }
+
+    private void setProperties()
+    {
+        if (!isPropertiesSet)
+        {
+            builder.setProperties(nodeResourceHelper.getProperties(nodeRef));
+        }
+    }
+
+    private void setAspects()
+    {
+        if(eventTypes.getFirst() == EventType.NODE_CREATED)
+        {
+            builder.setAspectNames(nodeResourceHelper.getAspects(nodeRef));
+        }
+        else
+        {
+            nodeResourceHelper.setBuilderAspects(builder, nodeRef, aspectsRemoved, aspectsAdded);
+        }
+    }
+
+    private NodeResource buildNodeResource()
+    {
+        if (builder == null)
+        {
+            return null;
+        }
+
+        if (eventTypes.getLast() != EventType.NODE_DELETED)
+        {
+            setProperties();
+            setAspects();
+        }
+        // Now create an instance of NodeResource
+        return builder.build();
+    }
+
+    /**
+     * Whether or not the node has been created and then deleted, i.e. a temporary node.
+     *
+     * @return {@code true} if the node has been created and then deleted, otherwise false
+     */
+    public boolean isTemporaryNode()
+    {
+        return eventTypes.getFirst() == EventType.NODE_CREATED && eventTypes.getLast() == EventType.NODE_DELETED;
+    }
+
+    public NodeRef getNodeRef()
+    {
+        return nodeRef;
+    }
+
+    public Deque<EventType> getEventTypes()
+    {
+        return eventTypes;
     }
 }

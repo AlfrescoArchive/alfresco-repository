@@ -25,6 +25,7 @@
  */
 package org.alfresco.repo.event2;
 
+import java.io.Serializable;
 import java.net.URI;
 import java.time.ZonedDateTime;
 import java.util.LinkedHashMap;
@@ -36,10 +37,11 @@ import org.alfresco.error.AlfrescoRuntimeException;
 import org.alfresco.repo.event2.filter.EventFilter;
 import org.alfresco.repo.event2.filter.EventFilterRegistry;
 import org.alfresco.repo.event2.filter.NodeTypeFilter;
-import org.alfresco.repo.node.NodeServicePolicies;
 import org.alfresco.repo.node.NodeServicePolicies.BeforeDeleteNodePolicy;
+import org.alfresco.repo.node.NodeServicePolicies.OnAddAspectPolicy;
 import org.alfresco.repo.node.NodeServicePolicies.OnCreateNodePolicy;
-import org.alfresco.repo.node.NodeServicePolicies.OnUpdateNodePolicy;
+import org.alfresco.repo.node.NodeServicePolicies.OnRemoveAspectPolicy;
+import org.alfresco.repo.node.NodeServicePolicies.OnUpdatePropertiesPolicy;
 import org.alfresco.repo.policy.JavaBehaviour;
 import org.alfresco.repo.policy.PolicyComponent;
 import org.alfresco.repo.security.authentication.AuthenticationUtil;
@@ -63,10 +65,7 @@ import org.springframework.beans.factory.InitializingBean;
  *
  * @author Jamal Kaabi-Mofrad
  */
-public class EventGenerator implements InitializingBean,
-                                       NodeServicePolicies.OnCreateNodePolicy,
-                                       NodeServicePolicies.OnUpdateNodePolicy,
-                                       NodeServicePolicies.BeforeDeleteNodePolicy
+public class EventGenerator implements InitializingBean, EventSupportedPolicies
 {
     private static final Log LOGGER = LogFactory.getLog(EventGenerator.class);
 
@@ -78,7 +77,7 @@ public class EventGenerator implements InitializingBean,
     private EventFilterRegistry eventFilterRegistry;
 
     private EventFilter nodeTypeFilter;
-    private NodeResourceInfoFactory nodeInfoFactory;
+    private NodeResourceHelper nodeResourceHelper;
     private EventTransactionListener transactionListener = new EventTransactionListener();
 
     @Override
@@ -91,16 +90,22 @@ public class EventGenerator implements InitializingBean,
         PropertyCheck.mandatory(this, "descriptorService", descriptorService);
         PropertyCheck.mandatory(this, "eventFilterRegistry", eventFilterRegistry);
 
-        policyComponent.bindClassBehaviour(OnCreateNodePolicy.QNAME, this, new JavaBehaviour(this, "onCreateNode"));
-        policyComponent.bindClassBehaviour(OnUpdateNodePolicy.QNAME, this, new JavaBehaviour(this, "onUpdateNode"));
+        policyComponent.bindClassBehaviour(OnCreateNodePolicy.QNAME, this,
+                                           new JavaBehaviour(this, "onCreateNode"));
         policyComponent.bindClassBehaviour(BeforeDeleteNodePolicy.QNAME, this,
                                            new JavaBehaviour(this, "beforeDeleteNode"));
+        policyComponent.bindClassBehaviour(OnUpdatePropertiesPolicy.QNAME, this,
+                                           new JavaBehaviour(this, "onUpdateProperties"));
+        policyComponent.bindClassBehaviour(OnAddAspectPolicy.QNAME, this,
+                                           new JavaBehaviour(this, "onAddAspect"));
+        policyComponent.bindClassBehaviour(OnRemoveAspectPolicy.QNAME, this,
+                                           new JavaBehaviour(this, "onRemoveAspect"));
 
         this.nodeTypeFilter = eventFilterRegistry.getFilter(NodeTypeFilter.class)
                     .orElseThrow(() -> new AlfrescoRuntimeException(
                                 "The filter '" + NodeTypeFilter.class.getName() + "' is not registered."));
-        this.nodeInfoFactory = new NodeResourceInfoFactory(nodeService, namespaceService, dictionaryService,
-                                                           eventFilterRegistry);
+        this.nodeResourceHelper = new NodeResourceHelper(nodeService, namespaceService, dictionaryService,
+                                                         eventFilterRegistry);
 
     }
 
@@ -137,29 +142,41 @@ public class EventGenerator implements InitializingBean,
     @Override
     public void onCreateNode(ChildAssociationRef childAssocRef)
     {
-        NodeRef nodeRef = childAssocRef.getChildRef();
-        getEventConsolidator(nodeRef).ifPresent(
-                    consolidator -> consolidator.append(nodeRef, getEventInfo(EventType.NODE_CREATED)));
+        getEventConsolidator(childAssocRef.getChildRef()).ifPresent(
+                    consolidator -> consolidator.onCreateNode(childAssocRef));
     }
 
     @Override
-    public void onUpdateNode(NodeRef nodeRef)
+    public void onUpdateProperties(NodeRef nodeRef, Map<QName, Serializable> before, Map<QName, Serializable> after)
     {
         getEventConsolidator(nodeRef).ifPresent(
-                    consolidator -> consolidator.append(nodeRef, getEventInfo(EventType.NODE_UPDATED)));
+                    consolidator -> consolidator.onUpdateProperties(nodeRef, before, after));
     }
 
     @Override
     public void beforeDeleteNode(NodeRef nodeRef)
     {
         getEventConsolidator(nodeRef).ifPresent(
-                    consolidator -> consolidator.append(nodeRef, getEventInfo(EventType.NODE_DELETED)));
+                    consolidator -> consolidator.beforeDeleteNode(nodeRef));
     }
 
-    private EventInfo getEventInfo(EventType eventType)
+    @Override
+    public void onAddAspect(NodeRef nodeRef, QName aspectTypeQName)
     {
-        return new EventInfo().setEventType(eventType)
-                    .setTimestamp(ZonedDateTime.now())
+        getEventConsolidator(nodeRef).ifPresent(
+                    consolidator -> consolidator.onAddAspect(nodeRef, aspectTypeQName));
+    }
+
+    @Override
+    public void onRemoveAspect(NodeRef nodeRef, QName aspectTypeQName)
+    {
+        getEventConsolidator(nodeRef).ifPresent(
+                    consolidator -> consolidator.onRemoveAspect(nodeRef, aspectTypeQName));
+    }
+
+    private EventInfo getEventInfo()
+    {
+        return new EventInfo().setTimestamp(ZonedDateTime.now())
                     .setId(UUID.randomUUID().toString())
                     .setTxnId(AlfrescoTransactionSupport.getTransactionId())
                     .setPrincipal(AuthenticationUtil.getFullyAuthenticatedUser())
@@ -192,7 +209,7 @@ public class EventGenerator implements InitializingBean,
         EventConsolidator eventConsolidator = nodeEvents.get(nodeRef);
         if (eventConsolidator == null)
         {
-            eventConsolidator = new EventConsolidator(nodeInfoFactory);
+            eventConsolidator = new EventConsolidator(nodeResourceHelper);
             nodeEvents.put(nodeRef, eventConsolidator);
         }
 
@@ -212,14 +229,22 @@ public class EventGenerator implements InitializingBean,
 
     private void sendEvent(EventConsolidator consolidator)
     {
-        if (LOGGER.isTraceEnabled())
+        if (consolidator.isTemporaryNode())
         {
-            LOGGER.trace("List of Events:" + consolidator.getEvents());
+            if (LOGGER.isTraceEnabled())
+            {
+                LOGGER.trace("Ignoring temporary node: " + consolidator.getNodeRef());
+            }
+            return;
         }
 
-        LOGGER.info("Sending event:" + consolidator.getSelectedEvent());
-    }
+        if (LOGGER.isTraceEnabled())
+        {
+            LOGGER.trace("List of Events:" + consolidator.getEventTypes());
+        }
 
+        LOGGER.info("Sending event:" + consolidator.getRepoEvent(getEventInfo()));
+    }
 
     private class EventTransactionListener extends TransactionListenerAdapter
     {

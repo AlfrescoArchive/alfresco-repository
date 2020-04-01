@@ -46,11 +46,11 @@ public class EventFilterRegistry
     /**
      * Registers an instance of {@code AbstractEventFilter}.
      *
-     * @param eventFilters the event filter
+     * @param eventFilter the event filter
      */
-    public void addFilter(AbstractEventFilter eventFilters)
+    public void addFilter(AbstractEventFilter eventFilter)
     {
-        registry.putIfAbsent(eventFilters.getClass().getName(), eventFilters);
+        registry.putIfAbsent(eventFilter.getClass().getName(), eventFilter);
     }
 
     /**

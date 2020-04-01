@@ -36,7 +36,6 @@ import java.time.ZonedDateTime;
 public class EventInfo
 {
     private String id;
-    private EventType eventType;
     private String txnId;
     private String principal;
     private ZonedDateTime timestamp;
@@ -50,17 +49,6 @@ public class EventInfo
     public EventInfo setId(String id)
     {
         this.id = id;
-        return this;
-    }
-
-    public EventType getEventType()
-    {
-        return eventType;
-    }
-
-    public EventInfo setEventType(EventType eventType)
-    {
-        this.eventType = eventType;
         return this;
     }
 
