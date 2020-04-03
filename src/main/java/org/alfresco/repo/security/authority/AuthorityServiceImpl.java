@@ -89,6 +89,7 @@ public class AuthorityServiceImpl implements AuthorityService, InitializingBean
     private ClassPolicyDelegate<OnAuthorityRemovedFromGroup> onAuthorityRemovedFromGroup;
     private ClassPolicyDelegate<OnGroupDeleted> onGroupDeletedDelegate;
     private PolicyComponent policyComponent;
+    private static final char[] ILLEGAL_CHARACTERS = {'/', '\\', '\r', '\n', '\"', '\''};
 
     public AuthorityServiceImpl()
     {
@@ -644,7 +645,16 @@ public class AuthorityServiceImpl implements AuthorityService, InitializingBean
     {
         checkTypeIsMutable(type);
         String name = getName(type, shortName);
-
+        if (type == AuthorityType.GROUP)
+        {
+            for (char illegalCharacter : ILLEGAL_CHARACTERS)
+            {
+                if (name.indexOf(illegalCharacter) != -1)
+                {
+                    throw new AuthorityException("group name contains characters that are not permitted: "+name.charAt(name.indexOf(illegalCharacter)));
+                }
+            }
+        }
         authorityDAO.createAuthority(name, authorityDisplayName, authorityZones);
        
         return name;

@@ -252,6 +252,20 @@ public class AuthorityServiceTest extends TestCase
         }
     }
 
+    public void testCreateAuthorityWithIllegalCharacters() throws Exception
+    {
+        char[] illegalCharacters = {'/', '\\', '\n', '\r', '"'};
+        for (char illegalCharacter : illegalCharacters)
+        {
+            String GROUP_NAME = "testGroupNameWith" + illegalCharacter;
+            try {
+                authorityService.createAuthority(AuthorityType.GROUP, GROUP_NAME);
+            } catch (AuthorityException e) {
+                assertEquals(e.getMsgId(), "group name contains characters that are not permitted: "+GROUP_NAME.charAt(GROUP_NAME.indexOf(illegalCharacter)));
+            }
+        }
+    }
+
     public class GroupBehaviour implements NodeServicePolicies.BeforeDeleteNodePolicy
     {
 
