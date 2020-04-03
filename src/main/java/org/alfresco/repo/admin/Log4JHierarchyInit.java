@@ -27,7 +27,6 @@ package org.alfresco.repo.admin;
 
 import java.io.InputStream;
 import java.lang.reflect.Method;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
