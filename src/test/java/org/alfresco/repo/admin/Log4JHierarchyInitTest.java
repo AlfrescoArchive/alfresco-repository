@@ -25,8 +25,15 @@
  */
 package org.alfresco.repo.admin;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.core.StringContains.containsString;
+
+import java.io.ByteArrayOutputStream;
+import java.io.PrintStream;
+import java.io.UnsupportedEncodingException;
 import junit.framework.TestCase;
 
+import org.alfresco.repo.model.filefolder.FileFolderPerformanceTester;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.context.ApplicationContext;
@@ -40,6 +47,9 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
  */
 public class Log4JHierarchyInitTest extends TestCase
 {
+    private PrintStream sysErr;
+    private final ByteArrayOutputStream errContent = new ByteArrayOutputStream();
+
     private static ApplicationContext ctx = new ClassPathXmlApplicationContext(
             new String[] {"classpath:log4j/log4j-test-context.xml"}
             );
@@ -62,5 +72,39 @@ public class Log4JHierarchyInitTest extends TestCase
         Log log = LogFactory.getLog(this.getClass());
         // We expect DEBUG to be on
         assertTrue("DEBUG was not enabled for logger " + this.getClass(), log.isDebugEnabled());
+    }
+
+    public void setUpStreams() throws UnsupportedEncodingException
+    {
+        sysErr = System.err;
+
+        System.setErr(new PrintStream(errContent,false, "UTF-8"));
+
+    }
+
+
+    public void revertStreams() {
+        System.setErr(sysErr);
+
+    }
+
+    public void testLog4jAppenderClosedError() throws Throwable
+    {
+        setUpStreams();
+        Log log = LogFactory.getLog(this.getClass());
+
+        Log4JHierarchyInit log4JHierarchyInit =(Log4JHierarchyInit)ctx.getBean("log4JHierarchyInit");
+
+        Log log2= LogFactory.getLog(FileFolderPerformanceTester.class);
+        log4JHierarchyInit.init();
+
+        log2.info("test");
+
+        // We expect DEBUG to be on
+        assertTrue("DEBUG was not enabled for logger " + this.getClass(), log.isDebugEnabled());
+        assertFalse(errContent.toString().contains("Attempted to append to closed appender named"));
+
+        revertStreams();
+
     }
 }
