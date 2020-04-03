@@ -17,7 +17,7 @@
                     <property name="cronExpression" value="${synchronization.import.cron}"/>
                     <property name="startDelay" value="${system.cronJob.startDelayMilliseconds}"/>
                     <property name="jobDetail">
-                        <bean class="org.springframework.scheduling.quartz.JobDetailFactoryBean">
+                        <bean id="syncJobDetail" class="org.springframework.scheduling.quartz.JobDetailFactoryBean">
                             <property name="jobClass" value="org.alfresco.repo.security.sync.UserRegistrySynchronizerJob"/>
                             <property name="jobDataAsMap">
                                 <map>
