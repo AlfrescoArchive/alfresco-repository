@@ -40,13 +40,14 @@ import org.alfresco.service.namespace.QName;
 import org.apache.log4j.Logger;
 
 /**
- * Abstract {@link EventFilter} implementation containing common event filtering functionality.
+ * Abstract {@link EventFilter} implementation, containing common event filtering
+ * functionality for the {@link QName} type.
  *
  * @author Jamal Kaabi-Mofrad
  */
-public abstract class AbstractEventFilter implements EventFilter
+public abstract class AbstractNodeEventFilter implements EventFilter<QName>
 {
-    private static final Logger LOGGER = Logger.getLogger(AbstractEventFilter.class);
+    private static final Logger LOGGER = Logger.getLogger(AbstractNodeEventFilter.class);
 
     private static final String MARKER_INCLUDE_SUBTYPES = "include_subtypes";
     private static final String WILDCARD = "*";
@@ -54,11 +55,10 @@ public abstract class AbstractEventFilter implements EventFilter
     protected DictionaryService dictionaryService;
     protected NamespaceService namespaceService;
 
-    private EventFilterRegistry eventFilterRegistry;
     private Set<QName> excludedTypes;
     private Set<String> excludedNamespaceURI;
 
-    public AbstractEventFilter()
+    public AbstractNodeEventFilter()
     {
         this.excludedTypes = new HashSet<>();
         this.excludedNamespaceURI = new HashSet<>();
@@ -66,7 +66,6 @@ public abstract class AbstractEventFilter implements EventFilter
 
     public final void init()
     {
-        eventFilterRegistry.addFilter(this);
         preprocessExcludedTypes(getExcludedTypes());
     }
 
@@ -80,17 +79,12 @@ public abstract class AbstractEventFilter implements EventFilter
         this.namespaceService = namespaceService;
     }
 
-    public void setEventFilterRegistry(EventFilterRegistry eventFilterRegistry)
-    {
-        this.eventFilterRegistry = eventFilterRegistry;
-    }
-
     @Override
-    public boolean isExcluded(QName type)
+    public boolean isExcluded(QName qName)
     {
-        if (type != null)
+        if (qName != null)
         {
-            return excludedTypes.contains(type) || excludedNamespaceURI.contains(type.getNamespaceURI());
+            return excludedTypes.contains(qName) || excludedNamespaceURI.contains(qName.getNamespaceURI());
         }
         return false;
     }
@@ -101,8 +95,7 @@ public abstract class AbstractEventFilter implements EventFilter
     {
         List<String> list = new LinkedList<>();
 
-        StringTokenizer st;
-        st = new StringTokenizer(unparsedFilterList, ",");
+        StringTokenizer st = new StringTokenizer(unparsedFilterList, ",");
         while (st.hasMoreTokens())
         {
             String entry = st.nextToken().trim();

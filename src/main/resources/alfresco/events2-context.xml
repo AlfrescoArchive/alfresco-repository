@@ -6,21 +6,25 @@
     <!-- Event Filters -->
     <bean id="eventFilterRegistry" class="org.alfresco.repo.event2.filter.EventFilterRegistry"/>
 
-    <bean id="abstractEventFilter" class="org.alfresco.repo.event2.filter.AbstractEventFilter" abstract="true" init-method="init">
+    <bean id="abstractNodeEventFilter" class="org.alfresco.repo.event2.filter.AbstractNodeEventFilter" abstract="true" init-method="init">
         <property name="dictionaryService" ref="dictionaryService"/>
         <property name="namespaceService" ref="namespaceService"/>
-        <property name="eventFilterRegistry" ref="eventFilterRegistry"/>
     </bean>
 
-    <bean id="nodeTypeFilter" class="org.alfresco.repo.event2.filter.NodeTypeFilter" parent="abstractEventFilter">
+    <bean id="nodeTypeFilter" class="org.alfresco.repo.event2.filter.NodeTypeFilter" parent="abstractNodeEventFilter">
         <constructor-arg value="${repo.event2.filter.nodeTypes}"/>
     </bean>
 
-    <bean id="nodeAspectFilter" class="org.alfresco.repo.event2.filter.NodeAspectFilter" parent="abstractEventFilter">
+    <bean id="nodeAspectFilter" class="org.alfresco.repo.event2.filter.NodeAspectFilter" parent="abstractNodeEventFilter">
         <constructor-arg value="${repo.event2.filter.nodeAspects}"/>
     </bean>
 
-    <bean id="nodePropertyFilter" class="org.alfresco.repo.event2.filter.NodePropertyFilter" parent="abstractEventFilter"/>
+    <bean id="nodePropertyFilter" class="org.alfresco.repo.event2.filter.NodePropertyFilter" parent="abstractNodeEventFilter"/>
+
+    <bean id="eventUserFilter" class="org.alfresco.repo.event2.filter.EventUserFilter">
+        <constructor-arg value="${repo.event2.filter.users}"/>
+        <constructor-arg type="boolean" value="${user.name.caseSensitive}" />
+    </bean>
     <!-- End of Event Filters -->
 
     <bean id="eventGeneratorV2" class="org.alfresco.repo.event2.EventGenerator">

@@ -38,7 +38,7 @@ import org.alfresco.service.namespace.QName;
  *
  * @author Jamal Kaabi-Mofrad
  */
-public class NodeTypeFilter extends AbstractEventFilter
+public class NodeTypeFilter extends AbstractNodeEventFilter
 {
     private final List<String> nodeTypesBlackList;
 

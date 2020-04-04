@@ -28,17 +28,12 @@ package org.alfresco.repo.event2;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.function.Supplier;
 
-import org.alfresco.error.AlfrescoRuntimeException;
 import org.alfresco.model.ContentModel;
 import org.alfresco.repo.event.v1.model.NodeResource;
-import org.alfresco.repo.event.v1.model.NodeResource.Builder;
-import org.alfresco.repo.event2.filter.EventFilter;
 import org.alfresco.repo.event2.filter.EventFilterRegistry;
 import org.alfresco.repo.event2.filter.NodeAspectFilter;
 import org.alfresco.repo.event2.filter.NodePropertyFilter;
@@ -49,9 +44,7 @@ import org.alfresco.service.cmr.repository.NodeService;
 import org.alfresco.service.cmr.repository.Path;
 import org.alfresco.service.namespace.NamespaceService;
 import org.alfresco.service.namespace.QName;
-import org.alfresco.util.Pair;
 import org.alfresco.util.PathUtil;
-import org.alfresco.util.PropertyMap;
 
 /**
  * Helper for {@link NodeResource} objects.
@@ -63,8 +56,8 @@ public class NodeResourceHelper
     private final NodeService nodeService;
     private final NamespaceService namespaceService;
     private final DictionaryService dictionaryService;
-    private final EventFilter nodeAspectFilter;
-    private final EventFilter nodePropertyFilter;
+    private final NodeAspectFilter nodeAspectFilter;
+    private final NodePropertyFilter nodePropertyFilter;
 
     public NodeResourceHelper(NodeService nodeService, NamespaceService namespaceService,
                               DictionaryService dictionaryService, EventFilterRegistry eventFilterRegistry)
@@ -72,15 +65,8 @@ public class NodeResourceHelper
         this.nodeService = nodeService;
         this.namespaceService = namespaceService;
         this.dictionaryService = dictionaryService;
-        this.nodeAspectFilter = eventFilterRegistry.getFilter(NodeAspectFilter.class)
-                                                   .orElseThrow(getExpSupplier(NodeAspectFilter.class));
-        this.nodePropertyFilter = eventFilterRegistry.getFilter(NodePropertyFilter.class)
-                                                     .orElseThrow(getExpSupplier(NodePropertyFilter.class));
-    }
-
-    private Supplier<AlfrescoRuntimeException> getExpSupplier(Class<?> clazz)
-    {
-        return () -> new AlfrescoRuntimeException("The filter '" + clazz.getName() + "' is not registered.");
+        this.nodeAspectFilter = eventFilterRegistry.getNodeAspectFilter();
+        this.nodePropertyFilter = eventFilterRegistry.getNodePropertyFilter();
     }
 
     public NodeResource.Builder createNodeResourceBuilder(NodeRef nodeRef)
@@ -142,64 +128,28 @@ public class NodeResourceHelper
         return !(ser instanceof String) || !((String) ser).isEmpty();
     }
 
+    public QName getNodeType(NodeRef nodeRef)
+    {
+       return nodeService.getType(nodeRef);
+    }
+
     public Serializable getProperty(NodeRef nodeRef, QName qName)
     {
         return nodeService.getProperty(nodeRef, qName);
     }
 
-    public Map<String, Serializable> getProperties(NodeRef nodeRef)
+    public Map<String, Serializable> getMappedProperties(NodeRef nodeRef)
     {
         return mapToNodeProperties(nodeService.getProperties(nodeRef));
     }
 
-    public void setBuilderProperties(Builder builder, Map<QName, Serializable> before, Map<QName, Serializable> after)
+    public Map<QName, Serializable> getProperties(NodeRef nodeRef)
     {
-        Pair<Map<QName, Serializable>, Map<QName, Serializable>> beforeAndAfterPair = PropertyMap
-                    .getBeforeAndAfterMapsForChanges(before, after);
-
-        if (beforeAndAfterPair.getFirst().isEmpty() && beforeAndAfterPair.getSecond().isEmpty())
-        {
-            // TODO - I think we should always set the 'properties' no matter whether or not any properties were changed.
-            // No changed properties, so don't set the before and after properties
-            builder.setProperties(mapToNodeProperties(after));
-        }
-        else
-        {
-            // Changed properties, so only set before and after the changed-properties
-            builder.setAffectedPropertiesBefore(mapToNodeProperties(beforeAndAfterPair.getFirst()))
-                   .setAffectedPropertiesAfter(mapToNodeProperties(beforeAndAfterPair.getSecond()));
-        }
+        return nodeService.getProperties(nodeRef);
     }
 
-    public List<String> getAspects(NodeRef nodeRef)
+    public List<String> getMappedAspects(NodeRef nodeRef)
     {
         return mapToNodeAspects(nodeService.getAspects(nodeRef));
-    }
-
-    public void setBuilderAspects(Builder builder, NodeRef nodeRef, Set<QName> removed, Set<QName> added)
-    {
-        Set<QName> current = nodeService.getAspects(nodeRef);
-
-        // No changed aspects, so set the aspectNames using the current data
-        if (removed.isEmpty() && added.isEmpty())
-        {
-            builder.setAspectNames(mapToNodeAspects(current));
-        }
-        else
-        {
-            Set<QName> before = new HashSet<>(current);
-            if (!removed.isEmpty())
-            {
-                // Add all the removed aspects from the current list
-                before.addAll(removed);
-            }
-            if (!added.isEmpty())
-            {
-                // Remove all the added aspects from the current list
-                before.removeAll(added);
-            }
-            builder.setAspectNamesBefore(mapToNodeAspects(before))
-                   .setAspectNamesAfter(mapToNodeAspects(current));
-        }
     }
 }

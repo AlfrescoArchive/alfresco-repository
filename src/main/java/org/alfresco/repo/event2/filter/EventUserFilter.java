@@ -23,36 +23,52 @@
  * along with Alfresco. If not, see <http://www.gnu.org/licenses/>.
  * #L%
  */
+
 package org.alfresco.repo.event2.filter;
 
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
-
-import org.alfresco.service.namespace.QName;
+import java.util.StringTokenizer;
 
 /**
- * Implementation of the node properties filter.
+ * Implementation of the user filter.
  *
  * @author Jamal Kaabi-Mofrad
  */
-public class NodePropertyFilter extends AbstractNodeEventFilter
+public class EventUserFilter implements EventFilter<String>
 {
-    private static final String FILTERED_PROPERTIES = "sys:*";
+    private Set<String> filteredUsers;
+    private boolean userNamesAreCaseSensitive;
 
-    private final List<String> nodeAspectsBlackList;
-
-    public NodePropertyFilter()
+    public EventUserFilter(String filteredUsersStr, boolean userNamesAreCaseSensitive)
     {
-        this.nodeAspectsBlackList = parseFilterList(FILTERED_PROPERTIES);
+        this.userNamesAreCaseSensitive = userNamesAreCaseSensitive;
+        this.filteredUsers = parseFilterList(filteredUsersStr);
+    }
+
+    private Set<String> parseFilterList(String str)
+    {
+        Set<String> set = new HashSet<>();
+
+        StringTokenizer st = new StringTokenizer(str, ",");
+        while (st.hasMoreTokens())
+        {
+            String entry = st.nextToken().trim();
+            if (!entry.isEmpty())
+            {
+                set.add((userNamesAreCaseSensitive) ? entry : entry.toLowerCase());
+            }
+        }
+        return set;
     }
 
     @Override
-    public Set<QName> getExcludedTypes()
+    public boolean isExcluded(String user)
     {
-        Set<QName> result = new HashSet<>();
-        nodeAspectsBlackList.forEach(nodeAspect -> result.addAll(expandTypeDef(nodeAspect)));
-
-        return result;
+        if (user == null)
+        {
+            user = "null";
+        }
+        return filteredUsers.contains((userNamesAreCaseSensitive) ? user : user.toLowerCase());
     }
 }

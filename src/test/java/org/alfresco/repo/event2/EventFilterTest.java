@@ -34,13 +34,10 @@ import static org.mockito.Mockito.when;
 
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Optional;
 
 import org.alfresco.model.ContentModel;
 import org.alfresco.model.ForumModel;
-import org.alfresco.repo.event2.filter.AbstractEventFilter;
-import org.alfresco.repo.event2.filter.EventFilter;
-import org.alfresco.repo.event2.filter.EventFilterRegistry;
+import org.alfresco.repo.event2.filter.EventUserFilter;
 import org.alfresco.repo.event2.filter.NodeAspectFilter;
 import org.alfresco.repo.event2.filter.NodePropertyFilter;
 import org.alfresco.repo.event2.filter.NodeTypeFilter;
@@ -60,15 +57,16 @@ import org.mockito.stubbing.Answer;
  */
 public class EventFilterTest
 {
-
-    private static EventFilterRegistry registry;
     private static NamespaceService namespaceService;
+    private static NodePropertyFilter propertyFilter;
+    private static NodeTypeFilter typeFilter;
+    private static NodeAspectFilter aspectFilter;
+    private static EventUserFilter caseInsensitive_userFilter;
+    private static EventUserFilter caseSensitive_userFilter;
 
     @BeforeClass
     public static void setUp()
     {
-        registry = new EventFilterRegistry();
-
         DictionaryService dictionaryService = mock(DictionaryService.class);
         when(dictionaryService.getSubTypes(any(), anyBoolean())).thenAnswer((Answer<Collection<QName>>) invocation -> {
             QName name = invocation.getArgument(0);
@@ -83,30 +81,28 @@ public class EventFilterTest
         namespaceService.registerNamespace(NamespaceService.FORUMS_MODEL_PREFIX,
                                            NamespaceService.FORUMS_MODEL_1_0_URI);
 
-        NodePropertyFilter propertyFilter = new NodePropertyFilter();
-        propertyFilter.setEventFilterRegistry(registry);
+        propertyFilter = new NodePropertyFilter();
         propertyFilter.setNamespaceService(namespaceService);
         propertyFilter.setDictionaryService(dictionaryService);
         propertyFilter.init();
 
-        NodeTypeFilter typeFilter = new NodeTypeFilter("sys:*, fm:*, cm:thumbnail");
-        typeFilter.setEventFilterRegistry(registry);
+        typeFilter = new NodeTypeFilter("sys:*, fm:*, cm:thumbnail");
         typeFilter.setNamespaceService(namespaceService);
         typeFilter.setDictionaryService(dictionaryService);
         typeFilter.init();
 
-        NodeAspectFilter aspectFilter = new NodeAspectFilter("cm:workingcopy");
-        aspectFilter.setEventFilterRegistry(registry);
+        aspectFilter = new NodeAspectFilter("cm:workingcopy");
         aspectFilter.setNamespaceService(namespaceService);
         aspectFilter.setDictionaryService(dictionaryService);
         aspectFilter.init();
+
+        caseInsensitive_userFilter = new EventUserFilter("System, john.doe, null", false);
+        caseSensitive_userFilter = new EventUserFilter("System, john.doe, null", true);
     }
 
     @Test
     public void nodePropertyFilter()
     {
-        NodePropertyFilter propertyFilter = getFilter(NodePropertyFilter.class);
-
         assertTrue("System properties are excluded by default.",
                    propertyFilter.isExcluded(ContentModel.PROP_NODE_UUID));
 
@@ -119,8 +115,6 @@ public class EventFilterTest
     @Test
     public void nodeTypeFilter()
     {
-        NodeTypeFilter typeFilter = getFilter(NodeTypeFilter.class);
-
         assertTrue("Thumbnail node type should have been filtered.",
                    typeFilter.isExcluded(ContentModel.TYPE_THUMBNAIL));
 
@@ -139,19 +133,46 @@ public class EventFilterTest
     @Test
     public void nodeAspectFilter()
     {
-        NodeAspectFilter aspectFilter = getFilter(NodeAspectFilter.class);
-
         assertTrue("Working copy aspect should have been filtered.",
                    aspectFilter.isExcluded(ContentModel.ASPECT_WORKING_COPY));
 
         assertFalse(aspectFilter.isExcluded(ContentModel.ASPECT_TITLED));
     }
 
-    private <T extends AbstractEventFilter> T getFilter(Class<T> glazz)
+    @Test
+    public void userFilter_case_insensitive()
     {
-        Optional<EventFilter> filter = registry.getFilter(glazz);
-        assertTrue(filter.isPresent());
-        return glazz.cast(filter.get());
+        assertTrue("System user should have been filtered.",
+                   caseInsensitive_userFilter.isExcluded("System"));
+
+        assertTrue("System user should have been filtered (case-insensitive).",
+                   caseInsensitive_userFilter.isExcluded("SYSTEM"));
+
+        assertTrue("'null' user should have been filtered.",
+                   caseInsensitive_userFilter.isExcluded("null"));
+
+        assertTrue("john.doe user should have been filtered.",
+                   caseInsensitive_userFilter.isExcluded("John.Doe"));
+
+        assertFalse("'jane.doe' user should not have been filtered.",
+                    caseInsensitive_userFilter.isExcluded("jane.doe"));
+    }
+
+    @Test
+    public void userFilter_case_sensitive()
+    {
+        assertFalse("'system' user should not have been filtered.",
+                    caseSensitive_userFilter.isExcluded("system"));
+        assertTrue("'System' user should have been filtered.",
+                   caseSensitive_userFilter.isExcluded("System"));
+
+        assertFalse("'John.Doe' user should not have been filtered.",
+                    caseSensitive_userFilter.isExcluded("John.Doe"));
+        assertTrue("'john.doe' user should have been filtered.",
+                   caseSensitive_userFilter.isExcluded("john.doe"));
+
+        assertFalse("'jane.doe' user should not have been filtered.",
+                    caseSensitive_userFilter.isExcluded("jane.doe"));
     }
 
     /**

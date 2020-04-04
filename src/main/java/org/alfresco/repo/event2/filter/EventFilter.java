@@ -25,20 +25,18 @@
  */
 package org.alfresco.repo.event2.filter;
 
-import org.alfresco.service.namespace.QName;
-
 /**
  * Repo events filter.
  *
  * @author Jamal Kaabi-Mofrad
  */
-public interface EventFilter
+public interface EventFilter<T>
 {
     /**
-     * Indicates whether the given {@link QName} should be excluded or not.
+     * Indicates whether the given object should be excluded or not.
      *
-     * @param type the node type
+     * @param obj the object to be checked against filters
      * @return true if it is excluded, otherwise false
      */
-    boolean isExcluded(QName type);
+    boolean isExcluded(T obj);
 }

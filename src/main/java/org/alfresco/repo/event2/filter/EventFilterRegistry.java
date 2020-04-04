@@ -25,43 +25,55 @@
  */
 package org.alfresco.repo.event2.filter;
 
-import java.util.Optional;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
+import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.factory.BeanFactoryAware;
+import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 
 /**
- * Holds {@link AbstractEventFilter} implementations.
+ * Holds {@link EventFilter} implementations.
  *
  * @author Jamal Kaabi-Mofrad
  */
-public class EventFilterRegistry
+public class EventFilterRegistry implements BeanFactoryAware
 {
-    private final ConcurrentMap<String, AbstractEventFilter> registry;
+    private BeanFactory beanFactory;
 
-    public EventFilterRegistry()
+    @Override
+    public void setBeanFactory(BeanFactory beanFactory) throws BeansException
     {
-        this.registry = new ConcurrentHashMap<>();
+        this.beanFactory = beanFactory;
     }
 
     /**
-     * Registers an instance of {@code AbstractEventFilter}.
+     * Return the filter bean instance that uniquely matches the given object type.
      *
-     * @param eventFilter the event filter
+     * @param filterClass the event filter type that the bean must match
+     * @return an instance of the filter bean matching the required type
+     * @throws NoSuchBeanDefinitionException - if no bean of the given type was found
      */
-    public void addFilter(AbstractEventFilter eventFilter)
+    public <F extends EventFilter<?>> F getFilter(Class<F> filterClass)
     {
-        registry.putIfAbsent(eventFilter.getClass().getName(), eventFilter);
+        return beanFactory.getBean(filterClass);
     }
 
-    /**
-     * Gets the event filter.
-     *
-     * @param filterType the event filter type to perform the lookup
-     * @return an {@code Optional} describing the found filter,
-     * or an empty {@code Optional} if no filter is found.
-     */
-    public Optional<EventFilter> getFilter(Class<? extends AbstractEventFilter> filterType)
+    public NodeTypeFilter getNodeTypeFilter()
     {
-        return Optional.ofNullable(registry.get(filterType.getName()));
+        return getFilter(NodeTypeFilter.class);
+    }
+
+    public NodeAspectFilter getNodeAspectFilter()
+    {
+        return getFilter(NodeAspectFilter.class);
+    }
+
+    public NodePropertyFilter getNodePropertyFilter()
+    {
+        return getFilter(NodePropertyFilter.class);
+    }
+
+    public EventUserFilter getEventUserFilter()
+    {
+        return getFilter(EventUserFilter.class);
     }
 }
