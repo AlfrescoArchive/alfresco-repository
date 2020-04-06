@@ -89,7 +89,7 @@ public class AuthorityServiceImpl implements AuthorityService, InitializingBean
     private ClassPolicyDelegate<OnAuthorityRemovedFromGroup> onAuthorityRemovedFromGroup;
     private ClassPolicyDelegate<OnGroupDeleted> onGroupDeletedDelegate;
     private PolicyComponent policyComponent;
-    private static final char[] ILLEGAL_CHARACTERS = {'/', '\\', '\r', '\n', '\"', '\''};
+    private static final char[] ILLEGAL_CHARACTERS = {'/', '\\', '\r', '\n', '"'};
 
     public AuthorityServiceImpl()
     {

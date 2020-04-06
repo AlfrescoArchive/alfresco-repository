@@ -365,9 +365,14 @@ public class AuthorityServiceTest extends TestCase
     @Category(RedundantTests.class)
     public void test_ETWOTWO_400()
     {
-        pubAuthorityService.createAuthority(AuthorityType.GROUP, "wo\"of");
-        Set<String> authorities = pubAuthorityService.findAuthorities(AuthorityType.GROUP, null, true, "wo\"of*", AuthorityService.ZONE_APP_DEFAULT);
-        assertEquals(1, authorities.size());
+        try {
+            pubAuthorityService.createAuthority(AuthorityType.GROUP, "wo\"of");
+        } catch (AuthorityException e) {
+            e.getMsgId();
+        } finally {
+            Set<String> authorities = pubAuthorityService.findAuthorities(AuthorityType.GROUP, null, true, "wo\"of*", AuthorityService.ZONE_APP_DEFAULT);
+            assertEquals(0, authorities.size());
+        }
     }
 
     @Category(RedundantTests.class)
@@ -1328,7 +1333,7 @@ public class AuthorityServiceTest extends TestCase
         assertEquals(2, pubAuthorityService.getContainedAuthorities(AuthorityType.GROUP, auth1234, false).size());
         assertEquals(1, pubAuthorityService.getContainedAuthorities(AuthorityType.GROUP, authC1, false).size());
         assertEquals(0, pubAuthorityService.getContainedAuthorities(AuthorityType.GROUP, authC2, false).size());
-        String authStuff = pubAuthorityService.createAuthority(AuthorityType.GROUP, "|<>?~@:}{+_)(*&^%$£!¬`,./#';][=-0987654321 1234556678 '");
+        String authStuff = pubAuthorityService.createAuthority(AuthorityType.GROUP, "|<>?~@:}{+_)(*&^%$£!¬`,.#';][=-0987654321 1234556678 '");
         pubAuthorityService.addAuthority(authC2, authStuff);
         assertEquals(3, pubAuthorityService.getContainedAuthorities(AuthorityType.GROUP, auth1234, false).size());
         assertEquals(2, pubAuthorityService.getContainedAuthorities(AuthorityType.GROUP, authC1, false).size());
