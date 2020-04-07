@@ -38,9 +38,9 @@
     <import resource="classpath:alfresco/usage-services-context.xml" />
     <import resource="classpath:alfresco/policy-context.xml" />
     <import resource="classpath:alfresco/import-export-context.xml" />
+    <import resource="classpath:alfresco/workflow-context.xml" />
     <import resource="classpath:alfresco/bootstrap-context.xml" />
     <import resource="classpath:alfresco/repo-admin-context.xml"/>
-    <import resource="classpath:alfresco/workflow-context.xml" />
     <import resource="classpath:alfresco/audit-services-context.xml" />
     <import resource="classpath:alfresco/attributes-service-context.xml"/>
     <import resource="classpath:alfresco/site-services-context.xml"/>
