@@ -185,7 +185,7 @@ public class WarHelperImpl implements WarHelper
 		                +installingModuleDetails.getRepoVersionMin()+". This war is version: "+warVersion+".");
 		}
 		if(warVersion.compareTo(installingModuleDetails.getRepoVersionMax())==1) {
-		    throw new ModuleManagementToolException("The module ("+installingModuleDetails.getTitle()+") cannot be installed on a war version greater than "
+            log.info("INFO: The module ("+installingModuleDetails.getTitle()+") should not be installed on a war version greater than "
 		                +installingModuleDetails.getRepoVersionMax()+". This war is version: "+warVersion+".");
 		}
 	}

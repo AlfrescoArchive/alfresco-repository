@@ -110,17 +110,6 @@ public class WarHelperImplTest extends WarHelperImpl
         installingModuleDetails.setRepoVersionMin(new VersionNumber("1.1"));
         this.checkCompatibleVersion(theWar, installingModuleDetails); //does not throw exception     
      
-        installingModuleDetails.setRepoVersionMax(new VersionNumber("3.0"));
-        try
-        {
-            this.checkCompatibleVersion(theWar, installingModuleDetails);
-            fail(); //should never get here
-        }
-        catch (ModuleManagementToolException exception)
-        {
-            assertTrue(exception.getMessage().contains("cannot be installed on a war version greater than 3.0"));
-        }        
-
         installingModuleDetails.setRepoVersionMax(new VersionNumber("99"));
         this.checkCompatibleVersion(theWar, installingModuleDetails); //does not throw exception
         
@@ -131,18 +120,11 @@ public class WarHelperImplTest extends WarHelperImpl
         installingModuleDetails.setRepoVersionMin(new VersionNumber("3.4.0"));  //current war version
         installingModuleDetails.setRepoVersionMax(new VersionNumber("4.1.0"));  //current war version
         this.checkCompatibleVersion(theWar, installingModuleDetails); //does not throw exception  
-        
-        try
-        {
-            installingModuleDetails.setRepoVersionMin(new VersionNumber("3.4.0"));  //current war version
-            installingModuleDetails.setRepoVersionMax(new VersionNumber("4.0.999"));  //current war version
-            this.checkCompatibleVersion(theWar, installingModuleDetails); //does not throw exception
-            fail("Should not pass as current version is 4.1.0 and the max value is 4.0.999"); //should never get here
-        }
-        catch (ModuleManagementToolException exception)
-        {
-            assertTrue(exception.getMessage().contains("cannot be installed on a war version greater than 4.0.999"));
-        }
+
+        // Only an INFO message is logged in case repoVersionMax is lower than the war version
+        installingModuleDetails.setRepoVersionMin(new VersionNumber("3.4.0"));  //current war version
+        installingModuleDetails.setRepoVersionMax(new VersionNumber("4.0.999"));  //current war version
+        this.checkCompatibleVersion(theWar, installingModuleDetails); //does not throw exception
     }
     
     @Test
@@ -165,17 +147,6 @@ public class WarHelperImplTest extends WarHelperImpl
         installingModuleDetails.setRepoVersionMin(new VersionNumber("1.1"));
         this.checkCompatibleVersionUsingManifest(theWar, installingModuleDetails); //does not throw exception     
      
-        installingModuleDetails.setRepoVersionMax(new VersionNumber("3.0"));
-        try
-        {
-            this.checkCompatibleVersionUsingManifest(theWar, installingModuleDetails);
-            fail(); //should never get here
-        }
-        catch (ModuleManagementToolException exception)
-        {
-            assertTrue(exception.getMessage().contains("cannot be installed on a war version greater than 3.0"));
-        }        
-
         installingModuleDetails.setRepoVersionMax(new VersionNumber("99"));
         this.checkCompatibleVersionUsingManifest(theWar, installingModuleDetails); //does not throw exception
         
@@ -186,19 +157,12 @@ public class WarHelperImplTest extends WarHelperImpl
         installingModuleDetails.setRepoVersionMin(new VersionNumber("3.4.7"));  //current war version
         installingModuleDetails.setRepoVersionMax(new VersionNumber("3.4.11"));  //current war version
         this.checkCompatibleVersionUsingManifest(theWar, installingModuleDetails); //does not throw exception  
-        
-        try
-        {
-            installingModuleDetails.setRepoVersionMin(new VersionNumber("3.4.0"));  //current war version
-            installingModuleDetails.setRepoVersionMax(new VersionNumber("3.4.10"));  //current war version
-            this.checkCompatibleVersionUsingManifest(theWar, installingModuleDetails); //does not throw exception
-            fail("Should not pass as current version is 3.4.11 and the max value is 3.4.10"); //should never get here
-        }
-        catch (ModuleManagementToolException exception)
-        {
-            assertTrue(exception.getMessage().contains("cannot be installed on a war version greater than 3.4.10"));
-        }
-        
+
+        // Only an INFO message is logged in case repoVersionMax is lower than the war version
+        installingModuleDetails.setRepoVersionMin(new VersionNumber("3.4.0"));  //current war version
+        installingModuleDetails.setRepoVersionMax(new VersionNumber("3.4.10"));  //current war version
+        this.checkCompatibleVersionUsingManifest(theWar, installingModuleDetails); //does not throw exception
+
     	theWar = getFile(".war", "module/share-4.2.a.war");
     	installingModuleDetails = new ModuleDetailsImpl("test_it",  new ModuleVersionNumber("9999"), "Test Mod", "Testing module");
         installingModuleDetails.setRepoVersionMin(new VersionNumber("101.1"));
