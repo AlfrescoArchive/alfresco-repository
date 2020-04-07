@@ -34,5 +34,7 @@
         <property name="dictionaryService" ref="dictionaryService"/>
         <property name="descriptorService" ref="descriptorComponent"/>
         <property name="eventFilterRegistry" ref="eventFilterRegistry"/>
+        <property name="event2MessageProducer" ref="event2MessageProducer"/>
+        <property name="transactionService" ref="transactionService"/>
     </bean>
 </beans>

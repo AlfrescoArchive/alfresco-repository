@@ -45,6 +45,7 @@ import org.alfresco.repo.policy.JavaBehaviour;
 import org.alfresco.repo.policy.PolicyComponent;
 import org.alfresco.repo.security.authentication.AuthenticationUtil;
 import org.alfresco.repo.transaction.AlfrescoTransactionSupport;
+import org.alfresco.repo.transaction.RetryingTransactionHelper.RetryingTransactionCallback;
 import org.alfresco.service.cmr.dictionary.DictionaryService;
 import org.alfresco.service.cmr.repository.ChildAssociationRef;
 import org.alfresco.service.cmr.repository.NodeRef;
@@ -52,18 +53,21 @@ import org.alfresco.service.cmr.repository.NodeService;
 import org.alfresco.service.descriptor.DescriptorService;
 import org.alfresco.service.namespace.NamespaceService;
 import org.alfresco.service.namespace.QName;
+import org.alfresco.service.transaction.TransactionService;
 import org.alfresco.util.PropertyCheck;
 import org.alfresco.util.transaction.TransactionListenerAdapter;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.context.ApplicationEvent;
+import org.springframework.extensions.surf.util.AbstractLifecycleBean;
 
 /**
  * Generates events and sends them to an event topic.
  *
  * @author Jamal Kaabi-Mofrad
  */
-public class EventGenerator implements InitializingBean, EventSupportedPolicies
+public class EventGenerator extends AbstractLifecycleBean implements InitializingBean, EventSupportedPolicies
 {
     private static final Log LOGGER = LogFactory.getLog(EventGenerator.class);
 
@@ -73,6 +77,8 @@ public class EventGenerator implements InitializingBean, EventSupportedPolicies
     private DictionaryService dictionaryService;
     private DescriptorService descriptorService;
     private EventFilterRegistry eventFilterRegistry;
+    private Event2MessageProducer event2MessageProducer;
+    private TransactionService transactionService;
 
     private NodeTypeFilter nodeTypeFilter;
     private EventUserFilter userFilter;
@@ -88,7 +94,17 @@ public class EventGenerator implements InitializingBean, EventSupportedPolicies
         PropertyCheck.mandatory(this, "dictionaryService", dictionaryService);
         PropertyCheck.mandatory(this, "descriptorService", descriptorService);
         PropertyCheck.mandatory(this, "eventFilterRegistry", eventFilterRegistry);
+        PropertyCheck.mandatory(this, "event2MessageProducer", event2MessageProducer);
+        PropertyCheck.mandatory(this, "transactionService", transactionService);
 
+        this.nodeTypeFilter = eventFilterRegistry.getNodeTypeFilter();
+        this.userFilter = eventFilterRegistry.getEventUserFilter();
+        this.nodeResourceHelper = new NodeResourceHelper(nodeService, namespaceService, dictionaryService,
+                                                         eventFilterRegistry);
+    }
+
+    private void bindBehaviours()
+    {
         policyComponent.bindClassBehaviour(OnCreateNodePolicy.QNAME, this,
                                            new JavaBehaviour(this, "onCreateNode"));
         policyComponent.bindClassBehaviour(BeforeDeleteNodePolicy.QNAME, this,
@@ -99,12 +115,6 @@ public class EventGenerator implements InitializingBean, EventSupportedPolicies
                                            new JavaBehaviour(this, "onAddAspect"));
         policyComponent.bindClassBehaviour(OnRemoveAspectPolicy.QNAME, this,
                                            new JavaBehaviour(this, "onRemoveAspect"));
-
-        this.nodeTypeFilter = eventFilterRegistry.getNodeTypeFilter();
-        this.userFilter = eventFilterRegistry.getEventUserFilter();
-        this.nodeResourceHelper = new NodeResourceHelper(nodeService, namespaceService, dictionaryService,
-                                                         eventFilterRegistry);
-
     }
 
     public void setPolicyComponent(PolicyComponent policyComponent)
@@ -135,6 +145,16 @@ public class EventGenerator implements InitializingBean, EventSupportedPolicies
     public void setEventFilterRegistry(EventFilterRegistry eventFilterRegistry)
     {
         this.eventFilterRegistry = eventFilterRegistry;
+    }
+
+    public void setEvent2MessageProducer(Event2MessageProducer event2MessageProducer)
+    {
+        this.event2MessageProducer = event2MessageProducer;
+    }
+
+    public void setTransactionService(TransactionService transactionService)
+    {
+        this.transactionService = transactionService;
     }
 
     @Override
@@ -244,9 +264,26 @@ public class EventGenerator implements InitializingBean, EventSupportedPolicies
         if (LOGGER.isTraceEnabled())
         {
             LOGGER.trace("List of Events:" + consolidator.getEventTypes());
+            LOGGER.trace("Sending event:" + event);
         }
+        // Need to execute this in another read txn because Camel expects it
+        transactionService.getRetryingTransactionHelper().doInTransaction((RetryingTransactionCallback<Void>) () -> {
+            event2MessageProducer.send(event);
 
-        LOGGER.info("Sending event:" + event);
+            return null;
+        }, true, false);
+    }
+
+    @Override
+    protected void onBootstrap(ApplicationEvent applicationEvent)
+    {
+        bindBehaviours();
+    }
+
+    @Override
+    protected void onShutdown(ApplicationEvent applicationEvent)
+    {
+        //NOOP
     }
 
     private class EventTransactionListener extends TransactionListenerAdapter
