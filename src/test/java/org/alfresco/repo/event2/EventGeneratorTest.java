@@ -61,13 +61,15 @@ public class EventGeneratorTest extends BaseSpringTest
         // authenticate as admin
         AuthenticationUtil.setAdminUserAsFullyAuthenticatedUser();
 
-        // create a store and get the root node
-        StoreRef storeRef = new StoreRef(StoreRef.PROTOCOL_WORKSPACE, this.getClass().getName());
-        if (!nodeService.exists(storeRef))
-        {
-            storeRef = nodeService.createStore(storeRef.getProtocol(), storeRef.getIdentifier());
-        }
-        this.rootNodeRef = nodeService.getRootNode(storeRef);
+        this.rootNodeRef = retryingTransactionHelper.doInTransaction(() -> {
+            // create a store and get the root node
+            StoreRef storeRef = new StoreRef(StoreRef.PROTOCOL_WORKSPACE, this.getClass().getName());
+            if (!nodeService.exists(storeRef))
+            {
+                storeRef = nodeService.createStore(storeRef.getProtocol(), storeRef.getIdentifier());
+            }
+            return nodeService.getRootNode(storeRef);
+        });
     }
 
     @After
