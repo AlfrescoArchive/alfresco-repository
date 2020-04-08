@@ -80,7 +80,7 @@ public class NodeResourceHelper
         final Path path = nodeService.getPath(nodeRef);
 
         return NodeResource.builder().setId(nodeRef.getId())
-                           .setNodeType(type.toPrefixString(namespaceService))
+                           .setNodeType(toString(type))
                            .setIsFile(isSubClass(type, ContentModel.TYPE_CONTENT))
                            .setIsFolder(isSubClass(type, ContentModel.TYPE_FOLDER))
                            .setPrimaryHierarchy(PathUtil.getNodeIdsInReverse(path, false));
@@ -106,21 +106,28 @@ public class NodeResourceHelper
 
                 if (isNotEmptyString(v))
                 {
-                    String key = k.getNamespaceURI();
-                    try
-                    {
-                        key = k.toPrefixString(namespaceService);
-                    }
-                    catch (NamespaceException e)
-                    {
-                        LOGGER.debug(e);
-                    }
-                    filteredProps.put(key, v);
+                    filteredProps.put(toString(k), v);
                 }
             }
         });
 
         return filteredProps;
+    }
+
+    // Returns the QName in the format prefix:local, but in the exceptional case were there is no registered prefix
+    // returns it in the form {uri}local.
+    private String toString(QName k)
+    {
+        String key;
+        try
+        {
+            key = k.toPrefixString(namespaceService);
+        }
+        catch (NamespaceException e)
+        {
+            key = k.toString();
+        }
+        return key;
     }
 
     public List<String> mapToNodeAspects(Set<QName> aspects)
@@ -130,7 +137,7 @@ public class NodeResourceHelper
         aspects.forEach(q -> {
             if (!nodeAspectFilter.isExcluded(q))
             {
-                filteredAspects.add(q.toPrefixString(namespaceService));
+                filteredAspects.add(toString(q));
             }
         });
 
