@@ -82,6 +82,7 @@ import org.alfresco.service.namespace.RegexQNamePattern;
 import org.alfresco.util.GUID;
 import org.alfresco.util.Pair;
 import org.alfresco.util.registry.NamedObjectRegistry;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.extensions.surf.util.I18NUtil;
@@ -313,7 +314,16 @@ public class CopyServiceImpl extends AbstractBaseCopyService implements CopyServ
 
         while (this.internalNodeService.getChildByName(destinationParent, assocTypeQName, newName) != null)
         {
-            newName = I18NUtil.getMessage(COPY_OF_LABEL, newName);                        
+            String baseName = FilenameUtils.getBaseName(newName);
+            String extension = FilenameUtils.getExtension(newName);
+
+            newName = I18NUtil.getMessage(COPY_OF_LABEL, baseName);
+
+            // append extension, if any, to filename
+            if (extension != null && !extension.isEmpty())
+            {
+                newName = newName + FilenameUtils.EXTENSION_SEPARATOR_STR + extension;
+            }
         }
                 
         if (assocQName == null)
