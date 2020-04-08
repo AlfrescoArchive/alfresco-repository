@@ -42,9 +42,12 @@ import org.alfresco.service.cmr.repository.MLText;
 import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.cmr.repository.NodeService;
 import org.alfresco.service.cmr.repository.Path;
+import org.alfresco.service.namespace.NamespaceException;
 import org.alfresco.service.namespace.NamespaceService;
 import org.alfresco.service.namespace.QName;
 import org.alfresco.util.PathUtil;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 /**
  * Helper for {@link NodeResource} objects.
@@ -53,6 +56,8 @@ import org.alfresco.util.PathUtil;
  */
 public class NodeResourceHelper
 {
+    private static final Log LOGGER = LogFactory.getLog(NodeResourceHelper.class);
+
     private final NodeService nodeService;
     private final NamespaceService namespaceService;
     private final DictionaryService dictionaryService;
@@ -101,7 +106,16 @@ public class NodeResourceHelper
 
                 if (isNotEmptyString(v))
                 {
-                    filteredProps.put(k.toPrefixString(namespaceService), v);
+                    String key = k.getNamespaceURI();
+                    try
+                    {
+                        key = k.toPrefixString(namespaceService);
+                    }
+                    catch (NamespaceException e)
+                    {
+                        LOGGER.debug(e);
+                    }
+                    filteredProps.put(key, v);
                 }
             }
         });
