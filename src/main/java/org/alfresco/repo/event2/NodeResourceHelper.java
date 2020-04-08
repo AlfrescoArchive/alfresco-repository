@@ -91,6 +91,11 @@ public class NodeResourceHelper
         return dictionaryService.isSubClass(className, ofClassQName);
     }
 
+    public boolean nodeExists(NodeRef nodeRef)
+    {
+        return nodeService.exists(nodeRef);
+    }
+
     public Map<String, Serializable> mapToNodeProperties(Map<QName, Serializable> props)
     {
         Map<String, Serializable> filteredProps = new HashMap<>(props.size());

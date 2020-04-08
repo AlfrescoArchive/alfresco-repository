@@ -230,10 +230,15 @@ public class EventConsolidator implements EventSupportedPolicies
 
         if (eventTypes.getLast() != EventType.NODE_DELETED)
         {
-            // We are setting the details at the end of
-            // the Txn by getting the latest info
-            createBuilderIfAbsent(nodeRef, true);
-            setPropertiesAndAspects();
+            // Check the node still exists.
+            // This could happen in tests where a node is deleted before the afterCommit code is
+            // executed (For example, see ThumbnailServiceImplTest#testIfNodesExistsAfterCreateThumbnail).
+            if (helper.nodeExists(nodeRef))
+            {
+                // We are setting the details at the end of the Txn by getting the latest info
+                createBuilderIfAbsent(nodeRef, true);
+                setPropertiesAndAspects();
+            }
         }
         // Now create an instance of NodeResource
         return builder.build();
