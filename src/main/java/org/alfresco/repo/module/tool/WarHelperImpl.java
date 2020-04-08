@@ -184,6 +184,10 @@ public class WarHelperImpl implements WarHelper
 		    throw new ModuleManagementToolException("The module ("+installingModuleDetails.getTitle()+") must be installed on a war version equal to or greater than "
 		                +installingModuleDetails.getRepoVersionMin()+". This war is version: "+warVersion+".");
 		}
+		/*
+        REPO-5072 / REPO-5086
+        Only an INFO message is logged in case repoVersionMax is lower than the war version
+        */
 		if(warVersion.compareTo(installingModuleDetails.getRepoVersionMax())==1) {
             log.info("INFO: The module ("+installingModuleDetails.getTitle()+") should not be installed on a war version greater than "
 		                +installingModuleDetails.getRepoVersionMax()+". This war is version: "+warVersion+".");
