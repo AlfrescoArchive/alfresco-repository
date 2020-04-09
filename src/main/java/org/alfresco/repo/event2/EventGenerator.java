@@ -291,11 +291,19 @@ public class EventGenerator extends AbstractLifecycleBean implements Initializin
         @Override
         public void afterCommit()
         {
-            final Map<NodeRef, EventConsolidator> changedNodes = getTxnResourceMap(this);
-            for (Map.Entry<NodeRef, EventConsolidator> entry : changedNodes.entrySet())
+            try
             {
-                EventConsolidator eventConsolidator = entry.getValue();
-                sendEvent(entry.getKey(), eventConsolidator);
+                final Map<NodeRef, EventConsolidator> changedNodes = getTxnResourceMap(this);
+                for (Map.Entry<NodeRef, EventConsolidator> entry : changedNodes.entrySet())
+                {
+                    EventConsolidator eventConsolidator = entry.getValue();
+                    sendEvent(entry.getKey(), eventConsolidator);
+                }
+            }
+            catch (Exception e)
+            {
+                // Must consume the exception to protect other TransactionListeners
+                LOGGER.error("Unexpected error while sending repository events", e);
             }
         }
     }
