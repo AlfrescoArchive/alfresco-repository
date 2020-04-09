@@ -103,7 +103,7 @@ public class AuthorityDAOImpl implements AuthorityDAO, NodeServicePolicies.Befor
     private static Log logger = LogFactory.getLog(AuthorityDAOImpl.class);
     
     private static String PARENTS_OF_DELETING_CHILDREN_SET_RESOURCE = "ParentsOfDeletingChildrenSetResource";
-    
+    private static final char[] ILLEGAL_CHARACTERS = {'/', '\\', '\r', '\n', '\"'};    
     private static final NodeRef NULL_NODEREF = new NodeRef("null", "null", "null");
     private static final String CANNED_QUERY_AUTHS_LIST = "authsGetAuthoritiesCannedQueryFactory"; // see authority-services-context.xml
     private static final Collection<AuthorityType> SEARCHABLE_AUTHORITY_TYPES = new LinkedList<AuthorityType>();
@@ -1046,6 +1046,17 @@ public class AuthorityDAOImpl implements AuthorityDAO, NodeServicePolicies.Befor
             final String authorityName = prefix + shortName;
             if (shortName.startsWith(prefix))
             {
+                if (type == AuthorityType.GROUP)
+                {
+                    for (char illegalCharacter : ILLEGAL_CHARACTERS)
+                    {
+                        if (shortName.indexOf(illegalCharacter) != -1)
+                        {
+                            throw new AuthorityException("group name contains characters that are not permitted: "+shortName.charAt(shortName.indexOf(illegalCharacter)));
+                        }
+                    }
+                }
+            
                 String doublePrefixed = prefix + prefix;
                 if (shortName.startsWith(doublePrefixed))
                 {
