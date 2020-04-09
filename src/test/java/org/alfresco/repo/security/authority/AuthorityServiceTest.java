@@ -252,6 +252,20 @@ public class AuthorityServiceTest extends TestCase
         }
     }
 
+    public void testCreateAuthorityWithIllegalCharacters() throws Exception
+    {
+        char[] illegalCharacters = {'/', '\\', '\n', '\r', '"'};
+        for (char illegalCharacter : illegalCharacters)
+        {
+            String GROUP_NAME = "testGroupNameWith" + illegalCharacter;
+            try {
+                authorityService.createAuthority(AuthorityType.GROUP, GROUP_NAME);
+            } catch (AuthorityException e) {
+                assertEquals(e.getMsgId(), "group name contains characters that are not permitted: "+GROUP_NAME.charAt(GROUP_NAME.indexOf(illegalCharacter)));
+            }
+        }
+    }
+
     public class GroupBehaviour implements NodeServicePolicies.BeforeDeleteNodePolicy
     {
 
@@ -351,9 +365,14 @@ public class AuthorityServiceTest extends TestCase
     @Category(RedundantTests.class)
     public void test_ETWOTWO_400()
     {
-        pubAuthorityService.createAuthority(AuthorityType.GROUP, "wo\"of");
-        Set<String> authorities = pubAuthorityService.findAuthorities(AuthorityType.GROUP, null, true, "wo\"of*", AuthorityService.ZONE_APP_DEFAULT);
-        assertEquals(1, authorities.size());
+        try {
+            pubAuthorityService.createAuthority(AuthorityType.GROUP, "wo\"of");
+        } catch (AuthorityException e) {
+            e.getMsgId();
+        } finally {
+            Set<String> authorities = pubAuthorityService.findAuthorities(AuthorityType.GROUP, null, true, "wo\"of*", AuthorityService.ZONE_APP_DEFAULT);
+            assertEquals(0, authorities.size());
+        }
     }
 
     @Category(RedundantTests.class)
