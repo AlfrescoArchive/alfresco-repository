@@ -204,7 +204,6 @@ public abstract class AbstractRenditionIntegrationTest extends BaseSpringTest
     {
         System.clearProperty("transform.service.enabled");
         System.clearProperty("local.transform.service.enabled");
-        System.clearProperty("legacy.transform.service.enabled");
     }
 
     protected void checkRendition(String testFileName, String renditionName, boolean expectedToPass)
