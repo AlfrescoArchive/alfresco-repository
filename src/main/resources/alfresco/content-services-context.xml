@@ -468,10 +468,10 @@
           <value>Tika</value>
        </constructor-arg>
        <constructor-arg>
-          <value>${tika.url}</value>
+          <value>${legacyTransform.core-aio.url}</value>
        </constructor-arg>
        <property name="startupRetryPeriodSeconds">
-          <value>${tika.startupRetryPeriodSeconds}</value>
+          <value>${legacyTransform.core-aio.startupRetryPeriodSeconds}</value>
        </property>
    </bean>
 
@@ -481,10 +481,10 @@
             <value>MiscellaneousTransformers</value>
         </constructor-arg>
         <constructor-arg>
-            <value>${transform.misc.url}</value>
+            <value>${legacyTransform.core-aio.url}</value>
         </constructor-arg>
         <property name="startupRetryPeriodSeconds">
-            <value>${transform.misc.startupRetryPeriodSeconds}</value>
+            <value>${legacyTransform.core-aio.startupRetryPeriodSeconds}</value>
         </property>
     </bean>
 

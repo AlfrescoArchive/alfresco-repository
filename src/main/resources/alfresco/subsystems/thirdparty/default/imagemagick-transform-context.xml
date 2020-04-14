@@ -12,10 +12,10 @@
                <value>ImageMagick</value>
             </constructor-arg>
             <constructor-arg>
-               <value>${img.url}</value>
+               <value>${legacyTransform.core-aio.url}</value>
             </constructor-arg>
             <property name="startupRetryPeriodSeconds">
-               <value>${img.startupRetryPeriodSeconds}</value>
+               <value>${legacyTransform.core-aio.startupRetryPeriodSeconds}</value>
             </property>
          </bean>
       </property>
