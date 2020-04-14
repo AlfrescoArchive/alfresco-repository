@@ -42,7 +42,7 @@ import org.junit.Test;
  * @author Iulian Aftene
  */
 
-public class UpdateRepoEventIT extends ContextAwareRepoEvent
+public class UpdateRepoEventIT extends AbstractContextAwareRepoEvent
 {
 
     @Test

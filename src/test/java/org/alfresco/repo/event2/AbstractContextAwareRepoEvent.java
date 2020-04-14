@@ -50,7 +50,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  * @author Iulian Aftene
  */
 
-public abstract class ContextAwareRepoEvent extends BaseSpringTest
+public abstract class AbstractContextAwareRepoEvent extends BaseSpringTest
 {
     private static final String TEST_NAMESPACE = "http://www.alfresco.org/test/ContextAwareRepoEvent";
     private static final String CAMEL_BASE_TOPIC_URI = "jms:topic:";
@@ -81,7 +81,7 @@ public abstract class ContextAwareRepoEvent extends BaseSpringTest
         });
     }
 
-    public NodeRef createNode(QName contentType)
+    protected NodeRef createNode(QName contentType)
     {
         final ChildAssociationRef[] assocRef = new ChildAssociationRef[1];
         retryingTransactionHelper.doInTransaction(() -> {
@@ -95,7 +95,7 @@ public abstract class ContextAwareRepoEvent extends BaseSpringTest
         return assocRef[0].getChildRef();
     }
 
-    public NodeRef createNode(QName contentType, NodeRef parentRef)
+    protected NodeRef createNode(QName contentType, NodeRef parentRef)
     {
         final ChildAssociationRef[] assocRef = new ChildAssociationRef[1];
         retryingTransactionHelper.doInTransaction(() -> {
@@ -110,7 +110,7 @@ public abstract class ContextAwareRepoEvent extends BaseSpringTest
         return contentNodeRef;
     }
 
-    public NodeRef createNode(QName contentType, PropertyMap propertyMap)
+    protected NodeRef createNode(QName contentType, PropertyMap propertyMap)
     {
         final ChildAssociationRef[] assocRef = new ChildAssociationRef[1];
         retryingTransactionHelper.doInTransaction(() -> {
@@ -126,7 +126,7 @@ public abstract class ContextAwareRepoEvent extends BaseSpringTest
     }
 
 
-    public void deleteNode(NodeRef nodeRef)
+    protected void deleteNode(NodeRef nodeRef)
     {
         retryingTransactionHelper.doInTransaction(() -> {
             nodeService.deleteNode(nodeRef);
@@ -134,7 +134,7 @@ public abstract class ContextAwareRepoEvent extends BaseSpringTest
         });
     }
 
-    public  <T> CamelContext subscribe( Consumer<T> handler, Class<T> type) throws Exception
+    protected  <T> CamelContext subscribe( Consumer<T> handler, Class<T> type) throws Exception
     {
         final CamelContext ctx = new DefaultCamelContext();
         final ConnectionFactory connectionFactory = new ActiveMQConnectionFactory(BROKER_URL);

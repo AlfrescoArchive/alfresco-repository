@@ -42,7 +42,7 @@ import org.junit.Test;
  * @author Iulian Aftene
  */
 
-public class CreateRepoEventIT extends ContextAwareRepoEvent
+public class CreateRepoEventIT extends AbstractContextAwareRepoEvent
 {
     private CompletableFuture<String> futureResult;
 

@@ -40,7 +40,7 @@ import org.junit.Test;
  * @author Iulian Aftene
  */
 
-public class DeleteRepoEventIT extends ContextAwareRepoEvent
+public class DeleteRepoEventIT extends AbstractContextAwareRepoEvent
 {
     @Test
     public void deleteContent() throws Exception {
