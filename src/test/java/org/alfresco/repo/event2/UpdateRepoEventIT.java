@@ -82,12 +82,12 @@ public class UpdateRepoEventIT extends ContextAwareRepoEvent
         CompletableFuture<String> futureResult = new CompletableFuture<>();
         subscribe(futureResult::complete, String.class);
 
+        //update content cm:title property with "new_title" value
         retryingTransactionHelper.doInTransaction(() -> {
             nodeService.setProperty(nodeRef, ContentModel.PROP_TITLE, "new_title");
             return null;
         });
 
-        final String result = futureResult.get(5, SECONDS);
         final RepoEvent<NodeResource> resultRepoEvent= JacksonSerializer.deserialize(futureResult.get(5, SECONDS),RepoEvent.class);
 
         assertTrue("Ttile was not updated. ",
@@ -105,12 +105,12 @@ public class UpdateRepoEventIT extends ContextAwareRepoEvent
         CompletableFuture<String> futureResult = new CompletableFuture<>();
         subscribe(futureResult::complete, String.class);
 
+        //update content cm:description property with "test_description" value
         retryingTransactionHelper.doInTransaction(() -> {
             nodeService.setProperty(nodeRef, ContentModel.PROP_DESCRIPTION, "test_description");
             return null;
         });
 
-        final String result = futureResult.get(5, SECONDS);
         final RepoEvent<NodeResource> resultRepoEvent= JacksonSerializer.deserialize(futureResult.get(5, SECONDS),RepoEvent.class);
 
         assertTrue("Description was not updated. ",
@@ -120,7 +120,28 @@ public class UpdateRepoEventIT extends ContextAwareRepoEvent
                 .containsValue("test_description"));
     }
 
+    @Test
+    public void testUpdateContentName() throws Exception {
 
+        NodeRef nodeRef = createNode(ContentModel.TYPE_CONTENT);
+
+        CompletableFuture<String> futureResult = new CompletableFuture<>();
+        subscribe(futureResult::complete, String.class);
+
+        //update cm:name property with "test_new_name" value
+        retryingTransactionHelper.doInTransaction(() -> {
+            nodeService.setProperty(nodeRef, ContentModel.PROP_NAME, "test_new_name");
+            return null;
+        });
+
+        final RepoEvent<NodeResource> resultRepoEvent= JacksonSerializer.deserialize(futureResult.get(5, SECONDS),RepoEvent.class);
+
+        assertTrue("Name was not updated. ",
+            resultRepoEvent.getData()
+                .getResource()
+                .getAffectedPropertiesAfter()
+                .containsValue("test_new_name"));
+    }
 
     @Test
     public void testAddAspectToContent() throws Exception {
@@ -137,6 +158,7 @@ public class UpdateRepoEventIT extends ContextAwareRepoEvent
         });
 
         final RepoEvent<NodeResource> resultRepoEvent= JacksonSerializer.deserialize(futureResult.get(5, SECONDS),RepoEvent.class);
+
         assertTrue("Aspect was not added. ",
             resultRepoEvent.getData()
                 .getResource()
@@ -159,6 +181,7 @@ public class UpdateRepoEventIT extends ContextAwareRepoEvent
         });
 
         final RepoEvent<NodeResource> resultRepoEvent= JacksonSerializer.deserialize(futureResult.get(5, SECONDS),RepoEvent.class);
+
         assertTrue("Aspect was not removed. ",
             resultRepoEvent.getData()
                 .getResource()

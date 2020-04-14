@@ -47,7 +47,7 @@ public class DeleteRepoEventIT extends ContextAwareRepoEvent
 
         NodeRef nodeRef = createNode(ContentModel.TYPE_CONTENT);
 
-        CompletableFuture<String> futureResult = new CompletableFuture<>();
+        CompletableFuture<String> futureResult = new CompletableFuture<>()  ;
         subscribe(futureResult::complete, String.class);
 
         deleteNode(nodeRef);
@@ -62,6 +62,7 @@ public class DeleteRepoEventIT extends ContextAwareRepoEvent
     public void deleteFolderWithContent() throws Exception {
 
         NodeRef parentNodeRef = createNode(ContentModel.TYPE_CONTAINER);
+        createNode(ContentModel.TYPE_FOLDER, parentNodeRef);
         createNode(ContentModel.TYPE_CONTENT, parentNodeRef);
         createNode(ContentModel.TYPE_CONTENT, parentNodeRef);
 
@@ -72,6 +73,6 @@ public class DeleteRepoEventIT extends ContextAwareRepoEvent
         Thread.sleep(3 * 1000); // wait up to 3 seconds for the event
 
         assertFalse(receivedMessages.isEmpty());
-        assertEquals("Content was not deleted. ", 2,receivedMessages.size());
+        assertEquals("Content was not deleted. ", 3,receivedMessages.size());
     }
 }

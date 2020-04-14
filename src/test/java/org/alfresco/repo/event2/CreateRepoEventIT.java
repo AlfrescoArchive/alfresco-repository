@@ -97,7 +97,7 @@ public class CreateRepoEventIT extends ContextAwareRepoEvent
         createNode(ContentModel.TYPE_FOLDER,parentRef);
         Thread.sleep(3 * 1000); // 3 seconds time-out
 
-        final RepoEvent resultRepoEvent= JacksonSerializer.deserialize(futureResult.get(5, SECONDS),RepoEvent.class);
+        final RepoEvent resultRepoEvent = JacksonSerializer.deserialize(futureResult.get(5, SECONDS),RepoEvent.class);
 
         assertEquals("Wrong hierarchy",2, resultRepoEvent
             .getData()
@@ -117,7 +117,7 @@ public class CreateRepoEventIT extends ContextAwareRepoEvent
         createNode(ContentModel.TYPE_CONTENT, properties);
         Thread.sleep(3 * 1000); // 3 seconds time-out
 
-        final RepoEvent resultRepoEvent= JacksonSerializer.deserialize(futureResult.get(5, SECONDS),RepoEvent.class);
+        final RepoEvent resultRepoEvent = JacksonSerializer.deserialize(futureResult.get(5, SECONDS),RepoEvent.class);
 
         assertEquals("Failed to create node with a chosen ID",
             uuid,
@@ -133,7 +133,7 @@ public class CreateRepoEventIT extends ContextAwareRepoEvent
         createNode(ContentModel.TYPE_FOLDER);
         Thread.sleep(3 * 1000); // wait up to 3 seconds for the event
 
-        final RepoEvent resultRepoEvent= JacksonSerializer.deserialize(futureResult.get(5, SECONDS),RepoEvent.class);
+        final RepoEvent resultRepoEvent = JacksonSerializer.deserialize(futureResult.get(5, SECONDS),RepoEvent.class);
         EventData<NodeResource> eventData = resultRepoEvent.getData();
         NodeResource nodeResource = eventData.getResource();
 

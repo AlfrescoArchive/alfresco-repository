@@ -50,7 +50,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  * @author Iulian Aftene
  */
 
-public class ContextAwareRepoEvent extends BaseSpringTest
+public abstract class ContextAwareRepoEvent extends BaseSpringTest
 {
     private static final String TEST_NAMESPACE = "http://www.alfresco.org/test/ContextAwareRepoEvent";
     private static final String CAMEL_BASE_TOPIC_URI = "jms:topic:";
