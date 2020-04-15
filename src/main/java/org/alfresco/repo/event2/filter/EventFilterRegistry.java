@@ -25,10 +25,13 @@
  */
 package org.alfresco.repo.event2.filter;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
+import org.springframework.lang.NonNull;
 
 /**
  * Holds {@link EventFilter} implementations.
@@ -37,10 +40,12 @@ import org.springframework.beans.factory.NoSuchBeanDefinitionException;
  */
 public class EventFilterRegistry implements BeanFactoryAware
 {
+    private static final Log LOGGER = LogFactory.getLog(EventFilterRegistry.class);
+
     private BeanFactory beanFactory;
 
     @Override
-    public void setBeanFactory(BeanFactory beanFactory) throws BeansException
+    public void setBeanFactory(@NonNull BeanFactory beanFactory) throws BeansException
     {
         this.beanFactory = beanFactory;
     }
@@ -52,28 +57,36 @@ public class EventFilterRegistry implements BeanFactoryAware
      * @return an instance of the filter bean matching the required type
      * @throws NoSuchBeanDefinitionException - if no bean of the given type was found
      */
-    public <F extends EventFilter<?>> F getFilter(Class<F> filterClass)
+    public <F extends EventFilter<?>> F getFilter(String beanName, Class<F> filterClass)
     {
-        return beanFactory.getBean(filterClass);
+        try
+        {
+            return beanFactory.getBean(beanName, filterClass);
+        }
+        catch (Exception ex)
+        {
+            LOGGER.error(ex);
+            throw ex;
+        }
     }
 
     public NodeTypeFilter getNodeTypeFilter()
     {
-        return getFilter(NodeTypeFilter.class);
+        return getFilter("event2NodeTypeFilter", NodeTypeFilter.class);
     }
 
     public NodeAspectFilter getNodeAspectFilter()
     {
-        return getFilter(NodeAspectFilter.class);
+        return getFilter("event2NodeAspectFilter", NodeAspectFilter.class);
     }
 
     public NodePropertyFilter getNodePropertyFilter()
     {
-        return getFilter(NodePropertyFilter.class);
+        return getFilter("event2NodePropertyFilter", NodePropertyFilter.class);
     }
 
     public EventUserFilter getEventUserFilter()
     {
-        return getFilter(EventUserFilter.class);
+        return getFilter("event2UserFilter", EventUserFilter.class);
     }
 }
