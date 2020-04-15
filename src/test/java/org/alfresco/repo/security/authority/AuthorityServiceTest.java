@@ -258,9 +258,12 @@ public class AuthorityServiceTest extends TestCase
         for (char illegalCharacter : illegalCharacters)
         {
             String GROUP_NAME = "testGroupNameWith" + illegalCharacter;
-            try {
+            try 
+            {
                 authorityService.createAuthority(AuthorityType.GROUP, GROUP_NAME);
-            } catch (AuthorityException e) {
+            } 
+            catch (AuthorityException e) 
+            {
                 assertEquals(e.getMsgId(), "group name contains characters that are not permitted: "+GROUP_NAME.charAt(GROUP_NAME.indexOf(illegalCharacter)));
             }
         }
@@ -360,19 +363,6 @@ public class AuthorityServiceTest extends TestCase
         assertEquals(1, pubAuthorityService.getAllRootAuthoritiesInZone("One", AuthorityType.GROUP).size());
         assertEquals(2, pubAuthorityService.getAllRootAuthoritiesInZone("Two", AuthorityType.GROUP).size());
         assertEquals(1, pubAuthorityService.getAllRootAuthoritiesInZone("Three", AuthorityType.GROUP).size());
-    }
-
-    @Category(RedundantTests.class)
-    public void test_ETWOTWO_400()
-    {
-        try {
-            pubAuthorityService.createAuthority(AuthorityType.GROUP, "wo\"of");
-        } catch (AuthorityException e) {
-            e.getMsgId();
-        } finally {
-            Set<String> authorities = pubAuthorityService.findAuthorities(AuthorityType.GROUP, null, true, "wo\"of*", AuthorityService.ZONE_APP_DEFAULT);
-            assertEquals(0, authorities.size());
-        }
     }
 
     @Category(RedundantTests.class)
