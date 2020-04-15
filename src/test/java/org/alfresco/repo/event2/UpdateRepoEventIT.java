@@ -50,7 +50,7 @@ public class UpdateRepoEventIT extends AbstractContextAwareRepoEvent {
 
         ContentService contentService=(ContentService) applicationContext.getBean("contentService");
         NodeRef nodeRef = createNode(ContentModel.TYPE_CONTENT);
-        Thread.sleep(2000); // wait up to 1 second for the event
+        Thread.sleep(2000); // wait up to 2 second for the event
 
         CompletableFuture<String> futureResult = new CompletableFuture<>();
         subscribe(futureResult::complete, String.class);
@@ -82,7 +82,7 @@ public class UpdateRepoEventIT extends AbstractContextAwareRepoEvent {
     public void testUpdateContentTitle() throws Exception {
 
         NodeRef nodeRef = createNode(ContentModel.TYPE_CONTENT);
-        Thread.sleep(2000); // wait up to 1 second for the event
+        Thread.sleep(2000); // wait up to 2 second for the event
 
         CompletableFuture<String> futureResult = new CompletableFuture<>();
         subscribe(futureResult::complete, String.class);
@@ -109,7 +109,7 @@ public class UpdateRepoEventIT extends AbstractContextAwareRepoEvent {
     public void testUpdateContentDescription() throws Exception {
 
         NodeRef nodeRef = createNode(ContentModel.TYPE_CONTENT);
-        Thread.sleep(2000); // wait up to 1 second for the event
+        Thread.sleep(2000); // wait up to 2 second for the event
 
         CompletableFuture<String> futureResult = new CompletableFuture<>();
         subscribe(futureResult::complete, String.class);
@@ -136,7 +136,7 @@ public class UpdateRepoEventIT extends AbstractContextAwareRepoEvent {
     public void testUpdateContentName() throws Exception {
 
         NodeRef nodeRef = createNode(ContentModel.TYPE_CONTENT);
-        Thread.sleep(2000); // wait up to 1 second for the event
+        Thread.sleep(2000); // wait up to 2 second for the event
 
         CompletableFuture<String> futureResult = new CompletableFuture<>();
         subscribe(futureResult::complete, String.class);
@@ -163,7 +163,7 @@ public class UpdateRepoEventIT extends AbstractContextAwareRepoEvent {
     public void testAddAspectToContent() throws Exception {
 
         NodeRef nodeRef = createNode(ContentModel.TYPE_CONTENT);
-        Thread.sleep(2000); // wait up to 1 second for the event
+        Thread.sleep(2000); // wait up to 2 second for the event
 
         CompletableFuture<String> futureResult = new CompletableFuture<>();
         subscribe(futureResult::complete, String.class);
@@ -190,7 +190,7 @@ public class UpdateRepoEventIT extends AbstractContextAwareRepoEvent {
     public void removeAspectFromContentTest() throws Exception {
 
         NodeRef nodeRef = createNode(ContentModel.TYPE_CONTENT);
-        Thread.sleep(2000); // wait up to 1 second for the event
+        Thread.sleep(2000); // wait up to 2 second for the event
 
         CompletableFuture<String> futureResult = new CompletableFuture<>();
         subscribe(futureResult::complete, String.class);
