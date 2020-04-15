@@ -173,8 +173,10 @@ public class CopyServiceImplTest extends TestCase
     
     private static final QName TYPE_CUSTOM_CMIS_DOCUMENT = QName.createQName("{http://www.alfresco.org/model/cmis/custom}document");
     private static final QName PROP_CUSTOM_STRING = QName.createQName("{http://www.alfresco.org/model/cmis/custom}docprop_string");
-    
-    
+
+    /* I18N labels used by the tests */
+    private static final String COPY_OF_LABEL = "copy_service.copy_of_label";
+
     /**
      * Test content
      */
@@ -1193,6 +1195,45 @@ public class CopyServiceImplTest extends TestCase
           assertEquals("German description is wrong", GERMAN_DESCRIPTION, nodeService.getProperty(copy, ContentModel.PROP_DESCRIPTION));   
         }
    }
+
+    /**
+     * https://issues.alfresco.com/jira/browse/MNT-20433
+     *
+     * Test Japanese translation of "Copy of" is appended to filename before the file extension, if any.
+     */
+    public void testJapaneseTranslationIsAppendedBeforeFileExtension()
+    {
+        NodeRef contentNode;
+
+        Locale preservedLocale = I18NUtil.getLocale();
+        I18NUtil.setLocale(Locale.JAPANESE);
+
+        final String copyOfLabel = I18NUtil.getMessage(COPY_OF_LABEL, "");
+
+        NodeRef folderNode = createNode("tempFolder", rootNodeRef, ContentModel.ASSOC_CHILDREN, ContentModel.TYPE_FOLDER);
+
+        // Create content node with file extension and copy it to same folder
+        contentNode = createNode("File One.txt", folderNode, ContentModel.ASSOC_CONTAINS, ContentModel.TYPE_CONTENT);
+        NodeRef copiedNode = copyService.copyAndRename(contentNode, folderNode, ContentModel.ASSOC_CONTAINS, null, false);
+        assertEquals("File One" + copyOfLabel + ".txt", nodeService.getProperty(copiedNode, ContentModel.PROP_NAME));
+
+        // Copy content node twice more, to same folder
+        copiedNode = copyService.copyAndRename(contentNode, folderNode, ContentModel.ASSOC_CONTAINS, null, false);
+        copiedNode = copyService.copyAndRename(contentNode, folderNode, ContentModel.ASSOC_CONTAINS, null, false);
+        assertEquals("File One" + copyOfLabel + copyOfLabel + copyOfLabel + ".txt", nodeService.getProperty(copiedNode, ContentModel.PROP_NAME));
+
+        // Create content node without file extension and copy it to same folder
+        contentNode = createNode("File Two", folderNode, ContentModel.ASSOC_CONTAINS, ContentModel.TYPE_CONTENT);
+        copiedNode = copyService.copyAndRename(contentNode, folderNode, ContentModel.ASSOC_CONTAINS, null, false);
+        assertEquals("File Two" + copyOfLabel, nodeService.getProperty(copiedNode, ContentModel.PROP_NAME));
+
+        // Copy content node twice more, to same folder
+        copiedNode = copyService.copyAndRename(contentNode, folderNode, ContentModel.ASSOC_CONTAINS, null, false);
+        copiedNode = copyService.copyAndRename(contentNode, folderNode, ContentModel.ASSOC_CONTAINS, null, false);
+        assertEquals("File Two" + copyOfLabel + copyOfLabel + copyOfLabel, nodeService.getProperty(copiedNode, ContentModel.PROP_NAME));
+
+        I18NUtil.setLocale(preservedLocale);
+    }
     
    /**
     * Creates some content as one user, then as another checks:
@@ -1510,4 +1551,12 @@ public class CopyServiceImplTest extends TestCase
         assertFalse(copyofWCName.contains("(Working Copy)"));
     }
 
+    /* Helper method to create a node */
+    private NodeRef createNode(String name, NodeRef parentNode, QName association, QName type)
+    {
+        Map<QName, Serializable> props = new HashMap<QName, Serializable>(1);
+        props.put(ContentModel.PROP_NAME, name);
+        return nodeService.createNode(parentNode, association, QName.createQName(NamespaceService.CONTENT_MODEL_1_0_URI, name),
+                type, props).getChildRef();
+    }
 }
