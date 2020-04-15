@@ -47,7 +47,7 @@ public class DeleteRepoEventIT extends AbstractContextAwareRepoEvent {
     public void deleteContent() throws Exception {
 
         NodeRef nodeRef = createNode(ContentModel.TYPE_CONTENT);
-        Thread.sleep(1000); // wait up to 1 second for the event
+        Thread.sleep(2000); // wait up to 1 second for the event
 
 
         CompletableFuture<String> futureResult = new CompletableFuture<>()  ;
@@ -70,14 +70,14 @@ public class DeleteRepoEventIT extends AbstractContextAwareRepoEvent {
         createNode(ContentModel.TYPE_FOLDER, parentNodeRef);
         createNode(ContentModel.TYPE_CONTENT, parentNodeRef);
         createNode(ContentModel.TYPE_CONTENT, parentNodeRef);
-        Thread.sleep(1000); // wait up to 1 second for the event
+        Thread.sleep(2000); // wait up to 1 second for the event
 
 
         final Set<String> receivedMessages = new ConcurrentSkipListSet<>();
         subscribe(receivedMessages::add, String.class);
 
         deleteNode(parentNodeRef);
-        Thread.sleep( 1000); // wait up to 1 second for the event
+        Thread.sleep( 2000); // wait up to 1 second for the event
 
         assertFalse(receivedMessages.isEmpty());
         assertEquals("Content was not deleted. ", 3,receivedMessages.size());
