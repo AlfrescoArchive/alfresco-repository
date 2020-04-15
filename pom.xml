@@ -162,12 +162,7 @@
         <dependency>
             <groupId>org.alfresco</groupId>
             <artifactId>acs-event-model</artifactId>
-            <version>0.0.1</version>
-        </dependency>
-        <dependency>
-            <groupId>com.fasterxml.jackson.datatype</groupId>
-            <artifactId>jackson-datatype-jsr310</artifactId>
-            <version>2.10.3</version>
+            <version>0.0.2-REPO-5080</version>
         </dependency>
         <dependency>
             <groupId>org.alfresco</groupId>

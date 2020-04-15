@@ -38,18 +38,20 @@ import org.alfresco.service.cmr.repository.ContentWriter;
 import org.alfresco.service.cmr.repository.NodeRef;
 import org.junit.Test;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+
 /**
  * @author Iulian Aftene
  */
 
-public class UpdateRepoEventIT extends AbstractContextAwareRepoEvent
-{
+public class UpdateRepoEventIT extends AbstractContextAwareRepoEvent {
 
     @Test
     public void testUpdateNodeResourceContent() throws Exception {
 
         ContentService contentService=(ContentService) applicationContext.getBean("contentService");
         NodeRef nodeRef = createNode(ContentModel.TYPE_CONTENT);
+        Thread.sleep(1000); // wait up to 1 second for the event
 
         CompletableFuture<String> futureResult = new CompletableFuture<>();
         subscribe(futureResult::complete, String.class);
@@ -62,14 +64,16 @@ public class UpdateRepoEventIT extends AbstractContextAwareRepoEvent
             return null;
         });
 
-        final RepoEvent resultRepoEvent= JacksonSerializer.deserialize(futureResult.get(5, SECONDS),RepoEvent.class);
+        final RepoEvent resultRepoEvent = OBJECT_MAPPER.readValue(futureResult.get(5, SECONDS), new TypeReference<>()
+        {
+        });
 
-        assertTrue("Repo event retrieved type is "+ resultRepoEvent.getType()+ " .Expected \"Updated\"",
-            resultRepoEvent.getType().equals("org.alfresco.event.node.Updated"));
+        assertEquals("Repo event type", "org.alfresco.event.node.Updated", resultRepoEvent.getType());
 
         EventData<NodeResource> eventData = resultRepoEvent.getData();
         NodeResource nodeResource = eventData.getResource();
-        String affectedPropertiesAfter = new String(JacksonSerializer.serialize(nodeResource.getAffectedPropertiesAfter()));
+        String affectedPropertiesAfter = OBJECT_MAPPER.writeValueAsString(nodeResource.getAffectedPropertiesAfter());
+
         assertTrue(affectedPropertiesAfter.contains("application/pdf"));
     }
 
@@ -78,6 +82,7 @@ public class UpdateRepoEventIT extends AbstractContextAwareRepoEvent
     public void testUpdateContentTitle() throws Exception {
 
         NodeRef nodeRef = createNode(ContentModel.TYPE_CONTENT);
+        Thread.sleep(1000); // wait up to 1 second for the event
 
         CompletableFuture<String> futureResult = new CompletableFuture<>();
         subscribe(futureResult::complete, String.class);
@@ -88,7 +93,9 @@ public class UpdateRepoEventIT extends AbstractContextAwareRepoEvent
             return null;
         });
 
-        final RepoEvent<NodeResource> resultRepoEvent= JacksonSerializer.deserialize(futureResult.get(5, SECONDS),RepoEvent.class);
+        final RepoEvent<NodeResource> resultRepoEvent = OBJECT_MAPPER.readValue(futureResult.get(5, SECONDS), new TypeReference<>()
+        {
+        });
 
         assertTrue("Ttile was not updated. ",
             resultRepoEvent.getData()
@@ -101,6 +108,7 @@ public class UpdateRepoEventIT extends AbstractContextAwareRepoEvent
     public void testUpdateContentDescription() throws Exception {
 
         NodeRef nodeRef = createNode(ContentModel.TYPE_CONTENT);
+        Thread.sleep(1000); // wait up to 1 second for the event
 
         CompletableFuture<String> futureResult = new CompletableFuture<>();
         subscribe(futureResult::complete, String.class);
@@ -111,7 +119,9 @@ public class UpdateRepoEventIT extends AbstractContextAwareRepoEvent
             return null;
         });
 
-        final RepoEvent<NodeResource> resultRepoEvent= JacksonSerializer.deserialize(futureResult.get(5, SECONDS),RepoEvent.class);
+        final RepoEvent<NodeResource> resultRepoEvent = OBJECT_MAPPER.readValue(futureResult.get(5, SECONDS), new TypeReference<>()
+        {
+        });
 
         assertTrue("Description was not updated. ",
             resultRepoEvent.getData()
@@ -124,6 +134,7 @@ public class UpdateRepoEventIT extends AbstractContextAwareRepoEvent
     public void testUpdateContentName() throws Exception {
 
         NodeRef nodeRef = createNode(ContentModel.TYPE_CONTENT);
+        Thread.sleep(1000); // wait up to 1 second for the event
 
         CompletableFuture<String> futureResult = new CompletableFuture<>();
         subscribe(futureResult::complete, String.class);
@@ -134,7 +145,9 @@ public class UpdateRepoEventIT extends AbstractContextAwareRepoEvent
             return null;
         });
 
-        final RepoEvent<NodeResource> resultRepoEvent= JacksonSerializer.deserialize(futureResult.get(5, SECONDS),RepoEvent.class);
+        final RepoEvent<NodeResource> resultRepoEvent = OBJECT_MAPPER.readValue(futureResult.get(5, SECONDS), new TypeReference<>()
+        {
+        });
 
         assertTrue("Name was not updated. ",
             resultRepoEvent.getData()
@@ -147,6 +160,7 @@ public class UpdateRepoEventIT extends AbstractContextAwareRepoEvent
     public void testAddAspectToContent() throws Exception {
 
         NodeRef nodeRef = createNode(ContentModel.TYPE_CONTENT);
+        Thread.sleep(1000); // wait up to 1 second for the event
 
         CompletableFuture<String> futureResult = new CompletableFuture<>();
         subscribe(futureResult::complete, String.class);
@@ -157,7 +171,9 @@ public class UpdateRepoEventIT extends AbstractContextAwareRepoEvent
             return null;
         });
 
-        final RepoEvent<NodeResource> resultRepoEvent= JacksonSerializer.deserialize(futureResult.get(5, SECONDS),RepoEvent.class);
+        final RepoEvent<NodeResource> resultRepoEvent = OBJECT_MAPPER.readValue(futureResult.get(5, SECONDS), new TypeReference<>()
+        {
+        });
 
         assertTrue("Aspect was not added. ",
             resultRepoEvent.getData()
@@ -170,6 +186,7 @@ public class UpdateRepoEventIT extends AbstractContextAwareRepoEvent
     public void removeAspectFromContentTest() throws Exception {
 
         NodeRef nodeRef = createNode(ContentModel.TYPE_CONTENT);
+        Thread.sleep(1000); // wait up to 1 second for the event
 
         CompletableFuture<String> futureResult = new CompletableFuture<>();
         subscribe(futureResult::complete, String.class);
@@ -180,7 +197,9 @@ public class UpdateRepoEventIT extends AbstractContextAwareRepoEvent
             return null;
         });
 
-        final RepoEvent<NodeResource> resultRepoEvent= JacksonSerializer.deserialize(futureResult.get(5, SECONDS),RepoEvent.class);
+        final RepoEvent<NodeResource> resultRepoEvent = OBJECT_MAPPER.readValue(futureResult.get(5, SECONDS), new TypeReference<>()
+        {
+        });
 
         assertTrue("Aspect was not removed. ",
             resultRepoEvent.getData()

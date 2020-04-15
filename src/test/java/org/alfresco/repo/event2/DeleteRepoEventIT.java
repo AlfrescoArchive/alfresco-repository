@@ -33,29 +33,32 @@ import java.util.concurrent.ConcurrentSkipListSet;
 import org.alfresco.model.ContentModel;
 import org.alfresco.repo.event.v1.model.RepoEvent;
 import org.alfresco.service.cmr.repository.NodeRef;
-import org.junit.Assert;
 import org.junit.Test;
+import com.fasterxml.jackson.core.type.TypeReference;
 
 /**
  * @author Iulian Aftene
  */
 
-public class DeleteRepoEventIT extends AbstractContextAwareRepoEvent
-{
+public class DeleteRepoEventIT extends AbstractContextAwareRepoEvent {
+
     @Test
     public void deleteContent() throws Exception {
 
         NodeRef nodeRef = createNode(ContentModel.TYPE_CONTENT);
+        Thread.sleep(1000); // wait up to 1 second for the event
+
 
         CompletableFuture<String> futureResult = new CompletableFuture<>()  ;
         subscribe(futureResult::complete, String.class);
 
         deleteNode(nodeRef);
-        Thread.sleep(3 * 1000); // wait up to 3 seconds for the event
 
-        final RepoEvent resultRepoEvent = JacksonSerializer.deserialize(futureResult.get(3, SECONDS), RepoEvent.class);
-        Assert.assertTrue("Repo event retrieved type is "+ resultRepoEvent.getType()+ " .Expected \"Deleted\"",
-            resultRepoEvent.getType().equals("org.alfresco.event.node.Deleted"));
+        final RepoEvent resultRepoEvent = OBJECT_MAPPER.readValue(futureResult.get(5, SECONDS), new TypeReference<>()
+        {
+        });
+
+        assertEquals("Repo event type", "org.alfresco.event.node.Deleted", resultRepoEvent.getType());
     }
 
     @Test
@@ -65,12 +68,14 @@ public class DeleteRepoEventIT extends AbstractContextAwareRepoEvent
         createNode(ContentModel.TYPE_FOLDER, parentNodeRef);
         createNode(ContentModel.TYPE_CONTENT, parentNodeRef);
         createNode(ContentModel.TYPE_CONTENT, parentNodeRef);
+        Thread.sleep(1000); // wait up to 1 second for the event
+
 
         final Set<String> receivedMessages = new ConcurrentSkipListSet<>();
         subscribe(receivedMessages::add, String.class);
 
         deleteNode(parentNodeRef);
-        Thread.sleep(3 * 1000); // wait up to 3 seconds for the event
+        Thread.sleep( 1000); // wait up to 1 second for the event
 
         assertFalse(receivedMessages.isEmpty());
         assertEquals("Content was not deleted. ", 3,receivedMessages.size());

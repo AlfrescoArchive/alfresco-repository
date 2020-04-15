@@ -28,9 +28,9 @@ package org.alfresco.repo.event2;
 import java.util.function.Consumer;
 import javax.jms.ConnectionFactory;
 import org.alfresco.model.ContentModel;
+import org.alfresco.repo.event.databind.ObjectMapperFactory;
 import org.alfresco.repo.security.authentication.AuthenticationUtil;
 import org.alfresco.repo.transaction.RetryingTransactionHelper;
-import org.alfresco.service.cmr.repository.ChildAssociationRef;
 import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.cmr.repository.NodeService;
 import org.alfresco.service.cmr.repository.StoreRef;
@@ -45,17 +45,20 @@ import org.apache.camel.component.jms.JmsComponent;
 import org.apache.camel.impl.DefaultCamelContext;
 import org.junit.Before;
 import org.springframework.beans.factory.annotation.Autowired;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * @author Iulian Aftene
  */
 
-public abstract class AbstractContextAwareRepoEvent extends BaseSpringTest
-{
+public abstract class AbstractContextAwareRepoEvent extends BaseSpringTest {
+
     private static final String TEST_NAMESPACE = "http://www.alfresco.org/test/ContextAwareRepoEvent";
     private static final String CAMEL_BASE_TOPIC_URI = "jms:topic:";
     private static final String BROKER_URL = "tcp://localhost:61616";
-    protected static final String TOPIC = "alfresco.repo.event2";
+    private static final String TOPIC = "alfresco.repo.event2";
+    protected static final ObjectMapper OBJECT_MAPPER = ObjectMapperFactory.createInstance();
+
 
     @Autowired
     protected RetryingTransactionHelper retryingTransactionHelper;
@@ -65,8 +68,8 @@ public abstract class AbstractContextAwareRepoEvent extends BaseSpringTest
     protected NodeRef rootNodeRef;
 
     @Before
-    public void setUp() throws Exception
-    {
+    public void setUp() throws Exception {
+
         // authenticate as admin
         AuthenticationUtil.setAdminUserAsFullyAuthenticatedUser();
 
@@ -81,61 +84,48 @@ public abstract class AbstractContextAwareRepoEvent extends BaseSpringTest
         });
     }
 
-    protected NodeRef createNode(QName contentType)
-    {
-        final ChildAssociationRef[] assocRef = new ChildAssociationRef[1];
-        retryingTransactionHelper.doInTransaction(() -> {
-            assocRef[0] = nodeService.createNode(
-                rootNodeRef,
-                ContentModel.ASSOC_CHILDREN,
-                QName.createQName(TEST_NAMESPACE, GUID.generate()),
-                contentType);
-            return null;
-        });
-        return assocRef[0].getChildRef();
+    protected NodeRef createNode(QName contentType) {
+
+        return retryingTransactionHelper.doInTransaction(() -> nodeService.createNode(
+            rootNodeRef,
+            ContentModel.ASSOC_CHILDREN,
+            QName.createQName(TEST_NAMESPACE, GUID.generate()),
+            contentType)
+            .getChildRef());
     }
 
-    protected NodeRef createNode(QName contentType, NodeRef parentRef)
-    {
-        final ChildAssociationRef[] assocRef = new ChildAssociationRef[1];
-        retryingTransactionHelper.doInTransaction(() -> {
-            assocRef[0] = nodeService.createNode(
-                parentRef,
-                ContentModel.ASSOC_CHILDREN,
-                QName.createQName(TEST_NAMESPACE, GUID.generate()),
-                contentType);
-            return null;
-        });
-        NodeRef contentNodeRef = assocRef[0].getChildRef();
-        return contentNodeRef;
+    protected NodeRef createNode(QName contentType, NodeRef parentRef) {
+
+        return retryingTransactionHelper.doInTransaction(() -> nodeService.createNode(
+            parentRef,
+            ContentModel.ASSOC_CHILDREN,
+            QName.createQName(TEST_NAMESPACE, GUID.generate()),
+            contentType)
+            .getChildRef());
     }
 
-    protected NodeRef createNode(QName contentType, PropertyMap propertyMap)
-    {
-        final ChildAssociationRef[] assocRef = new ChildAssociationRef[1];
-        retryingTransactionHelper.doInTransaction(() -> {
-             assocRef[0] = nodeService.createNode(rootNodeRef,
-                ContentModel.ASSOC_CHILDREN,
-                QName.createQName(TEST_NAMESPACE, GUID.generate()),
-                 contentType,
-                 propertyMap);
-             return null;
-        });
-        NodeRef contentNodeRef = assocRef[0].getChildRef();
-        return contentNodeRef;
+    protected NodeRef createNode(QName contentType, PropertyMap propertyMap) {
+
+        return retryingTransactionHelper.doInTransaction(() -> nodeService.createNode(
+            rootNodeRef,
+            ContentModel.ASSOC_CHILDREN,
+            QName.createQName(TEST_NAMESPACE, GUID.generate()),
+            contentType,
+            propertyMap)
+            .getChildRef());
     }
 
 
-    protected void deleteNode(NodeRef nodeRef)
-    {
+    protected void deleteNode(NodeRef nodeRef) {
+
         retryingTransactionHelper.doInTransaction(() -> {
             nodeService.deleteNode(nodeRef);
             return null;
         });
     }
 
-    protected  <T> CamelContext subscribe( Consumer<T> handler, Class<T> type) throws Exception
-    {
+    protected  <T> CamelContext subscribe( Consumer<T> handler, Class<T> type) throws Exception {
+
         final CamelContext ctx = new DefaultCamelContext();
         final ConnectionFactory connectionFactory = new ActiveMQConnectionFactory(BROKER_URL);
         ctx.addComponent("jms", JmsComponent.jmsComponentAutoAcknowledge(connectionFactory));

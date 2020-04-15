@@ -37,13 +37,14 @@ import org.alfresco.util.GUID;
 import org.alfresco.util.PropertyMap;
 import org.junit.Before;
 import org.junit.Test;
+import com.fasterxml.jackson.core.type.TypeReference;
 
 /**
  * @author Iulian Aftene
  */
 
-public class CreateRepoEventIT extends AbstractContextAwareRepoEvent
-{
+public class CreateRepoEventIT extends AbstractContextAwareRepoEvent {
+
     private CompletableFuture<String> futureResult;
 
     @Before
@@ -57,17 +58,16 @@ public class CreateRepoEventIT extends AbstractContextAwareRepoEvent
     public void testCreateEvent() throws Exception {
 
         createNode(ContentModel.TYPE_CONTENT);
-        Thread.sleep(3 * 1000); // 3 seconds time-out
 
-        final RepoEvent<NodeResource> resultRepoEvent = JacksonSerializer.deserialize(futureResult.get(5, SECONDS),RepoEvent.class);
+        final RepoEvent<NodeResource> resultRepoEvent = OBJECT_MAPPER.readValue(futureResult.get(5, SECONDS), new TypeReference<>()
+        {
+        });
 
-        assertTrue("Repo event retrieved type is "+ resultRepoEvent.getType()+ " .Expected \"Created\"",
-            resultRepoEvent.getType().equals("org.alfresco.event.node.Created"));
+        assertEquals("Repo event type", "org.alfresco.event.node.Created", resultRepoEvent.getType());
         assertFalse("Repo event ID is not available. ", resultRepoEvent.getId().isEmpty());
         assertFalse("Repo event source is not available. ", resultRepoEvent.getSource().toString().isEmpty());
-        assertFalse("Repo event subject is not available. ", resultRepoEvent.getSubject().isEmpty());
         assertFalse("Repo event creation time is not available. ",resultRepoEvent.getTime().toString().isEmpty());
-        assertTrue("Repo event datacontenttype is not application/json. ", resultRepoEvent.getDatacontenttype().equals("application/json"));
+        assertEquals("Repo event datacontenttype", "application/json", resultRepoEvent.getDatacontenttype());
 
         EventData<NodeResource> nodeResourceEventData = resultRepoEvent.getData();
         assertTrue("Wrong event data principal. ", nodeResourceEventData.getPrincipal().contains("admin"));
@@ -95,9 +95,10 @@ public class CreateRepoEventIT extends AbstractContextAwareRepoEvent
 
         NodeRef parentRef = createNode(ContentModel.TYPE_CONTAINER);
         createNode(ContentModel.TYPE_FOLDER,parentRef);
-        Thread.sleep(3 * 1000); // 3 seconds time-out
 
-        final RepoEvent resultRepoEvent = JacksonSerializer.deserialize(futureResult.get(5, SECONDS),RepoEvent.class);
+        final RepoEvent resultRepoEvent = OBJECT_MAPPER.readValue(futureResult.get(5, SECONDS), new TypeReference<>()
+        {
+        });
 
         assertEquals("Wrong hierarchy",2, resultRepoEvent
             .getData()
@@ -115,9 +116,10 @@ public class CreateRepoEventIT extends AbstractContextAwareRepoEvent
 
         // create a node with an explicit UUID
         createNode(ContentModel.TYPE_CONTENT, properties);
-        Thread.sleep(3 * 1000); // 3 seconds time-out
 
-        final RepoEvent resultRepoEvent = JacksonSerializer.deserialize(futureResult.get(5, SECONDS),RepoEvent.class);
+        final RepoEvent resultRepoEvent = OBJECT_MAPPER.readValue(futureResult.get(5, SECONDS), new TypeReference<>()
+        {
+        });
 
         assertEquals("Failed to create node with a chosen ID",
             uuid,
@@ -131,9 +133,11 @@ public class CreateRepoEventIT extends AbstractContextAwareRepoEvent
     public void testFolderNodeType() throws Exception {
 
         createNode(ContentModel.TYPE_FOLDER);
-        Thread.sleep(3 * 1000); // wait up to 3 seconds for the event
 
-        final RepoEvent resultRepoEvent = JacksonSerializer.deserialize(futureResult.get(5, SECONDS),RepoEvent.class);
+        final RepoEvent resultRepoEvent = OBJECT_MAPPER.readValue(futureResult.get(5, SECONDS), new TypeReference<>()
+        {
+        });
+
         EventData<NodeResource> eventData = resultRepoEvent.getData();
         NodeResource nodeResource = eventData.getResource();
 
@@ -146,9 +150,11 @@ public class CreateRepoEventIT extends AbstractContextAwareRepoEvent
     public void testFileNodeType() throws Exception {
 
         createNode(ContentModel.TYPE_CONTENT);
-        Thread.sleep(3 * 1000); // 3 seconds time-out
 
-        final RepoEvent resultRepoEvent= JacksonSerializer.deserialize(futureResult.get(5, SECONDS),RepoEvent.class);
+        final RepoEvent resultRepoEvent = OBJECT_MAPPER.readValue(futureResult.get(5, SECONDS), new TypeReference<>()
+        {
+        });
+
         EventData<NodeResource> eventData = resultRepoEvent.getData();
         NodeResource nodeResource = eventData.getResource();
 
