@@ -37,7 +37,6 @@ import org.alfresco.service.cmr.repository.ContentService;
 import org.alfresco.service.cmr.repository.ContentWriter;
 import org.alfresco.service.cmr.repository.NodeRef;
 import org.junit.Test;
-
 import com.fasterxml.jackson.core.type.TypeReference;
 
 /**
@@ -64,7 +63,8 @@ public class UpdateRepoEventIT extends AbstractContextAwareRepoEvent {
             return null;
         });
 
-        final RepoEvent resultRepoEvent = OBJECT_MAPPER.readValue(futureResult.get(5, SECONDS), new TypeReference<>()
+        final RepoEvent<NodeResource> resultRepoEvent = OBJECT_MAPPER.readValue(futureResult.get(5, SECONDS),
+            new TypeReference<RepoEvent<NodeResource>>()
         {
         });
 
@@ -93,7 +93,8 @@ public class UpdateRepoEventIT extends AbstractContextAwareRepoEvent {
             return null;
         });
 
-        final RepoEvent<NodeResource> resultRepoEvent = OBJECT_MAPPER.readValue(futureResult.get(5, SECONDS), new TypeReference<>()
+        final RepoEvent<NodeResource> resultRepoEvent = OBJECT_MAPPER.readValue(futureResult.get(5, SECONDS),
+            new TypeReference<RepoEvent<NodeResource>>()
         {
         });
 
@@ -119,7 +120,8 @@ public class UpdateRepoEventIT extends AbstractContextAwareRepoEvent {
             return null;
         });
 
-        final RepoEvent<NodeResource> resultRepoEvent = OBJECT_MAPPER.readValue(futureResult.get(5, SECONDS), new TypeReference<>()
+        final RepoEvent<NodeResource> resultRepoEvent = OBJECT_MAPPER.readValue(futureResult.get(5, SECONDS),
+            new TypeReference<RepoEvent<NodeResource>>()
         {
         });
 
@@ -145,7 +147,8 @@ public class UpdateRepoEventIT extends AbstractContextAwareRepoEvent {
             return null;
         });
 
-        final RepoEvent<NodeResource> resultRepoEvent = OBJECT_MAPPER.readValue(futureResult.get(5, SECONDS), new TypeReference<>()
+        final RepoEvent<NodeResource> resultRepoEvent = OBJECT_MAPPER.readValue(futureResult.get(5, SECONDS),
+            new TypeReference<RepoEvent<NodeResource>>()
         {
         });
 
@@ -171,7 +174,8 @@ public class UpdateRepoEventIT extends AbstractContextAwareRepoEvent {
             return null;
         });
 
-        final RepoEvent<NodeResource> resultRepoEvent = OBJECT_MAPPER.readValue(futureResult.get(5, SECONDS), new TypeReference<>()
+        final RepoEvent<NodeResource> resultRepoEvent = OBJECT_MAPPER.readValue(futureResult.get(5, SECONDS),
+            new TypeReference<RepoEvent<NodeResource>>()
         {
         });
 
@@ -197,7 +201,8 @@ public class UpdateRepoEventIT extends AbstractContextAwareRepoEvent {
             return null;
         });
 
-        final RepoEvent<NodeResource> resultRepoEvent = OBJECT_MAPPER.readValue(futureResult.get(5, SECONDS), new TypeReference<>()
+        final RepoEvent<NodeResource> resultRepoEvent = OBJECT_MAPPER.readValue(futureResult.get(5, SECONDS),
+            new TypeReference<RepoEvent<NodeResource>>()
         {
         });
 

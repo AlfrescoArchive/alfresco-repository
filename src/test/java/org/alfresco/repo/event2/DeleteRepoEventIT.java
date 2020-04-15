@@ -31,6 +31,7 @@ import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentSkipListSet;
 import org.alfresco.model.ContentModel;
+import org.alfresco.repo.event.v1.model.NodeResource;
 import org.alfresco.repo.event.v1.model.RepoEvent;
 import org.alfresco.service.cmr.repository.NodeRef;
 import org.junit.Test;
@@ -54,7 +55,8 @@ public class DeleteRepoEventIT extends AbstractContextAwareRepoEvent {
 
         deleteNode(nodeRef);
 
-        final RepoEvent resultRepoEvent = OBJECT_MAPPER.readValue(futureResult.get(5, SECONDS), new TypeReference<>()
+        final RepoEvent<NodeResource> resultRepoEvent = OBJECT_MAPPER.readValue(futureResult.get(5, SECONDS),
+            new TypeReference<RepoEvent<NodeResource>>()
         {
         });
 

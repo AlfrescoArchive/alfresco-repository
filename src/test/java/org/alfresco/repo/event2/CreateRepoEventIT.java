@@ -59,7 +59,8 @@ public class CreateRepoEventIT extends AbstractContextAwareRepoEvent {
 
         createNode(ContentModel.TYPE_CONTENT);
 
-        final RepoEvent<NodeResource> resultRepoEvent = OBJECT_MAPPER.readValue(futureResult.get(5, SECONDS), new TypeReference<>()
+        final RepoEvent<NodeResource> resultRepoEvent = OBJECT_MAPPER.readValue(futureResult.get(5, SECONDS),
+            new TypeReference<RepoEvent<NodeResource>>()
         {
         });
 
@@ -96,7 +97,8 @@ public class CreateRepoEventIT extends AbstractContextAwareRepoEvent {
         NodeRef parentRef = createNode(ContentModel.TYPE_CONTAINER);
         createNode(ContentModel.TYPE_FOLDER,parentRef);
 
-        final RepoEvent resultRepoEvent = OBJECT_MAPPER.readValue(futureResult.get(5, SECONDS), new TypeReference<>()
+        final RepoEvent<NodeResource> resultRepoEvent = OBJECT_MAPPER.readValue(futureResult.get(5, SECONDS),
+            new TypeReference<RepoEvent<NodeResource>>()
         {
         });
 
@@ -117,7 +119,8 @@ public class CreateRepoEventIT extends AbstractContextAwareRepoEvent {
         // create a node with an explicit UUID
         createNode(ContentModel.TYPE_CONTENT, properties);
 
-        final RepoEvent resultRepoEvent = OBJECT_MAPPER.readValue(futureResult.get(5, SECONDS), new TypeReference<>()
+        final RepoEvent<NodeResource> resultRepoEvent = OBJECT_MAPPER.readValue(futureResult.get(5, SECONDS),
+            new TypeReference<RepoEvent<NodeResource>>()
         {
         });
 
@@ -134,7 +137,8 @@ public class CreateRepoEventIT extends AbstractContextAwareRepoEvent {
 
         createNode(ContentModel.TYPE_FOLDER);
 
-        final RepoEvent resultRepoEvent = OBJECT_MAPPER.readValue(futureResult.get(5, SECONDS), new TypeReference<>()
+        final RepoEvent<NodeResource> resultRepoEvent = OBJECT_MAPPER.readValue(futureResult.get(5, SECONDS),
+            new TypeReference<RepoEvent<NodeResource>>()
         {
         });
 
@@ -151,7 +155,8 @@ public class CreateRepoEventIT extends AbstractContextAwareRepoEvent {
 
         createNode(ContentModel.TYPE_CONTENT);
 
-        final RepoEvent resultRepoEvent = OBJECT_MAPPER.readValue(futureResult.get(5, SECONDS), new TypeReference<>()
+        final RepoEvent<NodeResource> resultRepoEvent = OBJECT_MAPPER.readValue(futureResult.get(5, SECONDS),
+            new TypeReference<RepoEvent<NodeResource>>()
         {
         });
 
