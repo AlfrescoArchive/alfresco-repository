@@ -163,12 +163,15 @@
       <property name="scheduler">
         <ref bean="searchSchedulerFactory" />
       </property>
+      <property name="threadPoolExecutor" ref="defaultAsyncThreadPool"/>
     </bean>
     
     
     <bean id="search.solrAdminHTTPCLient" class="org.alfresco.repo.search.impl.solr.SolrAdminHTTPClient" init-method="init">
         <property name="httpClientFactory" ref="solrHttpClientFactory"/>
         <property name="baseUrl" value="${solr.baseUrl}"/>
+        <property name="solrConnectTimeout" value="${solr.solrConnectTimeout}"/>
+        <property name="threadPoolExecutor" ref="defaultAsyncThreadPool"/>
     </bean>
     
 

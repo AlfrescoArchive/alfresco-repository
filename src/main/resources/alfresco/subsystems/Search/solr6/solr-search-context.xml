@@ -170,6 +170,7 @@
 
     <bean id="solrAdminClient" class="org.alfresco.repo.solr.SOLRAdminClient" init-method="init">
       <property name="solrPingCronExpression" value="${solr.solrPingCronExpression}"/>
+      <property name="solrConnectTimeout" value="${solr.solrConnectTimeout}"/>
       <property name="baseUrl" value="${solr.baseUrl}"/>
       <property name="scheduler">
         <ref bean="searchSchedulerFactory" />
@@ -178,11 +179,14 @@
         <ref bean="solr6.store.mappings" />
       </property>
       <property name="useDynamicShardRegistration" value="${solr.useDynamicShardRegistration}" />
+      <property name="threadPoolExecutor" ref="defaultAsyncThreadPool"/>
     </bean>
 
     <bean id="search.solrAdminHTTPCLient" class="org.alfresco.repo.search.impl.solr.SolrAdminHTTPClient" init-method="init">
         <property name="httpClientFactory" ref="solrHttpClientFactory"/>
         <property name="baseUrl" value="${solr.baseUrl}"/>
+        <property name="solrConnectTimeout" value="${solr.solrConnectTimeout}"/>
+        <property name="threadPoolExecutor" ref="defaultAsyncThreadPool"/>
     </bean>
     
 
