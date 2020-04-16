@@ -4,25 +4,26 @@
  * %%
  * Copyright (C) 2005 - 2016 Alfresco Software Limited
  * %%
- * This file is part of the Alfresco software. 
- * If the software was purchased under a paid Alfresco license, the terms of 
- * the paid license agreement will prevail.  Otherwise, the software is 
+ * This file is part of the Alfresco software.
+ * If the software was purchased under a paid Alfresco license, the terms of
+ * the paid license agreement will prevail.  Otherwise, the software is
  * provided under the following open source license terms:
- * 
+ *
  * Alfresco is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * Alfresco is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Lesser General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Alfresco. If not, see <http://www.gnu.org/licenses/>.
  * #L%
  */
+
 package org.alfresco.repo.admin;
 
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -40,9 +41,8 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 
 /**
- * @see Log4JHierarchyInit
- * 
  * @author Derek Hulley
+ * @see Log4JHierarchyInit
  * @since 2.2.3
  */
 public class Log4JHierarchyInitTest extends TestCase
@@ -51,13 +51,12 @@ public class Log4JHierarchyInitTest extends TestCase
     private final ByteArrayOutputStream errContent = new ByteArrayOutputStream();
 
     private static ApplicationContext ctx = new ClassPathXmlApplicationContext(
-            new String[] {"classpath:log4j/log4j-test-context.xml"}
-            );
+                new String[] { "classpath:log4j/log4j-test-context.xml" });
 
     public void setUp() throws Exception
     {
     }
-    
+
     public void testSetUp() throws Throwable
     {
         // Check that the bean is present
@@ -66,7 +65,7 @@ public class Log4JHierarchyInitTest extends TestCase
         Log log = LogFactory.getLog("log4j.logger.org.alfresco");
         assertFalse("Expect log level ERROR for 'org.alfresco'.", log.isWarnEnabled());
     }
-    
+
     public void testAddingLog4jProperties() throws Throwable
     {
         Log log = LogFactory.getLog(this.getClass());
@@ -78,14 +77,12 @@ public class Log4JHierarchyInitTest extends TestCase
     {
         sysErr = System.err;
 
-        System.setErr(new PrintStream(errContent,false, "UTF-8"));
-
+        System.setErr(new PrintStream(errContent, false, "UTF-8"));
     }
 
-
-    public void revertStreams() {
+    public void revertStreams()
+    {
         System.setErr(sysErr);
-
     }
 
     public void testLog4jAppenderClosedError() throws Throwable
@@ -93,9 +90,9 @@ public class Log4JHierarchyInitTest extends TestCase
         setUpStreams();
         Log log = LogFactory.getLog(this.getClass());
 
-        Log4JHierarchyInit log4JHierarchyInit =(Log4JHierarchyInit)ctx.getBean("log4JHierarchyInit");
+        Log4JHierarchyInit log4JHierarchyInit = (Log4JHierarchyInit) ctx.getBean("log4JHierarchyInit");
 
-        Log log2= LogFactory.getLog(FileFolderPerformanceTester.class);
+        Log log2 = LogFactory.getLog(FileFolderPerformanceTester.class);
         log4JHierarchyInit.init();
 
         log2.info("test");

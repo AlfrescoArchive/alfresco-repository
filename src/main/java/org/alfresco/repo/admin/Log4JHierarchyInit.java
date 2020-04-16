@@ -155,8 +155,8 @@ public class Log4JHierarchyInit implements ApplicationContextAware
         {
             try
             {
-                InputStream inputStream=resource.getInputStream();
-                Properties properties=new Properties();
+                InputStream inputStream = resource.getInputStream();
+                Properties properties = new Properties();
                 properties.load(inputStream);
                 mainProperties.putAll(properties);
             }
@@ -164,7 +164,8 @@ public class Log4JHierarchyInit implements ApplicationContextAware
             {
                 if (logger.isDebugEnabled())
                 {
-                    logger.debug("Failed to add extra Logger configuration: \n" + "   URL:   " + springUrl + "\n" + "   Error: " + e.getMessage(), e);
+                    logger.debug("Failed to add extra Logger configuration: \n" + "   URL:   " + springUrl + "\n"
+                                + "   Error: " + e.getMessage(), e);
                 }
             }
         }
