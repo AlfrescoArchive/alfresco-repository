@@ -26,60 +26,54 @@
 
 package org.alfresco.repo.event2;
 
-import static java.util.concurrent.TimeUnit.SECONDS;
 import java.util.Set;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentSkipListSet;
+
 import org.alfresco.model.ContentModel;
 import org.alfresco.repo.event.v1.model.NodeResource;
 import org.alfresco.repo.event.v1.model.RepoEvent;
 import org.alfresco.service.cmr.repository.NodeRef;
 import org.junit.Test;
-import com.fasterxml.jackson.core.type.TypeReference;
 
 /**
  * @author Iulian Aftene
  */
 
-public class DeleteRepoEventIT extends AbstractContextAwareRepoEvent {
-
+public class DeleteRepoEventIT extends AbstractContextAwareRepoEvent
+{
     @Test
-    public void deleteContent() throws Exception {
-
+    public void deleteContent() throws Exception
+    {
         NodeRef nodeRef = createNode(ContentModel.TYPE_CONTENT);
         Thread.sleep(2000); // wait up to 2 second for the event
 
-
-        CompletableFuture<String> futureResult = new CompletableFuture<>()  ;
         subscribe(futureResult::complete, String.class);
 
         deleteNode(nodeRef);
+        Thread.sleep(2000); // wait up to 2 second for the event
 
-        final RepoEvent<NodeResource> resultRepoEvent = OBJECT_MAPPER.readValue(futureResult.get(5, SECONDS),
-            new TypeReference<RepoEvent<NodeResource>>()
-        {
-        });
+        final RepoEvent<NodeResource> resultRepoEvent = getFutureResult();
 
-        assertEquals("Repo event type", "org.alfresco.event.node.Deleted", resultRepoEvent.getType());
+        assertEquals("Repo event type:", "org.alfresco.event.node.Deleted",
+            resultRepoEvent.getType());
     }
 
     @Test
-    public void deleteFolderWithContent() throws Exception {
-
+    public void deleteFolderWithContent() throws Exception
+    {
         NodeRef parentNodeRef = createNode(ContentModel.TYPE_CONTAINER);
         createNode(ContentModel.TYPE_FOLDER, parentNodeRef);
         createNode(ContentModel.TYPE_CONTENT, parentNodeRef);
         createNode(ContentModel.TYPE_CONTENT, parentNodeRef);
         Thread.sleep(2000); // wait up to 2 second for the event
 
-
         final Set<String> receivedMessages = new ConcurrentSkipListSet<>();
         subscribe(receivedMessages::add, String.class);
 
         deleteNode(parentNodeRef);
-        Thread.sleep( 2000); // wait up to 2 second for the event
+        Thread.sleep(2000); // wait up to 2 second for the event
 
         assertFalse(receivedMessages.isEmpty());
-        assertEquals("Content was not deleted. ", 3,receivedMessages.size());
+        assertEquals("Content was not deleted. ", 3, receivedMessages.size());
     }
 }

@@ -25,10 +25,18 @@
  */
 
 package org.alfresco.repo.event2;
+
+import static java.util.concurrent.TimeUnit.SECONDS;
+
+import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
+
 import javax.jms.ConnectionFactory;
+
 import org.alfresco.model.ContentModel;
 import org.alfresco.repo.event.databind.ObjectMapperFactory;
+import org.alfresco.repo.event.v1.model.NodeResource;
+import org.alfresco.repo.event.v1.model.RepoEvent;
 import org.alfresco.repo.security.authentication.AuthenticationUtil;
 import org.alfresco.repo.transaction.RetryingTransactionHelper;
 import org.alfresco.service.cmr.repository.NodeRef;
@@ -45,99 +53,102 @@ import org.apache.camel.component.jms.JmsComponent;
 import org.apache.camel.impl.DefaultCamelContext;
 import org.junit.Before;
 import org.springframework.beans.factory.annotation.Autowired;
+
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * @author Iulian Aftene
  */
 
-public abstract class AbstractContextAwareRepoEvent extends BaseSpringTest {
+public abstract class AbstractContextAwareRepoEvent extends BaseSpringTest
+{
+    private static final   String       TEST_NAMESPACE       = "http://www.alfresco.org/test/ContextAwareRepoEvent";
+    private static final   String       CAMEL_BASE_TOPIC_URI = "jms:topic:";
+    private static final   String       BROKER_URL           = "tcp://localhost:61616";
+    private static final   String       TOPIC                = "alfresco.repo.event2";
+    protected static final ObjectMapper OBJECT_MAPPER        = ObjectMapperFactory.createInstance();
 
-    private static final String TEST_NAMESPACE = "http://www.alfresco.org/test/ContextAwareRepoEvent";
-    private static final String CAMEL_BASE_TOPIC_URI = "jms:topic:";
-    private static final String BROKER_URL = "tcp://localhost:61616";
-    private static final String TOPIC = "alfresco.repo.event2";
-    protected static final ObjectMapper OBJECT_MAPPER = ObjectMapperFactory.createInstance();
-
+    protected CompletableFuture<String> futureResult = new CompletableFuture<>();
+    protected NodeRef rootNodeRef;
 
     @Autowired
     protected RetryingTransactionHelper retryingTransactionHelper;
+
     @Autowired
     protected NodeService nodeService;
 
-    protected NodeRef rootNodeRef;
-
     @Before
-    public void setUp() throws Exception {
-
+    public void setUp() throws Exception
+    {
         // authenticate as admin
         AuthenticationUtil.setAdminUserAsFullyAuthenticatedUser();
 
         this.rootNodeRef = retryingTransactionHelper.doInTransaction(() -> {
             // create a store and get the root node
-            StoreRef storeRef = new StoreRef(StoreRef.PROTOCOL_WORKSPACE, this.getClass().getName());
+            StoreRef storeRef = new StoreRef(StoreRef.PROTOCOL_WORKSPACE,
+                this.getClass().getName());
             if (!nodeService.exists(storeRef))
             {
-                storeRef = nodeService.createStore(storeRef.getProtocol(), storeRef.getIdentifier());
+                storeRef = nodeService.createStore(storeRef.getProtocol(),
+                    storeRef.getIdentifier());
             }
             return nodeService.getRootNode(storeRef);
         });
     }
 
-    protected NodeRef createNode(QName contentType) {
-
+    protected NodeRef createNode(QName contentType)
+    {
         return retryingTransactionHelper.doInTransaction(() -> nodeService.createNode(
             rootNodeRef,
             ContentModel.ASSOC_CHILDREN,
             QName.createQName(TEST_NAMESPACE, GUID.generate()),
-            contentType)
-            .getChildRef());
+            contentType).getChildRef());
     }
 
-    protected NodeRef createNode(QName contentType, NodeRef parentRef) {
-
+    protected NodeRef createNode(QName contentType, NodeRef parentRef)
+    {
         return retryingTransactionHelper.doInTransaction(() -> nodeService.createNode(
             parentRef,
             ContentModel.ASSOC_CHILDREN,
             QName.createQName(TEST_NAMESPACE, GUID.generate()),
-            contentType)
-            .getChildRef());
+            contentType).getChildRef());
     }
 
-    protected NodeRef createNode(QName contentType, PropertyMap propertyMap) {
-
+    protected NodeRef createNode(QName contentType, PropertyMap propertyMap)
+    {
         return retryingTransactionHelper.doInTransaction(() -> nodeService.createNode(
             rootNodeRef,
             ContentModel.ASSOC_CHILDREN,
             QName.createQName(TEST_NAMESPACE, GUID.generate()),
             contentType,
-            propertyMap)
-            .getChildRef());
+            propertyMap).getChildRef());
     }
 
-
-    protected void deleteNode(NodeRef nodeRef) {
-
+    protected void deleteNode(NodeRef nodeRef)
+    {
         retryingTransactionHelper.doInTransaction(() -> {
             nodeService.deleteNode(nodeRef);
             return null;
         });
     }
 
-    protected  <T> CamelContext subscribe( Consumer<T> handler, Class<T> type) throws Exception {
-
+    protected <T> CamelContext subscribe(Consumer<T> handler, Class<T> type) throws Exception
+    {
         final CamelContext ctx = new DefaultCamelContext();
         final ConnectionFactory connectionFactory = new ActiveMQConnectionFactory(BROKER_URL);
         ctx.addComponent("jms", JmsComponent.jmsComponentAutoAcknowledge(connectionFactory));
 
-        ctx.addRoutes(new RouteBuilder() {
+        ctx.addRoutes(new RouteBuilder()
+        {
             @Override
-            public void configure() {
+            public void configure()
+            {
                 from(CAMEL_BASE_TOPIC_URI + TOPIC)
                     .process(exchange -> {
-                        if ( exchange.getMessage().getBody() != null )
+                        if (exchange.getMessage().getBody() != null)
                         {
-                        handler.accept(exchange.getMessage().getBody(type));
+                            handler.accept(exchange.getMessage().getBody(type));
                         }
                     });
             }
@@ -145,6 +156,14 @@ public abstract class AbstractContextAwareRepoEvent extends BaseSpringTest {
 
         ctx.start();
         return ctx;
+    }
+
+    protected RepoEvent<NodeResource> getFutureResult() throws Exception
+    {
+        return OBJECT_MAPPER.readValue(futureResult.get(5, SECONDS),
+            new TypeReference<RepoEvent<NodeResource>>()
+            {
+            });
     }
 }
 

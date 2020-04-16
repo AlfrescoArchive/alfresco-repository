@@ -26,8 +26,6 @@
 
 package org.alfresco.repo.event2;
 
-import static java.util.concurrent.TimeUnit.SECONDS;
-import java.util.concurrent.CompletableFuture;
 import org.alfresco.model.ContentModel;
 import org.alfresco.repo.content.MimetypeMap;
 import org.alfresco.repo.event.v1.model.EventData;
@@ -37,54 +35,51 @@ import org.alfresco.service.cmr.repository.ContentService;
 import org.alfresco.service.cmr.repository.ContentWriter;
 import org.alfresco.service.cmr.repository.NodeRef;
 import org.junit.Test;
-import com.fasterxml.jackson.core.type.TypeReference;
 
 /**
  * @author Iulian Aftene
  */
 
-public class UpdateRepoEventIT extends AbstractContextAwareRepoEvent {
-
+public class UpdateRepoEventIT extends AbstractContextAwareRepoEvent
+{
     @Test
-    public void testUpdateNodeResourceContent() throws Exception {
-
-        ContentService contentService=(ContentService) applicationContext.getBean("contentService");
+    public void testUpdateNodeResourceContent() throws Exception
+    {
+        ContentService contentService = (ContentService) applicationContext.getBean(
+            "contentService");
         NodeRef nodeRef = createNode(ContentModel.TYPE_CONTENT);
         Thread.sleep(2000); // wait up to 2 second for the event
 
-        CompletableFuture<String> futureResult = new CompletableFuture<>();
         subscribe(futureResult::complete, String.class);
 
         retryingTransactionHelper.doInTransaction(() -> {
-            ContentWriter writer = contentService.getWriter(nodeRef, ContentModel.TYPE_CONTENT, true);
+            ContentWriter writer = contentService.getWriter(nodeRef, ContentModel.TYPE_CONTENT,
+                true);
             writer.setMimetype(MimetypeMap.MIMETYPE_PDF);
             writer.setEncoding("UTF-8");
             writer.putContent("content");
             return null;
         });
 
-        final RepoEvent<NodeResource> resultRepoEvent = OBJECT_MAPPER.readValue(futureResult.get(5, SECONDS),
-            new TypeReference<RepoEvent<NodeResource>>()
-        {
-        });
+        final RepoEvent<NodeResource> resultRepoEvent = getFutureResult();
 
-        assertEquals("Repo event type", "org.alfresco.event.node.Updated", resultRepoEvent.getType());
+        assertEquals("Repo event type", "org.alfresco.event.node.Updated",
+            resultRepoEvent.getType());
 
         EventData<NodeResource> eventData = resultRepoEvent.getData();
         NodeResource nodeResource = eventData.getResource();
-        String affectedPropertiesAfter = OBJECT_MAPPER.writeValueAsString(nodeResource.getAffectedPropertiesAfter());
+        String affectedPropertiesAfter = OBJECT_MAPPER.writeValueAsString(
+            nodeResource.getAffectedPropertiesAfter());
 
         assertTrue(affectedPropertiesAfter.contains("application/pdf"));
     }
 
-
     @Test
-    public void testUpdateContentTitle() throws Exception {
-
+    public void testUpdateContentTitle() throws Exception
+    {
         NodeRef nodeRef = createNode(ContentModel.TYPE_CONTENT);
         Thread.sleep(2000); // wait up to 2 second for the event
 
-        CompletableFuture<String> futureResult = new CompletableFuture<>();
         subscribe(futureResult::complete, String.class);
 
         //update content cm:title property with "new_title" value
@@ -93,25 +88,21 @@ public class UpdateRepoEventIT extends AbstractContextAwareRepoEvent {
             return null;
         });
 
-        final RepoEvent<NodeResource> resultRepoEvent = OBJECT_MAPPER.readValue(futureResult.get(5, SECONDS),
-            new TypeReference<RepoEvent<NodeResource>>()
-        {
-        });
+        final RepoEvent<NodeResource> resultRepoEvent = getFutureResult();
 
         assertTrue("Ttile was not updated. ",
             resultRepoEvent.getData()
-                .getResource()
-                .getAffectedPropertiesAfter()
-                .containsValue("new_title"));
+                           .getResource()
+                           .getAffectedPropertiesAfter()
+                           .containsValue("new_title"));
     }
 
     @Test
-    public void testUpdateContentDescription() throws Exception {
-
+    public void testUpdateContentDescription() throws Exception
+    {
         NodeRef nodeRef = createNode(ContentModel.TYPE_CONTENT);
         Thread.sleep(2000); // wait up to 2 second for the event
 
-        CompletableFuture<String> futureResult = new CompletableFuture<>();
         subscribe(futureResult::complete, String.class);
 
         //update content cm:description property with "test_description" value
@@ -120,25 +111,21 @@ public class UpdateRepoEventIT extends AbstractContextAwareRepoEvent {
             return null;
         });
 
-        final RepoEvent<NodeResource> resultRepoEvent = OBJECT_MAPPER.readValue(futureResult.get(5, SECONDS),
-            new TypeReference<RepoEvent<NodeResource>>()
-        {
-        });
+        final RepoEvent<NodeResource> resultRepoEvent = getFutureResult();
 
         assertTrue("Description was not updated. ",
             resultRepoEvent.getData()
-                .getResource()
-                .getAffectedPropertiesAfter()
-                .containsValue("test_description"));
+                           .getResource()
+                           .getAffectedPropertiesAfter()
+                           .containsValue("test_description"));
     }
 
     @Test
-    public void testUpdateContentName() throws Exception {
-
+    public void testUpdateContentName() throws Exception
+    {
         NodeRef nodeRef = createNode(ContentModel.TYPE_CONTENT);
         Thread.sleep(2000); // wait up to 2 second for the event
 
-        CompletableFuture<String> futureResult = new CompletableFuture<>();
         subscribe(futureResult::complete, String.class);
 
         //update cm:name property with "test_new_name" value
@@ -147,25 +134,21 @@ public class UpdateRepoEventIT extends AbstractContextAwareRepoEvent {
             return null;
         });
 
-        final RepoEvent<NodeResource> resultRepoEvent = OBJECT_MAPPER.readValue(futureResult.get(5, SECONDS),
-            new TypeReference<RepoEvent<NodeResource>>()
-        {
-        });
+        final RepoEvent<NodeResource> resultRepoEvent = getFutureResult();
 
         assertTrue("Name was not updated. ",
             resultRepoEvent.getData()
-                .getResource()
-                .getAffectedPropertiesAfter()
-                .containsValue("test_new_name"));
+                           .getResource()
+                           .getAffectedPropertiesAfter()
+                           .containsValue("test_new_name"));
     }
 
     @Test
-    public void testAddAspectToContent() throws Exception {
-
+    public void testAddAspectToContent() throws Exception
+    {
         NodeRef nodeRef = createNode(ContentModel.TYPE_CONTENT);
         Thread.sleep(2000); // wait up to 2 second for the event
 
-        CompletableFuture<String> futureResult = new CompletableFuture<>();
         subscribe(futureResult::complete, String.class);
 
         // Add cm:versionable aspect with default value
@@ -174,42 +157,35 @@ public class UpdateRepoEventIT extends AbstractContextAwareRepoEvent {
             return null;
         });
 
-        final RepoEvent<NodeResource> resultRepoEvent = OBJECT_MAPPER.readValue(futureResult.get(5, SECONDS),
-            new TypeReference<RepoEvent<NodeResource>>()
-        {
-        });
+        final RepoEvent<NodeResource> resultRepoEvent = getFutureResult();
 
         assertTrue("Aspect was not added. ",
             resultRepoEvent.getData()
-                .getResource()
-                .getAspectNamesAfter()
-                .contains("cm:versionable"));
+                           .getResource()
+                           .getAspectNamesAfter()
+                           .contains("cm:versionable"));
     }
 
     @Test
-    public void removeAspectFromContentTest() throws Exception {
-
+    public void removeAspectFromContentTest() throws Exception
+    {
         NodeRef nodeRef = createNode(ContentModel.TYPE_CONTENT);
         Thread.sleep(2000); // wait up to 2 second for the event
 
-        CompletableFuture<String> futureResult = new CompletableFuture<>();
         subscribe(futureResult::complete, String.class);
 
         //remove sys:referenceable aspect
         retryingTransactionHelper.doInTransaction(() -> {
-            nodeService.removeAspect(nodeRef,ContentModel.ASPECT_REFERENCEABLE);
+            nodeService.removeAspect(nodeRef, ContentModel.ASPECT_REFERENCEABLE);
             return null;
         });
 
-        final RepoEvent<NodeResource> resultRepoEvent = OBJECT_MAPPER.readValue(futureResult.get(5, SECONDS),
-            new TypeReference<RepoEvent<NodeResource>>()
-        {
-        });
+        final RepoEvent<NodeResource> resultRepoEvent = getFutureResult();
 
         assertTrue("Aspect was not removed. ",
             resultRepoEvent.getData()
-                .getResource()
-                .getAspectNamesAfter()
-                .isEmpty());
+                           .getResource()
+                           .getAspectNamesAfter()
+                           .isEmpty());
     }
 }
