@@ -161,6 +161,11 @@
     <dependencies>
         <dependency>
             <groupId>org.alfresco</groupId>
+            <artifactId>acs-event-model</artifactId>
+            <version>0.0.2-REPO-5080</version>
+        </dependency>
+        <dependency>
+            <groupId>org.alfresco</groupId>
             <artifactId>alfresco-legacy-lucene</artifactId>
             <version>${dependency.alfresco-legacy-lucene.version}</version>
         </dependency>
