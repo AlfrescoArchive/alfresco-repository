@@ -102,6 +102,5 @@ public class Log4JHierarchyInitTest extends TestCase
         assertFalse(errContent.toString().contains("Attempted to append to closed appender named"));
 
         revertStreams();
-
     }
 }
