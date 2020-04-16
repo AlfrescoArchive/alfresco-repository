@@ -76,7 +76,6 @@ public class Log4JHierarchyInitTest extends TestCase
     public void setUpStreams() throws UnsupportedEncodingException
     {
         sysErr = System.err;
-
         System.setErr(new PrintStream(errContent, false, "UTF-8"));
     }
 
