@@ -312,7 +312,10 @@ public class CopyServiceImpl extends AbstractBaseCopyService implements CopyServ
             newName = newNameAfterCopy;
         }
 
-        newName = buildNewName(destinationParent, assocTypeQName, newName);
+        while (this.internalNodeService.getChildByName(destinationParent, assocTypeQName, newName) != null)
+        {
+            newName = buildNewName(destinationParent, assocTypeQName, newName);
+        }
                 
         if (assocQName == null)
         {
@@ -1518,22 +1521,19 @@ public class CopyServiceImpl extends AbstractBaseCopyService implements CopyServ
     }
 
     /**
-     * Builds name by appending copy label for each copy level.
+     * Builds name by appending copy label.
      */
     String buildNewName(NodeRef destinationParent, QName assocTypeQName, String newName)
     {
-        while (this.internalNodeService.getChildByName(destinationParent, assocTypeQName, newName) != null)
+        String baseName = FilenameUtils.getBaseName(newName);
+        String extension = FilenameUtils.getExtension(newName);
+
+        newName = I18NUtil.getMessage(COPY_OF_LABEL, baseName);
+
+        // append extension, if any, to filename
+        if (extension != null && !extension.isEmpty())
         {
-            String baseName = FilenameUtils.getBaseName(newName);
-            String extension = FilenameUtils.getExtension(newName);
-
-            newName = I18NUtil.getMessage(COPY_OF_LABEL, baseName);
-
-            // append extension, if any, to filename
-            if (extension != null && !extension.isEmpty())
-            {
-                newName = newName + FilenameUtils.EXTENSION_SEPARATOR_STR + extension;
-            }
+            newName = newName + FilenameUtils.EXTENSION_SEPARATOR_STR + extension;
         }
 
         return newName;

@@ -27,19 +27,15 @@
 package org.alfresco.repo.copy;
 
 import static org.junit.Assert.assertEquals;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 import java.util.Locale;
 
 import org.alfresco.service.cmr.repository.NodeRef;
-import org.alfresco.service.cmr.repository.NodeService;
 import org.alfresco.service.cmr.repository.StoreRef;
 import org.alfresco.service.namespace.QName;
 import org.alfresco.util.GUID;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.Mock;
 import org.springframework.extensions.surf.util.I18NUtil;
 
 /**
@@ -56,17 +52,11 @@ public class CopyServiceImplUnitTest
     /* I18N labels used by the tests */
     private static final String COPY_OF_LABEL = "copy_service.copy_of_label";
 
-    @Mock
-    private NodeService internalNodeServiceMock;
-
     private CopyServiceImpl copyServiceImpl;
 
     private Locale preservedLocale;
     private String copyOfLabelTranslated;
-    private NodeRef sourceNodeRef;
     private NodeRef destinationParent;
-    private NodeRef childNodeRef1;
-    private NodeRef childNodeRef2;
 
     @Before
     public void setup()
@@ -74,37 +64,23 @@ public class CopyServiceImplUnitTest
         I18NUtil.registerResourceBundle("alfresco/messages/copy-service");
         this.preservedLocale = I18NUtil.getLocale();
         this.copyOfLabelTranslated = I18NUtil.getMessage(COPY_OF_LABEL, "");
-
-        this.sourceNodeRef = new NodeRef(StoreRef.STORE_REF_WORKSPACE_SPACESSTORE, GUID.generate());
         this.destinationParent = new NodeRef(StoreRef.STORE_REF_WORKSPACE_SPACESSTORE, GUID.generate());
-        this.childNodeRef1 = new NodeRef(StoreRef.STORE_REF_WORKSPACE_SPACESSTORE, GUID.generate());
-        this.childNodeRef2 = new NodeRef(StoreRef.STORE_REF_WORKSPACE_SPACESSTORE, GUID.generate());
-
-        // Mock the required services
-        this.internalNodeServiceMock = mock(NodeService.class);
 
         this.copyServiceImpl = new CopyServiceImpl();
-        copyServiceImpl.setInternalNodeService(internalNodeServiceMock);
     }
 
     @Test
     public void testBuildNewName_FileWithExtension()
     {
-        String originalName = FILE_NAME + FILE_EXTENSION;
-        String[] namesOfCopies = generateCopyNames(FILE_NAME, FILE_EXTENSION,3,true);
-
-        testSingleFileCopy(originalName, namesOfCopies);
-        testMultipleFileCopies(originalName, namesOfCopies);
+        String[] expectedNamesOfCopies = generateCopyNames(FILE_NAME, FILE_EXTENSION,3,true);
+        testAndAssertMultipleFileCopies(expectedNamesOfCopies);
     }
 
     @Test
     public void testBuildNewName_FileWithoutExtension()
     {
-        String originalName = FILE_NAME;
-        String[] namesOfCopies = generateCopyNames(FILE_NAME, "",3,true);
-
-        testSingleFileCopy(originalName, namesOfCopies);
-        testMultipleFileCopies(originalName, namesOfCopies);
+        String[] expectedNamesOfCopies = generateCopyNames(FILE_NAME, "",3,true);
+        testAndAssertMultipleFileCopies(expectedNamesOfCopies);
     }
 
     @Test
@@ -112,11 +88,8 @@ public class CopyServiceImplUnitTest
     {
         switchLocale(Locale.JAPANESE);
 
-        String originalName = FILE_NAME + FILE_EXTENSION;
-        String[] namesOfCopies = generateCopyNames(FILE_NAME, FILE_EXTENSION,3,false);
-
-        testSingleFileCopy(originalName, namesOfCopies);
-        testMultipleFileCopies(originalName, namesOfCopies);
+        String[] expectedNamesOfCopies = generateCopyNames(FILE_NAME, FILE_EXTENSION,3,false);
+        testAndAssertMultipleFileCopies(expectedNamesOfCopies);
 
         restoreLocale();
     }
@@ -126,11 +99,8 @@ public class CopyServiceImplUnitTest
     {
         switchLocale(Locale.JAPANESE);
 
-        String originalName = FILE_NAME;
-        String[] namesOfCopies = generateCopyNames(FILE_NAME, "",3,false);
-
-        testSingleFileCopy(originalName, namesOfCopies);
-        testMultipleFileCopies(originalName, namesOfCopies);
+        String[] expectedNamesOfCopies = generateCopyNames(FILE_NAME, "",3,false);
+        testAndAssertMultipleFileCopies(expectedNamesOfCopies);
 
         restoreLocale();
     }
@@ -157,22 +127,14 @@ public class CopyServiceImplUnitTest
      }
 
     /*
-     * Helper method to test and assert for a single file copy
-     */
-    private void testSingleFileCopy(String originalName, String[] namesOfCopies)
-    {
-        when(internalNodeServiceMock.getChildByName(destinationParent, ASSOC_TYPE_QNAME, originalName)).thenReturn(sourceNodeRef);
-        assertEquals(namesOfCopies[1], copyServiceImpl.buildNewName(destinationParent, ASSOC_TYPE_QNAME, originalName));
-    }
-
-    /*
      * Helper method to test and assert for multiple file copies
      */
-    private void testMultipleFileCopies(String originalName, String[] namesOfCopies)
+    private void testAndAssertMultipleFileCopies(String[] namesOfCopies)
     {
-        when(internalNodeServiceMock.getChildByName(destinationParent, ASSOC_TYPE_QNAME, namesOfCopies[1])).thenReturn(childNodeRef1);
-        when(internalNodeServiceMock.getChildByName(destinationParent, ASSOC_TYPE_QNAME, namesOfCopies[2])).thenReturn(childNodeRef2);
-        assertEquals(namesOfCopies[3], copyServiceImpl.buildNewName(destinationParent, ASSOC_TYPE_QNAME, originalName));
+        for(int i = 0; i < namesOfCopies.length - 1; i++)
+        {
+            assertEquals(namesOfCopies[i+1], copyServiceImpl.buildNewName(destinationParent, ASSOC_TYPE_QNAME, namesOfCopies[i]));
+        }
     }
 
     /*
