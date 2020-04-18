@@ -138,20 +138,19 @@ public class ImageMagickContentTransformerTest extends AbstractContentTransforme
         transform(MimetypeMap.MIMETYPE_IMAGE_JPEG, MimetypeMap.MIMETYPE_IMAGE_PNG, options);
     }
 
-// Comment out tests for a bit to get a build we can use down stream
-//    public void testDeprecatedCommandOptions() throws Exception
-//    {
-//        // The commandOption should be removed, but is currently needed for custom renditions.
-//        // This test uses it to resize the file. This happens to be one of the standard options.
-//        ImageTransformationOptions options = new ImageTransformationOptions();
-//        long defaultSize = transform(MimetypeMap.MIMETYPE_IMAGE_JPEG, MimetypeMap.MIMETYPE_IMAGE_PNG, options);
-//
-//        options.setCommandOptions("-resize 200%");
-//        long biggerSize = transform(MimetypeMap.MIMETYPE_IMAGE_JPEG, MimetypeMap.MIMETYPE_IMAGE_PNG, options);
-//
-//        assertTrue("The commandOption appears not to have been used as the file size " + biggerSize +
-//                " is not larger than the default size " + defaultSize, biggerSize > defaultSize);
-//    }
+    public void testDeprecatedCommandOptions() throws Exception
+    {
+        // The commandOption should be removed, but is currently needed for custom renditions.
+        // This test uses it to resize the file. This happens to be one of the standard options.
+        ImageTransformationOptions options = new ImageTransformationOptions();
+        long defaultSize = transform(MimetypeMap.MIMETYPE_IMAGE_JPEG, MimetypeMap.MIMETYPE_IMAGE_PNG, options);
+
+        options.setCommandOptions("-resize 200%");
+        long biggerSize = transform(MimetypeMap.MIMETYPE_IMAGE_JPEG, MimetypeMap.MIMETYPE_IMAGE_PNG, options);
+
+        assertTrue("The commandOption appears not to have been used as the file size " + biggerSize +
+                " is not larger than the default size " + defaultSize, biggerSize > defaultSize);
+    }
 
     // This fails with remote transformers
     // The thumbnails actually have parameters in real life

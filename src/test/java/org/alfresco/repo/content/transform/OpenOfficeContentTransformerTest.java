@@ -100,27 +100,26 @@ public class OpenOfficeContentTransformerTest extends AbstractContentTransformer
         assertEquals("Mimetype should be supported", true, reliability);
     }
 
-// Comment out tests for a bit to get a build we can use down stream
-//    /**
-//     * Test what is up with HTML to PDF
-//     */
-//    public void testHtmlToPdf() throws Exception
-//    {
-//        if (!isOpenOfficeWorkerAvailable())
-//        {
-//            // no connection
-//            System.err.println("ooWorker not available - skipping testHtmlToPdf !!");
-//            return;
-//        }
-//        File htmlSourceFile = loadQuickTestFile("html");
-//        File pdfTargetFile = TempFileProvider.createTempFile(getName() + "-target-", ".pdf");
-//        ContentReader reader = new FileContentReader(htmlSourceFile);
-//        reader.setMimetype(MimetypeMap.MIMETYPE_HTML);
-//        ContentWriter writer = new FileContentWriter(pdfTargetFile);
-//        writer.setMimetype(MimetypeMap.MIMETYPE_PDF);
-//
-//        transformer.transform(reader, writer);
-//    }
+    /**
+     * Test what is up with HTML to PDF
+     */
+    public void testHtmlToPdf() throws Exception
+    {
+        if (!isOpenOfficeWorkerAvailable())
+        {
+            // no connection
+            System.err.println("ooWorker not available - skipping testHtmlToPdf !!");
+            return;
+        }
+        File htmlSourceFile = loadQuickTestFile("html");
+        File pdfTargetFile = TempFileProvider.createTempFile(getName() + "-target-", ".pdf");
+        ContentReader reader = new FileContentReader(htmlSourceFile);
+        reader.setMimetype(MimetypeMap.MIMETYPE_HTML);
+        ContentWriter writer = new FileContentWriter(pdfTargetFile);
+        writer.setMimetype(MimetypeMap.MIMETYPE_PDF);
+
+        transformer.transform(reader, writer);
+    }
 
     /**
      * ALF-219. Transforamtion from .html to .pdf for empty file.
