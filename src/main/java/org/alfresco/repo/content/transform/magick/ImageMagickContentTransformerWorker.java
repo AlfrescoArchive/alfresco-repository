@@ -359,8 +359,14 @@ public class ImageMagickContentTransformerWorker extends AbstractImageMagickCont
                 {
                     resizePercentage = Boolean.TRUE.toString();
                 }
-                allowEnlargement = Boolean.toString(resizeOptions.getAllowEnlargement());
-                maintainAspectRatio = Boolean.toString(resizeOptions.isMaintainAspectRatio());
+                if (!resizeOptions.getAllowEnlargement())
+                {
+                    allowEnlargement = Boolean.FALSE.toString();
+                }
+                if (!resizeOptions.isMaintainAspectRatio())
+                {
+                    maintainAspectRatio = Boolean.FALSE.toString();
+                }
             }
         }
 
