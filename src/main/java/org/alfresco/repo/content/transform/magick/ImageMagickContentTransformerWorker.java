@@ -302,7 +302,6 @@ public class ImageMagickContentTransformerWorker extends AbstractImageMagickCont
 
         String commandOptions = null;
 
-
         if (options instanceof ImageTransformationOptions)
         {
             ImageTransformationOptions imageOptions = (ImageTransformationOptions)options;
@@ -364,10 +363,7 @@ public class ImageMagickContentTransformerWorker extends AbstractImageMagickCont
                 {
                     allowEnlargement = Boolean.TRUE.toString();
                 }
-                if (resizeOptions.isMaintainAspectRatio())
-                {
-                    maintainAspectRatio = Boolean.TRUE.toString();
-                }
+                maintainAspectRatio = Boolean.toString(resizeOptions.isMaintainAspectRatio());
             }
         }
 
