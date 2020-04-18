@@ -392,6 +392,9 @@ public class AlfrescoPdfRendererContentTransformerWorker extends ContentTransfor
         remoteTransformerClient.request(reader, writer, sourceMimetype, sourceExtension, targetExtension,
                 timeoutMs, logger,
 
+                "sourceMimetype", sourceMimetype,
+                "targetMimetype", targetMimetype,
+                "targetExtension", targetExtension,
                 PAGE, page,
                 WIDTH, width,
                 HEIGHT, height,

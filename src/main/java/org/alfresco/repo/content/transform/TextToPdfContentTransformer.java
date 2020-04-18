@@ -195,6 +195,7 @@ public class TextToPdfContentTransformer extends AbstractRemoteContentTransforme
                 timeoutMs, logger,
                 "sourceMimetype", sourceMimetype,
                 "targetMimetype", targetMimetype,
+                "targetExtension", targetExtension,
                 SOURCE_ENCODING, sourceEncoding,
                 "pageLimit", String.valueOf(pageLimit));
     }

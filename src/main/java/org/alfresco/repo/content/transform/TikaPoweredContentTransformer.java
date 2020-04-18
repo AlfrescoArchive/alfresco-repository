@@ -300,6 +300,7 @@ public abstract class TikaPoweredContentTransformer extends AbstractRemoteConten
                 timeoutMs, logger,
                 "sourceMimetype", sourceMimetype,
                 "targetMimetype", targetMimetype,
+                "targetExtension", targetExtension,
                 TARGET_ENCODING, targetEncoding);
     }
 

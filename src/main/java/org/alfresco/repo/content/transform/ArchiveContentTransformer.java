@@ -160,6 +160,7 @@ public class ArchiveContentTransformer extends TikaPoweredContentTransformer
                 timeoutMs, logger,
                 "includeContents", Boolean.toString(recurse),
                 "sourceMimetype", sourceMimetype,
+                "sourceExtension", sourceExtension,
                 "targetMimetype", targetMimetype,
                 TARGET_ENCODING, targetEncoding);
     }

@@ -187,6 +187,7 @@ public class StringExtractingContentTransformer extends AbstractRemoteContentTra
                 timeoutMs, logger,
                 "sourceMimetype", sourceMimetype,
                 "targetMimetype", targetMimetype,
+                "targetExtension", targetExtension,
                 SOURCE_ENCODING, sourceEncoding,
                 TARGET_ENCODING, targetEncoding);
 

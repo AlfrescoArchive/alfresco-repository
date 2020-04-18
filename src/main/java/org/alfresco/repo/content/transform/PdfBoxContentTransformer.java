@@ -120,6 +120,7 @@ public class PdfBoxContentTransformer extends TikaPoweredContentTransformer
                 "notExtractBookmarksText", notExtractBookmarksText,
                 "sourceMimetype", sourceMimetype,
                 "targetMimetype", targetMimetype,
+                "targetExtension", targetExtension,
                 TARGET_ENCODING, targetEncoding);
     }
 }
