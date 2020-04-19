@@ -130,7 +130,11 @@ public abstract class AbstractRenditionIntegrationTest extends BaseSpringTest
     public static void before()
     {
         // Use the docker images for transforms (legacy)
-        System.setProperty("legacyTransform.core-aio.url", "http://localhost:8090/");
+        System.setProperty("alfresco-pdf-renderer.url", "http://localhost:8090/");
+        System.setProperty("img.url", "http://localhost:8090/");
+        System.setProperty("jodconverter.url", "http://localhost:8090/");
+        System.setProperty("tika.url", "http://localhost:8090/");
+        System.setProperty("transform.misc.url", "http://localhost:8090/");
 
         // Use the docker images for transforms (local)
         System.setProperty("localTransform.core-aio.url", "http://localhost:8090/");
@@ -218,7 +222,11 @@ public abstract class AbstractRenditionIntegrationTest extends BaseSpringTest
     @AfterClass
     public static void after()
     {
-        System.clearProperty("legacyTransform.core-aio.url");
+        System.clearProperty("alfresco-pdf-renderer.url");
+        System.clearProperty("img.url");
+        System.clearProperty("jodconverter.url");
+        System.clearProperty("tika.url");
+        System.clearProperty("transform.misc.url");
 
         System.clearProperty("localTransform.core-aio.url");
 

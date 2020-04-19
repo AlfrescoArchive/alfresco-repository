@@ -12,10 +12,10 @@
                <value>Alfresco-PDF-Renderer</value>
             </constructor-arg>
             <constructor-arg>
-               <value>${legacyTransform.core-aio.url}</value>
+               <value>${alfresco-pdf-renderer.url}</value>
             </constructor-arg>
             <property name="startupRetryPeriodSeconds">
-               <value>${legacyTransform.core-aio.startupRetryPeriodSeconds}</value>
+               <value>${alfresco-pdf-renderer.startupRetryPeriodSeconds}</value>
             </property>
          </bean>
       </property>

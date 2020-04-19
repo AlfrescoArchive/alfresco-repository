@@ -69,10 +69,10 @@
                    <value>LibreOffice</value>
                </constructor-arg>
                <constructor-arg>
-                   <value>${legacyTransform.core-aio.url}</value>
+                   <value>${jodconverter.url}</value>
                </constructor-arg>
                <property name="startupRetryPeriodSeconds">
-                   <value>${legacyTransform.core-aio.startupRetryPeriodSeconds}</value>
+                   <value>${jodconverter.startupRetryPeriodSeconds}</value>
                </property>
            </bean>
        </property>
