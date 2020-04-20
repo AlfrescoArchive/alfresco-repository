@@ -314,7 +314,7 @@ public class CopyServiceImpl extends AbstractBaseCopyService implements CopyServ
 
         while (this.internalNodeService.getChildByName(destinationParent, assocTypeQName, newName) != null)
         {
-            newName = buildNewName(destinationParent, assocTypeQName, newName);
+            newName = buildNewName(newName);
         }
                 
         if (assocQName == null)
@@ -1523,12 +1523,12 @@ public class CopyServiceImpl extends AbstractBaseCopyService implements CopyServ
     /**
      * Builds name by appending copy label.
      */
-    String buildNewName(NodeRef destinationParent, QName assocTypeQName, String newName)
+    String buildNewName(final String name)
     {
-        String baseName = FilenameUtils.getBaseName(newName);
-        String extension = FilenameUtils.getExtension(newName);
+        String baseName = FilenameUtils.getBaseName(name);
+        String extension = FilenameUtils.getExtension(name);
 
-        newName = I18NUtil.getMessage(COPY_OF_LABEL, baseName);
+        String newName = I18NUtil.getMessage(COPY_OF_LABEL, baseName);
 
         // append extension, if any, to filename
         if (extension != null && !extension.isEmpty())

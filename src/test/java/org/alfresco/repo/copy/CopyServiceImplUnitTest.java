@@ -30,10 +30,6 @@ import static org.junit.Assert.assertEquals;
 
 import java.util.Locale;
 
-import org.alfresco.service.cmr.repository.NodeRef;
-import org.alfresco.service.cmr.repository.StoreRef;
-import org.alfresco.service.namespace.QName;
-import org.alfresco.util.GUID;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.extensions.surf.util.I18NUtil;
@@ -47,7 +43,6 @@ public class CopyServiceImplUnitTest
 {
     private static final String FILE_NAME = "Test File";
     private static final String FILE_EXTENSION = ".txt";
-    private static final QName ASSOC_TYPE_QNAME = QName.createQName("assoc://type/");
 
     /* I18N labels used by the tests */
     private static final String COPY_OF_LABEL = "copy_service.copy_of_label";
@@ -56,15 +51,12 @@ public class CopyServiceImplUnitTest
 
     private Locale preservedLocale;
     private String copyOfLabelTranslated;
-    private NodeRef destinationParent;
 
     @Before
     public void setup()
     {
         I18NUtil.registerResourceBundle("alfresco/messages/copy-service");
         this.preservedLocale = I18NUtil.getLocale();
-        this.copyOfLabelTranslated = I18NUtil.getMessage(COPY_OF_LABEL, "");
-        this.destinationParent = new NodeRef(StoreRef.STORE_REF_WORKSPACE_SPACESSTORE, GUID.generate());
 
         this.copyServiceImpl = new CopyServiceImpl();
     }
@@ -72,25 +64,42 @@ public class CopyServiceImplUnitTest
     @Test
     public void testBuildNewName_FileWithExtension()
     {
-        String[] expectedNamesOfCopies = generateCopyNames(FILE_NAME, FILE_EXTENSION,3,true);
-        testAndAssertMultipleFileCopies(expectedNamesOfCopies);
+        switchLocale(Locale.ENGLISH);
+        assertEquals(copyOfLabelTranslated + FILE_NAME + FILE_EXTENSION, copyServiceImpl.buildNewName(FILE_NAME + FILE_EXTENSION));
+        restoreLocale();
+    }
+
+    @Test
+    public void testBuildNewName_FileWithExtensionAndCopyOf()
+    {
+        switchLocale(Locale.ENGLISH);
+        String fileNameOfCopy = copyOfLabelTranslated + FILE_NAME + FILE_EXTENSION;
+        assertEquals(copyOfLabelTranslated + fileNameOfCopy, copyServiceImpl.buildNewName(fileNameOfCopy));
+        restoreLocale();
     }
 
     @Test
     public void testBuildNewName_FileWithoutExtension()
     {
-        String[] expectedNamesOfCopies = generateCopyNames(FILE_NAME, "",3,true);
-        testAndAssertMultipleFileCopies(expectedNamesOfCopies);
+        switchLocale(Locale.ENGLISH);
+        assertEquals(copyOfLabelTranslated + FILE_NAME, copyServiceImpl.buildNewName(FILE_NAME));
+        restoreLocale();
     }
 
     @Test
     public void testBuildNewName_FileWithExtension_JapaneseLocale()
     {
         switchLocale(Locale.JAPANESE);
+        assertEquals(FILE_NAME + copyOfLabelTranslated + FILE_EXTENSION, copyServiceImpl.buildNewName(FILE_NAME + FILE_EXTENSION));
+        restoreLocale();
+    }
 
-        String[] expectedNamesOfCopies = generateCopyNames(FILE_NAME, FILE_EXTENSION,3,false);
-        testAndAssertMultipleFileCopies(expectedNamesOfCopies);
-
+    @Test
+    public void testBuildNewName_FileWithExtensionAndCopyOf_JapaneseLocale()
+    {
+        switchLocale(Locale.JAPANESE);
+        String fileNameOfCopy = FILE_NAME + copyOfLabelTranslated;
+        assertEquals(fileNameOfCopy + copyOfLabelTranslated + FILE_EXTENSION, copyServiceImpl.buildNewName(fileNameOfCopy + FILE_EXTENSION));
         restoreLocale();
     }
 
@@ -98,43 +107,8 @@ public class CopyServiceImplUnitTest
     public void testBuildNewName_FileWithoutExtension_JapaneseLocale()
     {
         switchLocale(Locale.JAPANESE);
-
-        String[] expectedNamesOfCopies = generateCopyNames(FILE_NAME, "",3,false);
-        testAndAssertMultipleFileCopies(expectedNamesOfCopies);
-
+        assertEquals(FILE_NAME + copyOfLabelTranslated , copyServiceImpl.buildNewName(FILE_NAME));
         restoreLocale();
-    }
-
-    /*
-     * Helper method to generate the file names for multiple copies of a file
-     */
-     private String[] generateCopyNames(String fileName, String fileExtension, int nbrOfCopies, boolean isPrefix)
-     {
-         StringBuilder copyOfLabels = new StringBuilder();
-         String[] namesOfCopies = new String[nbrOfCopies + 1];
-         for (int i = 0; i < nbrOfCopies + 1; i++)
-         {
-             if (isPrefix)
-             {
-                 namesOfCopies[i] = copyOfLabels + fileName + fileExtension;
-             } else
-             {
-                 namesOfCopies[i] = fileName + copyOfLabels + fileExtension;
-             }
-             copyOfLabels.append(copyOfLabelTranslated);
-         }
-         return namesOfCopies;
-     }
-
-    /*
-     * Helper method to test and assert for multiple file copies
-     */
-    private void testAndAssertMultipleFileCopies(String[] namesOfCopies)
-    {
-        for(int i = 0; i < namesOfCopies.length - 1; i++)
-        {
-            assertEquals(namesOfCopies[i+1], copyServiceImpl.buildNewName(destinationParent, ASSOC_TYPE_QNAME, namesOfCopies[i]));
-        }
     }
 
     /*
