@@ -441,6 +441,7 @@ public abstract class OOoContentTransformerHelper extends ContentTransformerHelp
         Log logger = getLogger();
         remoteTransformerClient.request(reader, writer, sourceMimetype, sourceExtension, targetExtension,
                 timeoutMs, logger,
+                "transformerName", "libreoffice",
                 "sourceMimetype", sourceMimetype,
                 "sourceExtension", sourceExtension,
                 "targetMimetype", targetMimetype);

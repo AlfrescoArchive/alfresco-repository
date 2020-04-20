@@ -396,6 +396,7 @@ public class ImageMagickContentTransformerWorker extends AbstractImageMagickCont
         }
 
         return new String[] {
+                "transformerName", "imagemagick",
                 "sourceMimetype", sourceMimetype,
                 "sourceExtension", sourceExtension,
                 "targetMimetype", targetMimetype,

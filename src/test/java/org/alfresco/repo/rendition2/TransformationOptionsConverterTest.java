@@ -109,12 +109,12 @@ public class TransformationOptionsConverterTest
         assertEquals("Having converted twice the map is different", sortedOldOptions, sortedBackToOldOptions);
     }
 
-    // Discards the sourceMimetype, sourceExtension and targetMimetype elements which are always in the first 3 elements.
+    // Discards the transformerName, sourceMimetype, sourceExtension and targetMimetype elements which are always in the first 3 elements.
     private String[] getOptionalTEngineArgs(TransformationOptions oldOptions, String sourceMimetype, String targetMimetype)
     {
         String[] args = ImageMagickContentTransformerWorker.getTEngineArgs(oldOptions, sourceMimetype, null, targetMimetype,
                 "Version: ImageMagick 6.7.5");
-        return Arrays.copyOfRange(args, 3*2, args.length);
+        return Arrays.copyOfRange(args, 4*2, args.length);
     }
 
     private String getSortedOptions(TransformationOptions options, String sourceMimetype, String targetMimetype)

@@ -161,6 +161,7 @@ public class AppleIWorksContentTransformer extends AbstractRemoteContentTransfor
 
         remoteTransformerClient.request(reader, writer, sourceMimetype, sourceExtension, targetExtension,
                 timeoutMs, logger,
+                "transformerName", "appleIWorks",
                 "sourceMimetype", sourceMimetype,
                 "sourceExtension", sourceExtension,
                 "targetMimetype", targetMimetype);

@@ -158,6 +158,7 @@ public class ArchiveContentTransformer extends TikaPoweredContentTransformer
         }
         remoteTransformerClient.request(reader, writer, sourceMimetype, sourceExtension, targetExtension,
                 timeoutMs, logger,
+                "transformerName", "Archive",
                 "includeContents", Boolean.toString(recurse),
                 "sourceMimetype", sourceMimetype,
                 "sourceExtension", sourceExtension,
