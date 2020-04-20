@@ -127,11 +127,7 @@ public abstract class AbstractRenditionIntegrationTest extends BaseSpringTest
     public static void before()
     {
         // Use the docker images for transforms (local)
-        System.setProperty("localTransform.pdfrenderer.url", "http://localhost:8090/");
-        System.setProperty("localTransform.imagemagick.url", "http://localhost:8091/");
-        System.setProperty("localTransform.libreoffice.url", "http://localhost:8092/");
-        System.setProperty("localTransform.tika.url", "http://localhost:8093/");
-        System.setProperty("localTransform.misc.url", "http://localhost:8094/");
+        System.setProperty("localTransform.core-aio.url", "http://localhost:8090/");
     }
 
     protected static void none()
@@ -202,6 +198,7 @@ public abstract class AbstractRenditionIntegrationTest extends BaseSpringTest
     @AfterClass
     public static void after()
     {
+        System.clearProperty("localTransform.core-aio.url");
         System.clearProperty("transform.service.enabled");
         System.clearProperty("local.transform.service.enabled");
     }

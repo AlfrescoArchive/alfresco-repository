@@ -37,6 +37,7 @@ import org.junit.runner.RunWith;
 import org.mockito.runners.MockitoJUnitRunner;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -62,8 +63,8 @@ public class TransformationOptionsConverterTest
     private static final String[] DISCARD_OPTIONS = new String[]
             {
                 "autoOrient", "false",
-                "maintainAspectRatio", "false",
-                "allowEnlargement", "false"
+                "maintainAspectRatio", "true",
+                "allowEnlargement", "true"
             };
 
     @Before
@@ -94,6 +95,14 @@ public class TransformationOptionsConverterTest
 
         assertEquals("Having converted twice the toString is different", expectedOldOptionsToString, backToOldOptions.toString());
         assertEquals("Having converted twice the map is different", sortedOldOptions, sortedBackToOldOptions);
+    }
+
+    // Discards the transformerName, sourceMimetype, sourceExtension and targetMimetype elements which are always in the first 3 elements.
+    private String[] getOptionalTEngineArgs(TransformationOptions oldOptions, String sourceMimetype, String targetMimetype)
+    {
+        String[] args = ImageMagickContentTransformerWorker.getTEngineArgs(oldOptions, sourceMimetype, null, targetMimetype,
+                "Version: ImageMagick 6.7.5");
+        return Arrays.copyOfRange(args, 4*2, args.length);
     }
 
     private String getSortedOptions(TransformationOptions options, String sourceMimetype, String targetMimetype)
@@ -165,11 +174,9 @@ public class TransformationOptionsConverterTest
                         "ImageResizeOptions [width=20, height=30, maintainAspectRatio=true, percentResize=false, " +
                         "resizeToThumbnail=false, allowEnlargement=true], autoOrient=true], " +
                         "sourceOptions={ PagedSourceOptionsPagedSourceOptions {1, 1}} ]",
-                "allowEnlargement=true " +
-                        "alphaRemove=true " +
+                "alphaRemove=true " +
                         "autoOrient=true " +
                         "endPage=0 " +
-                        "maintainAspectRatio=true " +
                         "resizeHeight=30 " +
                         "resizeWidth=20 " +
                         "startPage=0 " +
@@ -336,8 +343,6 @@ public class TransformationOptionsConverterTest
                 "ImageTransformationOptions [commandOptions=, " +
                         "resizeOptions=ImageResizeOptions [width=-1, height=-1, maintainAspectRatio=true, " +
                         "percentResize=false, resizeToThumbnail=false, allowEnlargement=true], autoOrient=false]]",
-                "allowEnlargement=true " +
-                        "maintainAspectRatio=true " +
                         "timeout=-1 "
         );
     }
@@ -356,7 +361,7 @@ public class TransformationOptionsConverterTest
                 "ImageTransformationOptions [commandOptions=, " +
                         "resizeOptions=ImageResizeOptions [width=-1, height=-1, maintainAspectRatio=true, " +
                         "percentResize=false, resizeToThumbnail=false, allowEnlargement=false], autoOrient=false]]",
-                "maintainAspectRatio=true " +
+                "allowEnlargement=false " +
                         "timeout=-1 "
         );
     }
@@ -375,7 +380,7 @@ public class TransformationOptionsConverterTest
                 "ImageTransformationOptions [commandOptions=, " +
                         "resizeOptions=ImageResizeOptions [width=-1, height=-1, maintainAspectRatio=false, " +
                         "percentResize=false, resizeToThumbnail=false, allowEnlargement=true], autoOrient=false]]",
-                "allowEnlargement=true " +
+                "maintainAspectRatio=false " +
                         "timeout=-1 "
         );
     }
@@ -395,6 +400,8 @@ public class TransformationOptionsConverterTest
                 "ImageTransformationOptions [commandOptions=, " +
                         "resizeOptions=ImageResizeOptions [width=-1, height=-1, maintainAspectRatio=false, " +
                         "percentResize=false, resizeToThumbnail=false, allowEnlargement=false], autoOrient=false]]",
+                "allowEnlargement=false " +
+                        "maintainAspectRatio=false " +
                 "timeout=-1 "
         );
     }
@@ -415,7 +422,9 @@ public class TransformationOptionsConverterTest
                 "ImageTransformationOptions [commandOptions=, " +
                         "resizeOptions=ImageResizeOptions [width=-1, height=-1, maintainAspectRatio=false, " +
                         "percentResize=false, resizeToThumbnail=true, allowEnlargement=false], autoOrient=false]]",
-                "thumbnail=true " +
+                "allowEnlargement=false " +
+                        "maintainAspectRatio=false " +
+                        "thumbnail=true " +
                         "timeout=-1 "
         );
     }
@@ -437,7 +446,9 @@ public class TransformationOptionsConverterTest
                 "ImageTransformationOptions [commandOptions=, " +
                         "resizeOptions=ImageResizeOptions [width=18, height=15, maintainAspectRatio=false, " +
                         "percentResize=false, resizeToThumbnail=false, allowEnlargement=false], autoOrient=false]]",
-                "resizeHeight=15 " +
+                "allowEnlargement=false " +
+                        "maintainAspectRatio=false " +
+                        "resizeHeight=15 " +
                         "resizeWidth=18 " +
                         "timeout=-1 "
         );
@@ -459,7 +470,9 @@ public class TransformationOptionsConverterTest
                 "ImageTransformationOptions [commandOptions=, " +
                         "resizeOptions=ImageResizeOptions [width=-1, height=-1, maintainAspectRatio=false, " +
                         "percentResize=true, resizeToThumbnail=false, allowEnlargement=false], autoOrient=false]]",
-                "resizePercentage=true " +
+                "allowEnlargement=false " +
+                        "maintainAspectRatio=false " +
+                        "resizePercentage=true " +
                         "timeout=-1 "
         );
     }
@@ -551,9 +564,9 @@ public class TransformationOptionsConverterTest
                         "resizeOptions=ImageResizeOptions [width=20, height=30, maintainAspectRatio=true, " +
                         "percentResize=false, resizeToThumbnail=false, allowEnlargement=false], autoOrient=true], " +
                         "sourceOptions={ PagedSourceOptionsPagedSourceOptions {1, 1}} ]",
-                "autoOrient=true " +
+                "allowEnlargement=false " +
+                        "autoOrient=true " +
                         "endPage=0 " +
-                        "maintainAspectRatio=true " +
                         "resizeHeight=30 " +
                         "resizeWidth=20 " +
                         "startPage=0 " +
