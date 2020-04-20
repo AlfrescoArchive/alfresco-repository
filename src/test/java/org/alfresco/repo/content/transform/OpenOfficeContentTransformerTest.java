@@ -59,6 +59,8 @@ public class OpenOfficeContentTransformerTest extends AbstractContentTransformer
         super.setUp();
         
         this.worker = (ContentTransformerWorker) ctx.getBean("transformer.worker.JodConverter");
+        RemoteTransformerClient remoteTransformerClient = new RemoteTransformerClient("miscRemoteTransformerClient", "http://localhost:8090/");
+        worker.setRemoteTransformerClient(remoteTransformerClient);
         transformer = new ProxyContentTransformer();
         transformer.setMimetypeService(mimetypeService);
         transformer.setTransformerDebug(transformerDebug);

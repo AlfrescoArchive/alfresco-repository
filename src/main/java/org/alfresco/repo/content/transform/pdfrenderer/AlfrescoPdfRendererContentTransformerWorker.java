@@ -391,7 +391,7 @@ public class AlfrescoPdfRendererContentTransformerWorker extends ContentTransfor
         long timeoutMs = options.getTimeoutMs();
         remoteTransformerClient.request(reader, writer, sourceMimetype, sourceExtension, targetExtension,
                 timeoutMs, logger,
-                "transformerName", "pdfrenderer",
+                "transformName", "pdfrenderer",
                 "sourceMimetype", sourceMimetype,
                 "targetMimetype", targetMimetype,
                 "targetExtension", targetExtension,

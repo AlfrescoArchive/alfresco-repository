@@ -304,7 +304,7 @@ public abstract class TikaPoweredContentTransformer extends AbstractRemoteConten
 
         remoteTransformerClient.request(reader, writer, sourceMimetype, sourceExtension, targetExtension,
                 timeoutMs, logger,
-                "transformerName", transformerName,
+                "transformName", transformerName,
                 "sourceMimetype", sourceMimetype,
                 "targetMimetype", targetMimetype,
                 "targetExtension", targetExtension,

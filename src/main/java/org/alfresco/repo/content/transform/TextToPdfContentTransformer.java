@@ -193,7 +193,7 @@ public class TextToPdfContentTransformer extends AbstractRemoteContentTransforme
 
         remoteTransformerClient.request(reader, writer, sourceMimetype, sourceExtension, targetExtension,
                 timeoutMs, logger,
-                "transformerName", "textToPdf",
+                "transformName", "textToPdf",
                 "sourceMimetype", sourceMimetype,
                 "targetMimetype", targetMimetype,
                 "targetExtension", targetExtension,

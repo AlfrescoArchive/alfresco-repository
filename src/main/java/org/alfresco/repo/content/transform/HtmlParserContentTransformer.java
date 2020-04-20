@@ -138,7 +138,7 @@ public class HtmlParserContentTransformer extends AbstractRemoteContentTransform
 
         remoteTransformerClient.request(reader, writer, sourceMimetype, sourceExtension, targetExtension,
                 timeoutMs, logger,
-                "transformerName", "html",
+                "transformName", "html",
                 "sourceMimetype", sourceMimetype,
                 "sourceExtension", sourceExtension,
                 "targetMimetype", targetMimetype,

@@ -264,7 +264,7 @@ public class EMLTransformer extends AbstractRemoteContentTransformer
 
         remoteTransformerClient.request(reader, writer, sourceMimetype, sourceExtension, targetExtension,
                 timeoutMs, logger,
-                "transformerName", "rfc822",
+                "transformName", "rfc822",
                 "sourceMimetype", sourceMimetype,
                 "targetMimetype", targetMimetype,
                 "targetExtension", targetExtension);
