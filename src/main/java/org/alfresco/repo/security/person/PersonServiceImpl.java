@@ -128,6 +128,7 @@ public class PersonServiceImpl extends TransactionListenerAdapter implements Per
     private static final String LEAVE = "LEAVE";
     public static final String SYSTEM_FOLDER_SHORT_QNAME = "sys:system";
     public static final String PEOPLE_FOLDER_SHORT_QNAME = "sys:people";
+    private static final char[] ILLEGAL_CHARACTERS = {'/', '\\', '\r', '\n', '"'};
 
     private static final String KEY_POST_TXN_DUPLICATES = "PersonServiceImpl.KEY_POST_TXN_DUPLICATES";
     public static final String KEY_ALLOW_UID_UPDATE = "PersonServiceImpl.KEY_ALLOW_UID_UPDATE";
@@ -991,6 +992,17 @@ public class PersonServiceImpl extends TransactionListenerAdapter implements Per
             throw new AlfrescoRuntimeException("Attempt to create person for an authority which is not a user");
         }
 
+        if (type == AuthorityType.USER)
+        {
+            for (char illegalCharacter : ILLEGAL_CHARACTERS)
+            {
+                if (userName.indexOf(illegalCharacter) != -1)
+                {
+                    throw new AuthorityException("user name contains characters that are not permitted: "+userName.charAt(userName.indexOf(illegalCharacter)));
+                }
+            }
+        }
+        
         tenantService.checkDomainUser(userName);
 
         if (personExists(userName))
