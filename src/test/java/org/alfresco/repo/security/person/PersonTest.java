@@ -49,6 +49,7 @@ import org.alfresco.repo.policy.BehaviourFilter;
 import org.alfresco.repo.security.authentication.AuthenticationUtil;
 import org.alfresco.repo.security.authentication.AuthenticationUtil.RunAsWork;
 import org.alfresco.repo.security.authentication.MutableAuthenticationDao;
+import org.alfresco.repo.security.authority.AuthorityException;
 import org.alfresco.repo.transaction.AlfrescoTransactionSupport;
 import org.alfresco.repo.transaction.AlfrescoTransactionSupport.TxnReadState;
 import org.alfresco.repo.transaction.RetryingTransactionHelper;
