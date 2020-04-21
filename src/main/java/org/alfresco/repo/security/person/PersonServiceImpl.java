@@ -39,6 +39,7 @@ import java.util.Set;
 import java.util.StringTokenizer;
 
 import org.alfresco.error.AlfrescoRuntimeException;
+import org.alfresco.repo.security.authority.AuthorityException;
 import org.alfresco.sync.events.types.Event;
 import org.alfresco.sync.events.types.UserManagementEvent;
 import org.alfresco.model.ContentModel;
@@ -992,7 +993,7 @@ public class PersonServiceImpl extends TransactionListenerAdapter implements Per
             throw new AlfrescoRuntimeException("Attempt to create person for an authority which is not a user");
         }
 
-        if (type == AuthorityType.USER)
+        if (authorityType == AuthorityType.USER)
         {
             for (char illegalCharacter : ILLEGAL_CHARACTERS)
             {
