@@ -57,6 +57,7 @@
                 <entry key="solr-cmis" value="cmis" />
                 <entry key="fts-alfresco" value="afts" />
                 <entry key="solr-fts-alfresco" value="afts" />
+                <entry key="solr-mlt" value="getSimilar" />
             </map>
         </property>
         <property name="storeMappings">
@@ -214,6 +215,20 @@
         </property>
         <property name="name">
             <value>solr-cmis</value>
+        </property>
+        <property name="solrQueryHTTPClient">
+            <ref bean="search.solrQueryHTTPCLient" />
+        </property>
+    </bean>
+
+    <bean id="search.solr.mlt" class="org.alfresco.repo.search.impl.solr.SolrQueryLanguage" >
+        <property name="factories">
+            <list>
+                <ref bean="search.indexerAndSearcherFactory" />
+            </list>
+        </property>
+        <property name="name">
+            <value>solr-mlt</value>
         </property>
         <property name="solrQueryHTTPClient">
             <ref bean="search.solrQueryHTTPCLient" />

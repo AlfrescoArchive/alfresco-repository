@@ -109,6 +109,8 @@ import org.springframework.extensions.surf.util.I18NUtil;
  */
 public class SolrQueryHTTPClient extends AbstractSolrQueryHTTPClient implements SolrQueryClient
 {
+    protected static final String ORIGINAL_SHARDS = "originalShards";
+    private static final String MLT_ENDPOINT = "getSimilar";
     static Log s_logger = LogFactory.getLog(SolrQueryHTTPClient.class);
 
     private DictionaryService dictionaryService;
@@ -428,6 +430,7 @@ public class SolrQueryHTTPClient extends AbstractSolrQueryHTTPClient implements 
             url.append(httpClientAndBaseUrl.getSecond());
          
             String languageUrlFragment = SolrClientUtil.extractLanguageFragment(languageMappings, language);
+            boolean moreLikeThisQuery = languageUrlFragment.equals(MLT_ENDPOINT);
             if(!url.toString().endsWith("/"))
             {
                 url.append("/");
@@ -464,32 +467,7 @@ public class SolrQueryHTTPClient extends AbstractSolrQueryHTTPClient implements 
             }
             url.append("&rows=").append(String.valueOf(maxResults));
 
-            if((searchParameters.getStores().size() > 1) || (mapping.isSharded()))
-            {
-                boolean requiresSeparator = false;
-                url.append("&shards=");
-                for(StoreRef storeRef : searchParameters.getStores())
-                {
-                    SolrStoreMappingWrapper storeMapping =
-                            SolrClientUtil.extractMapping(storeRef, 
-                                                          mappingLookup, shardRegistry, 
-                                                          useDynamicShardRegistration, beanFactory);
-
-                    if(requiresSeparator)
-                    {
-                        url.append(',');
-                    }
-                    else
-                    {
-                        requiresSeparator = true;
-                    }
-
-                    url.append(storeMapping.getShards());
-
-                }
-            }
-
-            buildUrlParameters(searchParameters, mapping.isSharded(), encoder, url);
+            buildUrlParameters(searchParameters, mapping.isSharded(), encoder, url, moreLikeThisQuery);
 
             final String searchTerm = searchParameters.getSearchTerm();
             String spellCheckQueryStr = null;
@@ -503,7 +481,9 @@ public class SolrQueryHTTPClient extends AbstractSolrQueryHTTPClient implements 
             }
 
             JSONObject body = new JSONObject();
-            body.put("query", searchParameters.getQuery());
+            if (!moreLikeThisQuery) {
+                body.put("query", searchParameters.getQuery());
+            }
 
             
             // Authorities go over as is - and tenant mangling and query building takes place on the SOLR side
@@ -586,19 +566,23 @@ public class SolrQueryHTTPClient extends AbstractSolrQueryHTTPClient implements 
         }
         catch (UnsupportedEncodingException e)
         {
-            throw new LuceneQueryParserException("", e);
+            s_logger.error(e.getMessage(),e);
+            throw new LuceneQueryParserException(e.getMessage(), e);
         }
         catch (HttpException e)
         {
-            throw new LuceneQueryParserException("", e);
+            s_logger.error(e.getMessage(),e);
+            throw new LuceneQueryParserException(e.getMessage(), e);
         }
         catch (IOException e)
         {
-            throw new LuceneQueryParserException("", e);
+            s_logger.error(e.getMessage(),e);
+            throw new LuceneQueryParserException(e.getMessage(), e);
         }
         catch (JSONException e)
         {
-            throw new LuceneQueryParserException("", e);
+            s_logger.error(e.getMessage(),e);
+            throw new LuceneQueryParserException(e.getMessage(), e);
         }
     }
 
@@ -608,9 +592,10 @@ public class SolrQueryHTTPClient extends AbstractSolrQueryHTTPClient implements 
      * @param isSharded
      * @param encoder
      * @param url
+     * @param isMoreLikeThisQuery
      * @throws UnsupportedEncodingException
      */
-    public void buildUrlParameters(SearchParameters searchParameters, boolean isSharded, URLCodec encoder, StringBuilder url)
+    public void buildUrlParameters(SearchParameters searchParameters, boolean isSharded, URLCodec encoder, StringBuilder url, boolean isMoreLikeThisQuery)
                 throws UnsupportedEncodingException
     {
         Locale locale = SolrClientUtil.extractLocale(searchParameters);
@@ -622,7 +607,7 @@ public class SolrQueryHTTPClient extends AbstractSolrQueryHTTPClient implements 
         url.append("&").append(SearchParameters.ALTERNATIVE_DICTIONARY).append("=").append(alternativeDictionary);
         for(String paramName : searchParameters.getExtraParameters().keySet())
         {
-            url.append("&").append(paramName).append("=").append(searchParameters.getExtraParameters().get(paramName));
+            url.append("&").append(paramName).append("=").append(encoder.encode(searchParameters.getExtraParameters().get(paramName), "UTF-8"));
         }
         StringBuffer sortBuffer = buildSortParameters(searchParameters, encoder);
         url.append(sortBuffer);
@@ -650,6 +635,36 @@ public class SolrQueryHTTPClient extends AbstractSolrQueryHTTPClient implements 
                 filterQuery = "{!afts}"+filterQuery;
             }
             url.append("&fq=").append(encoder.encode(filterQuery, "UTF-8"));
+        }
+
+        StringBuilder shards = new StringBuilder();
+        if ((searchParameters.getStores().size() > 1) || (isSharded)) {
+            boolean requiresSeparator = false;
+            url.append("&shards=");
+
+            for (StoreRef storeRef : searchParameters.getStores()) {
+                SolrStoreMappingWrapper storeMapping =
+                        SolrClientUtil.extractMapping(storeRef,
+                                mappingLookup, shardRegistry,
+                                useDynamicShardRegistration, beanFactory);
+
+                if (requiresSeparator) {
+                    shards.append(',');
+                } else {
+                    requiresSeparator = true;
+                }
+
+                shards.append(storeMapping.getShards());
+
+            }
+            url.append(shards.toString());
+        }
+
+        if (isMoreLikeThisQuery) {
+            url.append("&" + ORIGINAL_SHARDS + "=");
+            url.append(shards);
+            url.append("&docId=");
+            url.append(searchParameters.getQuery());
         }
 
         buildFacetParameters(searchParameters, isSharded, encoder, url);
@@ -1409,5 +1424,9 @@ public class SolrQueryHTTPClient extends AbstractSolrQueryHTTPClient implements 
     public int getMaximumResultsFromUnlimitedQuery()
     {
         return maximumResultsFromUnlimitedQuery;
+    }
+
+    public void setMappingLookup(HashMap<StoreRef, SolrStoreMappingWrapper> mappingLookup) {
+        this.mappingLookup = mappingLookup;
     }
 }

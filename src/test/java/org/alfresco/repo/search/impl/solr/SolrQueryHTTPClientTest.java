@@ -55,6 +55,7 @@ import org.alfresco.repo.tenant.TenantService;
 import org.alfresco.service.cmr.dictionary.DataTypeDefinition;
 import org.alfresco.service.cmr.dictionary.DictionaryService;
 import org.alfresco.service.cmr.repository.NodeService;
+import org.alfresco.service.cmr.repository.StoreRef;
 import org.alfresco.service.cmr.search.FieldHighlightParameters;
 import org.alfresco.service.cmr.search.GeneralHighlightParameters;
 import org.alfresco.service.cmr.search.Interval;
@@ -97,6 +98,7 @@ public class SolrQueryHTTPClientTest
         languageMappings.put("solr-alfresco", "alfresco");
         languageMappings.put("solr-fts-alfresco", "afts");
         languageMappings.put("solr-cmis", "cmis");
+        languageMappings.put("solr-mlt", "getSimilar");
 
         NamespaceDAO namespaceDAO = mock(NamespaceDAO.class);
         DictionaryService dictionaryService = mock(DictionaryService.class);
@@ -181,17 +183,40 @@ public class SolrQueryHTTPClientTest
         SearchParameters params = new SearchParameters();
         params.setTimezone("");
         StringBuilder urlBuilder = new StringBuilder();
-        client.buildUrlParameters(params, false, encoder, urlBuilder);
+        client.buildUrlParameters(params, false, encoder, urlBuilder, false);
         String url = urlBuilder.toString();
         assertFalse(url.contains("&TZ"));
 
         params.setTimezone("bob");
         urlBuilder = new StringBuilder();
-        client.buildUrlParameters(params, false, encoder, urlBuilder);
+        client.buildUrlParameters(params, false, encoder, urlBuilder, false);
         url = urlBuilder.toString();
 
         //Timezone formats are not validated here so its just passing a string.
         assertTrue(url.contains("&TZ=bob"));;
+    }
+
+    @Test
+    public void testMLTQuery() throws UnsupportedEncodingException {
+        SolrStoreMappingWrapper storeMapping = mock(SolrStoreMappingWrapper.class);
+        when(storeMapping.getShards()).thenReturn("shard1,shard2");
+        StoreRef sampleStoreRef = new StoreRef("test","test");
+        HashMap<StoreRef,SolrStoreMappingWrapper> mappingLookupTest = new HashMap<>();
+        mappingLookupTest.put(sampleStoreRef,storeMapping);
+        client.setMappingLookup(mappingLookupTest);
+        
+        SearchParameters params = new SearchParameters();
+        params.addStore(sampleStoreRef);
+        params.setLanguage("solr-mlt");
+        params.setQuery("id1");
+        params.addExtraParameter("qf","{http://www.alfresco.org/model/content/1.0}content^500.0,{http://www.alfresco.org/model/content/1.0}title");
+        StringBuilder urlBuilder = new StringBuilder();
+        client.buildUrlParameters(params, true, encoder, urlBuilder, true);
+        String url = urlBuilder.toString();
+        assertNotNull(url);
+        assertTrue(url.contains("qf=%7Bhttp%3A%2F%2Fwww.alfresco.org%2Fmodel%2Fcontent%2F1.0%7Dcontent%5E500.0%2C%7Bhttp%3A%2F%2Fwww.alfresco.org%2Fmodel%2Fcontent%2F1.0%7Dtitle"));
+        assertTrue(url.contains("docId=id1"));
+        assertTrue(url.contains("&shards=shard1,shard2&originalShards=shard1,shard2"));
     }
 
     @Test
@@ -200,7 +225,7 @@ public class SolrQueryHTTPClientTest
         SearchParameters params = new SearchParameters();
         params.setSearchTerm("bob");
         StringBuilder urlBuilder = new StringBuilder();
-        client.buildUrlParameters(params, false, encoder, urlBuilder);
+        client.buildUrlParameters(params, false, encoder, urlBuilder, false);
         String url = urlBuilder.toString();
         assertNotNull(url);
         assertFalse(url.contains("&hl"));
@@ -208,7 +233,7 @@ public class SolrQueryHTTPClientTest
         urlBuilder = new StringBuilder();
         GeneralHighlightParameters highlightParameters = new GeneralHighlightParameters(null, null, null, null, null, null, null, null);
         params.setHighlight(highlightParameters);
-        client.buildUrlParameters(params, true, encoder, urlBuilder);
+        client.buildUrlParameters(params, true, encoder, urlBuilder, false);
         url = urlBuilder.toString();
         assertTrue(url.contains("&hl=true"));
         assertTrue(url.contains("&hl.q=bob"));
@@ -216,7 +241,7 @@ public class SolrQueryHTTPClientTest
         urlBuilder = new StringBuilder();
         highlightParameters = new GeneralHighlightParameters(5, 10, false, "{", "}", 20, true, null);
         params.setHighlight(highlightParameters);
-        client.buildUrlParameters(params, false, encoder, urlBuilder);
+        client.buildUrlParameters(params, false, encoder, urlBuilder, false);
         url = urlBuilder.toString();
         assertTrue(url.contains("&hl=true"));
         assertTrue(url.contains("&hl.q=bob"));
@@ -236,7 +261,7 @@ public class SolrQueryHTTPClientTest
 
         try
         {
-            client.buildUrlParameters(params, false, encoder, urlBuilder);
+            client.buildUrlParameters(params, false, encoder, urlBuilder, false);
             fail();
         }
         catch (IllegalArgumentException iae)
@@ -249,7 +274,7 @@ public class SolrQueryHTTPClientTest
         urlBuilder = new StringBuilder();
         highlightParameters = new GeneralHighlightParameters(5, 10, false, "{", "}", 20, true, fields);
         params.setHighlight(highlightParameters);
-        client.buildUrlParameters(params, false, encoder, urlBuilder);
+        client.buildUrlParameters(params, false, encoder, urlBuilder, false);
         url = urlBuilder.toString();
         assertTrue(url.contains("&hl=true"));
         assertTrue(url.contains("&hl.fl=" + encoder.encode("desc,title", "UTF-8")));
