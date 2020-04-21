@@ -458,6 +458,24 @@ public class PersonTest extends TestCase
         assertTrue("Tests the impl method. We should have at least 1 person.", theImpl.countPeople()>0);
     }
 
+    public void testCreatePersonWithIllegalCharacters() throws Exception
+    {
+        char[] illegalCharacters = {'/', '\\', '\n', '\r', '"'};
+        for (char illegalCharacter : illegalCharacters)
+        {
+            String PERSON_NAME = "testPersonNameWith" + illegalCharacter;
+            try
+            {
+                personService.createPerson(createDefaultProperties(PERSON_NAME, "Some", "User", "some.user@example.com", "alfresco", rootNodeRef));
+            }
+            catch (AuthorityException e)
+            {
+                assertEquals(e.getMsgId(), "user name contains characters that are not permitted: "+PERSON_NAME.charAt(PERSON_NAME.indexOf(illegalCharacter)));
+            }
+            assertNull(personService.getPersonOrNull(PERSON_NAME));
+        }
+    }
+
     public void testCreateMissingPeople1()
     {
         personService.setCreateMissingPeople(false);
