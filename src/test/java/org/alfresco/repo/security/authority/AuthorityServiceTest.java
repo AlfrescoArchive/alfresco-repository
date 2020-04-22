@@ -76,6 +76,7 @@ import org.alfresco.service.cmr.security.MutableAuthenticationService;
 import org.alfresco.service.cmr.security.PermissionService;
 import org.alfresco.service.cmr.security.PersonService;
 import org.alfresco.service.cmr.site.SiteService;
+import org.alfresco.service.namespace.InvalidQNameException;
 import org.alfresco.service.namespace.NamespaceService;
 import org.alfresco.service.namespace.QName;
 import org.alfresco.service.namespace.RegexQNamePattern;
@@ -262,7 +263,7 @@ public class AuthorityServiceTest extends TestCase
             {
                 authorityService.createAuthority(AuthorityType.GROUP, GROUP_NAME);
             } 
-            catch (IllegalArgumentException e) 
+            catch (InvalidQNameException e) 
             {
                 assertEquals(e.getMessage(), "name contains characters that are not permitted: "+GROUP_NAME.charAt(GROUP_NAME.indexOf(illegalCharacter)));
             }
