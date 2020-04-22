@@ -473,7 +473,6 @@ public class PersonTest extends TestCase
             {
                 assertEquals(e.getMessage(), "name contains characters that are not permitted: "+PERSON_NAME.charAt(PERSON_NAME.indexOf(illegalCharacter)));
             }
-            assertNull(personService.getPersonOrNull(PERSON_NAME));
         }
     }
 
