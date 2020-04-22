@@ -49,7 +49,6 @@ import org.alfresco.repo.policy.BehaviourFilter;
 import org.alfresco.repo.security.authentication.AuthenticationUtil;
 import org.alfresco.repo.security.authentication.AuthenticationUtil.RunAsWork;
 import org.alfresco.repo.security.authentication.MutableAuthenticationDao;
-import org.alfresco.repo.security.authority.AuthorityException;
 import org.alfresco.repo.transaction.AlfrescoTransactionSupport;
 import org.alfresco.repo.transaction.AlfrescoTransactionSupport.TxnReadState;
 import org.alfresco.repo.transaction.RetryingTransactionHelper;
@@ -469,9 +468,9 @@ public class PersonTest extends TestCase
             {
                 personService.createPerson(createDefaultProperties(PERSON_NAME, "Some", "User", "some.user@example.com", "alfresco", rootNodeRef));
             }
-            catch (AuthorityException e)
+            catch (IllegalArgumentException e)
             {
-                assertEquals(e.getMsgId(), "user name contains characters that are not permitted: "+PERSON_NAME.charAt(PERSON_NAME.indexOf(illegalCharacter)));
+                assertEquals(e.getMessage(), "name contains characters that are not permitted: "+PERSON_NAME.charAt(PERSON_NAME.indexOf(illegalCharacter)));
             }
             assertNull(personService.getPersonOrNull(PERSON_NAME));
         }
