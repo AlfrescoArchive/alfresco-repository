@@ -262,9 +262,9 @@ public class AuthorityServiceTest extends TestCase
             {
                 authorityService.createAuthority(AuthorityType.GROUP, GROUP_NAME);
             } 
-            catch (AuthorityException e) 
+            catch (IllegalArgumentException e) 
             {
-                assertEquals(e.getMsgId(), "group name contains characters that are not permitted: "+GROUP_NAME.charAt(GROUP_NAME.indexOf(illegalCharacter)));
+                assertEquals(e.getMessage(), "name contains characters that are not permitted: "+GROUP_NAME.charAt(GROUP_NAME.indexOf(illegalCharacter)));
             }
         }
     }
