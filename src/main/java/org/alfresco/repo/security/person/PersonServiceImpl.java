@@ -39,7 +39,6 @@ import java.util.Set;
 import java.util.StringTokenizer;
 
 import org.alfresco.error.AlfrescoRuntimeException;
-import org.alfresco.repo.security.authority.AuthorityException;
 import org.alfresco.sync.events.types.Event;
 import org.alfresco.sync.events.types.UserManagementEvent;
 import org.alfresco.model.ContentModel;
