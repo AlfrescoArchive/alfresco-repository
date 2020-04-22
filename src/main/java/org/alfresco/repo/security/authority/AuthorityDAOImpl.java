@@ -1045,7 +1045,7 @@ public class AuthorityDAOImpl implements AuthorityDAO, NodeServicePolicies.Befor
             final String prefix = type.getPrefixString();
             final String authorityName = prefix + shortName;
             if (shortName.startsWith(prefix))
-            {            
+            {
                 String doublePrefixed = prefix + prefix;
                 if (shortName.startsWith(doublePrefixed))
                 {
