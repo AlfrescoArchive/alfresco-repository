@@ -223,6 +223,7 @@ public class ScriptNode implements Scopeable, NamespacePrefixResolverProvider
     private ChildAssociationRef primaryParentAssoc = null;
     private ScriptableQNameMap<String, Object> parentAssocs = null;
     // NOTE: see the reset() method when adding new cached members!
+
     
     // ------------------------------------------------------------------------------
     // Construction
