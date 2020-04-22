@@ -67,6 +67,7 @@ import org.alfresco.service.cmr.security.NoSuchPersonException;
 import org.alfresco.service.cmr.security.PermissionService;
 import org.alfresco.service.cmr.security.PersonService;
 import org.alfresco.service.cmr.security.PersonService.PersonInfo;
+import org.alfresco.service.namespace.InvalidQNameException;
 import org.alfresco.service.namespace.QName;
 import org.alfresco.service.transaction.TransactionService;
 import org.alfresco.test_category.OwnJVMTestsCategory;
@@ -468,7 +469,7 @@ public class PersonTest extends TestCase
             {
                 personService.createPerson(createDefaultProperties(PERSON_NAME, "Some", "User", "some.user@example.com", "alfresco", rootNodeRef));
             }
-            catch (IllegalArgumentException e)
+            catch (InvalidQNameException e)
             {
                 assertEquals(e.getMessage(), "name contains characters that are not permitted: "+PERSON_NAME.charAt(PERSON_NAME.indexOf(illegalCharacter)));
             }
