@@ -385,7 +385,7 @@ public class ScriptAuthorityService extends BaseScopableProcessorExtension
         PagingResults<String> authorities = authorityService
             .getAuthorities(AuthorityType.GROUP, null, displayNameFilter, false, false,
                 new PagingRequest(0, 1, null));
-        return authorities != null && !authorities.getPage().isEmpty() ? true : false;
+        return authorities != null && !authorities.getPage().isEmpty();
     }
 
 	/**
