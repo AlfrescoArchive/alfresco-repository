@@ -3972,18 +3972,18 @@ public class ScriptNode implements Scopeable, NamespacePrefixResolverProvider
          * @param applyMimetype If true, apply the mimetype from the Content object, else leave the original mimetype
          * @param guessEncoding If true, guess the encoding from the underlying input stream, else use encoding set in
          *                      the Content object as supplied.
-         * @param filename      
+         * @param fileName      The filename for the attachment.
          */
-        public void write(Content content, boolean applyMimetype, boolean guessEncoding, String filename)
+        public void write(Content content, boolean applyMimetype, boolean guessEncoding, String fileName)
         {
             ContentService contentService = services.getContentService();
             ContentWriter writer = contentService.getWriter(nodeRef, this.property, true);
             InputStream is = null;
             if (applyMimetype)
             {
-                if (filename != null && !filename.isEmpty())
+                if (fileName != null && !fileName.isEmpty())
                 {
-                    writer.setMimetype(services.getMimetypeService().guessMimetype(filename));
+                    writer.setMimetype(services.getMimetypeService().guessMimetype(fileName));
                 } 
                 else 
                 {
