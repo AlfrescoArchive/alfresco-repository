@@ -321,6 +321,18 @@ public class SiteServiceImplTest extends BaseAlfrescoSpringTest
             // Expected
         }
 
+        // Test for duplicate site error when duplicate site name is in trashcan
+        this.siteService.deleteSite(mySiteTest);
+        try
+        {
+            this.siteService.createSite(TEST_SITE_PRESET, mySiteTest, TEST_TITLE, TEST_DESCRIPTION, SiteVisibility.PUBLIC);
+            fail("Shouldn't allow duplicate site short names.");
+        }
+        catch (AlfrescoRuntimeException exception)
+        {
+            // Expected
+        }
+
         try
         {
             //Create a site with an invalid site type
@@ -402,6 +414,38 @@ public class SiteServiceImplTest extends BaseAlfrescoSpringTest
                 
                 return null;
             }
+        };
+        transactionService.getRetryingTransactionHelper().doInTransaction(work);
+    }
+
+    /**
+     * Test for duplicate site exception where the duplicate is a deleted (still in trashcan) private site.
+     */
+    @Test
+    public void testCreateSiteWhereDuplicateInTrashcan()
+    {
+        RetryingTransactionCallback<Object> work = () -> {
+            // Test for duplicate site error with a private site
+            String siteShortName = "wibble" + UUID.randomUUID();
+            siteService.createSite(TEST_SITE_PRESET, siteShortName, TEST_TITLE, TEST_DESCRIPTION, SiteVisibility.PRIVATE);
+            // Delete site (move to trashcan)
+            siteService.deleteSite(siteShortName);
+
+            authenticationComponent.setCurrentUser(USER_THREE);
+
+            try
+            {
+                siteService.createSite(TEST_SITE_PRESET, siteShortName, TEST_TITLE, TEST_DESCRIPTION, SiteVisibility.PRIVATE);
+                fail("Shouldn't allow duplicate site short names.");
+            }
+            catch (AlfrescoRuntimeException exception)
+            {
+                // Expected
+            }
+
+            authenticationComponent.setSystemUserAsCurrentUser();
+
+            return null;
         };
         transactionService.getRetryingTransactionHelper().doInTransaction(work);
     }

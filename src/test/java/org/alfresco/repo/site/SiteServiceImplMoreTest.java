@@ -1215,14 +1215,8 @@ public class SiteServiceImplMoreTest
         }
     }
 
-    /**
-     * REPO-2811 / ALF-21924: "Internal Server Error" when listSites is invoked
-     * for users belonging to a deleted Site.
-     *
-     * @throws Exception
-     */
     @Test
-    public void testListMembershipOnSitesDifferentCase() throws Exception
+    public void testUserIsNoLongerAMemberOfDeletedSite()
     {
         final String userSiteOwner = "UserSiteOwner";
         final String userSiteCollaborator = "UserSiteCollaborator";
@@ -1275,17 +1269,7 @@ public class SiteServiceImplMoreTest
             }
         });
 
-        /*
-         * Create site with different case than the deleted one.
-         * This is possible since the site id validation is case insensitive only for existing sites
-         * while sites in trashcan are validated using authorities which are case sensitive
-         */
-        final String siteShortName1 = "TesTsite-" + id;
-        log.debug("Creating test site called: " + siteShortName1);
-
-        perMethodTestSites.createSite("sitePreset", siteShortName1, null, null, SiteVisibility.PUBLIC, userSiteOwner);
-
-        // Check that user membership can be retrieved and user is not a member of existing site
+        // Check that user membership can be retrieved and user is not a member of deleted site
         List<SiteMembership> members = SITE_SERVICE.listSiteMemberships(userSiteCollaborator, 0);
         assertNotNull(members);
         assertEquals(1, members.size());

@@ -512,8 +512,7 @@ public class SiteServiceImpl extends AbstractLifecycleBean implements SiteServic
         final String shortName = passedShortName.replaceAll(" ", "");
         
         // Check to see if we already have a site of this name
-        NodeRef existingSite = getSiteNodeRef(shortName, false);
-        if (existingSite != null || authorityService.authorityExists(getSiteGroup(shortName, true)))
+        if (hasSite(shortName) || authoritiesExist(shortName))
         {
             // Throw an exception since we have a duplicate site name
             throw new SiteServiceException(MSG_UNABLE_TO_CREATE, new Object[]{shortName});
@@ -595,7 +594,15 @@ public class SiteServiceImpl extends AbstractLifecycleBean implements SiteServic
         SiteInfo siteInfo = new SiteInfoImpl(sitePreset, shortName, title, description, visibility, customProperties, siteNodeRef);
         return siteInfo;
     }
-    
+
+    private boolean authoritiesExist(String shortName)
+    {
+        PagingResults<String> authorities = authorityService
+            .getAuthorities(AuthorityType.GROUP, null, "site_" + shortName + "_", false, false,
+                new PagingRequest(0, 1, null));
+        return authorities != null && !authorities.getPage().isEmpty() ? true : false;
+    }
+
     /**
      * Setup the Site permissions.
      * <p>
@@ -1470,7 +1477,7 @@ public class SiteServiceImpl extends AbstractLifecycleBean implements SiteServic
                 {
                     // the site "short name" directly maps to the cm:name property
                     NodeRef siteNode = directNodeService.getChildByName(siteRoot, ContentModel.ASSOC_CONTAINS, shortName);
-                    
+
                     // cache the result if found - null results will be required to ensure new sites are found later
                     if (siteNode != null)
                     {

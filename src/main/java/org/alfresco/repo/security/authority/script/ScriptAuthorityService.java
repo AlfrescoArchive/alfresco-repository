@@ -34,6 +34,7 @@ import java.util.List;
 import java.util.Set;
 
 import org.alfresco.model.ContentModel;
+import org.alfresco.query.PagingRequest;
 import org.alfresco.query.PagingResults;
 import org.alfresco.repo.jscript.BaseScopableProcessorExtension;
 import org.alfresco.repo.security.authority.AuthorityInfo;
@@ -372,7 +373,21 @@ public class ScriptAuthorityService extends BaseScopableProcessorExtension
 		// group not found.
 		return null;
 	}
-	
+
+    /**
+     * Verifies whether there are authorities starting with the given displayNameFilter
+     *
+     * @param displayNameFilter filter (startsWith / ignoreCase) for authority display name
+     * @return true if there is at least an authority starting with given displayNameFilter, false otherwise
+     */
+	public boolean authoritiesExist(String displayNameFilter)
+    {
+        PagingResults<String> authorities = authorityService
+            .getAuthorities(AuthorityType.GROUP, null, displayNameFilter, false, false,
+                new PagingRequest(0, 1, null));
+        return authorities != null && !authorities.getPage().isEmpty() ? true : false;
+    }
+
 	/**
 	 * Create a new root group in the default application zones
 	 * 
