@@ -600,7 +600,7 @@ public class SiteServiceImpl extends AbstractLifecycleBean implements SiteServic
         PagingResults<String> authorities = authorityService
             .getAuthorities(AuthorityType.GROUP, null, "site_" + shortName + "_", false, false,
                 new PagingRequest(0, 1, null));
-        return authorities != null && !authorities.getPage().isEmpty() ? true : false;
+        return authorities != null && !authorities.getPage().isEmpty();
     }
 
     /**
