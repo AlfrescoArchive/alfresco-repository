@@ -67,7 +67,7 @@ jobs:
         - "mkdir -p $HOME/tmp"
         - "cp src/test/resources/realms/alfresco-realm.json $HOME/tmp"
         - docker login quay.io -u ${QUAY_USERNAME} -p ${QUAY_PASSWORD}
-        - "export HOST_IP=$(ip address show | grep -E \"([0-9]{1,3}\.){3}[0-9]{1,3}\" | grep -v 127.0.0.1 | awk '{ print $2 }' | head -n 1 )"
+        - "export HOST_IP=$(ip address show | grep -E \"([0-9]{1,3}\\.){3}[0-9]{1,3}\" | grep -v 127.0.0.1 | awk '{ print $2 }' | head -n 1 )"
         - "export HOST_IP=$(echo ${HOST_IP%/*})"
         - docker run -d -e KEYCLOAK_USER=admin -e KEYCLOAK_PASSWORD=admin -e DB_VENDOR=h2 -p 8999:8080 \
           -e KEYCLOAK_IMPORT=/tmp/alfresco-realm.json -v $HOME/tmp/alfresco-realm.json:/tmp/alfresco-realm.json quay.io/alfresco/alfresco-identity-service:1.2
