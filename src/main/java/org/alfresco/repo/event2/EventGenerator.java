@@ -50,6 +50,7 @@ import org.alfresco.service.cmr.dictionary.DictionaryService;
 import org.alfresco.service.cmr.repository.ChildAssociationRef;
 import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.cmr.repository.NodeService;
+import org.alfresco.service.cmr.security.PersonService;
 import org.alfresco.service.descriptor.DescriptorService;
 import org.alfresco.service.namespace.NamespaceService;
 import org.alfresco.service.namespace.QName;
@@ -79,11 +80,12 @@ public class EventGenerator extends AbstractLifecycleBean implements Initializin
     private EventFilterRegistry eventFilterRegistry;
     private Event2MessageProducer event2MessageProducer;
     private TransactionService transactionService;
+    private PersonService personService;
 
     private NodeTypeFilter nodeTypeFilter;
     private EventUserFilter userFilter;
     private NodeResourceHelper nodeResourceHelper;
-    private EventTransactionListener transactionListener = new EventTransactionListener();
+    private final EventTransactionListener transactionListener = new EventTransactionListener();
 
     @Override
     public void afterPropertiesSet()
@@ -96,10 +98,12 @@ public class EventGenerator extends AbstractLifecycleBean implements Initializin
         PropertyCheck.mandatory(this, "eventFilterRegistry", eventFilterRegistry);
         PropertyCheck.mandatory(this, "event2MessageProducer", event2MessageProducer);
         PropertyCheck.mandatory(this, "transactionService", transactionService);
+        PropertyCheck.mandatory(this, "personService", personService);
 
         this.nodeTypeFilter = eventFilterRegistry.getNodeTypeFilter();
         this.userFilter = eventFilterRegistry.getEventUserFilter();
         this.nodeResourceHelper = new NodeResourceHelper(nodeService, namespaceService, dictionaryService,
+                                                         personService,
                                                          eventFilterRegistry);
     }
 
@@ -155,6 +159,11 @@ public class EventGenerator extends AbstractLifecycleBean implements Initializin
     public void setTransactionService(TransactionService transactionService)
     {
         this.transactionService = transactionService;
+    }
+
+    public void setPersonService(PersonService personService)
+    {
+        this.personService = personService;
     }
 
     @Override
@@ -239,7 +248,7 @@ public class EventGenerator extends AbstractLifecycleBean implements Initializin
         {
             if (LOGGER.isTraceEnabled())
             {
-                LOGGER.trace("Ignoring temporary node: " + nodeRef + ", name: " + consolidator.getNodeName());
+                LOGGER.trace("Ignoring temporary node: " + nodeRef);
             }
             return;
         }

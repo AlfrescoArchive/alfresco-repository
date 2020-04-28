@@ -26,9 +26,12 @@
 
 package org.alfresco.repo.event2;
 
+import java.util.HashSet;
+import java.util.Set;
+
 import org.alfresco.model.ContentModel;
 import org.alfresco.repo.content.MimetypeMap;
-import org.alfresco.repo.event.v1.model.EventData;
+import org.alfresco.repo.event.v1.model.ContentInfo;
 import org.alfresco.repo.event.v1.model.NodeResource;
 import org.alfresco.repo.event.v1.model.RepoEvent;
 import org.alfresco.service.cmr.repository.ContentService;
@@ -38,118 +41,190 @@ import org.junit.Test;
 
 /**
  * @author Iulian Aftene
+ * @author Jamal Kaabi-Mofard
  */
-
 public class UpdateRepoEventIT extends AbstractContextAwareRepoEvent
 {
     @Test
-    public void testUpdateNodeResourceContent() throws Exception
+    public void testUpdateNodeResourceContent()
     {
-        ContentService contentService = (ContentService) applicationContext.getBean(
-            "contentService");
-        NodeRef nodeRef = createNode(ContentModel.TYPE_CONTENT);
-        Thread.sleep(2000); // wait up to 2 second for the event
+        ContentService contentService = (ContentService) applicationContext.getBean("contentService");
 
-        subscribe(futureResult::complete, String.class);
+        final NodeRef nodeRef = createNode(ContentModel.TYPE_CONTENT);
+
+        RepoEvent<NodeResource> resultRepoEvent = getRepoEvent(1);
+        assertEquals("Wrong repo event type.", EventType.NODE_CREATED.getType(), resultRepoEvent.getType());
+
+        NodeResource resource = getNodeResource(resultRepoEvent);
+        assertNull("Content should have been null.", resource.getContent());
 
         retryingTransactionHelper.doInTransaction(() -> {
-            ContentWriter writer = contentService.getWriter(nodeRef, ContentModel.TYPE_CONTENT,
-                true);
+            ContentWriter writer = contentService.getWriter(nodeRef, ContentModel.TYPE_CONTENT, true);
             writer.setMimetype(MimetypeMap.MIMETYPE_PDF);
             writer.setEncoding("UTF-8");
-            writer.putContent("content");
+            writer.putContent("test content.");
             return null;
         });
 
-        final RepoEvent<NodeResource> resultRepoEvent = getFutureResult();
+        resultRepoEvent = getRepoEvent(2);
+        assertEquals("Wrong repo event type.", EventType.NODE_UPDATED.getType(), resultRepoEvent.getType());
 
-        assertEquals("Repo event type", "org.alfresco.event.node.Updated",
-            resultRepoEvent.getType());
+        resource = getNodeResource(resultRepoEvent);
+        ContentInfo content = resource.getContent();
+        assertNotNull(content);
+        assertEquals(MimetypeMap.MIMETYPE_PDF, content.getMimeType());
+        assertEquals("UTF-8", content.getEncoding());
+        assertTrue(content.getSizeInBytes() > 0);
 
-        EventData<NodeResource> eventData = resultRepoEvent.getData();
-        NodeResource nodeResource = eventData.getResource();
-        String affectedPropertiesAfter = OBJECT_MAPPER.writeValueAsString(
-            nodeResource.getAffectedPropertiesAfter());
+        NodeResource resourceBefore = getNodeResourceBefore(resultRepoEvent);
+        assertNull("Content should have been null.", resourceBefore.getContent());
 
-        assertTrue(affectedPropertiesAfter.contains("application/pdf"));
-    }
-
-    @Test
-    public void testUpdateContentTitle() throws Exception
-    {
-        NodeRef nodeRef = createNode(ContentModel.TYPE_CONTENT);
-        Thread.sleep(2000); // wait up to 2 second for the event
-
-        subscribe(futureResult::complete, String.class);
-
-        //update content cm:title property with "new_title" value
+        // Update the content again
         retryingTransactionHelper.doInTransaction(() -> {
-            nodeService.setProperty(nodeRef, ContentModel.PROP_TITLE, "new_title");
+            ContentWriter writer = contentService.getWriter(nodeRef, ContentModel.TYPE_CONTENT, true);
+            writer.setMimetype(MimetypeMap.MIMETYPE_PDF);
+            writer.setEncoding("UTF-8");
+            writer.putContent("A quick brown fox jumps over the lazy dog.");
             return null;
         });
 
-        final RepoEvent<NodeResource> resultRepoEvent = getFutureResult();
+        resource = getNodeResource(3);
+        content = resource.getContent();
+        assertNotNull(content);
+        assertEquals(MimetypeMap.MIMETYPE_PDF, content.getMimeType());
+        assertEquals("UTF-8", content.getEncoding());
+        assertTrue(content.getSizeInBytes() > 0);
 
-        assertTrue("Ttile was not updated. ",
-            resultRepoEvent.getData()
-                           .getResource()
-                           .getAffectedPropertiesAfter()
-                           .containsValue("new_title"));
+        resourceBefore = getNodeResourceBefore(3);
+        assertNotNull("Content should not have been null.", resourceBefore.getContent());
+        content = resourceBefore.getContent();
+        assertNotNull(content);
+        assertEquals(MimetypeMap.MIMETYPE_PDF, content.getMimeType());
+        assertEquals("UTF-8", content.getEncoding());
+        assertTrue(content.getSizeInBytes() > 0);
+        assertNotNull(resourceBefore.getModifiedAt());
+
+        // Apart from the 'content' and 'modifiedAt' properties the rest should be not be not set
+        // for the resourceBefore object
+        assertNull(resourceBefore.getId());
+        assertNull(resourceBefore.getName());
+        assertNull(resourceBefore.getNodeType());
+        assertNull(resourceBefore.isFile());
+        assertNull(resourceBefore.isFolder());
+        assertNull(resourceBefore.getModifiedByUser());
+        assertNull(resourceBefore.getCreatedAt());
+        assertNull(resourceBefore.getCreatedByUser());
+        assertNull(resourceBefore.getProperties());
+        assertNull(resourceBefore.getAspectNames());
+        assertNull(resourceBefore.getPrimaryHierarchy());
     }
 
     @Test
-    public void testUpdateContentDescription() throws Exception
+    public void testUpdateContentTitle()
     {
-        NodeRef nodeRef = createNode(ContentModel.TYPE_CONTENT);
-        Thread.sleep(2000); // wait up to 2 second for the event
+        final NodeRef nodeRef = createNode(ContentModel.TYPE_CONTENT);
+        NodeResource resource = getNodeResource(1);
 
-        subscribe(futureResult::complete, String.class);
+        assertNotNull(resource.getProperties());
+        String title = getProperty(resource, "cm:title");
+        assertNull("Title should have been null.", title);
 
-        //update content cm:description property with "test_description" value
+        // update content cm:title property with "test title" value
         retryingTransactionHelper.doInTransaction(() -> {
-            nodeService.setProperty(nodeRef, ContentModel.PROP_DESCRIPTION, "test_description");
+            nodeService.setProperty(nodeRef, ContentModel.PROP_TITLE, "test title");
             return null;
         });
 
-        final RepoEvent<NodeResource> resultRepoEvent = getFutureResult();
+        resource = getNodeResource(2);
+        title = getProperty(resource, "cm:title");
+        assertEquals("test title", title);
 
-        assertTrue("Description was not updated. ",
-            resultRepoEvent.getData()
-                           .getResource()
-                           .getAffectedPropertiesAfter()
-                           .containsValue("test_description"));
+        // update content cm:title property again with "new test title" value
+        retryingTransactionHelper.doInTransaction(() -> {
+            nodeService.setProperty(nodeRef, ContentModel.PROP_TITLE, "new test title");
+            return null;
+        });
+
+        resource = getNodeResource(3);
+        title = getProperty(resource, "cm:title");
+        assertEquals("new test title", title);
+
+        NodeResource resourceBefore = getNodeResourceBefore(3);
+        title =  getProperty(resourceBefore, "cm:title");
+        assertEquals("Wrong old property.","test title", title);
+        assertNotNull(resourceBefore.getModifiedAt());
     }
 
     @Test
-    public void testUpdateContentName() throws Exception
+    public void testUpdateContentDescription()
     {
-        NodeRef nodeRef = createNode(ContentModel.TYPE_CONTENT);
-        Thread.sleep(2000); // wait up to 2 second for the event
+        final NodeRef nodeRef = createNode(ContentModel.TYPE_CONTENT);
 
-        subscribe(futureResult::complete, String.class);
+        NodeResource resource = getNodeResource(1);
+        String desc = getProperty(resource, "cm:description");
+        assertNull("Description should have been null.", desc);
 
-        //update cm:name property with "test_new_name" value
+        // update content cm:description property with "test_description" value
+        retryingTransactionHelper.doInTransaction(() -> {
+            nodeService.setProperty(nodeRef, ContentModel.PROP_DESCRIPTION, "test description");
+            return null;
+        });
+
+        resource = getNodeResource(2);
+        desc = getProperty(resource, "cm:description");
+        assertEquals("test description", desc);
+
+        NodeResource resourceBefore = getNodeResourceBefore(2);
+        assertNull(resourceBefore.getProperties());
+    }
+
+    @Test
+    public void testUpdateContentName()
+    {
+        final NodeRef nodeRef = createNode(ContentModel.TYPE_CONTENT);
+
+        NodeResource resource = getNodeResource(1);
+        String oldName = resource.getName();
+        assertEquals(nodeRef.getId(), oldName);
+
+        // update cm:name property with "test_new_name" value
         retryingTransactionHelper.doInTransaction(() -> {
             nodeService.setProperty(nodeRef, ContentModel.PROP_NAME, "test_new_name");
             return null;
         });
 
-        final RepoEvent<NodeResource> resultRepoEvent = getFutureResult();
+        resource = getNodeResource(2);
+        assertEquals("test_new_name", resource.getName());
 
-        assertTrue("Name was not updated. ",
-            resultRepoEvent.getData()
-                           .getResource()
-                           .getAffectedPropertiesAfter()
-                           .containsValue("test_new_name"));
+        NodeResource resourceBefore = getNodeResourceBefore(2);
+        assertEquals(oldName, resourceBefore.getName());
+        assertNotNull(resourceBefore.getModifiedAt());
+        // Apart from the 'name' and 'modifiedAt' properties the rest should be not be not set
+        // for the resourceBefore object
+        assertNull(resourceBefore.getId());
+        assertNull(resourceBefore.getContent());
+        assertNull(resourceBefore.getNodeType());
+        assertNull(resourceBefore.isFile());
+        assertNull(resourceBefore.isFolder());
+        assertNull(resourceBefore.getModifiedByUser());
+        assertNull(resourceBefore.getCreatedAt());
+        assertNull(resourceBefore.getCreatedByUser());
+        assertNull(resourceBefore.getProperties());
+        assertNull(resourceBefore.getAspectNames());
+        assertNull(resourceBefore.getPrimaryHierarchy());
     }
 
     @Test
-    public void testAddAspectToContent() throws Exception
+    public void testAddAspectToContent()
     {
-        NodeRef nodeRef = createNode(ContentModel.TYPE_CONTENT);
-        Thread.sleep(2000); // wait up to 2 second for the event
+        final NodeRef nodeRef = createNode(ContentModel.TYPE_CONTENT);
 
-        subscribe(futureResult::complete, String.class);
+        NodeResource resource = getNodeResource(1);
+        final Set<String> originalAspects = resource.getAspectNames();
+        assertNotNull(originalAspects);
+        assertFalse(originalAspects.contains("cm:versionable"));
+        // Check properties
+        assertTrue(resource.getProperties().isEmpty());
 
         // Add cm:versionable aspect with default value
         retryingTransactionHelper.doInTransaction(() -> {
@@ -157,35 +232,53 @@ public class UpdateRepoEventIT extends AbstractContextAwareRepoEvent
             return null;
         });
 
-        final RepoEvent<NodeResource> resultRepoEvent = getFutureResult();
+        resource = getNodeResource(2);
+        assertNotNull(resource.getAspectNames());
+        assertTrue(resource.getAspectNames().contains("cm:versionable"));
+        //Check all aspects
+        Set<String> expectedAspects = new HashSet<>(originalAspects);
+        expectedAspects.add("cm:versionable");
+        assertEquals(expectedAspects, resource.getAspectNames());
+        // Check properties
+        assertFalse(resource.getProperties().isEmpty());
 
-        assertTrue("Aspect was not added. ",
-            resultRepoEvent.getData()
-                           .getResource()
-                           .getAspectNamesAfter()
-                           .contains("cm:versionable"));
+        //Check resourceBefore
+        NodeResource resourceBefore = getNodeResourceBefore(2);
+        assertNotNull(resourceBefore.getAspectNames());
+        assertEquals(originalAspects, resourceBefore.getAspectNames());
+        assertNull(resourceBefore.getProperties());
+
     }
 
     @Test
-    public void removeAspectFromContentTest() throws Exception
+    public void removeAspectFromContentTest()
     {
-        NodeRef nodeRef = createNode(ContentModel.TYPE_CONTENT);
-        Thread.sleep(2000); // wait up to 2 second for the event
+        final NodeRef nodeRef = createNode(ContentModel.TYPE_CONTENT);
+        NodeResource resource = getNodeResource(1);
+        final Set<String> originalAspects = resource.getAspectNames();
+        assertNotNull(originalAspects);
 
-        subscribe(futureResult::complete, String.class);
-
-        //remove sys:referenceable aspect
+        // Add cm:geographic aspect with default value
         retryingTransactionHelper.doInTransaction(() -> {
-            nodeService.removeAspect(nodeRef, ContentModel.ASPECT_REFERENCEABLE);
+            nodeService.addAspect(nodeRef, ContentModel.ASPECT_GEOGRAPHIC, null);
+            return null;
+        });
+        resource = getNodeResource(2);
+        Set<String> aspectsBeforeRemove= resource.getAspectNames();
+        assertNotNull(aspectsBeforeRemove);
+        assertTrue(aspectsBeforeRemove.contains("cm:geographic"));
+
+        // Remove cm:geographic aspect
+        retryingTransactionHelper.doInTransaction(() -> {
+            nodeService.removeAspect(nodeRef, ContentModel.ASPECT_GEOGRAPHIC);
             return null;
         });
 
-        final RepoEvent<NodeResource> resultRepoEvent = getFutureResult();
+        resource = getNodeResource(3);
+        assertEquals(originalAspects, resource.getAspectNames());
 
-        assertTrue("Aspect was not removed. ",
-            resultRepoEvent.getData()
-                           .getResource()
-                           .getAspectNamesAfter()
-                           .isEmpty());
+        NodeResource resourceBefore = getNodeResourceBefore(3);
+        assertNotNull(resourceBefore.getAspectNames());
+        assertEquals(aspectsBeforeRemove, resourceBefore.getAspectNames());
     }
 }

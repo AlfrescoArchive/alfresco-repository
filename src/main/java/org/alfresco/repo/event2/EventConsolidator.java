@@ -26,22 +26,26 @@
 package org.alfresco.repo.event2;
 
 import java.io.Serializable;
+import java.time.ZonedDateTime;
 import java.util.ArrayDeque;
 import java.util.Collections;
+import java.util.Date;
 import java.util.Deque;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
 import org.alfresco.model.ContentModel;
+import org.alfresco.repo.event.v1.model.ContentInfo;
 import org.alfresco.repo.event.v1.model.EventData;
 import org.alfresco.repo.event.v1.model.NodeResource;
+import org.alfresco.repo.event.v1.model.NodeResource.Builder;
 import org.alfresco.repo.event.v1.model.RepoEvent;
+import org.alfresco.repo.event.v1.model.UserInfo;
 import org.alfresco.service.cmr.repository.ChildAssociationRef;
 import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.namespace.QName;
-import org.alfresco.util.Pair;
-import org.alfresco.util.PropertyMap;
 
 /**
  * Encapsulates events occurred in a single transaction.
@@ -50,16 +54,16 @@ import org.alfresco.util.PropertyMap;
  */
 public class EventConsolidator implements EventSupportedPolicies
 {
-    private NodeResourceHelper helper;
-    private NodeResource.Builder builder;
-    private Deque<EventType> eventTypes;
+    private final NodeResourceHelper helper;
+    private final Deque<EventType> eventTypes;
+    private final Set<QName> aspectsAdded;
+    private final Set<QName> aspectsRemoved;
+
+    private NodeResource.Builder resourceBuilder;
     private Map<QName, Serializable> propertiesBefore;
     private Map<QName, Serializable> propertiesAfter;
-    private Set<QName> aspectsAdded;
-    private Set<QName> aspectsRemoved;
     private NodeRef nodeRef;
     private QName nodeType;
-    private String nodeName;
 
     public EventConsolidator(NodeResourceHelper nodeResourceHelper)
     {
@@ -78,17 +82,22 @@ public class EventConsolidator implements EventSupportedPolicies
     public RepoEvent<NodeResource> getRepoEvent(EventInfo eventInfo)
     {
         NodeResource resource = buildNodeResource();
-        EventData<NodeResource> eventData = EventData.<NodeResource>builder()
-                    .setPrincipal(eventInfo.getPrincipal())
+        EventType eventType = getDerivedEvent();
+
+        EventData.Builder<NodeResource> eventDataBuilder = EventData.<NodeResource>builder()
                     .setEventGroupId(eventInfo.getTxnId())
-                    .setResource(resource)
-                    .build();
+                    .setResource(resource);
+
+        if (eventType == EventType.NODE_UPDATED)
+        {
+            eventDataBuilder.setResourceBefore(buildNodeResourceBeforeDelta(resource));
+        }
+        EventData<NodeResource> eventData = eventDataBuilder.build();
         return RepoEvent.<NodeResource>builder()
                     .setId(eventInfo.getId())
                     .setSource(eventInfo.getSource())
                     .setTime(eventInfo.getTimestamp())
-                    .setType(getDerivedEvent().getType())
-                    .setSubject(nodeName)
+                    .setType(eventType.getType())
                     .setData(eventData)
                     .build();
     }
@@ -103,12 +112,11 @@ public class EventConsolidator implements EventSupportedPolicies
      */
     private void createBuilderIfAbsent(NodeRef nodeRef, boolean forceUpdate)
     {
-        if (builder == null || forceUpdate)
+        if (resourceBuilder == null || forceUpdate)
         {
-            this.builder = helper.createNodeResourceBuilder(nodeRef);
+            this.resourceBuilder = helper.createNodeResourceBuilder(nodeRef);
             this.nodeRef = nodeRef;
             this.nodeType = helper.getNodeType(nodeRef);
-            this.nodeName = (String) helper.getProperty(nodeRef, ContentModel.PROP_NAME);
         }
     }
 
@@ -155,10 +163,7 @@ public class EventConsolidator implements EventSupportedPolicies
     public void beforeDeleteNode(NodeRef nodeRef)
     {
         eventTypes.add(EventType.NODE_DELETED);
-        createBuilderIfAbsent(nodeRef, true);
-        // Set the node properties and aspects while the node exists
-        builder.setProperties(helper.getMappedProperties(nodeRef));
-        builder.setAspectNames(helper.getMappedAspects(nodeRef));
+        createBuilderIfAbsent(nodeRef, false);
     }
 
     @Override
@@ -191,39 +196,9 @@ public class EventConsolidator implements EventSupportedPolicies
         }
     }
 
-    private void setPropertiesAndAspects()
-    {
-        if (eventTypes.contains(EventType.NODE_CREATED))
-        {
-            // Set properties
-            builder.setProperties(helper.mapToNodeProperties(propertiesAfter));
-
-            // Set aspects
-            builder.setAspectNames(helper.getMappedAspects(nodeRef));
-        }
-        else if (eventTypes.contains(EventType.NODE_UPDATED))
-        {
-            // Set 'before' and 'after' properties - if any
-            Pair<Map<QName, Serializable>, Map<QName, Serializable>> beforeAndAfterProps = PropertyMap
-                        .getBeforeAndAfterMapsForChanges(propertiesBefore, propertiesAfter);
-            if (!beforeAndAfterProps.getFirst().isEmpty() || !beforeAndAfterProps.getSecond().isEmpty())
-            {
-                builder.setAffectedPropertiesBefore(helper.mapToNodeProperties(beforeAndAfterProps.getFirst()))
-                       .setAffectedPropertiesAfter(helper.mapToNodeProperties(beforeAndAfterProps.getSecond()));
-            }
-
-            // Set 'before' and 'after' aspects - if any
-            if (!aspectsRemoved.isEmpty() || !aspectsAdded.isEmpty())
-            {
-                builder.setAspectNamesBefore(helper.mapToNodeAspects(aspectsRemoved))
-                       .setAspectNamesAfter(helper.mapToNodeAspects(aspectsAdded));
-            }
-        }
-    }
-
     private NodeResource buildNodeResource()
     {
-        if (builder == null)
+        if (resourceBuilder == null)
         {
             return null;
         }
@@ -237,11 +212,109 @@ public class EventConsolidator implements EventSupportedPolicies
             {
                 // We are setting the details at the end of the Txn by getting the latest info
                 createBuilderIfAbsent(nodeRef, true);
-                setPropertiesAndAspects();
             }
         }
         // Now create an instance of NodeResource
+        return resourceBuilder.build();
+    }
+
+    private NodeResource buildNodeResourceBeforeDelta(NodeResource after)
+    {
+        if (after == null)
+        {
+            return null;
+        }
+
+        Builder builder = NodeResource.builder();
+
+        Map<QName, Serializable> changedPropsBefore = getBeforeMapChanges(propertiesBefore, propertiesAfter);
+        if (!changedPropsBefore.isEmpty())
+        {
+            // Set only the changed properties
+            Map<String, Serializable> mappedProps = helper.mapToNodeProperties(changedPropsBefore);
+            if (!mappedProps.isEmpty())
+            {
+                builder.setProperties(mappedProps);
+            }
+            String name = (String) changedPropsBefore.get(ContentModel.PROP_NAME);
+            if (name != null)
+            {
+                builder.setName(name);
+            }
+            ContentInfo contentInfo = helper.getContentInfo(changedPropsBefore);
+            if (contentInfo != null)
+            {
+                builder.setContent(contentInfo);
+            }
+            UserInfo modifier = helper.getUserInfo((String) changedPropsBefore.get(ContentModel.PROP_MODIFIER));
+            if (modifier != null)
+            {
+                builder.setModifiedByUser(modifier);
+            }
+            ZonedDateTime modifiedAt =
+                        helper.getZonedDateTime((Date) changedPropsBefore.get(ContentModel.PROP_MODIFIED));
+            if (modifiedAt != null)
+            {
+                builder.setModifiedAt(modifiedAt);
+            }
+        }
+
+        Set<String> aspectsBefore = getMappedAspectsBefore(after.getAspectNames());
+        if (!aspectsBefore.isEmpty())
+        {
+            builder.setAspectNames(aspectsBefore);
+        }
+
         return builder.build();
+    }
+
+    private Set<String> getMappedAspectsBefore(Set<String> currentAspects)
+    {
+        if (currentAspects == null)
+        {
+            currentAspects = Collections.emptySet();
+        }
+        if (hasChangedAspect())
+        {
+            Set<String> removed = helper.mapToNodeAspects(aspectsRemoved);
+            Set<String> added = helper.mapToNodeAspects(aspectsAdded);
+
+            Set<String> before = new HashSet<>(currentAspects);
+            if (!removed.isEmpty())
+            {
+                // Add all the removed aspects from the current list
+                before.addAll(removed);
+            }
+            if (!added.isEmpty())
+            {
+                // Remove all the added aspects from the current list
+                before.removeAll(added);
+            }
+            return before;
+        }
+        return Collections.emptySet();
+    }
+
+    private boolean hasChangedAspect()
+    {
+        return !(aspectsRemoved.isEmpty() && aspectsAdded.isEmpty());
+    }
+
+    private <K, V> Map<K, V> getBeforeMapChanges(Map<K, V> before, Map<K, V> after)
+    {
+        if (before == null)
+        {
+            return Collections.emptyMap();
+        }
+        if (after == null)
+        {
+            after = Collections.emptyMap();
+        }
+        // Get before values that changed
+        Map<K, V> beforeDelta = new HashMap<>(before);
+        beforeDelta.entrySet().removeAll(after.entrySet());
+
+        return beforeDelta;
     }
 
     /**
@@ -283,11 +356,6 @@ public class EventConsolidator implements EventSupportedPolicies
     public QName getNodeType()
     {
         return nodeType;
-    }
-
-    public String getNodeName()
-    {
-        return nodeName;
     }
 
     public Deque<EventType> getEventTypes()

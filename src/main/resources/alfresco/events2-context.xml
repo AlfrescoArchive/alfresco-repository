@@ -36,5 +36,6 @@
         <property name="eventFilterRegistry" ref="event2FilterRegistry"/>
         <property name="event2MessageProducer" ref="event2MessageProducer"/>
         <property name="transactionService" ref="transactionService"/>
+        <property name="personService" ref="personService"/>
     </bean>
 </beans>

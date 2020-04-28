@@ -26,6 +26,8 @@
 
 package org.alfresco.repo.event2;
 
+import java.util.List;
+
 import org.alfresco.model.ContentModel;
 import org.alfresco.repo.event.v1.model.EventData;
 import org.alfresco.repo.event.v1.model.NodeResource;
@@ -33,86 +35,81 @@ import org.alfresco.repo.event.v1.model.RepoEvent;
 import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.util.GUID;
 import org.alfresco.util.PropertyMap;
-import org.junit.Before;
 import org.junit.Test;
 
 /**
  * @author Iulian Aftene
  */
-
 public class CreateRepoEventIT extends AbstractContextAwareRepoEvent
 {
-    @Before
-    public void dataPreparation() throws Exception
+
+    @Test
+    public void testCreateEvent()
     {
-        subscribe(futureResult::complete, String.class);
+        // Create a node without content
+        final String name = "TestFile-" + System.currentTimeMillis() + ".txt";
+        PropertyMap propertyMap = new PropertyMap();
+        propertyMap.put(ContentModel.PROP_TITLE, "test title");
+        propertyMap.put(ContentModel.PROP_NAME, name);
+        final NodeRef nodeRef = createNode(ContentModel.TYPE_CONTENT, propertyMap);
+
+        final RepoEvent<NodeResource> resultRepoEvent = getRepoEvent(1);
+        // Repo event attributes
+        assertEquals("Repo event type", EventType.NODE_CREATED.getType(), resultRepoEvent.getType());
+        assertNotNull("Repo event ID is not available. ", resultRepoEvent.getId());
+        assertNotNull(resultRepoEvent.getSource());
+        assertEquals("Repo event source is not available. ",
+                     "/" + descriptorService.getCurrentRepositoryDescriptor().getId(),
+                     resultRepoEvent.getSource().toString());
+        assertNotNull("Repo event creation time is not available. ", resultRepoEvent.getTime());
+        assertEquals("Repo event datacontenttype", "application/json", resultRepoEvent.getDatacontenttype());
+        assertEquals(EventData.JSON_SCHEMA, resultRepoEvent.getDataschema());
+
+        final EventData<NodeResource> nodeResourceEventData = getEventData(resultRepoEvent);
+        // EventData attributes
+        assertNotNull("Event data group ID is not available. ", nodeResourceEventData.getEventGroupId());
+        assertNull("resourceBefore property is not available", nodeResourceEventData.getResourceBefore());
+        final NodeResource nodeResource = getNodeResource(resultRepoEvent);
+
+        // NodeResource attributes
+        assertEquals(nodeRef.getId(), nodeResource.getId());
+        assertEquals(name, nodeResource.getName());
+        assertEquals("cm:content", nodeResource.getNodeType());
+        assertNotNull(nodeResource.getPrimaryHierarchy());
+        assertNotNull("Default aspects were not added. ", nodeResource.getAspectNames());
+        assertEquals("test title", getProperty(nodeResource, "cm:title"));
+        assertNull("There is no content.", nodeResource.getContent());
+
+        assertNotNull("Missing createdByUser property.", nodeResource.getCreatedByUser());
+        assertEquals("Wrong node creator id.", "admin", nodeResource.getCreatedByUser().getId());
+        assertEquals("Wrong node creator display name.", "Administrator",
+                     nodeResource.getCreatedByUser().getDisplayName());
+        assertNotNull("Missing createdAt property.", nodeResource.getCreatedAt());
+
+        assertNotNull("Missing modifiedByUser property.", nodeResource.getModifiedByUser());
+        assertEquals("Wrong node modifier id.", "admin", nodeResource.getModifiedByUser().getId());
+        assertEquals("Wrong node modifier display name.", "Administrator",
+                     nodeResource.getModifiedByUser().getDisplayName());
+        assertNotNull("Missing modifiedAt property.", nodeResource.getModifiedAt());
     }
 
     @Test
-    public void testCreateEvent() throws Exception
+    public void createContentInFolderStructure()
     {
-        createNode(ContentModel.TYPE_CONTENT);
+        final NodeRef grandParent = createNode(ContentModel.TYPE_FOLDER);
+        final NodeRef parent = createNode(ContentModel.TYPE_FOLDER, grandParent);
+        createNode(ContentModel.TYPE_CONTENT, parent);
 
-        final RepoEvent<NodeResource> resultRepoEvent = getFutureResult();
+        final NodeResource resource = getNodeResource(3);
 
-        assertEquals("Repo event type", "org.alfresco.event.node.Created",
-            resultRepoEvent.getType());
-        assertFalse("Repo event ID is not available. ", resultRepoEvent.getId().isEmpty());
-        assertFalse("Repo event source is not available. ",
-            resultRepoEvent.getSource().toString().isEmpty());
-        assertFalse("Repo event creation time is not available. ",
-            resultRepoEvent.getTime().toString().isEmpty());
-        assertEquals("Repo event datacontenttype", "application/json",
-            resultRepoEvent.getDatacontenttype());
-
-        EventData<NodeResource> nodeResourceEventData = resultRepoEvent.getData();
-        assertTrue("Wrong event data principal. ",
-            nodeResourceEventData.getPrincipal().contains("admin"));
-        assertFalse("Event data group ID is not available. ",
-            nodeResourceEventData.getEventGroupId().isEmpty());
-
-        NodeResource nodeResource = nodeResourceEventData.getResource();
-        assertTrue("Resource type is not available. ",
-            nodeResource.getType().toString().contains("NodeResource"));
-
-        assertFalse("Default aspects were not added. ", nodeResource.getAspectNames().isEmpty());
-        assertNull("affectedPropertiesBefore property is not available",
-            nodeResource.getAffectedPropertiesBefore());
-        assertNull("affectedPropertiesAfter property is not available",
-            nodeResource.getAffectedPropertiesAfter());
-        assertNull("aspectNamesBefore property is not available",
-            nodeResource.getAspectNamesBefore());
-        assertNull("aspectNamesAfter property is not available",
-            nodeResource.getAspectNamesAfter());
-
-        String properties = nodeResource.getProperties().toString();
-        assertTrue("Wrong node creator, expecting: admin ",
-            properties.contains("cm:creator=admin"));
-        assertTrue("Wrong node modifier, expecting: admin ",
-            properties.contains("cm:modifier=admin"));
-        assertTrue("Node cm:created property is not available", properties.contains("cm:created"));
-        assertTrue("Node cm:name property is not available", properties.contains("cm:name"));
-        assertTrue("Node cm:modified property is not available",
-            properties.contains("cm:modified"));
+        List<String> primaryHierarchy = resource.getPrimaryHierarchy();
+        assertNotNull(primaryHierarchy);
+        assertEquals("Wrong hierarchy", 3, primaryHierarchy.size());
+        assertEquals("Wrong parent", parent.getId(), primaryHierarchy.get(0));
     }
 
     @Test
-    public void createContentInFolderStructure() throws Exception
-    {
-        NodeRef parentRef = createNode(ContentModel.TYPE_CONTAINER);
-        createNode(ContentModel.TYPE_FOLDER, parentRef);
-
-        final RepoEvent<NodeResource> resultRepoEvent = getFutureResult();
-
-        assertEquals("Wrong hierarchy", 2, resultRepoEvent
-            .getData()
-            .getResource()
-            .getPrimaryHierarchy()
-            .size());
-    }
-
-    @Test
-    public void testCreateNodeWithId() throws Exception
+    public void testCreateNodeWithId()
     {
         final String uuid = GUID.generate();
         PropertyMap properties = new PropertyMap();
@@ -121,46 +118,32 @@ public class CreateRepoEventIT extends AbstractContextAwareRepoEvent
         // create a node with an explicit UUID
         createNode(ContentModel.TYPE_CONTENT, properties);
 
-        final RepoEvent<NodeResource> resultRepoEvent = getFutureResult();
+        final NodeResource resource = getNodeResource(1);
 
-        assertEquals("Failed to create node with a chosen ID",
-            uuid,
-            resultRepoEvent
-                .getData()
-                .getResource()
-                .getId());
+        assertEquals("Failed to create node with a chosen ID", uuid, resource.getId());
     }
 
     @Test
-    public void testFolderNodeType() throws Exception
+    public void testFolderNodeType()
     {
         createNode(ContentModel.TYPE_FOLDER);
 
-        final RepoEvent<NodeResource> resultRepoEvent = getFutureResult();
+        final NodeResource resource = getNodeResource(1);
 
-        EventData<NodeResource> eventData = resultRepoEvent.getData();
-        NodeResource nodeResource = eventData.getResource();
-
-        assertEquals("cm:content node type was not found", "cm:folder", nodeResource.getNodeType());
-        assertFalse("isFile flag should be FALSE for nodeType=cm:folder. ", nodeResource.isFile());
-        assertTrue("isFolder flag should be TRUE for nodeType=cm:folder. ",
-            nodeResource.isFolder());
+        assertEquals("cm:content node type was not found", "cm:folder", resource.getNodeType());
+        assertFalse("isFile flag should be FALSE for nodeType=cm:folder. ", resource.isFile());
+        assertTrue("isFolder flag should be TRUE for nodeType=cm:folder. ", resource.isFolder());
     }
 
     @Test
-    public void testFileNodeType() throws Exception
+    public void testFileNodeType()
     {
         createNode(ContentModel.TYPE_CONTENT);
 
-        final RepoEvent<NodeResource> resultRepoEvent = getFutureResult();
+        final NodeResource resource = getNodeResource(1);
 
-        EventData<NodeResource> eventData = resultRepoEvent.getData();
-        NodeResource nodeResource = eventData.getResource();
-
-        assertEquals("cm:content node type was not found", "cm:content",
-            nodeResource.getNodeType());
-        assertTrue("isFile flag should be TRUE for nodeType=cm:content. ", nodeResource.isFile());
-        assertFalse("isFolder flag should be FALSE for nodeType=cm:content. ",
-            nodeResource.isFolder());
+        assertEquals("cm:content node type was not found", "cm:content", resource.getNodeType());
+        assertTrue("isFile flag should be TRUE for nodeType=cm:content. ", resource.isFile());
+        assertFalse("isFolder flag should be FALSE for nodeType=cm:content. ", resource.isFolder());
     }
 }
