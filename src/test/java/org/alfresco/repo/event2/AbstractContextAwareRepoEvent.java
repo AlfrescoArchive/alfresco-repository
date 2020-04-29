@@ -265,7 +265,7 @@ public abstract class AbstractContextAwareRepoEvent extends BaseSpringTest
      */
     protected void waitUntilNumOfEvents(int numOfEvents)
     {
-        await().atMost(1000, SECONDS).until(() -> EVENT_CONTAINER.getEvents().size() == numOfEvents);
+        await().atMost(5, SECONDS).until(() -> EVENT_CONTAINER.getEvents().size() == numOfEvents);
     }
 
     protected void checkNumOfEvents(int expected)

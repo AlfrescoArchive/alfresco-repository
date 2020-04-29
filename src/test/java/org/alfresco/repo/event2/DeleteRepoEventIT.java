@@ -33,6 +33,7 @@ import org.alfresco.repo.event.v1.model.RepoEvent;
 import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.namespace.QName;
 import org.alfresco.util.GUID;
+import org.alfresco.util.PropertyMap;
 import org.junit.Test;
 
 /**
@@ -86,11 +87,15 @@ public class DeleteRepoEventIT extends AbstractContextAwareRepoEvent
     public void createDeleteNodeInTheSameTransaction()
     {
         retryingTransactionHelper.doInTransaction(() -> {
+            PropertyMap propertyMap = new PropertyMap();
+            propertyMap.put(ContentModel.PROP_TITLE, "test title");
+
             NodeRef nodeRef = nodeService.createNode(
                 rootNodeRef,
                 ContentModel.ASSOC_CHILDREN,
                 QName.createQName(TEST_NAMESPACE, GUID.generate()),
-                ContentModel.TYPE_CONTENT).getChildRef();
+                ContentModel.TYPE_CONTENT,
+                propertyMap).getChildRef();
 
             nodeService.deleteNode(nodeRef);
             return null;

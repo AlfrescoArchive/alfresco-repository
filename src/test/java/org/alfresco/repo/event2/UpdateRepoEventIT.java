@@ -284,7 +284,7 @@ public class UpdateRepoEventIT extends AbstractContextAwareRepoEvent
     }
 
     @Test
-    public void testCteateAndUpdateInTheSameTransaction()
+    public void testCreateAndUpdateInTheSameTransaction()
     {
         retryingTransactionHelper.doInTransaction(() -> {
 
