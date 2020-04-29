@@ -31,6 +31,8 @@ import org.alfresco.repo.event.v1.model.EventData;
 import org.alfresco.repo.event.v1.model.NodeResource;
 import org.alfresco.repo.event.v1.model.RepoEvent;
 import org.alfresco.service.cmr.repository.NodeRef;
+import org.alfresco.service.namespace.QName;
+import org.alfresco.util.GUID;
 import org.junit.Test;
 
 /**
@@ -44,6 +46,14 @@ public class DeleteRepoEventIT extends AbstractContextAwareRepoEvent
         NodeRef nodeRef = createNode(ContentModel.TYPE_CONTENT);
         NodeResource createdResource = getNodeResource(1);
 
+        assertNotNull("Resource ID is null", createdResource.getId());
+        assertNotNull("Default aspects were not added. ", createdResource.getAspectNames());
+        assertNotNull("Missing createdByUser property.", createdResource.getCreatedByUser());
+        assertNotNull("Missing createdAt property.", createdResource.getCreatedAt());
+        assertNotNull("Missing modifiedByUser property.", createdResource.getModifiedByUser());
+        assertNotNull("Missing modifiedAt property.", createdResource.getModifiedAt());
+        assertNotNull("Missing node resource properties", createdResource.getProperties());
+
         deleteNode(nodeRef);
         final RepoEvent<NodeResource> resultRepoEvent = getRepoEvent(2);
 
@@ -53,7 +63,7 @@ public class DeleteRepoEventIT extends AbstractContextAwareRepoEvent
         // There should be no resourceBefore
         EventData<NodeResource> eventData = getEventData(resultRepoEvent);
         assertNull("There should be no 'resourceBefore' object for the Deleted event type.",
-                   eventData.getResourceBefore());
+            eventData.getResourceBefore());
     }
 
     @Test
@@ -70,5 +80,23 @@ public class DeleteRepoEventIT extends AbstractContextAwareRepoEvent
         deleteNode(grandParent);
         // 4 Deleted events + 4 created events
         checkNumOfEvents(8);
+    }
+
+    @Test
+    public void createDeleteNodeInTheSameTransaction()
+    {
+        retryingTransactionHelper.doInTransaction(() -> {
+            NodeRef nodeRef = nodeService.createNode(
+                rootNodeRef,
+                ContentModel.ASSOC_CHILDREN,
+                QName.createQName(TEST_NAMESPACE, GUID.generate()),
+                ContentModel.TYPE_CONTENT).getChildRef();
+
+            nodeService.deleteNode(nodeRef);
+            return null;
+        });
+        //Create and delete node are done in the same transaction so no events are expected
+        // to be generated
+        checkNumOfEvents(0);
     }
 }
