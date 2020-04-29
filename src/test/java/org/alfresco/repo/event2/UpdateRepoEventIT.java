@@ -252,7 +252,7 @@ public class UpdateRepoEventIT extends AbstractContextAwareRepoEvent
     }
 
     @Test
-    public void removeAspectFromContentTest()
+    public void testRemoveAspectFromContentTest()
     {
         final NodeRef nodeRef = createNode(ContentModel.TYPE_CONTENT);
         NodeResource resource = getNodeResource(1);

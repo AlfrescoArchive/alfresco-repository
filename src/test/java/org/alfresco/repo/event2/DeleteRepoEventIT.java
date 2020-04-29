@@ -42,9 +42,12 @@ import org.junit.Test;
 public class DeleteRepoEventIT extends AbstractContextAwareRepoEvent
 {
     @Test
-    public void deleteContent()
+    public void testDeleteContent()
     {
-        NodeRef nodeRef = createNode(ContentModel.TYPE_CONTENT);
+        PropertyMap propertyMap = new PropertyMap();
+        propertyMap.put(ContentModel.PROP_TITLE, "test title");
+        NodeRef nodeRef = createNode(ContentModel.TYPE_CONTENT, propertyMap);
+
         NodeResource createdResource = getNodeResource(1);
 
         assertNotNull("Resource ID is null", createdResource.getId());
@@ -68,7 +71,7 @@ public class DeleteRepoEventIT extends AbstractContextAwareRepoEvent
     }
 
     @Test
-    public void deleteFolderWithContent()
+    public void testDeleteFolderWithContent()
     {
         NodeRef grandParent = createNode(ContentModel.TYPE_FOLDER);
         NodeRef parent = createNode(ContentModel.TYPE_FOLDER, grandParent);
@@ -84,18 +87,15 @@ public class DeleteRepoEventIT extends AbstractContextAwareRepoEvent
     }
 
     @Test
-    public void createDeleteNodeInTheSameTransaction()
+    public void testCreateDeleteNodeInTheSameTransaction()
     {
         retryingTransactionHelper.doInTransaction(() -> {
-            PropertyMap propertyMap = new PropertyMap();
-            propertyMap.put(ContentModel.PROP_TITLE, "test title");
 
             NodeRef nodeRef = nodeService.createNode(
                 rootNodeRef,
                 ContentModel.ASSOC_CHILDREN,
                 QName.createQName(TEST_NAMESPACE, GUID.generate()),
-                ContentModel.TYPE_CONTENT,
-                propertyMap).getChildRef();
+                ContentModel.TYPE_CONTENT).getChildRef();
 
             nodeService.deleteNode(nodeRef);
             return null;

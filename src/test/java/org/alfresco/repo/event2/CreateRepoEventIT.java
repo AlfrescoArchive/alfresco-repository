@@ -95,7 +95,7 @@ public class CreateRepoEventIT extends AbstractContextAwareRepoEvent
     }
 
     @Test
-    public void createContentInFolderStructure()
+    public void testCreateContentInFolderStructure()
     {
         final NodeRef grandParent = createNode(ContentModel.TYPE_FOLDER);
         final NodeRef parent = createNode(ContentModel.TYPE_FOLDER, grandParent);
