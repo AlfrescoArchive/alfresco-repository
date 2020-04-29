@@ -258,14 +258,15 @@ public class AuthorityServiceTest extends TestCase
         char[] illegalCharacters = {'/', '\\', '\n', '\r', '"'};
         for (char illegalCharacter : illegalCharacters)
         {
-            String GROUP_NAME = "testGroupNameWith" + illegalCharacter;
+            String groupName = "testGroupNameWith" + illegalCharacter;
             try 
             {
-                authorityService.createAuthority(AuthorityType.GROUP, GROUP_NAME);
+                authorityService.createAuthority(AuthorityType.GROUP, groupName);
+                fail("InvalidQNameException not caught for illegalCharacter: " +groupName.charAt(groupName.indexOf(illegalCharacter)));
             } 
-            catch (InvalidQNameException e) 
+            catch (InvalidQNameException ignored)
             {
-                assertEquals(e.getMessage(), "name contains characters that are not permitted: "+GROUP_NAME.charAt(GROUP_NAME.indexOf(illegalCharacter)));
+                // Expected
             }
         }
     }

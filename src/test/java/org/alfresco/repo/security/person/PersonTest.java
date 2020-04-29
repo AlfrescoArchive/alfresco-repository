@@ -464,14 +464,15 @@ public class PersonTest extends TestCase
         char[] illegalCharacters = {'/', '\\', '\n', '\r', '"'};
         for (char illegalCharacter : illegalCharacters)
         {
-            String PERSON_NAME = "testPersonNameWith" + illegalCharacter;
+            String personName = "testPersonNameWith" + illegalCharacter;
             try
             {
-                personService.createPerson(createDefaultProperties(PERSON_NAME, "Some", "User", "some.user@example.com", "alfresco", rootNodeRef));
+                personService.createPerson(createDefaultProperties(personName, "Some", "User", "some.user@example.com", "alfresco", rootNodeRef));
+                fail("InvalidQNameException not caught for illegalCharacter: " +personName.charAt(personName.indexOf(illegalCharacter)));
             }
-            catch (InvalidQNameException e)
+            catch (InvalidQNameException ignored)
             {
-                assertEquals(e.getMessage(), "name contains characters that are not permitted: "+PERSON_NAME.charAt(PERSON_NAME.indexOf(illegalCharacter)));
+                // Expected
             }
         }
     }
