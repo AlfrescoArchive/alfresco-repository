@@ -49,10 +49,15 @@ public class PublicApiCallContextHandler extends BasicAuthCallContextHandler
             map.putAll(basicAuthMap);
         }
 
+        // Adding the username in the context is needed because of the following reasons:
+        // - CMISServletDispatcher is configured to ALWAYS use this class (PublicApiCallContextHandler)
+        // - this class extends the BasicAuthCallContextHandler class which only puts the username in the context ONLY IF the request is having Basic auth
+        // - therefor in the case of a Bearer auth, the username is never in the context, fact that ultimately leads to bugs when the response should be provided
         if (map.get(CallContext.USERNAME) == null && AuthenticationUtil.getFullyAuthenticatedUser() != null)
         {
             map.put(CallContext.USERNAME, AuthenticationUtil.getFullyAuthenticatedUser());
         }
+
         map.put("isPublicApi", "true");
         return map;
 	}
