@@ -67,7 +67,6 @@ import org.alfresco.service.cmr.security.NoSuchPersonException;
 import org.alfresco.service.cmr.security.PermissionService;
 import org.alfresco.service.cmr.security.PersonService;
 import org.alfresco.service.cmr.security.PersonService.PersonInfo;
-import org.alfresco.service.namespace.InvalidQNameException;
 import org.alfresco.service.namespace.QName;
 import org.alfresco.service.transaction.TransactionService;
 import org.alfresco.test_category.OwnJVMTestsCategory;
@@ -468,9 +467,9 @@ public class PersonTest extends TestCase
             try
             {
                 personService.createPerson(createDefaultProperties(personName, "Some", "User", "some.user@example.com", "alfresco", rootNodeRef));
-                fail("InvalidQNameException not caught for illegalCharacter: " +personName.charAt(personName.indexOf(illegalCharacter)));
+                fail("AlfrescoRuntimeException not caught for illegalCharacter: " +personName.charAt(personName.indexOf(illegalCharacter)));
             }
-            catch (InvalidQNameException ignored)
+            catch (AlfrescoRuntimeException ignored)
             {
                 // Expected
             }
