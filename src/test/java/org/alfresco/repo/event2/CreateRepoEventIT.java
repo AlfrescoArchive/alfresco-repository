@@ -174,6 +174,6 @@ public class CreateRepoEventIT extends AbstractContextAwareRepoEvent
             getEventData(repoEventsContainer.getEvent(3)).getEventGroupId();
 
         //All events in the transaction should have the same eventGroupId
-        assertTrue(eventGroupId1.equals(eventGroupId2) || eventGroupId2.equals(eventGroupId3));
+        assertTrue(eventGroupId1.equals(eventGroupId2) && eventGroupId2.equals(eventGroupId3));
     }
 }
