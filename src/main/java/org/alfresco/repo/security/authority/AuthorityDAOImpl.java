@@ -103,6 +103,7 @@ public class AuthorityDAOImpl implements AuthorityDAO, NodeServicePolicies.Befor
     private static Log logger = LogFactory.getLog(AuthorityDAOImpl.class);
     
     private static String PARENTS_OF_DELETING_CHILDREN_SET_RESOURCE = "ParentsOfDeletingChildrenSetResource";
+    private static final char[] ILLEGAL_CHARACTERS = {'/', '\\', '\r', '\n', '\"'};
     
     private static final NodeRef NULL_NODEREF = new NodeRef("null", "null", "null");
     private static final String CANNED_QUERY_AUTHS_LIST = "authsGetAuthoritiesCannedQueryFactory"; // see authority-services-context.xml
@@ -1656,6 +1657,25 @@ public class AuthorityDAOImpl implements AuthorityDAO, NodeServicePolicies.Befor
         }
     }
 
+    public void beforeCreateNode(
+            NodeRef parentRef,
+            QName assocTypeQName,
+            QName assocQName,
+            QName nodeTypeQName)
+    {
+        // Restrict creation of group name that contain invalid characters.
+        if (ContentModel.TYPE_AUTHORITY_CONTAINER.equals(nodeTypeQName))
+        {
+            for (char illegalCharacter : ILLEGAL_CHARACTERS)
+            {
+                if (assocQName.getLocalName().indexOf(illegalCharacter) != -1)
+                {
+                    throw new AuthorityException("Group name contains characters that are not permitted: "+assocQName.getLocalName().charAt(assocQName.getLocalName().indexOf(illegalCharacter)));
+                }
+            }
+        }
+    }
+
     public void init()
     {
         // Listen out for person removals so that we can clear cached authorities
@@ -1664,7 +1684,10 @@ public class AuthorityDAOImpl implements AuthorityDAO, NodeServicePolicies.Befor
         // Listen out for updates to persons and authority containers to handle renames
         this.policyComponent.bindClassBehaviour(QName.createQName(NamespaceService.ALFRESCO_URI, "onUpdateProperties"), ContentModel.TYPE_AUTHORITY, new JavaBehaviour(
                 this, "onUpdateProperties"));
-    }
+        // Listen out for group creation to guard against illegal characters
+        this.policyComponent.bindClassBehaviour(QName.createQName(NamespaceService.ALFRESCO_URI, "beforeCreateNode"), ContentModel.TYPE_AUTHORITY_CONTAINER, new JavaBehaviour(
+                this, "beforeCreateNode"));
+}
     
     /**
      * @param parentNodeRef         the parent authority
