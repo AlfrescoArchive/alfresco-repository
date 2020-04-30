@@ -71,7 +71,8 @@ import org.springframework.beans.factory.annotation.Qualifier;
 
 public abstract class AbstractContextAwareRepoEvent extends BaseSpringTest
 {
-    private static final String     TEST_NAMESPACE = "http://www.alfresco.org/test/ContextAwareRepoEvent";
+    protected static final String     TEST_NAMESPACE = "http://www.alfresco" +
+                                                ".org/test/ContextAwareRepoEvent";
     private static final String     BROKER_URL     = "tcp://localhost:61616";
     private static final String     TOPIC_NAME     = "alfresco.repo.event2";
     private static final String     CAMEL_ROUTE    = "jms:topic:" + TOPIC_NAME;

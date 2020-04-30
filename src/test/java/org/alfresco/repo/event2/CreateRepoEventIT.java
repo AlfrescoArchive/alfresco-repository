@@ -33,6 +33,7 @@ import org.alfresco.repo.event.v1.model.EventData;
 import org.alfresco.repo.event.v1.model.NodeResource;
 import org.alfresco.repo.event.v1.model.RepoEvent;
 import org.alfresco.service.cmr.repository.NodeRef;
+import org.alfresco.service.namespace.QName;
 import org.alfresco.util.GUID;
 import org.alfresco.util.PropertyMap;
 import org.junit.Test;
@@ -59,8 +60,8 @@ public class CreateRepoEventIT extends AbstractContextAwareRepoEvent
         assertNotNull("Repo event ID is not available. ", resultRepoEvent.getId());
         assertNotNull(resultRepoEvent.getSource());
         assertEquals("Repo event source is not available. ",
-                     "/" + descriptorService.getCurrentRepositoryDescriptor().getId(),
-                     resultRepoEvent.getSource().toString());
+            "/" + descriptorService.getCurrentRepositoryDescriptor().getId(),
+            resultRepoEvent.getSource().toString());
         assertNotNull("Repo event creation time is not available. ", resultRepoEvent.getTime());
         assertEquals("Repo event datacontenttype", "application/json", resultRepoEvent.getDatacontenttype());
         assertEquals(EventData.JSON_SCHEMA, resultRepoEvent.getDataschema());
@@ -83,18 +84,18 @@ public class CreateRepoEventIT extends AbstractContextAwareRepoEvent
         assertNotNull("Missing createdByUser property.", nodeResource.getCreatedByUser());
         assertEquals("Wrong node creator id.", "admin", nodeResource.getCreatedByUser().getId());
         assertEquals("Wrong node creator display name.", "Administrator",
-                     nodeResource.getCreatedByUser().getDisplayName());
+            nodeResource.getCreatedByUser().getDisplayName());
         assertNotNull("Missing createdAt property.", nodeResource.getCreatedAt());
 
         assertNotNull("Missing modifiedByUser property.", nodeResource.getModifiedByUser());
         assertEquals("Wrong node modifier id.", "admin", nodeResource.getModifiedByUser().getId());
         assertEquals("Wrong node modifier display name.", "Administrator",
-                     nodeResource.getModifiedByUser().getDisplayName());
+            nodeResource.getModifiedByUser().getDisplayName());
         assertNotNull("Missing modifiedAt property.", nodeResource.getModifiedAt());
     }
 
     @Test
-    public void createContentInFolderStructure()
+    public void testCreateContentInFolderStructure()
     {
         final NodeRef grandParent = createNode(ContentModel.TYPE_FOLDER);
         final NodeRef parent = createNode(ContentModel.TYPE_FOLDER, grandParent);
@@ -145,5 +146,34 @@ public class CreateRepoEventIT extends AbstractContextAwareRepoEvent
         assertEquals("cm:content node type was not found", "cm:content", resource.getNodeType());
         assertTrue("isFile flag should be TRUE for nodeType=cm:content. ", resource.isFile());
         assertFalse("isFolder flag should be FALSE for nodeType=cm:content. ", resource.isFolder());
+    }
+
+    @Test
+    public void testCteateMultipleNodesInTheSameTransaction()
+    {
+        retryingTransactionHelper.doInTransaction(() -> {
+            for (int i = 0; i < 3; i++)
+            {
+                nodeService.createNode(
+                    rootNodeRef,
+                    ContentModel.ASSOC_CHILDREN,
+                    QName.createQName(TEST_NAMESPACE, GUID.generate()),
+                    ContentModel.TYPE_CONTENT);
+            }
+            return null;
+        });
+
+        checkNumOfEvents(3);
+
+        RepoEventContainer repoEventsContainer = getRepoEventsContainer();
+        final String eventGroupId1 =
+            getEventData(repoEventsContainer.getEvent(1)).getEventGroupId();
+        final String eventGroupId2 =
+            getEventData(repoEventsContainer.getEvent(2)).getEventGroupId();
+        final String eventGroupId3 =
+            getEventData(repoEventsContainer.getEvent(3)).getEventGroupId();
+
+        //All events in the transaction should have the same eventGroupId
+        assertTrue(eventGroupId1.equals(eventGroupId2) && eventGroupId2.equals(eventGroupId3));
     }
 }

@@ -37,6 +37,8 @@ import org.alfresco.repo.event.v1.model.RepoEvent;
 import org.alfresco.service.cmr.repository.ContentService;
 import org.alfresco.service.cmr.repository.ContentWriter;
 import org.alfresco.service.cmr.repository.NodeRef;
+import org.alfresco.service.namespace.QName;
+import org.alfresco.util.GUID;
 import org.junit.Test;
 
 /**
@@ -150,8 +152,8 @@ public class UpdateRepoEventIT extends AbstractContextAwareRepoEvent
         assertEquals("new test title", title);
 
         NodeResource resourceBefore = getNodeResourceBefore(3);
-        title =  getProperty(resourceBefore, "cm:title");
-        assertEquals("Wrong old property.","test title", title);
+        title = getProperty(resourceBefore, "cm:title");
+        assertEquals("Wrong old property.", "test title", title);
         assertNotNull(resourceBefore.getModifiedAt());
     }
 
@@ -247,11 +249,10 @@ public class UpdateRepoEventIT extends AbstractContextAwareRepoEvent
         assertNotNull(resourceBefore.getAspectNames());
         assertEquals(originalAspects, resourceBefore.getAspectNames());
         assertNull(resourceBefore.getProperties());
-
     }
 
     @Test
-    public void removeAspectFromContentTest()
+    public void testRemoveAspectFromContentTest()
     {
         final NodeRef nodeRef = createNode(ContentModel.TYPE_CONTENT);
         NodeResource resource = getNodeResource(1);
@@ -264,7 +265,7 @@ public class UpdateRepoEventIT extends AbstractContextAwareRepoEvent
             return null;
         });
         resource = getNodeResource(2);
-        Set<String> aspectsBeforeRemove= resource.getAspectNames();
+        Set<String> aspectsBeforeRemove = resource.getAspectNames();
         assertNotNull(aspectsBeforeRemove);
         assertTrue(aspectsBeforeRemove.contains("cm:geographic"));
 
@@ -280,5 +281,24 @@ public class UpdateRepoEventIT extends AbstractContextAwareRepoEvent
         NodeResource resourceBefore = getNodeResourceBefore(3);
         assertNotNull(resourceBefore.getAspectNames());
         assertEquals(aspectsBeforeRemove, resourceBefore.getAspectNames());
+    }
+
+    @Test
+    public void testCreateAndUpdateInTheSameTransaction()
+    {
+        retryingTransactionHelper.doInTransaction(() -> {
+
+            NodeRef node1 = nodeService.createNode(
+                rootNodeRef,
+                ContentModel.ASSOC_CHILDREN,
+                QName.createQName(TEST_NAMESPACE, GUID.generate()),
+                ContentModel.TYPE_CONTENT).getChildRef();
+
+            nodeService.setProperty(node1, ContentModel.PROP_DESCRIPTION, "test description");
+            return null;
+        });
+        //Create and update node are done in the same transaction so one event is expected
+        // to be generated
+        checkNumOfEvents(1);
     }
 }
