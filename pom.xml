@@ -2,7 +2,7 @@
     <modelVersion>4.0.0</modelVersion>
     <artifactId>alfresco-repository</artifactId>
     <name>Alfresco Repository</name>
-    <version>8.171-SNAPSHOT</version>
+    <version>8.173-SNAPSHOT</version>
     <packaging>jar</packaging>
     <parent>
         <groupId>org.alfresco</groupId>
@@ -36,8 +36,8 @@
 
         <maven.build.sourceVersion>11</maven.build.sourceVersion>
 
-        <dependency.alfresco-data-model.version>8.105</dependency.alfresco-data-model.version>
-        <dependency.alfresco-core.version>8.30</dependency.alfresco-core.version>
+        <dependency.alfresco-data-model.version>8.107</dependency.alfresco-data-model.version>
+        <dependency.alfresco-core.version>8.32</dependency.alfresco-core.version>
 
         <dependency.alfresco-legacy-lucene.version>6.2</dependency.alfresco-legacy-lucene.version>
         <dependency.alfresco-greenmail.version>6.1</dependency.alfresco-greenmail.version>
@@ -46,7 +46,7 @@
         <dependency.alfresco-hb-data-sender.version>1.0.12</dependency.alfresco-hb-data-sender.version>
         <dependency.transform.model.version>1.0.2.10</dependency.transform.model.version>
 
-        <dependency.spring.version>5.2.5.RELEASE</dependency.spring.version>
+        <dependency.spring.version>5.2.6.RELEASE</dependency.spring.version>
         <dependency.spring-security.version>5.2.1.RELEASE</dependency.spring-security.version>
         <dependency.httpcomponents.version>4.5.10</dependency.httpcomponents.version>
         <dependency.truezip.version>7.7.10</dependency.truezip.version>
@@ -60,7 +60,7 @@
         <dependency.mariadb.version>2.6.0</dependency.mariadb.version>
         <dependency.antlr.version>3.5.2</dependency.antlr.version>
         <!-- REPO-4964 -->
-        <dependency.keycloak.version>7.0.0</dependency.keycloak.version>
+        <dependency.keycloak.version>9.0.3</dependency.keycloak.version>
         <dependency.jboss.logging.version>3.4.1.Final</dependency.jboss.logging.version>
         <dependency.camel.version>2.24.2</dependency.camel.version>
         <dependency.activemq.version>5.15.12</dependency.activemq.version>
