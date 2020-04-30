@@ -262,9 +262,9 @@ public class AuthorityServiceTest extends TestCase
             try 
             {
                 authorityService.createAuthority(AuthorityType.GROUP, groupName);
-                fail("InvalidQNameException not caught for illegalCharacter: " +groupName.charAt(groupName.indexOf(illegalCharacter)));
+                fail("AuthorityException not caught for illegalCharacter: " +groupName.charAt(groupName.indexOf(illegalCharacter)));
             } 
-            catch (InvalidQNameException ignored)
+            catch (AuthorityException ignored)
             {
                 // Expected
             }
@@ -1325,7 +1325,7 @@ public class AuthorityServiceTest extends TestCase
         assertEquals(2, pubAuthorityService.getContainedAuthorities(AuthorityType.GROUP, auth1234, false).size());
         assertEquals(1, pubAuthorityService.getContainedAuthorities(AuthorityType.GROUP, authC1, false).size());
         assertEquals(0, pubAuthorityService.getContainedAuthorities(AuthorityType.GROUP, authC2, false).size());
-        String authStuff = pubAuthorityService.createAuthority(AuthorityType.GROUP, "|<>?~@:}{+_)(*&^%$£!¬`,./#';][=-0987654321 1234556678 '");
+        String authStuff = pubAuthorityService.createAuthority(AuthorityType.GROUP, "|<>?~@:}{+_)(*&^%$£!¬`,.#';][=-0987654321 1234556678 '");
         pubAuthorityService.addAuthority(authC2, authStuff);
         assertEquals(3, pubAuthorityService.getContainedAuthorities(AuthorityType.GROUP, auth1234, false).size());
         assertEquals(2, pubAuthorityService.getContainedAuthorities(AuthorityType.GROUP, authC1, false).size());
