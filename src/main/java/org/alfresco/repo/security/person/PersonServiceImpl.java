@@ -132,6 +132,7 @@ public class PersonServiceImpl extends TransactionListenerAdapter implements Per
     private static final String KEY_POST_TXN_DUPLICATES = "PersonServiceImpl.KEY_POST_TXN_DUPLICATES";
     public static final String KEY_ALLOW_UID_UPDATE = "PersonServiceImpl.KEY_ALLOW_UID_UPDATE";
     private static final String KEY_USERS_CREATED = "PersonServiceImpl.KEY_USERS_CREATED";
+    private static final char[] ILLEGAL_CHARACTERS = {'/', '\\', '\r', '\n', '\"'};
 
     private StoreRef storeRef;
     private TransactionService transactionService;
@@ -224,7 +225,12 @@ public class PersonServiceImpl extends TransactionListenerAdapter implements Per
                 BeforeCreateNodePolicy.QNAME,
                 ContentModel.TYPE_PERSON,
                 beforeCreateNodeValidationBehaviour);
-        
+
+        this.policyComponent.bindClassBehaviour(
+                BeforeCreateNodePolicy.QNAME,
+                ContentModel.TYPE_PERSON,
+                new JavaBehaviour(this, "beforeCreateNode"));
+
         beforeDeleteNodeValidationBehaviour = new JavaBehaviour(this, "beforeDeleteNodeValidation");
         this.policyComponent.bindClassBehaviour(
                 BeforeDeleteNodePolicy.QNAME,
@@ -1818,7 +1824,16 @@ public class PersonServiceImpl extends TransactionListenerAdapter implements Per
             QName assocQName,
             QName nodeTypeQName)
     {
-        // NOOP
+        if (ContentModel.TYPE_PERSON.equals(nodeTypeQName))
+        {
+            for (char illegalCharacter : ILLEGAL_CHARACTERS)
+            {
+                if (assocQName.getLocalName().indexOf(illegalCharacter) != -1)
+                {
+                    throw new AlfrescoRuntimeException("Person name contains characters that are not permitted: "+assocQName.getLocalName().charAt(assocQName.getLocalName().indexOf(illegalCharacter)));
+                }
+            }
+        }
     }
     
     public void beforeCreateNodeValidation(
