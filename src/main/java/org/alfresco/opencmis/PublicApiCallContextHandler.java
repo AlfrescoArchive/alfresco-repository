@@ -30,6 +30,8 @@ import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 
+import org.alfresco.repo.security.authentication.AuthenticationUtil;
+import org.apache.chemistry.opencmis.commons.server.CallContext;
 import org.apache.chemistry.opencmis.server.shared.BasicAuthCallContextHandler;
 
 public class PublicApiCallContextHandler extends BasicAuthCallContextHandler
@@ -46,7 +48,11 @@ public class PublicApiCallContextHandler extends BasicAuthCallContextHandler
         {
             map.putAll(basicAuthMap);
         }
-        
+
+        if (map.get(CallContext.USERNAME) == null && AuthenticationUtil.getFullyAuthenticatedUser() != null)
+        {
+            map.put(CallContext.USERNAME, AuthenticationUtil.getFullyAuthenticatedUser());
+        }
         map.put("isPublicApi", "true");
         return map;
 	}
