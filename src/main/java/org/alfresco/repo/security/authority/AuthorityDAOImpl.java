@@ -1657,20 +1657,23 @@ public class AuthorityDAOImpl implements AuthorityDAO, NodeServicePolicies.Befor
         }
     }
 
-    public void beforeCreateNode(
-            NodeRef parentRef,
-            QName assocTypeQName,
-            QName assocQName,
-            QName nodeTypeQName)
+    public void onCreateNode(ChildAssociationRef childAssocRef)
     {
         // Restrict creation of group name that contain invalid characters.
-        if (ContentModel.TYPE_AUTHORITY_CONTAINER.equals(nodeTypeQName))
+        NodeRef groupRef = childAssocRef.getChildRef();
+
+        String groupName = (String) this.nodeService.getProperty(groupRef, ContentModel.PROP_AUTHORITY_NAME);
+
+        if (getAuthorityContainer().equals(childAssocRef.getParentRef()))
         {
-            for (char illegalCharacter : ILLEGAL_CHARACTERS)
+            if (groupName != null)
             {
-                if (assocQName.getLocalName().indexOf(illegalCharacter) != -1)
+                for (char illegalCharacter : ILLEGAL_CHARACTERS)
                 {
-                    throw new AuthorityException("Group name contains characters that are not permitted: "+assocQName.getLocalName().charAt(assocQName.getLocalName().indexOf(illegalCharacter)));
+                    if (groupName.indexOf(illegalCharacter) != -1)
+                    {
+                        throw new AlfrescoRuntimeException("Group name contains characters that are not permitted: "+groupName.charAt(groupName.indexOf(illegalCharacter)));
+                    }
                 }
             }
         }
@@ -1685,8 +1688,8 @@ public class AuthorityDAOImpl implements AuthorityDAO, NodeServicePolicies.Befor
         this.policyComponent.bindClassBehaviour(QName.createQName(NamespaceService.ALFRESCO_URI, "onUpdateProperties"), ContentModel.TYPE_AUTHORITY, new JavaBehaviour(
                 this, "onUpdateProperties"));
         // Listen out for group creation to guard against illegal characters
-        this.policyComponent.bindClassBehaviour(QName.createQName(NamespaceService.ALFRESCO_URI, "beforeCreateNode"), ContentModel.TYPE_AUTHORITY_CONTAINER, new JavaBehaviour(
-                this, "beforeCreateNode"));
+        this.policyComponent.bindClassBehaviour(QName.createQName(NamespaceService.ALFRESCO_URI, "onCreateNode"), ContentModel.TYPE_AUTHORITY_CONTAINER, new JavaBehaviour(
+                this, "onCreateNode"));
 }
     
     /**
