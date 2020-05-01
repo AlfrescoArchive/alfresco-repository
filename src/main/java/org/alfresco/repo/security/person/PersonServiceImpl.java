@@ -226,11 +226,6 @@ public class PersonServiceImpl extends TransactionListenerAdapter implements Per
                 ContentModel.TYPE_PERSON,
                 beforeCreateNodeValidationBehaviour);
 
-        this.policyComponent.bindClassBehaviour(
-                BeforeCreateNodePolicy.QNAME,
-                ContentModel.TYPE_PERSON,
-                new JavaBehaviour(this, "beforeCreateNode"));
-
         beforeDeleteNodeValidationBehaviour = new JavaBehaviour(this, "beforeDeleteNodeValidation");
         this.policyComponent.bindClassBehaviour(
                 BeforeDeleteNodePolicy.QNAME,
@@ -1793,9 +1788,17 @@ public class PersonServiceImpl extends TransactionListenerAdapter implements Per
         NodeRef personRef = childAssocRef.getChildRef();
         
         String userName = (String) this.nodeService.getProperty(personRef, ContentModel.PROP_USERNAME);
-        
+
         if (getPeopleContainer().equals(childAssocRef.getParentRef()))
         {
+            for (char illegalCharacter : ILLEGAL_CHARACTERS)
+            {
+                if (userName.indexOf(illegalCharacter) != -1)
+                {
+                    throw new AlfrescoRuntimeException("Person name contains characters that are not permitted: "+userName.charAt(userName.indexOf(illegalCharacter)));
+                }
+            }
+
             // The value is stale.  However, we have already made the data change and
             // therefore do not need to lock the removal from further changes.
             removeFromCache(userName, false);
@@ -1824,16 +1827,7 @@ public class PersonServiceImpl extends TransactionListenerAdapter implements Per
             QName assocQName,
             QName nodeTypeQName)
     {
-        if (ContentModel.TYPE_PERSON.equals(nodeTypeQName))
-        {
-            for (char illegalCharacter : ILLEGAL_CHARACTERS)
-            {
-                if (assocQName.getLocalName().indexOf(illegalCharacter) != -1)
-                {
-                    throw new AlfrescoRuntimeException("Person name contains characters that are not permitted: "+assocQName.getLocalName().charAt(assocQName.getLocalName().indexOf(illegalCharacter)));
-                }
-            }
-        }
+        // NOOP
     }
     
     public void beforeCreateNodeValidation(
