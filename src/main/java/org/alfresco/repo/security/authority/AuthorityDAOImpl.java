@@ -1660,20 +1660,17 @@ public class AuthorityDAOImpl implements AuthorityDAO, NodeServicePolicies.Befor
     public void onCreateNode(ChildAssociationRef childAssocRef)
     {
         // Restrict creation of group name that contain invalid characters.
-        NodeRef groupRef = childAssocRef.getChildRef();
+        NodeRef authorityRef = childAssocRef.getChildRef();
 
-        String groupName = (String) this.nodeService.getProperty(groupRef, ContentModel.PROP_AUTHORITY_NAME);
+        String authorityName = (String) this.nodeService.getProperty(authorityRef, ContentModel.PROP_AUTHORITY_NAME);
 
-        if (getAuthorityContainer().equals(childAssocRef.getParentRef()))
+        if (authorityName != null)
         {
-            if (groupName != null)
+            for (char illegalCharacter : ILLEGAL_CHARACTERS)
             {
-                for (char illegalCharacter : ILLEGAL_CHARACTERS)
+                if (authorityName.indexOf(illegalCharacter) != -1)
                 {
-                    if (groupName.indexOf(illegalCharacter) != -1)
-                    {
-                        throw new AlfrescoRuntimeException("Group name contains characters that are not permitted: "+groupName.charAt(groupName.indexOf(illegalCharacter)));
-                    }
+                    throw new AlfrescoRuntimeException("Group name contains characters that are not permitted: "+authorityName.charAt(authorityName.indexOf(illegalCharacter)));
                 }
             }
         }
