@@ -1791,11 +1791,14 @@ public class PersonServiceImpl extends TransactionListenerAdapter implements Per
 
         if (getPeopleContainer().equals(childAssocRef.getParentRef()))
         {
-            for (char illegalCharacter : ILLEGAL_CHARACTERS)
+            if (userName != null)
             {
-                if (userName.indexOf(illegalCharacter) != -1)
+                for (char illegalCharacter : ILLEGAL_CHARACTERS)
                 {
-                    throw new AlfrescoRuntimeException("Person name contains characters that are not permitted: "+userName.charAt(userName.indexOf(illegalCharacter)));
+                    if (userName.indexOf(illegalCharacter) != -1)
+                    {
+                        throw new AlfrescoRuntimeException("Person name contains characters that are not permitted: "+userName.charAt(userName.indexOf(illegalCharacter)));
+                    }
                 }
             }
 
