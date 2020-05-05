@@ -75,6 +75,9 @@ public class ADMAccessControlListDAO implements AccessControlListDAO
     /**maxim transaction time allowed for {@link #setFixedAcls(Long, Long, Long, Long, List, boolean, AsyncCallParameters, boolean)} */
     private long fixedAclMaxTransactionTime = 10 * 1000;
 
+    /** If time fixedAclMaxTransactionTime exceeds, force ACL creation to be async if flag is set to true */
+    private boolean forceAsyncAclCreation = false;
+    
     public void setNodeDAO(NodeDAO nodeDAO)
     {
         this.nodeDAO = nodeDAO;
@@ -99,10 +102,20 @@ public class ADMAccessControlListDAO implements AccessControlListDAO
     {
         this.preserveAuditableData = preserveAuditableData;
     }
+
+    public void setForceAsyncAclCreation(boolean forceAsyncAclCreation)
+    {
+        this.forceAsyncAclCreation = forceAsyncAclCreation;
+    }
     
     public boolean isPreserveAuditableData()
     {
         return preserveAuditableData;
+    }
+
+    public boolean isForceAsyncAclCreation()
+    {
+        return forceAsyncAclCreation;
     }
 
     public void forceCopy(NodeRef nodeRef)
@@ -466,43 +479,60 @@ public class ADMAccessControlListDAO implements AccessControlListDAO
     private boolean setFixAclPending(Long nodeId, Long inheritFrom, Long mergeFrom, Long sharedAclToReplace, List<AclChange> changes,
             boolean set, boolean asyncCall, boolean propagateOnChildren)
     {
-        // check if async call is required
-        if (!asyncCall)
-        {
-            // make regular method call
-            setFixedAcls(nodeId, inheritFrom, mergeFrom, sharedAclToReplace, changes, set, asyncCall, propagateOnChildren);
+
+        // If we exceeded the transaction time and either call is async or system set to force acl async creation, delegate to job
+        if(isSubjectToAsyncAclCreation(nodeId,asyncCall)) {
+            // set ASPECT_PENDING_FIX_ACL aspect on node to be later on processed with FixedAclUpdater
+            addFixedAclPendingAspect(nodeId, sharedAclToReplace, inheritFrom);
+            AlfrescoTransactionSupport.bindResource(FixedAclUpdater.FIXED_ACL_ASYNC_REQUIRED_KEY, true);
+
+            Long setInheritFrom = (Long) nodeDAO.getNodeProperty(nodeId, ContentModel.PROP_INHERIT_FROM_ACL);
+            Long setSharedAclToReplace = (Long) nodeDAO.getNodeProperty(nodeId, ContentModel.PROP_SHARED_ACL_TO_REPLACE);            
+            return false;
+        }
+
+        // make regular method call
+        setFixedAcls(nodeId, inheritFrom, mergeFrom, sharedAclToReplace, changes, set, asyncCall, propagateOnChildren);
+        return true;
+    }
+
+    /**
+     * MNT-18308 - Verify if we turn this ACL creation to an asynchronous process based on three parameters: if the call is already async and 
+     * transaction time was exceeded OR if system is set to force async ACL creation when max transaction time allowed is exceeded
+     * even on asynchronous calls
+     * @param nodeId
+     * @param asyncCall
+     * @return
+     */
+    private boolean isSubjectToAsyncAclCreation(Long nodeId, boolean asyncCall) {
+
+        //If this is not an explicitly set or forced async call, it shall never go async
+        if (!asyncCall && !forceAsyncAclCreation) {
+            return false;
+        }
+
+        // This can be async so check the transaction time
+        long transactionStartTime = AlfrescoTransactionSupport.getTransactionStartTime();
+        long transactionTime = System.currentTimeMillis() - transactionStartTime;
+        boolean hasTimeExceeded = transactionTime < fixedAclMaxTransactionTime;
+
+        // Transaction time has not exceeded yet
+        if (!hasTimeExceeded) {
+            return false;
+        }
+
+        // It has exceeded the allowed time frame and async acl creation is set to be forced
+        if (forceAsyncAclCreation) {
             return true;
         }
-        else
-        {
-            // check transaction time
-            long transactionStartTime = AlfrescoTransactionSupport.getTransactionStartTime();
-            long transactionTime = System.currentTimeMillis() - transactionStartTime;
 
-            if (transactionTime < fixedAclMaxTransactionTime)
-            {
-                // make regular method call if time is under max transaction configured time
-                setFixedAcls(nodeId, inheritFrom, mergeFrom, sharedAclToReplace, changes, set, asyncCall, propagateOnChildren);
-                return true;
-            }
-            else
-            {
-                // time exceeded;
-                if (nodeDAO.getPrimaryChildrenAcls(nodeId).size() == 0)
-                {
-                    // if node is leaf in tree hierarchy call setFixedAcls now as processing with FixedAclUpdater would be more time consuming
-                    setFixedAcls(nodeId, inheritFrom, mergeFrom, sharedAclToReplace, changes, set, asyncCall, false);
-                }
-                else
-                {
-                    // set ASPECT_PENDING_FIX_ACL aspect on node to be later on processed with FixedAclUpdater
-                    addFixedAclPendingAspect(nodeId, sharedAclToReplace, inheritFrom);
-                    AlfrescoTransactionSupport.bindResource(FixedAclUpdater.FIXED_ACL_ASYNC_REQUIRED_KEY, true);
-                }
-                // stop propagating on children nodes
-                return false;
-            }
+        // It has exceeded the allowed time frame, the call is already async and this node has children in it
+        if (asyncCall && nodeDAO.getPrimaryChildrenAcls(nodeId).size() > 0 ) {
+            return true;
         }
+
+        // It is an async call and time was exceeded, but to maintain previous behaviour, we shall still process childless nodes synchronously
+        return false;
     }
     
     private void addFixedAclPendingAspect(Long nodeId, Long sharedAclToReplace, Long inheritFrom)
