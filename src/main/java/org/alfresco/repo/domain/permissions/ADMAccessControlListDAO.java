@@ -102,7 +102,7 @@ public class ADMAccessControlListDAO implements AccessControlListDAO
     {
         this.preserveAuditableData = preserveAuditableData;
     }
-
+    
     public void setForceAsyncAclCreation(boolean forceAsyncAclCreation)
     {
         this.forceAsyncAclCreation = forceAsyncAclCreation;
@@ -117,7 +117,7 @@ public class ADMAccessControlListDAO implements AccessControlListDAO
     {
         return forceAsyncAclCreation;
     }
-
+    
     public void forceCopy(NodeRef nodeRef)
     {
         // Nothing to do
@@ -479,15 +479,11 @@ public class ADMAccessControlListDAO implements AccessControlListDAO
     private boolean setFixAclPending(Long nodeId, Long inheritFrom, Long mergeFrom, Long sharedAclToReplace, List<AclChange> changes,
             boolean set, boolean asyncCall, boolean propagateOnChildren)
     {
-
-        // If we exceeded the transaction time and either call is async or system set to force acl async creation, delegate to job
+     // If we exceeded the transaction time and either call is async or system set to force acl async creation, delegate to job
         if(isSubjectToAsyncAclCreation(nodeId,asyncCall)) {
             // set ASPECT_PENDING_FIX_ACL aspect on node to be later on processed with FixedAclUpdater
             addFixedAclPendingAspect(nodeId, sharedAclToReplace, inheritFrom);
-            AlfrescoTransactionSupport.bindResource(FixedAclUpdater.FIXED_ACL_ASYNC_REQUIRED_KEY, true);
-
-            Long setInheritFrom = (Long) nodeDAO.getNodeProperty(nodeId, ContentModel.PROP_INHERIT_FROM_ACL);
-            Long setSharedAclToReplace = (Long) nodeDAO.getNodeProperty(nodeId, ContentModel.PROP_SHARED_ACL_TO_REPLACE);            
+            AlfrescoTransactionSupport.bindResource(FixedAclUpdater.FIXED_ACL_ASYNC_REQUIRED_KEY, true);      
             return false;
         }
 
@@ -495,14 +491,11 @@ public class ADMAccessControlListDAO implements AccessControlListDAO
         setFixedAcls(nodeId, inheritFrom, mergeFrom, sharedAclToReplace, changes, set, asyncCall, propagateOnChildren);
         return true;
     }
-
+    
     /**
      * MNT-18308 - Verify if we turn this ACL creation to an asynchronous process based on three parameters: if the call is already async and 
      * transaction time was exceeded OR if system is set to force async ACL creation when max transaction time allowed is exceeded
      * even on asynchronous calls
-     * @param nodeId
-     * @param asyncCall
-     * @return
      */
     private boolean isSubjectToAsyncAclCreation(Long nodeId, boolean asyncCall) {
 

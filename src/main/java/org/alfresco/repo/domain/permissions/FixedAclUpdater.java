@@ -95,8 +95,6 @@ public class FixedAclUpdater extends TransactionListenerAdapter implements Appli
     private PolicyComponent policyComponent;    
     private PolicyIgnoreUtil policyIgnoreUtil;
 
-    private List<NodeRef> currentlyProcessingNodes = new ArrayList<NodeRef>();
-
     public void setNumThreads(int numThreads)
     {
         this.numThreads = numThreads;
@@ -185,16 +183,7 @@ public class FixedAclUpdater extends TransactionListenerAdapter implements Appli
                             nodeDAO.getNodesWithAspects(aspects, getNodesCallback.getMinNodeId(), null, getNodesCallback);
                             getNodesCallback.done();
 
-                            List<NodeRef> nodesWithAspects = new ArrayList<NodeRef>();
-
-                            getNodesCallback.getNodes().forEach(el -> {
-                                if(!currentlyProcessingNodes.contains(el)) {
-                                    nodesWithAspects.add(el);
-                                    currentlyProcessingNodes.add(el);
-                                }
-                            });
-
-                            return nodesWithAspects;
+                            return getNodesCallback.getNodes();
                         }
                     }, false, true);
             return nodes;
@@ -287,8 +276,7 @@ public class FixedAclUpdater extends TransactionListenerAdapter implements Appli
 
                     nodeDAO.removeNodeAspects(nodeId, aspects);
                     nodeDAO.removeNodeProperties(nodeId, PENDING_FIX_ACL_ASPECT_PROPS);
-                    currentlyProcessingNodes.remove(nodeRef);
-
+                    
                     if (!policyIgnoreUtil.ignorePolicy(nodeRef))
                     {
                         boolean transformedToAsyncOperation = toBoolean((Boolean) AlfrescoTransactionSupport.getResource(FixedAclUpdater.FIXED_ACL_ASYNC_REQUIRED_KEY));
@@ -333,7 +321,9 @@ public class FixedAclUpdater extends TransactionListenerAdapter implements Appli
             if (nodes.size() < maxItemBatchSize)
             {
                 nodes.add(nodePair.getSecond());
-                maxNodeId = nodePair.getFirst();
+                if(nodePair.getFirst() > maxNodeId) {
+                    maxNodeId = nodePair.getFirst();
+                }
                 return true;
             }
             return false;
