@@ -95,6 +95,8 @@ public class FixedAclUpdater extends TransactionListenerAdapter implements Appli
     private PolicyComponent policyComponent;    
     private PolicyIgnoreUtil policyIgnoreUtil;
 
+    private List<NodeRef> currentlyProcessingNodes = new ArrayList<NodeRef>();
+
     public void setNumThreads(int numThreads)
     {
         this.numThreads = numThreads;
@@ -183,7 +185,16 @@ public class FixedAclUpdater extends TransactionListenerAdapter implements Appli
                             nodeDAO.getNodesWithAspects(aspects, getNodesCallback.getMinNodeId(), null, getNodesCallback);
                             getNodesCallback.done();
 
-                            return getNodesCallback.getNodes();
+                            List<NodeRef> nodesWithAspects = new ArrayList<NodeRef>();
+
+                            getNodesCallback.getNodes().forEach(el -> {
+                                if(!currentlyProcessingNodes.contains(el)) {
+                                    nodesWithAspects.add(el);
+                                    currentlyProcessingNodes.add(el);
+                                }
+                            });
+
+                            return nodesWithAspects;
                         }
                     }, false, true);
             return nodes;
@@ -276,7 +287,8 @@ public class FixedAclUpdater extends TransactionListenerAdapter implements Appli
 
                     nodeDAO.removeNodeAspects(nodeId, aspects);
                     nodeDAO.removeNodeProperties(nodeId, PENDING_FIX_ACL_ASPECT_PROPS);
-                    
+                    currentlyProcessingNodes.remove(nodeRef);
+
                     if (!policyIgnoreUtil.ignorePolicy(nodeRef))
                     {
                         boolean transformedToAsyncOperation = toBoolean((Boolean) AlfrescoTransactionSupport.getResource(FixedAclUpdater.FIXED_ACL_ASYNC_REQUIRED_KEY));
