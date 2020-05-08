@@ -2,12 +2,12 @@
     <modelVersion>4.0.0</modelVersion>
     <artifactId>alfresco-repository</artifactId>
     <name>Alfresco Repository</name>
-    <version>8.142-SNAPSHOT</version>
+    <version>8.183-SNAPSHOT</version>
     <packaging>jar</packaging>
     <parent>
         <groupId>org.alfresco</groupId>
         <artifactId>alfresco-super-pom</artifactId>
-        <version>10</version>
+        <version>12</version>
     </parent>
 
     <scm>
@@ -44,9 +44,9 @@
         <dependency.alfresco-jlan.version>7.1</dependency.alfresco-jlan.version>
         <dependency.alfresco-pdf-renderer.version>1.1</dependency.alfresco-pdf-renderer.version>
         <dependency.alfresco-hb-data-sender.version>1.0.12</dependency.alfresco-hb-data-sender.version>
-        <dependency.transform.model.version>1.0.2.8</dependency.transform.model.version>
+        <dependency.transform.model.version>1.0.2.10</dependency.transform.model.version>
 
-        <dependency.spring.version>5.2.5.RELEASE</dependency.spring.version>
+        <dependency.spring.version>5.2.6.RELEASE</dependency.spring.version>
         <dependency.spring-security.version>5.2.1.RELEASE</dependency.spring-security.version>
         <dependency.httpcomponents.version>4.5.10</dependency.httpcomponents.version>
         <dependency.truezip.version>7.7.10</dependency.truezip.version>
@@ -55,20 +55,22 @@
         <dependency.opencmis.version>1.0.0</dependency.opencmis.version>
         <dependency.activiti-engine.version>5.23.0</dependency.activiti-engine.version>
         <dependency.activiti.version>5.23.0</dependency.activiti.version>
-        <dependency.postgresql.version>42.2.10</dependency.postgresql.version>
-        <dependency.mysql.version>5.1.48</dependency.mysql.version>
-        <dependency.mariadb.version>2.2.5</dependency.mariadb.version>
+        <dependency.postgresql.version>42.2.12</dependency.postgresql.version>
+        <dependency.mysql.version>8.0.20</dependency.mysql.version>
+        <dependency.mariadb.version>2.6.0</dependency.mariadb.version>
         <dependency.antlr.version>3.5.2</dependency.antlr.version>
         <!-- REPO-4964 -->
-        <dependency.keycloak.version>7.0.0</dependency.keycloak.version>
+        <dependency.keycloak.version>9.0.3</dependency.keycloak.version>
         <dependency.jboss.logging.version>3.4.1.Final</dependency.jboss.logging.version>
         <dependency.camel.version>2.24.2</dependency.camel.version>
         <dependency.activemq.version>5.15.12</dependency.activemq.version>
         <dependency.pdfbox.version>2.0.19</dependency.pdfbox.version>
-        <dependency.cxf.version>3.3.5</dependency.cxf.version>
-        <dependency.jackson.version>2.10.3</dependency.jackson.version>
+        <dependency.cxf.version>3.3.6</dependency.cxf.version>
+        <dependency.jackson.version>2.11.0</dependency.jackson.version>
         <dependency.jackson-databind.version>2.10.2</dependency.jackson-databind.version>
         <dependency.apache.taglibs.version>1.2.5</dependency.apache.taglibs.version>
+        <dependency.acs-event-model.version>0.0.2</dependency.acs-event-model.version>
+        <dependency.awaitility.version>4.0.2</dependency.awaitility.version>
     </properties>
 
     <dependencyManagement>
@@ -243,7 +245,7 @@
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-lang3</artifactId>
-            <version>3.9</version>
+            <version>3.10</version>
         </dependency>
         <dependency>
             <groupId>commons-codec</groupId>
@@ -434,7 +436,7 @@
         <dependency>
             <groupId>org.freemarker</groupId>
             <artifactId>freemarker</artifactId>
-            <version>2.3.20-alfresco-patched</version>
+            <version>2.3.20-alfresco-patched-20200421</version>
         </dependency>
         <dependency>
             <groupId>org.apache.xmlbeans</groupId>
@@ -488,7 +490,7 @@
         <dependency>
             <groupId>com.sun.xml.fastinfoset</groupId>
             <artifactId>FastInfoset</artifactId>
-            <version>1.2.17</version>
+            <version>1.2.18</version>
         </dependency>
         <dependency>
             <groupId>org.alfresco</groupId>
@@ -508,7 +510,7 @@
         <dependency>
             <groupId>joda-time</groupId>
             <artifactId>joda-time</artifactId>
-            <version>2.10.5</version>
+            <version>2.10.6</version>
         </dependency>
         <dependency>
             <groupId>jaxen</groupId>
@@ -1200,6 +1202,18 @@
            <groupId>com.sun.activation</groupId>
            <artifactId>jakarta.activation</artifactId>
            <version>1.2.2</version>
+        </dependency>
+        <!-- Repo Event Model-->
+        <dependency>
+            <groupId>org.alfresco</groupId>
+            <artifactId>acs-event-model</artifactId>
+            <version>${dependency.acs-event-model.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.awaitility</groupId>
+            <artifactId>awaitility</artifactId>
+            <version>${dependency.awaitility.version}</version>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 

@@ -2,7 +2,7 @@
  * #%L
  * Alfresco Repository
  * %%
- * Copyright (C) 2005 - 2016 Alfresco Software Limited
+ * Copyright (C) 2005 - 2020 Alfresco Software Limited
  * %%
  * This file is part of the Alfresco software. 
  * If the software was purchased under a paid Alfresco license, the terms of 
@@ -270,6 +270,16 @@ public class ImageMagickContentTransformerWorker extends AbstractImageMagickCont
                                    String sourceMimetype, String targetMimetype,
                                    String sourceExtension, String targetExtension) throws IllegalAccessException
     {
+        String[] args = getTEngineArgs(options, sourceMimetype, sourceExtension, targetMimetype, versionString);
+        long timeoutMs = options.getTimeoutMs();
+        remoteTransformerClient.request(reader, writer, sourceMimetype, sourceExtension, targetExtension,
+                timeoutMs, logger, args);
+    }
+
+    // Not to be called directly. Refactored to make it easier to test TransformationOptionsConverter.
+    public static String[] getTEngineArgs(TransformationOptions options, String sourceMimetype, String sourceExtension,
+                                          String targetMimetype, String versionString)
+    {
         String startPage = null;
         String endPage = null;
 
@@ -292,7 +302,6 @@ public class ImageMagickContentTransformerWorker extends AbstractImageMagickCont
 
         String commandOptions = null;
 
-
         if (options instanceof ImageTransformationOptions)
         {
             ImageTransformationOptions imageOptions = (ImageTransformationOptions)options;
@@ -302,7 +311,7 @@ public class ImageMagickContentTransformerWorker extends AbstractImageMagickCont
             commandOptions = commandOptions == null || "".equals(commandOptions.trim()) ? null : commandOptions.trim();
 
             // MNT-10882 :  JPEG File Format, does not save the alpha (transparency) channel.
-            if (MimetypeMap.MIMETYPE_IMAGE_JPEG.equalsIgnoreCase(targetMimetype) && isAlphaOptionSupported())
+            if (MimetypeMap.MIMETYPE_IMAGE_JPEG.equalsIgnoreCase(targetMimetype) && isAlphaOptionSupported(versionString))
             {
                 alphaRemove = Boolean.TRUE.toString();
             }
@@ -350,13 +359,13 @@ public class ImageMagickContentTransformerWorker extends AbstractImageMagickCont
                 {
                     resizePercentage = Boolean.TRUE.toString();
                 }
-                if (resizeOptions.getAllowEnlargement())
+                if (!resizeOptions.getAllowEnlargement())
                 {
-                    allowEnlargement = Boolean.TRUE.toString();
+                    allowEnlargement = Boolean.FALSE.toString();
                 }
-                if (resizeOptions.isMaintainAspectRatio())
+                if (!resizeOptions.isMaintainAspectRatio())
                 {
-                    maintainAspectRatio = Boolean.TRUE.toString();
+                    maintainAspectRatio = Boolean.FALSE.toString();
                 }
             }
         }
@@ -386,9 +395,11 @@ public class ImageMagickContentTransformerWorker extends AbstractImageMagickCont
             }
         }
 
-        long timeoutMs = options.getTimeoutMs();
-        remoteTransformerClient.request(reader, writer, sourceMimetype, sourceExtension, targetExtension,
-                timeoutMs, logger,
+        return new String[] {
+                "transformName", "imagemagick",
+                "sourceMimetype", sourceMimetype,
+                "sourceExtension", sourceExtension,
+                "targetMimetype", targetMimetype,
 
                 START_PAGE, startPage,
                 END_PAGE, endPage,
@@ -398,7 +409,7 @@ public class ImageMagickContentTransformerWorker extends AbstractImageMagickCont
 
                 CROP_GRAVITY, cropGravity,
                 CROP_WIDTH, cropWidth,
-                CROP_HEIGHT,  cropHeight,
+                CROP_HEIGHT, cropHeight,
                 CROP_PERCENTAGE, cropPercentage,
                 CROP_X_OFFSET, cropXOffset,
                 CROP_Y_OFFSET, cropYOffset,
@@ -411,15 +422,20 @@ public class ImageMagickContentTransformerWorker extends AbstractImageMagickCont
                 MAINTAIN_ASPECT_RATIO, maintainAspectRatio,
 
                 // Parameter not to be taken forward into the Transform Service version
-                "commandOptions", commandOptions);
+                "commandOptions", commandOptions};
     }
 
     protected String getImageMagickVersionNumber()
     {
+        return getImageMagickVersionNumber(versionString);
+    }
+
+    private static String getImageMagickVersionNumber(String versionString)
+    {
         Pattern verisonNumPattern = Pattern.compile("Version: ImageMagick ((\\d|\\.)+)(-.*){0,1}");
         try
         {
-            Matcher versionNumMatcher = verisonNumPattern.matcher(this.versionString);
+            Matcher versionNumMatcher = verisonNumPattern.matcher(versionString);
             if (versionNumMatcher.find())
             {
                 return versionNumMatcher.group(1);
@@ -438,13 +454,18 @@ public class ImageMagickContentTransformerWorker extends AbstractImageMagickCont
      */
     protected boolean isAlphaOptionSupported()
     {
+        return isAlphaOptionSupported(versionString);
+    }
+
+    private static boolean isAlphaOptionSupported(String versionString)
+    {
         // the "-alpha" option was only introduced in ImageMagick v6.7.5 and will fail in older versions.
         String ALPHA_PROP_SUPPORTED_VERSION = "6.7.5";
 
         try
         {
            VersionNumber supportedVersion = new VersionNumber(ALPHA_PROP_SUPPORTED_VERSION);
-           VersionNumber checkedVersion = new VersionNumber(getImageMagickVersionNumber());
+           VersionNumber checkedVersion = new VersionNumber(getImageMagickVersionNumber(versionString));
         
            return supportedVersion.compareTo(checkedVersion) > 0 ? false : true;
         }
@@ -564,7 +585,7 @@ public class ImageMagickContentTransformerWorker extends AbstractImageMagickCont
      * @param targetMimetype
      * @return whether or not a page range must be specified for the transformer to read the target files
      */
-    private boolean isSingleSourcePageRangeRequired(String sourceMimetype, String targetMimetype)
+    private static boolean isSingleSourcePageRangeRequired(String sourceMimetype, String targetMimetype)
     {
         // Need a page source if we're transforming from PDF or TIFF to an image other than TIFF
         // or from PSD

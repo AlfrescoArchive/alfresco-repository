@@ -160,7 +160,6 @@ public class CombinedConfig
                             try
                             {
                                 String content = getContent(resEntity);
-
                                 try (StringReader reader = new StringReader(content))
                                 {
                                     int transformCount = combinedTransformers.size();

@@ -49,6 +49,7 @@ import org.junit.runners.Suite;
     org.alfresco.repo.cache.DefaultSimpleCacheTest.class,
     org.alfresco.repo.cache.lookup.EntityLookupCacheTest.class,
     org.alfresco.repo.calendar.CalendarHelpersTest.class,
+    org.alfresco.repo.copy.CopyServiceImplUnitTest.class,
     org.alfresco.repo.dictionary.RepoDictionaryDAOTest.class,
     org.alfresco.repo.forms.processor.node.FieldProcessorTest.class,
     org.alfresco.repo.forms.processor.workflow.TaskFormProcessorTest.class,
@@ -201,7 +202,9 @@ import org.junit.runners.Suite;
     org.alfresco.util.resource.HierarchicalResourceLoaderTest.class,
     org.alfresco.repo.events.ClientUtilTest.class,
     org.alfresco.repo.rendition2.RenditionService2Test.class,
-    org.alfresco.transform.client.registry.TransformServiceRegistryConfigTest.class
+    org.alfresco.transform.client.registry.TransformServiceRegistryConfigTest.class,
+
+    org.alfresco.repo.event2.EventFilterTest.class
 })
 public class AllUnitTestsSuite
 {

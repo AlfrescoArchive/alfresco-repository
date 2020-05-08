@@ -103,6 +103,7 @@ public class AuthenticationTest extends TestCase
     private AuthenticationManager authenticationManager;
     private TicketComponent ticketComponent;
     private SimpleCache<String, Ticket> ticketsCache;
+    private SimpleCache<String, String> usernameKey;
     private MutableAuthenticationService authenticationService;
     private MutableAuthenticationService pubAuthenticationService;
     private AuthenticationComponent authenticationComponent;
@@ -173,6 +174,7 @@ public class AuthenticationTest extends TestCase
         // permissionServiceSPI = (PermissionServiceSPI)
         // ctx.getBean("permissionService");
         ticketsCache = (SimpleCache<String, Ticket>) ctx.getBean("ticketsCache");
+        usernameKey = (SimpleCache<String, String>) ctx.getBean("usernameKeyCache");
 
         ChildApplicationContextFactory sysAdminSubsystem = (ChildApplicationContextFactory) ctx.getBean("sysAdmin");
         assertNotNull("sysAdminSubsystem", sysAdminSubsystem);
@@ -424,31 +426,15 @@ public class AuthenticationTest extends TestCase
             // TODO - could create tenant domain 'chocolate.chip.cookie.com'
         }
 
-        authenticationService.createAuthentication("Andy_Woof/Domain", DONT_CARE_PASSWORD);
-        authenticationService.authenticate("Andy_Woof/Domain", DONT_CARE_PASSWORD);
-        assertEquals("Andy_Woof/Domain", authenticationService.getCurrentUserName());
-
-        authenticationService.createAuthentication("Andy_ Woof/Domain", DONT_CARE_PASSWORD);
-        authenticationService.authenticate("Andy_ Woof/Domain", DONT_CARE_PASSWORD);
-        assertEquals("Andy_ Woof/Domain", authenticationService.getCurrentUserName());
-
-        if (! tenantService.isEnabled())
+        try
         {
-            String un = "Andy `\u00ac\u00a6!\u00a3$%^&*()-_=+\t\n\u0000[]{};'#:@~,./<>?|";
-            if (dialect instanceof PostgreSQLDialect)
-            {
-                // Note: PostgreSQL does not support \u0000 char embedded in a string
-                // http://archives.postgresql.org/pgsql-jdbc/2007-02/msg00115.php
-                un = "Andy `\u00ac\u00a6!\u00a3$%^&*()-_=+\t\n[]{};'#:@~,./<>?|";
-            }
-            
-            authenticationService.createAuthentication(un, DONT_CARE_PASSWORD);
-            authenticationService.authenticate(un, DONT_CARE_PASSWORD);
-            assertEquals(un, authenticationService.getCurrentUserName());
+            authenticationService.createAuthentication("Andy_Woof/Domain", DONT_CARE_PASSWORD);
+            authenticationService.authenticate("Andy_Woof/Domain", DONT_CARE_PASSWORD);
+            fail("Tenant domain ~,./<>?\\\\| is not valid format\"");
         }
-        else
+        catch (IllegalArgumentException ignored)
         {
-            // tenant domain ~,./<>?\\| is not valid format"
+            // Expected exception
         }
     }
     
@@ -845,6 +831,7 @@ public class AuthenticationTest extends TestCase
         tc.setTicketsExpire(false);
         tc.setValidDuration("P0D");
         tc.setTicketsCache(ticketsCache);
+        tc.setUsernameKey(usernameKey);
 
         dao.createUser("Andy", "ticket".toCharArray());
 
@@ -871,6 +858,7 @@ public class AuthenticationTest extends TestCase
         tc.setTicketsExpire(false);
         tc.setValidDuration("P0D");
         tc.setTicketsCache(ticketsCache);
+        tc.setUsernameKey(usernameKey);
 
         dao.createUser("Andy", "ticket".toCharArray());
 
@@ -900,12 +888,14 @@ public class AuthenticationTest extends TestCase
     public void testTicketExpiryMode()
     {   
         ticketsCache.clear();
+        usernameKey.clear();
         
         InMemoryTicketComponentImpl tc = new InMemoryTicketComponentImpl();
         tc.setOneOff(false);
         tc.setTicketsExpire(true);
         tc.setValidDuration("P5S");
         tc.setTicketsCache(ticketsCache);
+        tc.setUsernameKey(usernameKey);
         tc.setExpiryMode(ExpiryMode.AFTER_FIXED_TIME.toString());
 
         dao.createUser("Andy", "ticket".toCharArray());
@@ -1043,11 +1033,13 @@ public class AuthenticationTest extends TestCase
     public void testTicketExpires()
     {
         ticketsCache.clear();
+        usernameKey.clear();
         InMemoryTicketComponentImpl tc = new InMemoryTicketComponentImpl();
         tc.setOneOff(false);
         tc.setTicketsExpire(true);
         tc.setValidDuration("P5S");
         tc.setTicketsCache(ticketsCache);
+        tc.setUsernameKey(usernameKey);
 
         dao.createUser("Andy", "ticket".toCharArray());
 
@@ -1141,6 +1133,7 @@ public class AuthenticationTest extends TestCase
         tc.setTicketsExpire(true);
         tc.setValidDuration("P1D");
         tc.setTicketsCache(ticketsCache);
+        tc.setUsernameKey(usernameKey);
 
         dao.createUser("Andy", "ticket".toCharArray());
 

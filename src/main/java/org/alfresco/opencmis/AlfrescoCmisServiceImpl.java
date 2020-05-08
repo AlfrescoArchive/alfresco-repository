@@ -44,8 +44,6 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import javax.servlet.http.HttpServletRequest;
 
-import net.sf.acegisecurity.Authentication;
-
 import org.alfresco.model.ContentModel;
 import org.alfresco.opencmis.dictionary.CMISNodeInfo;
 import org.alfresco.opencmis.dictionary.CMISObjectVariant;
@@ -142,6 +140,8 @@ import org.apache.chemistry.opencmis.commons.spi.Holder;
 import org.apache.chemistry.opencmis.server.shared.QueryStringHttpServletRequestWrapper;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
+import net.sf.acegisecurity.Authentication;
 
 /**
  * OpenCMIS service implementation
