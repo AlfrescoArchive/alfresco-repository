@@ -69,6 +69,8 @@ public class FixedAclUpdaterTest extends TestCase
     private Repository repository;
     private FixedAclUpdater fixedAclUpdater;
     private NodeRef folderNodeRef;
+    private NodeRef mntFolder1;
+    private NodeRef mntFolder2;
     private PermissionsDaoComponent permissionsDaoComponent;
     private PermissionService permissionService;
     private NodeDAO nodeDAO;
@@ -97,6 +99,11 @@ public class FixedAclUpdaterTest extends TestCase
         // change setFixedAclMaxTransactionTime to lower value so setInheritParentPermissions on created folder hierarchy require async call
         setFixedAclMaxTransactionTime(permissionsDaoComponent, home, 50);
 
+        RetryingTransactionCallback<NodeRef> cb2 = createFolderHierchyCallback(home, fileFolderService, "MNT18308_1", filesPerLevel);
+        mntFolder1 = txnHelper.doInTransaction(cb2);
+
+        RetryingTransactionCallback<NodeRef> cb3 = createFolderHierchyCallback(home, fileFolderService, "MNT18308_2", filesPerLevel);
+        mntFolder2 = txnHelper.doInTransaction(cb3);
     }
 
     private static void setFixedAclMaxTransactionTime(PermissionsDaoComponent permissionsDaoComponent, NodeRef folderNodeRef,
@@ -109,6 +116,19 @@ public class FixedAclUpdaterTest extends TestCase
             {
                 ADMAccessControlListDAO admAcLDao = (ADMAccessControlListDAO) acldao;
                 admAcLDao.setFixedAclMaxTransactionTime(fixedAclMaxTransactionTime);
+            }
+        }
+    }
+
+    private static void setForceAsyncAclCreation(PermissionsDaoComponent permissionsDaoComponent, NodeRef folderNodeRef, boolean forceAsyncAclCreation)
+    {
+        if (permissionsDaoComponent instanceof ADMPermissionsDaoComponentImpl)
+        {
+            AccessControlListDAO acldao = ((ADMPermissionsDaoComponentImpl) permissionsDaoComponent).getACLDAO(folderNodeRef);
+            if (acldao instanceof ADMAccessControlListDAO)
+            {
+                ADMAccessControlListDAO admAcLDao = (ADMAccessControlListDAO) acldao;
+                admAcLDao.setForceAsyncAclCreation(forceAsyncAclCreation);
             }
         }
     }
@@ -189,8 +209,7 @@ public class FixedAclUpdaterTest extends TestCase
             {
                 permissionService.setInheritParentPermissions(folderNodeRef, false, true);
 
-                Boolean asyncCallRequired = (Boolean) AlfrescoTransactionSupport.getResource(FixedAclUpdater.FIXED_ACL_ASYNC_REQUIRED_KEY);
-                assertTrue("asyncCallRequired should be true", asyncCallRequired);
+                assertTrue("asyncCallRequired should be true", isAsyncCallSetAsRequired());
 
                 return null;
             }
@@ -224,6 +243,111 @@ public class FixedAclUpdaterTest extends TestCase
                 return null;
             }
         }, false, true);
+    }
+
+    @Test
+    public void testMNT18308_flagOff()
+    {
+        // Test the default behaviour without setting forceAsyncAclCreation
+        txnHelper.doInTransaction(new RetryingTransactionCallback<Void>()
+        {
+            @Override
+            public Void execute() throws Throwable
+            {
+                assertFalse("asyncCallRequiredBefore should be false", isAsyncCallSetAsRequired());
+
+                //setInheritParentPermissions with sync call
+                permissionService.setInheritParentPermissions(mntFolder1, false, false);
+
+                assertFalse("asyncCallRequiredAfter should remain false", isAsyncCallSetAsRequired());
+
+                return null;
+            }
+        }, false, true);
+
+        // check that there are nodes to process by job
+        txnHelper.doInTransaction(new RetryingTransactionCallback<Void>()
+        {
+            @Override
+            public Void execute() throws Throwable
+            {
+                assertTrue("There should not be any nodes with ASPECT_PENDING_FIX_ACL", getNodesCountWithPendingFixedAclAspect() == 0);
+                return null;
+            }
+        }, false, true);
+    }
+    
+    @Test
+    public void testMNT18308_flagOn()
+    {
+        // Set property forceAsyncAclCreation to true
+        setForceAsyncAclCreation(permissionsDaoComponent, repository.getCompanyHome(), true);
+
+        txnHelper.doInTransaction(new RetryingTransactionCallback<Void>()
+        {
+            @Override
+            public Void execute() throws Throwable
+            {
+                assertFalse("asyncCallRequiredBefore should be false", isAsyncCallSetAsRequired());
+
+                //setInheritParentPermissions with sync call
+                permissionService.setInheritParentPermissions(mntFolder2, false, false);
+
+                assertTrue("asyncCallRequiredAfter should now be true", isAsyncCallSetAsRequired());
+
+                return null;
+            }
+        }, false, true);
+
+        // check that there are nodes to process
+        txnHelper.doInTransaction(new RetryingTransactionCallback<Void>()
+        {
+            @Override
+            public Void execute() throws Throwable
+            {
+                assertTrue("No nodes are set to be processed by job", getNodesCountWithPendingFixedAclAspect() > 0);
+                return null;
+            }
+        }, false, true);
+
+        txnHelper.doInTransaction(new RetryingTransactionCallback<Void>()
+        {
+            @Override
+            public Void execute() throws Throwable
+            {
+                int count = 0;
+                do
+                {
+                    count = fixedAclUpdater.execute();
+                }
+                while(count > 0);
+
+                return null;
+            }
+        }, false, true);
+
+        // check if nodes with ASPECT_PENDING_FIX_ACL are processed
+        txnHelper.doInTransaction(new RetryingTransactionCallback<Void>()
+        {
+            @Override
+            public Void execute() throws Throwable
+            {
+                assertEquals("Not all nodes were processed", 0, getNodesCountWithPendingFixedAclAspect());
+                return null;
+            }
+        }, false, true);
+
+        setForceAsyncAclCreation(permissionsDaoComponent, repository.getCompanyHome(), false);
+    }
+
+    private boolean isAsyncCallSetAsRequired() {
+
+        if(AlfrescoTransactionSupport.getResource(FixedAclUpdater.FIXED_ACL_ASYNC_REQUIRED_KEY) == null) {
+            return false;
+        } else {
+            return (boolean) AlfrescoTransactionSupport.getResource(FixedAclUpdater.FIXED_ACL_ASYNC_REQUIRED_KEY);
+        }
+
     }
 
     private static class GetNodesCountWithAspectCallback implements NodeRefQueryCallback

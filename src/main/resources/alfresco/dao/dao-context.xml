@@ -265,6 +265,7 @@
       <property name="behaviourFilter" ref="policyBehaviourFilter" />
       <property name="preserveAuditableData" value="${system.auditableData.ACLs}"></property>
       <property name="fixedAclMaxTransactionTime" value="${system.fixedACLs.maxTransactionTime}"/>
+      <property name="forceAsyncAclCreation" value="${system.fixedACLsUpdater.forceAsyncAclCreation}"></property>
    </bean>
     
    <bean id="aclCrudDAO" class="org.alfresco.repo.domain.permissions.ibatis.AclCrudDAOImpl">
