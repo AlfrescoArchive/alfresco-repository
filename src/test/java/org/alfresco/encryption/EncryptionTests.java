@@ -271,31 +271,6 @@ public class EncryptionTests extends TestCase
 		}
 	}
 
-
-// The test is no longer relevant as it is not possible to reload keystore with missing info,
-// AlfrescoRuntimeException is thrown
-//	public void testBootstrapReEncrypt()
-//	{
-//		try
-//		{
-//			// ensure that the backup key store is not available
-//			backupKeyStoreParameters.setLocation("");
-//			//backupKeyStore.reload();
-//			mainKeyStore.reload();
-//
-//			reEncryptor.bootstrapReEncrypt();
-//			fail("Should have caught missing backup key store");
-//		}
-//		catch(MissingKeyException e)
-//		{
-//			System.out.println("Successfully caught missing key exception");
-//		}
-//		catch(InvalidKeystoreException e)
-//		{
-//			fail("Unexpected exception: " + e.getMessage());
-//		}
-//	}
-
 	protected void testChangeKeysImpl(boolean cacheCiphers) throws Throwable
 	{
 		// on a single thread
