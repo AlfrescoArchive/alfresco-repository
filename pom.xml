@@ -2,7 +2,7 @@
     <modelVersion>4.0.0</modelVersion>
     <artifactId>alfresco-repository</artifactId>
     <name>Alfresco Repository</name>
-    <version>8.183-SNAPSHOT</version>
+    <version>repo-4710-11</version>
     <packaging>jar</packaging>
     <parent>
         <groupId>org.alfresco</groupId>
@@ -14,7 +14,7 @@
         <connection>scm:git:https://github.com/Alfresco/alfresco-repository.git</connection>
         <developerConnection>scm:git:https://github.com/Alfresco/alfresco-repository.git</developerConnection>
         <url>https://github.com/Alfresco/alfresco-repository</url>
-        <tag>alfresco-repository-repo-4710-10.5</tag>
+        <tag>alfresco-repository-repo-4710-11</tag>
     </scm>
 
     <distributionManagement>
