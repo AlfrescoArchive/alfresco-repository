@@ -503,9 +503,9 @@ public class ADMAccessControlListDAO implements AccessControlListDAO
         if (log.isWarnEnabled() && (AlfrescoTransactionSupport.getResource(FixedAclUpdater.FIXED_ACL_ASYNC_REQUIRED_KEY) == null
                 || (Boolean) AlfrescoTransactionSupport.getResource(FixedAclUpdater.FIXED_ACL_ASYNC_REQUIRED_KEY) == false))
         {
-            log.warn("Time was exceeded in transaction " + AlfrescoTransactionSupport.getTransactionId()
-                    + " and is scheduled to async processing. Time passed: " + transactionTime
-                    + "ms. Current max transaction time defined is " + fixedAclMaxTransactionTime + "ms.");
+            log.warn("The ACL processing time in transaction " + AlfrescoTransactionSupport.getTransactionId()
+                    + " exceeded the configured limit of " + fixedAclMaxTransactionTime
+                    + " ms. The rest of the ACL processing will be done asynchronously.");
         }
         // set ASPECT_PENDING_FIX_ACL aspect on node to be later on processed with FixedAclUpdater amd switch flag
         // FIXED_ACL_ASYNC_REQUIRED_KEY
