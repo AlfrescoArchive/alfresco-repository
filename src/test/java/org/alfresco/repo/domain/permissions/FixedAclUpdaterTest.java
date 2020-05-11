@@ -68,8 +68,8 @@ public class FixedAclUpdaterTest extends TestCase
     private FileFolderService fileFolderService;
     private Repository repository;
     private FixedAclUpdater fixedAclUpdater;
-    private NodeRef mnt15368folder;
-    private NodeRef mnt18308folder;
+    private NodeRef folderAsyncCallNodeRef;
+    private NodeRef folderSyncCallNodeRef;
     private PermissionsDaoComponent permissionsDaoComponent;
     private PermissionService permissionService;
     private NodeDAO nodeDAO;
@@ -92,11 +92,11 @@ public class FixedAclUpdaterTest extends TestCase
         NodeRef home = repository.getCompanyHome();
         // create a folder hierarchy for which will change permission inheritance
         int[] filesPerLevel = { 5, 5, 10 };
-        RetryingTransactionCallback<NodeRef> cb1 = createFolderHierchyCallback(home, fileFolderService, "mnt15368Rootfolder", filesPerLevel);
-        mnt15368folder = txnHelper.doInTransaction(cb1);
+        RetryingTransactionCallback<NodeRef> cb1 = createFolderHierchyCallback(home, fileFolderService, "rootFolderAsyncCall", filesPerLevel);
+        folderAsyncCallNodeRef = txnHelper.doInTransaction(cb1);
         
-        RetryingTransactionCallback<NodeRef> cb2 = createFolderHierchyCallback(home, fileFolderService, "mnt18308Rootfolder", filesPerLevel);
-        mnt18308folder = txnHelper.doInTransaction(cb2);
+        RetryingTransactionCallback<NodeRef> cb2 = createFolderHierchyCallback(home, fileFolderService, "rootFolderSyncCall", filesPerLevel);
+        folderSyncCallNodeRef = txnHelper.doInTransaction(cb2);
 
         // change setFixedAclMaxTransactionTime to lower value so setInheritParentPermissions on created folder hierarchy require async call
         setFixedAclMaxTransactionTime(permissionsDaoComponent, home, 50);
@@ -146,10 +146,10 @@ public class FixedAclUpdaterTest extends TestCase
                 {
                     Set<QName> aspect = new HashSet<>();
                     aspect.add(ContentModel.ASPECT_TEMPORARY);
-                    nodeDAO.addNodeAspects(nodeDAO.getNodePair(mnt15368folder).getFirst(), aspect);
-                    nodeDAO.addNodeAspects(nodeDAO.getNodePair(mnt18308folder).getFirst(), aspect);
-                    fileFolderService.delete(mnt15368folder);
-                    fileFolderService.delete(mnt18308folder);
+                    nodeDAO.addNodeAspects(nodeDAO.getNodePair(folderAsyncCallNodeRef).getFirst(), aspect);
+                    nodeDAO.addNodeAspects(nodeDAO.getNodePair(folderSyncCallNodeRef).getFirst(), aspect);
+                    fileFolderService.delete(folderAsyncCallNodeRef);
+                    fileFolderService.delete(folderSyncCallNodeRef);
                     return null;
                 }
             });
@@ -193,7 +193,7 @@ public class FixedAclUpdaterTest extends TestCase
             @Override
             public Void execute() throws Throwable
             {
-                permissionService.setInheritParentPermissions(mnt15368folder, false, true);
+                permissionService.setInheritParentPermissions(folderAsyncCallNodeRef, false, true);
 
                 Boolean asyncCallRequired = (Boolean) AlfrescoTransactionSupport.getResource(FixedAclUpdater.FIXED_ACL_ASYNC_REQUIRED_KEY);
                 assertTrue("asyncCallRequired should be true", asyncCallRequired);
@@ -242,7 +242,7 @@ public class FixedAclUpdaterTest extends TestCase
             public Void execute() throws Throwable
             {
              
-                permissionService.setInheritParentPermissions(mnt18308folder, false, false);
+                permissionService.setInheritParentPermissions(folderSyncCallNodeRef, false, false);
                 
                 //As time has exceeded, the transaction should turn async
                 Boolean asyncCallRequiredAfter = (Boolean) AlfrescoTransactionSupport.getResource(FixedAclUpdater.FIXED_ACL_ASYNC_REQUIRED_KEY);
