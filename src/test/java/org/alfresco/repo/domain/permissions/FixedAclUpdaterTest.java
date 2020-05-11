@@ -68,7 +68,8 @@ public class FixedAclUpdaterTest extends TestCase
     private FileFolderService fileFolderService;
     private Repository repository;
     private FixedAclUpdater fixedAclUpdater;
-    private NodeRef folderNodeRef;
+    private NodeRef mnt15368folder;
+    private NodeRef mnt18308folder;
     private PermissionsDaoComponent permissionsDaoComponent;
     private PermissionService permissionService;
     private NodeDAO nodeDAO;
@@ -91,8 +92,11 @@ public class FixedAclUpdaterTest extends TestCase
         NodeRef home = repository.getCompanyHome();
         // create a folder hierarchy for which will change permission inheritance
         int[] filesPerLevel = { 5, 5, 10 };
-        RetryingTransactionCallback<NodeRef> cb = createFolderHierchyCallback(home, fileFolderService, "ROOT", filesPerLevel);
-        folderNodeRef = txnHelper.doInTransaction(cb);
+        RetryingTransactionCallback<NodeRef> cb1 = createFolderHierchyCallback(home, fileFolderService, "mnt15368Rootfolder", filesPerLevel);
+        mnt15368folder = txnHelper.doInTransaction(cb1);
+        
+        RetryingTransactionCallback<NodeRef> cb2 = createFolderHierchyCallback(home, fileFolderService, "mnt18308Rootfolder", filesPerLevel);
+        mnt18308folder = txnHelper.doInTransaction(cb2);
 
         // change setFixedAclMaxTransactionTime to lower value so setInheritParentPermissions on created folder hierarchy require async call
         setFixedAclMaxTransactionTime(permissionsDaoComponent, home, 50);
@@ -142,8 +146,10 @@ public class FixedAclUpdaterTest extends TestCase
                 {
                     Set<QName> aspect = new HashSet<>();
                     aspect.add(ContentModel.ASPECT_TEMPORARY);
-                    nodeDAO.addNodeAspects(nodeDAO.getNodePair(folderNodeRef).getFirst(), aspect);
-                    fileFolderService.delete(folderNodeRef);
+                    nodeDAO.addNodeAspects(nodeDAO.getNodePair(mnt15368folder).getFirst(), aspect);
+                    nodeDAO.addNodeAspects(nodeDAO.getNodePair(mnt18308folder).getFirst(), aspect);
+                    fileFolderService.delete(mnt15368folder);
+                    fileFolderService.delete(mnt18308folder);
                     return null;
                 }
             });
@@ -187,7 +193,7 @@ public class FixedAclUpdaterTest extends TestCase
             @Override
             public Void execute() throws Throwable
             {
-                permissionService.setInheritParentPermissions(folderNodeRef, false, true);
+                permissionService.setInheritParentPermissions(mnt15368folder, false, true);
 
                 Boolean asyncCallRequired = (Boolean) AlfrescoTransactionSupport.getResource(FixedAclUpdater.FIXED_ACL_ASYNC_REQUIRED_KEY);
                 assertTrue("asyncCallRequired should be true", asyncCallRequired);
@@ -215,6 +221,66 @@ public class FixedAclUpdaterTest extends TestCase
         }, false, true);
 
         // check if nodes with ASPECT_PENDING_FIX_ACL are processed
+        txnHelper.doInTransaction(new RetryingTransactionCallback<Void>()
+        {
+            @Override
+            public Void execute() throws Throwable
+            {
+                assertEquals("Not all nodes were processed", 0, getNodesCountWithPendingFixedAclAspect());
+                return null;
+            }
+        }, false, true);
+    }
+    
+    @Test
+    public void testMNT18308()
+    {
+        // Set Permissions Synchronously
+        txnHelper.doInTransaction(new RetryingTransactionCallback<Void>()
+        {
+            @Override
+            public Void execute() throws Throwable
+            {
+             
+                permissionService.setInheritParentPermissions(mnt18308folder, false, false);
+                
+                //As time has exceeded, the transaction should turn async
+                Boolean asyncCallRequiredAfter = (Boolean) AlfrescoTransactionSupport.getResource(FixedAclUpdater.FIXED_ACL_ASYNC_REQUIRED_KEY);
+                assertTrue("asyncCallRequired should be true", asyncCallRequiredAfter);
+
+                return null;
+            }
+        }, false, true);
+        
+        // Assert that there are nodes with aspect ASPECT_PENDING_FIX_ACL to be processed
+        txnHelper.doInTransaction(new RetryingTransactionCallback<Void>()
+        {
+            @Override
+            public Void execute() throws Throwable
+            {
+                assertTrue("There are no nodes to process", getNodesCountWithPendingFixedAclAspect() > 0);
+                return null;
+            }
+        }, false, true);
+
+        // Run the fixedAclUpdater until there is nothing more to fix
+        txnHelper.doInTransaction(new RetryingTransactionCallback<Void>()
+        {
+            @Override
+            public Void execute() throws Throwable
+            {
+                int count = 0;
+                do
+                {
+                    count = fixedAclUpdater.execute();
+                }
+                while(count > 0);
+
+                return null;
+            }
+        }, false, true);
+
+        // Check if nodes with ASPECT_PENDING_FIX_ACL are processed
         txnHelper.doInTransaction(new RetryingTransactionCallback<Void>()
         {
             @Override

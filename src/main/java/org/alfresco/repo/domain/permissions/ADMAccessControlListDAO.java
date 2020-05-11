@@ -462,47 +462,32 @@ public class ADMAccessControlListDAO implements AccessControlListDAO
     
     /**
      * If async call required adds ASPECT_PENDING_FIX_ACL aspect to nodes when transactionTime reaches max admitted time
+     * MNT-18308: No longer checks if call is async in order to evaluate time passed to decide if nodes should be processed by job.
+     * This is now the default behavior for both sync and async calls: when fixedAclMaxTransactionTime is exceeded, call turns
+     * async and all remaining nodes should be processed by job FixedACLUpdater
      */
     private boolean setFixAclPending(Long nodeId, Long inheritFrom, Long mergeFrom, Long sharedAclToReplace, List<AclChange> changes,
             boolean set, boolean asyncCall, boolean propagateOnChildren)
     {
-        // check if async call is required
-        if (!asyncCall)
+        
+        // check transaction time
+        long transactionStartTime = AlfrescoTransactionSupport.getTransactionStartTime();
+        long transactionTime = System.currentTimeMillis() - transactionStartTime;
+
+        if (transactionTime < fixedAclMaxTransactionTime)
         {
-            // make regular method call
+            // make regular method call if time is under max transaction configured time
             setFixedAcls(nodeId, inheritFrom, mergeFrom, sharedAclToReplace, changes, set, asyncCall, propagateOnChildren);
             return true;
         }
-        else
-        {
-            // check transaction time
-            long transactionStartTime = AlfrescoTransactionSupport.getTransactionStartTime();
-            long transactionTime = System.currentTimeMillis() - transactionStartTime;
-
-            if (transactionTime < fixedAclMaxTransactionTime)
-            {
-                // make regular method call if time is under max transaction configured time
-                setFixedAcls(nodeId, inheritFrom, mergeFrom, sharedAclToReplace, changes, set, asyncCall, propagateOnChildren);
-                return true;
-            }
-            else
-            {
-                // time exceeded;
-                if (nodeDAO.getPrimaryChildrenAcls(nodeId).size() == 0)
-                {
-                    // if node is leaf in tree hierarchy call setFixedAcls now as processing with FixedAclUpdater would be more time consuming
-                    setFixedAcls(nodeId, inheritFrom, mergeFrom, sharedAclToReplace, changes, set, asyncCall, false);
-                }
-                else
-                {
-                    // set ASPECT_PENDING_FIX_ACL aspect on node to be later on processed with FixedAclUpdater
-                    addFixedAclPendingAspect(nodeId, sharedAclToReplace, inheritFrom);
-                    AlfrescoTransactionSupport.bindResource(FixedAclUpdater.FIXED_ACL_ASYNC_REQUIRED_KEY, true);
-                }
-                // stop propagating on children nodes
-                return false;
-            }
-        }
+        
+        // set ASPECT_PENDING_FIX_ACL aspect on node to be later on processed with FixedAclUpdater
+        addFixedAclPendingAspect(nodeId, sharedAclToReplace, inheritFrom);
+        AlfrescoTransactionSupport.bindResource(FixedAclUpdater.FIXED_ACL_ASYNC_REQUIRED_KEY, true);
+        // stop propagating on children nodes
+        return false;
+        
+        
     }
     
     private void addFixedAclPendingAspect(Long nodeId, Long sharedAclToReplace, Long inheritFrom)
