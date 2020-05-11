@@ -221,14 +221,14 @@ public class FixedAclUpdaterTest extends TestCase
             return null;
         }, false, true);
     }
-    
-    private static boolean isFixedAclAsyncRequired() {
-        if(AlfrescoTransactionSupport
-                .getResource(FixedAclUpdater.FIXED_ACL_ASYNC_REQUIRED_KEY) == null) {
+
+    private static boolean isFixedAclAsyncRequired()
+    {
+        if (AlfrescoTransactionSupport.getResource(FixedAclUpdater.FIXED_ACL_ASYNC_REQUIRED_KEY) == null)
+        {
             return false;
         }
-        return (Boolean) AlfrescoTransactionSupport
-                .getResource(FixedAclUpdater.FIXED_ACL_ASYNC_REQUIRED_KEY);
+        return (Boolean) AlfrescoTransactionSupport.getResource(FixedAclUpdater.FIXED_ACL_ASYNC_REQUIRED_KEY);
     }
 
     private static class GetNodesCountWithAspectCallback implements NodeRefQueryCallback
