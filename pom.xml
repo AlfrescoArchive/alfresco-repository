@@ -821,7 +821,7 @@
         <dependency>
             <groupId>org.gytheio</groupId>
             <artifactId>gytheio-messaging-camel</artifactId>
-            <version>0.11.3</version>
+            <version>0.11.4</version>
             <exclusions>
                 <exclusion>
                     <groupId>commons-logging</groupId>
