@@ -276,7 +276,7 @@ public class EventConsolidator implements EventSupportedPolicies
 
         if (nodeTypeBefore != null)
         {
-            builder.setNodeType(nodeTypeBefore.toPrefixString());
+            builder.setNodeType(helper.getQNamePrefixString(nodeTypeBefore));
         }
 
         return builder.build();
