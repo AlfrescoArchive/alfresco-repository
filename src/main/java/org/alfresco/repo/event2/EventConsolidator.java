@@ -64,6 +64,7 @@ public class EventConsolidator implements EventSupportedPolicies
     private Map<QName, Serializable> propertiesAfter;
     private NodeRef nodeRef;
     private QName nodeType;
+    private QName nodeTypeBefore;
 
     public EventConsolidator(NodeResourceHelper nodeResourceHelper)
     {
@@ -142,6 +143,14 @@ public class EventConsolidator implements EventSupportedPolicies
         this.propertiesBefore = null;
         setBeforeProperties(Collections.emptyMap());
         setAfterProperties(helper.getProperties(nodeRef));
+    }
+
+    @Override
+    public void onSetNodeType(NodeRef nodeRef, QName before, QName after)
+    {
+        eventTypes.add(EventType.NODE_UPDATED);
+        nodeTypeBefore = before;
+        createBuilderIfAbsent(nodeRef);
     }
 
     @Override
@@ -263,6 +272,11 @@ public class EventConsolidator implements EventSupportedPolicies
         if (!aspectsBefore.isEmpty())
         {
             builder.setAspectNames(aspectsBefore);
+        }
+
+        if (nodeTypeBefore != null)
+        {
+            builder.setNodeType(nodeTypeBefore.toPrefixString());
         }
 
         return builder.build();
