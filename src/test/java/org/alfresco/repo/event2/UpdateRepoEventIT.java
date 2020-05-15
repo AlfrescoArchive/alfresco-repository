@@ -311,7 +311,9 @@ public class UpdateRepoEventIT extends AbstractContextAwareRepoEvent
     public void testMoveFile()
     {
         final NodeRef folder1 = createNode(ContentModel.TYPE_FOLDER);
+        final String folder1ID = getNodeResource(1).getId();
         final NodeRef folder2 = createNode(ContentModel.TYPE_FOLDER);
+        final String folder2ID = getNodeResource(2).getId();
         final NodeRef moveFile = createNode(ContentModel.TYPE_CONTENT, folder1);
 
         retryingTransactionHelper.doInTransaction(() -> {
@@ -323,22 +325,36 @@ public class UpdateRepoEventIT extends AbstractContextAwareRepoEvent
             return null;
         });
 
-        checkNumOfEvents(4);
+        NodeResource resourceBefore = getNodeResourceBefore(4);
+        NodeResource resource = getNodeResource(4);
 
-        RepoEventContainer repoEventsContainer = getRepoEventsContainer();
-
-        final String folder1ID = getNodeResource(repoEventsContainer.getEvent(1)).getId();
-        final String folder2ID = getNodeResource(repoEventsContainer.getEvent(2)).getId();
-
-        final String moveFileParentBeforeMove =
-            getNodeResourceBefore(repoEventsContainer.getEvent(4)).getPrimaryHierarchy().get(0);
-        final String moveFileParentAfterMove =
-            getNodeResource(repoEventsContainer.getEvent(4)).getPrimaryHierarchy().get(0);
+        final String moveFileParentBeforeMove = resourceBefore.getPrimaryHierarchy().get(0);
+        final String moveFileParentAfterMove = resource.getPrimaryHierarchy().get(0);
 
         assertTrue("Wrong parent.",folder1ID.equals(moveFileParentBeforeMove));
         assertTrue("Wrong parent.",folder2ID.equals(moveFileParentAfterMove));
         assertEquals("Wrong repo event type.", EventType.NODE_UPDATED.getType(),
             getRepoEvent(4).getType());
+
+        assertNull(resourceBefore.getId());
+        assertNull(resourceBefore.getName());
+        assertNull(resourceBefore.getNodeType());
+        assertNull(resourceBefore.isFile());
+        assertNull(resourceBefore.isFolder());
+        assertNull(resourceBefore.getModifiedByUser());
+        assertNull(resourceBefore.getCreatedAt());
+        assertNull(resourceBefore.getCreatedByUser());
+        assertNull(resourceBefore.getProperties());
+        assertNotNull(resourceBefore.getAspectNames());
+        assertNotNull(resourceBefore.getPrimaryHierarchy());
+        assertNull("Content should have been null.", resource.getContent());
+        assertNull("Content should have been null.", resourceBefore.getContent());
+
+        assertNotNull(resource.getModifiedAt());
+        assertNotNull(resource.getModifiedByUser());
+        assertNotNull(resource.getAspectNames());
+        assertNull(resource.getContent());
+        assertTrue(resource.getProperties().isEmpty());
     }
 
     @Test
