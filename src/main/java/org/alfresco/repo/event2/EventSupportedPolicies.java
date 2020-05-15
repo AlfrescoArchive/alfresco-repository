@@ -38,6 +38,7 @@ public interface EventSupportedPolicies extends NodeServicePolicies.OnCreateNode
                                                 NodeServicePolicies.OnSetNodeTypePolicy,
                                                 NodeServicePolicies.BeforeDeleteNodePolicy,
                                                 NodeServicePolicies.OnAddAspectPolicy,
-                                                NodeServicePolicies.OnRemoveAspectPolicy
+                                                NodeServicePolicies.OnRemoveAspectPolicy,
+                                                NodeServicePolicies.OnMoveNodePolicy
 {
 }
