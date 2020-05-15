@@ -331,8 +331,8 @@ public class UpdateRepoEventIT extends AbstractContextAwareRepoEvent
         final String moveFileParentBeforeMove = resourceBefore.getPrimaryHierarchy().get(0);
         final String moveFileParentAfterMove = resource.getPrimaryHierarchy().get(0);
 
-        assertTrue("Wrong parent.",folder1ID.equals(moveFileParentBeforeMove));
-        assertTrue("Wrong parent.",folder2ID.equals(moveFileParentAfterMove));
+        assertEquals("Wrong node parent.", folder1ID, moveFileParentBeforeMove);
+        assertEquals("Wrong node parent.", folder2ID, moveFileParentAfterMove);
         assertEquals("Wrong repo event type.", EventType.NODE_UPDATED.getType(),
             getRepoEvent(4).getType());
 
@@ -385,8 +385,8 @@ public class UpdateRepoEventIT extends AbstractContextAwareRepoEvent
         final String moveFolderParentAfterMove =
             getNodeResource(repoEventsContainer.getEvent(4)).getPrimaryHierarchy().get(0);
 
-        assertTrue("Wrong parent.",parentID.equals(moveFolderParentBeforeMove));
-        assertTrue("Wrong parent.",grandParentID.equals(moveFolderParentAfterMove));
+        assertEquals("Wrong node parent.", parentID, moveFolderParentBeforeMove);
+        assertEquals("Wrong node parent.", grandParentID, moveFolderParentAfterMove);
         assertEquals("Wrong repo event type.", EventType.NODE_UPDATED.getType(),
             getRepoEvent(4).getType());
     }
@@ -416,17 +416,17 @@ public class UpdateRepoEventIT extends AbstractContextAwareRepoEvent
         final String root2ID = getNodeResource(repoEventsContainer.getEvent(2)).getId();
         final String grandParentParentAfterMove =
             getNodeResource(repoEventsContainer.getEvent(6)).getPrimaryHierarchy().get(0);
-        assertTrue("Wrong parent.",root2ID.equals(grandParentParentAfterMove));
+        assertEquals("Wrong node parent.", root2ID, grandParentParentAfterMove);
 
         final String grandParentID = getNodeResource(repoEventsContainer.getEvent(3)).getId();
         final String parentIDOfTheParentFolder =
             getNodeResource(repoEventsContainer.getEvent(4)).getPrimaryHierarchy().get(0);
-        assertTrue("Wrong parent.",grandParentID.equals(parentIDOfTheParentFolder));
+        assertEquals("Wrong node parent.", grandParentID, parentIDOfTheParentFolder);
 
         final String parentID = getNodeResource(repoEventsContainer.getEvent(4)).getId();
         final String contentParentID =
             getNodeResource(repoEventsContainer.getEvent(5)).getPrimaryHierarchy().get(0);
-        assertTrue("Wrong parent.",parentID.equals(contentParentID));
+        assertEquals("Wrong node parent.", parentID, contentParentID);
     }
 
     @Test
@@ -452,7 +452,7 @@ public class UpdateRepoEventIT extends AbstractContextAwareRepoEvent
 
         NodeResource resource = getNodeResource(5);
         assertNotNull(resource.getAspectNames());
-        assertTrue("Wrong aspect.",resource.getAspectNames().contains("cm:versionable"));
+        assertTrue("Wrong aspect.", resource.getAspectNames().contains("cm:versionable"));
 
         RepoEventContainer repoEventsContainer = getRepoEventsContainer();
 
@@ -460,7 +460,7 @@ public class UpdateRepoEventIT extends AbstractContextAwareRepoEvent
         final String moveFileParentAfterMove =
             getNodeResource(repoEventsContainer.getEvent(5)).getPrimaryHierarchy().get(0);
 
-        assertTrue("Wrong parent.",folder2ID.equals(moveFileParentAfterMove));
+        assertEquals("Wrong node parent.", folder2ID, moveFileParentAfterMove);
     }
 
     @Test
@@ -490,7 +490,7 @@ public class UpdateRepoEventIT extends AbstractContextAwareRepoEvent
         final String moveFileParentAfterMove =
             getNodeResource(repoEventsContainer.getEvent(4)).getPrimaryHierarchy().get(0);
 
-        assertTrue("Wrong parent.",folder2ID.equals(moveFileParentAfterMove));
+        assertEquals("Wrong node parent.", folder2ID, moveFileParentAfterMove);
     }
 
     @Test
@@ -535,6 +535,6 @@ public class UpdateRepoEventIT extends AbstractContextAwareRepoEvent
         final String moveFileParentAfterMove =
             getNodeResource(repoEventsContainer.getEvent(3)).getPrimaryHierarchy().get(0);
 
-        assertTrue("Wrong parent.",folder2ID.equals(moveFileParentAfterMove));
+        assertEquals("Wrong node parent.", folder2ID, moveFileParentAfterMove);
     }
 }
