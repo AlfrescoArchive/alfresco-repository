@@ -459,7 +459,7 @@ public class UpdateRepoEventIT extends AbstractContextAwareRepoEvent
         assertEquals("Incorrect node type was found", "cm:content", nodeResource.getNodeType());
 
         NodeResource resourceBefore = getNodeResourceBefore(2);
-        assertEquals("Incorrect node type was found", resourceBefore.getNodeType());
+        assertEquals("Incorrect node type was found", "cm:folder", resourceBefore.getNodeType());
         // assertNotNull(resourceBefore.getModifiedAt()); uncomment this when the issue will be fixed
         assertNull(resourceBefore.getId());
         assertNull(resourceBefore.getContent());
