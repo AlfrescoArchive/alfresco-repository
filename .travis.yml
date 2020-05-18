@@ -24,7 +24,7 @@ stages:
   - test
 #  - release
 #
-#install: travis_retry mvn install -DskipTests=true -Dmaven.javadoc.skip=true -B -V
+install: travis_retry mvn install -DskipTests=true -Dmaven.javadoc.skip=true -B -V --offline
 #
 #jobs:
 #  include:
