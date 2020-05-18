@@ -22,8 +22,8 @@ branches:
 stages:
   - test
   - release
-
-install: travis_retry mvn install -DskipTests=true -Dmaven.javadoc.skip=true -B -V
+# It is broken spring-web dependency in maven cache in travis env
+install: travis_retry mvn dependency:purge-local-repository -DmanualInclude=org.springframework:spring-web:5.1.8.RELEASE install -DskipTests=true -Dmaven.javadoc.skip=true -B -V
 
 jobs:
   include:
