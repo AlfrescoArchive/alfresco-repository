@@ -54,6 +54,7 @@ import org.alfresco.model.ContentModel;
 import org.alfresco.repo.admin.SysAdminParamsImpl;
 import org.alfresco.repo.cache.SimpleCache;
 import org.alfresco.repo.domain.dialect.Dialect;
+import org.alfresco.repo.domain.dialect.PostgreSQLDialect;
 import org.alfresco.repo.management.subsystems.ChildApplicationContextFactory;
 import org.alfresco.repo.management.subsystems.ChildApplicationContextManager;
 import org.alfresco.repo.policy.BehaviourFilter;
