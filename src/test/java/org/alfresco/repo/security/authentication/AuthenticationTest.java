@@ -54,6 +54,7 @@ import org.alfresco.model.ContentModel;
 import org.alfresco.repo.admin.SysAdminParamsImpl;
 import org.alfresco.repo.cache.SimpleCache;
 import org.alfresco.repo.domain.dialect.Dialect;
+import org.alfresco.repo.domain.dialect.PostgreSQLDialect;
 import org.alfresco.repo.management.subsystems.ChildApplicationContextFactory;
 import org.alfresco.repo.management.subsystems.ChildApplicationContextManager;
 import org.alfresco.repo.policy.BehaviourFilter;
@@ -102,7 +103,7 @@ public class AuthenticationTest extends TestCase
     private AuthenticationManager authenticationManager;
     private TicketComponent ticketComponent;
     private SimpleCache<String, Ticket> ticketsCache;
-    private SimpleCache<String, String> usernameToTicketIdCache;
+    private SimpleCache<String, String> usernameKey;
     private MutableAuthenticationService authenticationService;
     private MutableAuthenticationService pubAuthenticationService;
     private AuthenticationComponent authenticationComponent;
@@ -173,7 +174,7 @@ public class AuthenticationTest extends TestCase
         // permissionServiceSPI = (PermissionServiceSPI)
         // ctx.getBean("permissionService");
         ticketsCache = (SimpleCache<String, Ticket>) ctx.getBean("ticketsCache");
-        usernameToTicketIdCache = (SimpleCache<String, String>) ctx.getBean("usernameToTicketIdCache");
+        usernameKey = (SimpleCache<String, String>) ctx.getBean("usernameKeyCache");
 
         ChildApplicationContextFactory sysAdminSubsystem = (ChildApplicationContextFactory) ctx.getBean("sysAdmin");
         assertNotNull("sysAdminSubsystem", sysAdminSubsystem);
@@ -830,7 +831,7 @@ public class AuthenticationTest extends TestCase
         tc.setTicketsExpire(false);
         tc.setValidDuration("P0D");
         tc.setTicketsCache(ticketsCache);
-        tc.setUsernameToTicketIdCache(usernameToTicketIdCache);
+        tc.setUsernameKey(usernameKey);
 
         dao.createUser("Andy", "ticket".toCharArray());
 
@@ -857,7 +858,7 @@ public class AuthenticationTest extends TestCase
         tc.setTicketsExpire(false);
         tc.setValidDuration("P0D");
         tc.setTicketsCache(ticketsCache);
-        tc.setUsernameToTicketIdCache(usernameToTicketIdCache);
+        tc.setUsernameKey(usernameKey);
 
         dao.createUser("Andy", "ticket".toCharArray());
 
@@ -887,14 +888,14 @@ public class AuthenticationTest extends TestCase
     public void testTicketExpiryMode()
     {   
         ticketsCache.clear();
-        usernameToTicketIdCache.clear();
+        usernameKey.clear();
         
         InMemoryTicketComponentImpl tc = new InMemoryTicketComponentImpl();
         tc.setOneOff(false);
         tc.setTicketsExpire(true);
         tc.setValidDuration("P5S");
         tc.setTicketsCache(ticketsCache);
-        tc.setUsernameToTicketIdCache(usernameToTicketIdCache);
+        tc.setUsernameKey(usernameKey);
         tc.setExpiryMode(ExpiryMode.AFTER_FIXED_TIME.toString());
 
         dao.createUser("Andy", "ticket".toCharArray());
@@ -1032,13 +1033,13 @@ public class AuthenticationTest extends TestCase
     public void testTicketExpires()
     {
         ticketsCache.clear();
-        usernameToTicketIdCache.clear();
+        usernameKey.clear();
         InMemoryTicketComponentImpl tc = new InMemoryTicketComponentImpl();
         tc.setOneOff(false);
         tc.setTicketsExpire(true);
         tc.setValidDuration("P5S");
         tc.setTicketsCache(ticketsCache);
-        tc.setUsernameToTicketIdCache(usernameToTicketIdCache);
+        tc.setUsernameKey(usernameKey);
 
         dao.createUser("Andy", "ticket".toCharArray());
 
@@ -1132,7 +1133,7 @@ public class AuthenticationTest extends TestCase
         tc.setTicketsExpire(true);
         tc.setValidDuration("P1D");
         tc.setTicketsCache(ticketsCache);
-        tc.setUsernameToTicketIdCache(usernameToTicketIdCache);
+        tc.setUsernameKey(usernameKey);
 
         dao.createUser("Andy", "ticket".toCharArray());
 
