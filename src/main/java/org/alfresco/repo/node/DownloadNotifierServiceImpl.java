@@ -29,6 +29,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.alfresco.repo.download.DownloadModel;
 import org.alfresco.repo.node.NodeServicePolicies.OnDownloadNodePolicy;
 import org.alfresco.repo.policy.ClassPolicyDelegate;
 import org.alfresco.repo.policy.PolicyComponent;
@@ -79,8 +80,7 @@ public class DownloadNotifierServiceImpl implements DownloadNotifierService
 
     private boolean isZipDownload(NodeRef nodeRef)
     {
-        // TODO: Check for download zip nodes.
-        return false;
+        return DownloadModel.TYPE_DOWNLOAD.equals(nodeService.getType(nodeRef));
     }
 
     /**
