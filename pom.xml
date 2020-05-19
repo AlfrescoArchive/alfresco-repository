@@ -2,7 +2,7 @@
     <modelVersion>4.0.0</modelVersion>
     <artifactId>alfresco-repository</artifactId>
     <name>Alfresco Repository</name>
-    <version>8.190-SNAPSHOT</version>
+    <version>repo-5118-1</version>
     <packaging>jar</packaging>
     <parent>
         <groupId>org.alfresco</groupId>
