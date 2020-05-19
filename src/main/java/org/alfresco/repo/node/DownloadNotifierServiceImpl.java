@@ -27,6 +27,7 @@ package org.alfresco.repo.node;
 
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import org.alfresco.repo.download.DownloadModel;
@@ -34,6 +35,7 @@ import org.alfresco.repo.node.NodeServicePolicies.OnDownloadNodePolicy;
 import org.alfresco.repo.policy.ClassPolicyDelegate;
 import org.alfresco.repo.policy.PolicyComponent;
 import org.alfresco.repo.tenant.TenantService;
+import org.alfresco.service.cmr.repository.AssociationRef;
 import org.alfresco.service.cmr.repository.InvalidNodeRefException;
 import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.cmr.repository.NodeService;
@@ -73,9 +75,12 @@ public class DownloadNotifierServiceImpl implements DownloadNotifierService
 
     private void handleZipDownload(NodeRef nodeRef)
     {
-        // TODO: Loop through all the associated nodes for the zip node and call invokeOnDownloadNode
-        // Currently we are just call invokeOnDownloadNode for the zip node.
-        invokeOnDownloadNode(nodeRef);
+        // Loop through all the associated nodes for the zip node and call invokeOnDownloadNode
+        List<AssociationRef> requestedNodes = nodeService.getTargetAssocs(nodeRef, DownloadModel.ASSOC_REQUESTED_NODES);
+        for (AssociationRef nodeToBeDownloaded: requestedNodes)
+        {
+            invokeOnDownloadNode(nodeToBeDownloaded.getTargetRef());
+        }
     }
 
     private boolean isZipDownload(NodeRef nodeRef)
