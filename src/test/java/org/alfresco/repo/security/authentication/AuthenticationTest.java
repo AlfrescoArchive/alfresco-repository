@@ -103,7 +103,7 @@ public class AuthenticationTest extends TestCase
     private AuthenticationManager authenticationManager;
     private TicketComponent ticketComponent;
     private SimpleCache<String, Ticket> ticketsCache;
-    private SimpleCache<String, String> usernameKey;
+    private SimpleCache<String, String> usernameToTicketIdCache;
     private MutableAuthenticationService authenticationService;
     private MutableAuthenticationService pubAuthenticationService;
     private AuthenticationComponent authenticationComponent;
@@ -174,7 +174,7 @@ public class AuthenticationTest extends TestCase
         // permissionServiceSPI = (PermissionServiceSPI)
         // ctx.getBean("permissionService");
         ticketsCache = (SimpleCache<String, Ticket>) ctx.getBean("ticketsCache");
-        usernameKey = (SimpleCache<String, String>) ctx.getBean("usernameKeyCache");
+        usernameToTicketIdCache = (SimpleCache<String, String>) ctx.getBean("usernameToTicketIdCache");
 
         ChildApplicationContextFactory sysAdminSubsystem = (ChildApplicationContextFactory) ctx.getBean("sysAdmin");
         assertNotNull("sysAdminSubsystem", sysAdminSubsystem);
@@ -847,7 +847,7 @@ public class AuthenticationTest extends TestCase
         tc.setTicketsExpire(false);
         tc.setValidDuration("P0D");
         tc.setTicketsCache(ticketsCache);
-        tc.setUsernameKey(usernameKey);
+        tc.setUsernameToTicketIdCache(usernameToTicketIdCache);
 
         dao.createUser("Andy", "ticket".toCharArray());
 
@@ -874,7 +874,7 @@ public class AuthenticationTest extends TestCase
         tc.setTicketsExpire(false);
         tc.setValidDuration("P0D");
         tc.setTicketsCache(ticketsCache);
-        tc.setUsernameKey(usernameKey);
+        tc.setUsernameToTicketIdCache(usernameToTicketIdCache);
 
         dao.createUser("Andy", "ticket".toCharArray());
 
@@ -904,14 +904,14 @@ public class AuthenticationTest extends TestCase
     public void testTicketExpiryMode()
     {   
         ticketsCache.clear();
-        usernameKey.clear();
+        usernameToTicketIdCache.clear();
         
         InMemoryTicketComponentImpl tc = new InMemoryTicketComponentImpl();
         tc.setOneOff(false);
         tc.setTicketsExpire(true);
         tc.setValidDuration("P5S");
         tc.setTicketsCache(ticketsCache);
-        tc.setUsernameKey(usernameKey);
+        tc.setUsernameToTicketIdCache(usernameToTicketIdCache);
         tc.setExpiryMode(ExpiryMode.AFTER_FIXED_TIME.toString());
 
         dao.createUser("Andy", "ticket".toCharArray());
@@ -1049,13 +1049,13 @@ public class AuthenticationTest extends TestCase
     public void testTicketExpires()
     {
         ticketsCache.clear();
-        usernameKey.clear();
+        usernameToTicketIdCache.clear();
         InMemoryTicketComponentImpl tc = new InMemoryTicketComponentImpl();
         tc.setOneOff(false);
         tc.setTicketsExpire(true);
         tc.setValidDuration("P5S");
         tc.setTicketsCache(ticketsCache);
-        tc.setUsernameKey(usernameKey);
+        tc.setUsernameToTicketIdCache(usernameToTicketIdCache);
 
         dao.createUser("Andy", "ticket".toCharArray());
 
@@ -1149,7 +1149,7 @@ public class AuthenticationTest extends TestCase
         tc.setTicketsExpire(true);
         tc.setValidDuration("P1D");
         tc.setTicketsCache(ticketsCache);
-        tc.setUsernameKey(usernameKey);
+        tc.setUsernameToTicketIdCache(usernameToTicketIdCache);
 
         dao.createUser("Andy", "ticket".toCharArray());
 
