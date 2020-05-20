@@ -27,7 +27,15 @@ package org.alfresco.repo.node;
 
 import org.alfresco.service.cmr.repository.NodeRef;
 
+/**
+ * Download Notifier Service.
+ */
 public interface DownloadNotifierService
 {
+    /**
+     * Notification of a node download.
+     *
+     * @param nodeRef   The reference to the downloaded node. This can be a reference to a zip download node.
+     */
     void downloadNotify(NodeRef nodeRef);
 }

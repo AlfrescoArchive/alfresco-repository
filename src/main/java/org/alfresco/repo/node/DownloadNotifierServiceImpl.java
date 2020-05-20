@@ -40,7 +40,6 @@ import org.alfresco.service.cmr.repository.InvalidNodeRefException;
 import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.cmr.repository.NodeService;
 import org.alfresco.service.namespace.QName;
-import org.mozilla.classfile.ClassFileWriter.MHandle;
 
 public class DownloadNotifierServiceImpl implements DownloadNotifierService
 {
@@ -61,10 +60,12 @@ public class DownloadNotifierServiceImpl implements DownloadNotifierService
         onDownloadNodeDelegate = policyComponent.registerClassPolicy(NodeServicePolicies.OnDownloadNodePolicy.class);
     }
 
+    /**
+     * @see org.alfresco.repo.node.DownloadNotifierService#downloadNotify(NodeRef)
+     */
     @Override
     public void downloadNotify(NodeRef nodeRef)
     {
-        
         boolean isZipDownload = isZipDownload(nodeRef);
         if (isZipDownload){
             handleZipDownload(nodeRef);
@@ -89,8 +90,9 @@ public class DownloadNotifierServiceImpl implements DownloadNotifierService
     }
 
     /**
-     * TODO: Fix @see
-     * @see NodeServicePolicies.OnDownloadNodePolicy#onDownloadNode(NodeRef)
+     * Called after a node has been downloaded.
+     *
+     * @param nodeRef reference to the downloaded node
      */
     private void invokeOnDownloadNode(NodeRef nodeRef)
     {
@@ -120,14 +122,14 @@ public class DownloadNotifierServiceImpl implements DownloadNotifierService
      */
     private Set<QName> getTypeAndAspectQNames(NodeRef nodeRef)
     {
-        Set<QName> qnames = null;
+        Set<QName> qnames;
         try
         {
             Set<QName> aspectQNames = nodeService.getAspects(nodeRef);
 
             QName typeQName = nodeService.getType(nodeRef);
 
-            qnames = new HashSet<QName>(aspectQNames.size() + 1);
+            qnames = new HashSet<>(aspectQNames.size() + 1);
             qnames.addAll(aspectQNames);
             qnames.add(typeQName);
         } catch (InvalidNodeRefException e)
@@ -137,7 +139,6 @@ public class DownloadNotifierServiceImpl implements DownloadNotifierService
         // done
         return qnames;
     }
-
 
     public void setNodeService(NodeService nodeService)
     {

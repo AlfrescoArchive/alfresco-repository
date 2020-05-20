@@ -55,6 +55,7 @@ import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
 
 import org.alfresco.error.AlfrescoRuntimeException;
+import org.alfresco.repo.node.DownloadNotifierService;
 import org.alfresco.sync.events.types.ContentEvent;
 import org.alfresco.sync.events.types.ContentEventImpl;
 import org.alfresco.sync.events.types.ContentReadRangeEvent;
@@ -309,6 +310,7 @@ public class CMISConnector implements ApplicationContextAware, ApplicationListen
     private CheckOutCheckInService checkOutCheckInService;
     private LockService lockService;
     private ContentService contentService;
+    private DownloadNotifierService downloadNotifierService;
     @Deprecated
     private RenditionService renditionService;
     private FileFolderService fileFolderService;
@@ -559,6 +561,11 @@ public class CMISConnector implements ApplicationContextAware, ApplicationListen
 	{
 		this.actionService = actionService;
 	}
+
+    public void setDownloadNotifierService(DownloadNotifierService downloadNotifierService)
+    {
+        this.downloadNotifierService = downloadNotifierService;
+    }
 
 	/**
      * Sets the version service.
@@ -1816,7 +1823,7 @@ public class CMISConnector implements ApplicationContextAware, ApplicationListen
             }
         });
 
-
+        downloadNotifierService.downloadNotify(nodeRef);
     }
 
     public void appendContent(CMISNodeInfo nodeInfo, ContentStream contentStream, boolean isLastChunk) throws IOException
