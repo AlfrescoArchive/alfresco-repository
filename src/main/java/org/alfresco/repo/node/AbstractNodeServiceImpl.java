@@ -744,6 +744,7 @@ public abstract class AbstractNodeServiceImpl implements NodeService
      *         the node aspects, or null if the node no longer exists
      */
     @Override
+    @Extend(traitAPI=NodeServiceTrait.class,extensionAPI=NodeServiceExtension.class)
     public Set<QName> getTypeAndAspectQNames(NodeRef nodeRef)
     {
         Set<QName> qnames = null;
