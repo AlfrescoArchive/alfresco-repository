@@ -29,6 +29,8 @@ import org.alfresco.service.cmr.repository.NodeRef;
 
 /**
  * Download Notifier Service.
+ * @author Chris Shields
+ * @author Sara Aspery
  */
 public interface DownloadNotifierService
 {
