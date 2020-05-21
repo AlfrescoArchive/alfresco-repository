@@ -25,8 +25,6 @@
  */
 package org.alfresco.repo.node;
 
-import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -34,21 +32,22 @@ import org.alfresco.repo.download.DownloadModel;
 import org.alfresco.repo.node.NodeServicePolicies.OnDownloadNodePolicy;
 import org.alfresco.repo.policy.ClassPolicyDelegate;
 import org.alfresco.repo.policy.PolicyComponent;
-import org.alfresco.repo.tenant.TenantService;
 import org.alfresco.service.cmr.repository.AssociationRef;
-import org.alfresco.service.cmr.repository.InvalidNodeRefException;
 import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.cmr.repository.NodeService;
 import org.alfresco.service.namespace.QName;
+import org.alfresco.util.PolicyIgnoreUtil;
 
+/**
+ * Download Notifier Service.
+ * @author Chris Shields
+ * @author Sara Aspery
+ */
 public class DownloadNotifierServiceImpl implements DownloadNotifierService
 {
     private NodeService nodeService;
-    
     private PolicyComponent policyComponent;
-    private TenantService tenantService;
-    private Set<String> storesToIgnorePolicies = Collections.emptySet();
-
+    private PolicyIgnoreUtil policyIgnoreUtil;
     private ClassPolicyDelegate<OnDownloadNodePolicy> onDownloadNodeDelegate;
 
     /**
@@ -96,48 +95,17 @@ public class DownloadNotifierServiceImpl implements DownloadNotifierService
      */
     private void invokeOnDownloadNode(NodeRef nodeRef)
     {
-        if (ignorePolicy(nodeRef))
+        if (policyIgnoreUtil.ignorePolicy(nodeRef))
         {
             return;
         }
 
         // get qnames to invoke against
-        Set<QName> qnames = getTypeAndAspectQNames(nodeRef);
+        Set<QName> qnames = nodeService.getTypeAndAspectQNames(nodeRef);
+        
         // execute policy for node type and aspects
         NodeServicePolicies.OnDownloadNodePolicy policy = onDownloadNodeDelegate.get(nodeRef, qnames);
         policy.onDownloadNode(nodeRef);
-    }
-
-    private boolean ignorePolicy(NodeRef nodeRef)
-    {
-        return (storesToIgnorePolicies.contains(tenantService.getBaseName(nodeRef.getStoreRef()).toString()));
-    }
-
-    /**
-     * Get all aspect and node type qualified names
-     *
-     * @param nodeRef the node we are interested in
-     * @return Returns a set of qualified names containing the node type and all
-     * the node aspects, or null if the node no longer exists
-     */
-    private Set<QName> getTypeAndAspectQNames(NodeRef nodeRef)
-    {
-        Set<QName> qnames;
-        try
-        {
-            Set<QName> aspectQNames = nodeService.getAspects(nodeRef);
-
-            QName typeQName = nodeService.getType(nodeRef);
-
-            qnames = new HashSet<>(aspectQNames.size() + 1);
-            qnames.addAll(aspectQNames);
-            qnames.add(typeQName);
-        } catch (InvalidNodeRefException e)
-        {
-            qnames = Collections.emptySet();
-        }
-        // done
-        return qnames;
     }
 
     public void setNodeService(NodeService nodeService)
@@ -150,13 +118,8 @@ public class DownloadNotifierServiceImpl implements DownloadNotifierService
         this.policyComponent = policyComponent;
     }
 
-    public void setTenantService(TenantService tenantService)
+    public void setPolicyIgnoreUtil(PolicyIgnoreUtil policyIgnoreUtil)
     {
-        this.tenantService = tenantService;
-    }
-
-    public void setStoresToIgnorePolicies(Set<String> storesToIgnorePolicies)
-    {
-        this.storesToIgnorePolicies = storesToIgnorePolicies;
+        this.policyIgnoreUtil = policyIgnoreUtil;
     }
 }

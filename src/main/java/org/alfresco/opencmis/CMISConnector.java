@@ -1768,6 +1768,8 @@ public class CMISConnector implements ApplicationContextAware, ApplicationListen
                 result.setLength(BigInteger.valueOf(len));
                 publishReadEvent(streamNodeRef, info.getName(), result.getMimeType(), contentSize, contentReader.getEncoding(), off+" - "+len);
             }
+
+            downloadNotifierService.downloadNotify(streamNodeRef);
         }
         catch (Exception e)
         {
@@ -1822,8 +1824,6 @@ public class CMISConnector implements ApplicationContextAware, ApplicationListen
                 }
             }
         });
-
-        downloadNotifierService.downloadNotify(nodeRef);
     }
 
     public void appendContent(CMISNodeInfo nodeInfo, ContentStream contentStream, boolean isLastChunk) throws IOException
