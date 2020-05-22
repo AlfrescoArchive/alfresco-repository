@@ -25,6 +25,8 @@
  */
 package org.alfresco.repo.node;
 
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -33,6 +35,7 @@ import org.alfresco.repo.node.NodeServicePolicies.OnDownloadNodePolicy;
 import org.alfresco.repo.policy.ClassPolicyDelegate;
 import org.alfresco.repo.policy.PolicyComponent;
 import org.alfresco.service.cmr.repository.AssociationRef;
+import org.alfresco.service.cmr.repository.InvalidNodeRefException;
 import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.cmr.repository.NodeService;
 import org.alfresco.service.namespace.QName;
@@ -85,7 +88,8 @@ public class DownloadNotifierServiceImpl implements DownloadNotifierService
 
     private boolean isZipDownload(NodeRef nodeRef)
     {
-        return DownloadModel.TYPE_DOWNLOAD.equals(nodeService.getType(nodeRef));
+        QName qName = nodeService.getType(nodeRef);
+        return DownloadModel.TYPE_DOWNLOAD.equals(qName);
     }
 
     /**
@@ -101,13 +105,40 @@ public class DownloadNotifierServiceImpl implements DownloadNotifierService
         }
 
         // get qnames to invoke against
-        Set<QName> qnames = nodeService.getTypeAndAspectQNames(nodeRef);
+        Set<QName> qnames = getTypeAndAspectQNames(nodeRef);
         
         // execute policy for node type and aspects
         NodeServicePolicies.OnDownloadNodePolicy policy = onDownloadNodeDelegate.get(nodeRef, qnames);
         policy.onDownloadNode(nodeRef);
     }
 
+    /**
+     * Get all aspect and node type qualified names
+     *
+     * @param nodeRef the node we are interested in
+     * @return Returns a set of qualified names containing the node type and all
+     * the node aspects, or null if the node no longer exists
+     */
+    protected Set<QName> getTypeAndAspectQNames(NodeRef nodeRef)
+    {
+        Set<QName> qnames = null;
+        try
+        {
+            Set<QName> aspectQNames = nodeService.getAspects(nodeRef);
+
+            QName typeQName = nodeService.getType(nodeRef);
+
+            qnames = new HashSet<QName>(aspectQNames.size() + 1);
+            qnames.addAll(aspectQNames);
+            qnames.add(typeQName);
+        } catch (InvalidNodeRefException e)
+        {
+            qnames = Collections.emptySet();
+        }
+        // done
+        return qnames;
+    }
+    
     public void setNodeService(NodeService nodeService)
     {
         this.nodeService = nodeService;

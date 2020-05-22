@@ -743,9 +743,7 @@ public abstract class AbstractNodeServiceImpl implements NodeService
      * @return Returns a set of qualified names containing the node type and all
      *         the node aspects, or null if the node no longer exists
      */
-    @Override
-    @Extend(traitAPI=NodeServiceTrait.class,extensionAPI=NodeServiceExtension.class)
-    public Set<QName> getTypeAndAspectQNames(NodeRef nodeRef)
+    protected Set<QName> getTypeAndAspectQNames(NodeRef nodeRef)
     {
         Set<QName> qnames = null;
         try
