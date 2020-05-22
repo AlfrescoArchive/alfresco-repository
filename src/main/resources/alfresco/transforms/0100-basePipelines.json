@@ -222,7 +222,9 @@
         {"sourceMediaType": "application/vnd.sun.xml.impress.template",    "priority": 150, "targetMediaType": "application/pdf" },
         {"sourceMediaType": "text/tab-separated-values",                   "priority": 150, "targetMediaType": "application/pdf" },
         {"sourceMediaType": "application/vnd.visio2013",                   "priority": 150, "targetMediaType": "application/pdf" },
-        {"sourceMediaType": "application/wordperfect",                     "priority": 150, "targetMediaType": "application/pdf" }
+        {"sourceMediaType": "application/wordperfect",                     "priority": 150, "targetMediaType": "application/pdf" },
+        {"sourceMediaType": "application/vnd.sun.xml.calc",                "priority": 150, "targetMediaType": "application/pdf" },
+        {"sourceMediaType": "application/vnd.sun.xml.impress",             "priority": 150, "targetMediaType": "application/pdf" }
       ],
       "transformOptions": [
       ]
