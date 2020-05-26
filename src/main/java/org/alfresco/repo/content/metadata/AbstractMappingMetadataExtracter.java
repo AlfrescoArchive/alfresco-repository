@@ -2,7 +2,7 @@
  * #%L
  * Alfresco Repository
  * %%
- * Copyright (C) 2005 - 2016 Alfresco Software Limited
+ * Copyright (C) 2005 - 2020 Alfresco Software Limited
  * %%
  * This file is part of the Alfresco software. 
  * If the software was purchased under a paid Alfresco license, the terms of 
@@ -62,6 +62,7 @@ import org.alfresco.service.cmr.repository.ContentReader;
 import org.alfresco.service.cmr.repository.ContentWriter;
 import org.alfresco.service.cmr.repository.MalformedNodeRefException;
 import org.alfresco.service.cmr.repository.MimetypeService;
+import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.cmr.repository.datatype.DefaultTypeConverter;
 import org.alfresco.service.cmr.repository.datatype.TypeConversionException;
 import org.alfresco.service.namespace.InvalidQNameException;
@@ -131,7 +132,7 @@ abstract public class AbstractMappingMetadataExtracter implements MetadataExtrac
     
     private MetadataExtracterRegistry registry;
     private MimetypeService mimetypeService;
-    private DictionaryService dictionaryService;
+    protected DictionaryService dictionaryService;
     private boolean initialized;
     
     private Set<String> supportedMimetypes;
@@ -1132,7 +1133,7 @@ abstract public class AbstractMappingMetadataExtracter implements MetadataExtrac
     @Override
     public final Map<QName, Serializable> extract(ContentReader reader, Map<QName, Serializable> destination)
     {
-        return extract(reader, this.overwritePolicy, destination, this.mapping);
+        return extract(null, reader, this.overwritePolicy, destination, this.mapping);
     }
 
     /**
@@ -1144,7 +1145,7 @@ abstract public class AbstractMappingMetadataExtracter implements MetadataExtrac
             OverwritePolicy overwritePolicy,
             Map<QName, Serializable> destination)
     {
-        return extract(reader, overwritePolicy, destination, this.mapping);
+        return extract(null, reader, overwritePolicy, destination, this.mapping);
     }
 
     /**
@@ -1152,6 +1153,29 @@ abstract public class AbstractMappingMetadataExtracter implements MetadataExtrac
      */
     @Override
     public Map<QName, Serializable> extract(
+            ContentReader reader,
+            OverwritePolicy overwritePolicy,
+            Map<QName, Serializable> destination,
+            Map<String, Set<QName>> mapping)
+    {
+        return extract(null, reader, overwritePolicy, destination, mapping);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Map<QName, Serializable> extract(NodeRef nodeRef, ContentReader reader, Map<QName, Serializable> destination)
+    {
+        return extract(nodeRef, reader, overwritePolicy, destination, mapping);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Map<QName, Serializable> extract(
+            NodeRef nodeRef,
             ContentReader reader,
             OverwritePolicy overwritePolicy,
             Map<QName, Serializable> destination,
@@ -1182,12 +1206,15 @@ abstract public class AbstractMappingMetadataExtracter implements MetadataExtrac
             // Check that the content has some meat
             if (reader.getSize() > 0 && reader.exists())
             {
-                rawMetadata = extractRaw(reader, getLimits(reader.getMimetype()));
+                rawMetadata = extractRaw(nodeRef, reader, getLimits(reader.getMimetype()));
             }
             else
             {
                 rawMetadata = new HashMap<String, Serializable>(1);
             }
+            // TODO Do the following when returned from a T-Engine.
+            //      The T-Engine must discard unwanted values. Currently part of mapRawToSystem.
+
             // Convert to system properties (standalone)
             Map<QName, Serializable> systemProperties = mapRawToSystem(rawMetadata);
             // Convert the properties according to the dictionary types
@@ -1286,6 +1313,19 @@ abstract public class AbstractMappingMetadataExtracter implements MetadataExtrac
             ContentReader reader,
             ContentWriter writer)
     {
+        embed(null, properties, reader, writer);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void embed(
+            NodeRef nodeRef,
+            Map<QName, Serializable> properties,
+            ContentReader reader,
+            ContentWriter writer)
+    {
         // Done
         if (logger.isDebugEnabled())
         {
@@ -1307,7 +1347,7 @@ abstract public class AbstractMappingMetadataExtracter implements MetadataExtrac
 
         try
         {
-            embedInternal(mapSystemToRaw(properties), reader, writer);
+            embedInternal(nodeRef, mapSystemToRaw(properties), reader, writer);
             if(logger.isDebugEnabled())
             {
                logger.debug("Embedded Metadata into " + writer);
@@ -1472,7 +1512,7 @@ abstract public class AbstractMappingMetadataExtracter implements MetadataExtrac
      * @return                  Returns a modified map of properties that have been converted.
      */
     @SuppressWarnings("unchecked")
-    private Map<QName, Serializable> convertSystemPropertyValues(Map<QName, Serializable> systemProperties)
+    protected Map<QName, Serializable> convertSystemPropertyValues(Map<QName, Serializable> systemProperties)
     {
         Map<QName, Serializable> convertedProperties = new HashMap<QName, Serializable>(systemProperties.size() + 7);
         for (Map.Entry<QName, Serializable> entry : systemProperties.entrySet())
@@ -1982,7 +2022,7 @@ abstract public class AbstractMappingMetadataExtracter implements MetadataExtrac
         
         return limits;
     }
-    
+
     /**
      * <code>Callable</code> wrapper for the 
      * {@link AbstractMappingMetadataExtracter#extractRaw(ContentReader)} method
@@ -1991,9 +2031,11 @@ abstract public class AbstractMappingMetadataExtracter implements MetadataExtrac
     private class ExtractRawCallable implements Callable<Map<String,Serializable>>
     {
         private ContentReader contentReader;
+        private NodeRef nodeRef;
         
-        public ExtractRawCallable(ContentReader reader)
+        public ExtractRawCallable(NodeRef nodeRef, ContentReader reader)
         {
+            this.nodeRef = nodeRef;
             this.contentReader = reader;
         }
         
@@ -2002,7 +2044,7 @@ abstract public class AbstractMappingMetadataExtracter implements MetadataExtrac
         {
             try
             {
-                return extractRaw(contentReader);
+                return extractRaw(nodeRef, contentReader);
             }
             catch (Throwable e)
             {
@@ -2013,7 +2055,7 @@ abstract public class AbstractMappingMetadataExtracter implements MetadataExtrac
     
     /**
      * Exception wrapper to handle any {@link Throwable} from 
-     * {@link AbstractMappingMetadataExtracter#extractRaw(ContentReader)}
+     * {@link AbstractMappingMetadataExtracter#extractRaw(NodeRef, ContentReader)}
      */
     private class ExtractRawCallableException extends Exception
     {
@@ -2026,7 +2068,7 @@ abstract public class AbstractMappingMetadataExtracter implements MetadataExtrac
     
     /**
      * Exception wrapper to handle exceeded limits imposed by {@link MetadataExtracterLimits}
-     * {@link AbstractMappingMetadataExtracter#extractRaw(ContentReader, MetadataExtracterLimits)}
+     * {@link AbstractMappingMetadataExtracter#extractRaw(NodeRef, ContentReader, MetadataExtracterLimits)}
      */
     private class LimitExceededException extends Exception
     {
@@ -2047,14 +2089,15 @@ abstract public class AbstractMappingMetadataExtracter implements MetadataExtrac
      * <p>
      * If no timeout limit is defined or is unlimited (-1),
      * the <code>extractRaw</code> method is called directly.
-     * 
+     *
+     * @param nodeRef       the node being acted on.
      * @param reader        the document to extract the values from.  This stream provided by
      *                      the reader must be closed if accessed directly.
      * @param limits        the limits to impose on the extraction
      * @return              Returns a map of document property values keyed by property name.
      * @throws Throwable    All exception conditions can be handled.
      */
-    private Map<String, Serializable> extractRaw(
+    private Map<String, Serializable> extractRaw(NodeRef nodeRef,
             ContentReader reader, MetadataExtracterLimits limits) throws Throwable
     {
         FutureTask<Map<String, Serializable>> task = null;
@@ -2088,7 +2131,7 @@ abstract public class AbstractMappingMetadataExtracter implements MetadataExtrac
         try
         {
             proxiedReader = new StreamAwareContentReaderProxy(reader);
-            task = new FutureTask<Map<String,Serializable>>(new ExtractRawCallable(proxiedReader));
+            task = new FutureTask<Map<String,Serializable>>(new ExtractRawCallable(nodeRef, proxiedReader));
             getExecutorService().execute(task);
             return task.get(limits.getTimeoutMs(), TimeUnit.MILLISECONDS);
         }
@@ -2126,7 +2169,17 @@ abstract public class AbstractMappingMetadataExtracter implements MetadataExtrac
             }
         }
     }
-    
+
+    protected Map<String, Serializable> extractRaw(NodeRef nodeRef, ContentReader reader) throws Throwable
+    {
+        return extractRaw(reader);
+    }
+
+    protected void embedInternal(NodeRef nodeRef, Map<String, Serializable> metadata, ContentReader reader, ContentWriter writer) throws Throwable
+    {
+        embedInternal(metadata, reader, writer);
+    }
+
     /**
      * Override to provide the raw extracted metadata values.  An extracter should extract
      * as many of the available properties as is realistically possible.  Even if the

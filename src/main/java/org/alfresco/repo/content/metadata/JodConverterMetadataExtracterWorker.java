@@ -2,7 +2,7 @@
  * #%L
  * Alfresco Repository
  * %%
- * Copyright (C) 2005 - 2017 Alfresco Software Limited
+ * Copyright (C) 2005 - 2020 Alfresco Software Limited
  * %%
  * This file is part of the Alfresco software. 
  * If the software was purchased under a paid Alfresco license, the terms of 
@@ -59,6 +59,16 @@ import com.sun.star.util.CloseVetoException;
 import com.sun.star.util.XCloseable;
 import com.sun.star.util.XRefreshable;
 
+/**
+ * Extracts values from Open Office documents into the following:
+ * <pre>
+ *   <b>author:</b>                 --      cm:author
+ *   <b>title:</b>                  --      cm:title
+ *   <b>description:</b>            --      cm:description
+ * </pre>
+ *
+ * @author Neil McErlean
+ */
 public class JodConverterMetadataExtracterWorker implements
         OpenOfficeMetadataWorker
 {
