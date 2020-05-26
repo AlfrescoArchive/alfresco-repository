@@ -35,6 +35,7 @@ import org.alfresco.repo.event.v1.model.RepoEvent;
 import org.alfresco.service.cmr.repository.ContentService;
 import org.alfresco.service.cmr.repository.ContentWriter;
 import org.alfresco.service.cmr.repository.NodeRef;
+import org.junit.Before;
 import org.junit.Test;
 
 /**
@@ -42,10 +43,17 @@ import org.junit.Test;
  */
 public class DownloadRepoEventIT extends AbstractContextAwareRepoEvent
 {
+    ContentService contentService;
+
+    @Before
+    public void setup()
+    {
+        contentService = (ContentService) applicationContext.getBean("contentService");
+    }
+
     @Test
     public void testDownload()
     {
-        ContentService contentService = (ContentService) applicationContext.getBean("contentService");
         final NodeRef nodeRef = createNode(ContentModel.TYPE_CONTENT);
 
         // node.Created event should be generated
@@ -97,7 +105,6 @@ public class DownloadRepoEventIT extends AbstractContextAwareRepoEvent
     @Test
     public void testDownloadTwiceInTheSameTransaction()
     {
-        ContentService contentService = (ContentService) applicationContext.getBean("contentService");
         final NodeRef nodeRef = createNode(ContentModel.TYPE_CONTENT);
 
         // node.Created event should be generated
@@ -130,15 +137,14 @@ public class DownloadRepoEventIT extends AbstractContextAwareRepoEvent
         RepoEvent<NodeResource> downloadedRepoEvent = getRepoEvent(3);
         assertEquals("Wrong repo event type.", EventType.NODE_DOWNLOADED.getType(), downloadedRepoEvent.getType());
         assertEquals("Downloaded event does not have the correct id",
-                    resultRepoEvent.getData().getResource().getId(),
-                    downloadedRepoEvent.getData().getResource().getId());
+                    getNodeResource(resultRepoEvent).getId(),
+                    getNodeResource(downloadedRepoEvent).getId());
         assertNull("ResourceBefore field is not null", downloadedRepoEvent.getData().getResourceBefore());
     }
 
     @Test
     public void testDownloadEventTwiceInDifferentTransactions()
     {
-        ContentService contentService = (ContentService) applicationContext.getBean("contentService");
         final NodeRef nodeRef = createNode(ContentModel.TYPE_CONTENT);
 
         // node.Created event should be generated
@@ -167,8 +173,8 @@ public class DownloadRepoEventIT extends AbstractContextAwareRepoEvent
         RepoEvent<NodeResource> downloadedRepoEvent = getRepoEvent(3);
         assertEquals("Wrong repo event type.", EventType.NODE_DOWNLOADED.getType(), downloadedRepoEvent.getType());
         assertEquals("Downloaded event does not have the correct id",
-                resultRepoEvent.getData().getResource().getId(),
-                downloadedRepoEvent.getData().getResource().getId());
+                    getNodeResource(resultRepoEvent).getId(),
+                    getNodeResource(downloadedRepoEvent).getId());
         assertNull("ResourceBefore field is not null", downloadedRepoEvent.getData().getResourceBefore());
 
         retryingTransactionHelper.doInTransaction(() -> {
@@ -183,8 +189,8 @@ public class DownloadRepoEventIT extends AbstractContextAwareRepoEvent
         downloadedRepoEvent = getRepoEvent(4);
         assertEquals("Wrong repo event type.", EventType.NODE_DOWNLOADED.getType(), downloadedRepoEvent.getType());
         assertEquals("Downloaded event does not have the correct id",
-                    resultRepoEvent.getData().getResource().getId(),
-                    downloadedRepoEvent.getData().getResource().getId());
+                    getNodeResource(resultRepoEvent).getId(),
+                    getNodeResource(downloadedRepoEvent).getId());
         assertNull("ResourceBefore field is not null", downloadedRepoEvent.getData().getResourceBefore());
     }
 }
