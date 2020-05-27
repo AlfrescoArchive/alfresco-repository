@@ -78,12 +78,7 @@ public class DownloadNotifierServiceImpl implements DownloadNotifierService
 
     private void handleZipDownload(NodeRef nodeRef)
     {
-        // Loop through all the associated nodes for the zip node and call invokeOnDownloadNode
-        List<AssociationRef> requestedNodes = nodeService.getTargetAssocs(nodeRef, DownloadModel.ASSOC_REQUESTED_NODES);
-        for (AssociationRef nodeToBeDownloaded: requestedNodes)
-        {
-            invokeOnDownloadNode(nodeToBeDownloaded.getTargetRef());
-        }
+        // TODO: Currently do nothing as it needs to be determined how zip download events are created.
     }
 
     private boolean isZipDownload(NodeRef nodeRef)
