@@ -32,17 +32,13 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import java.util.Arrays;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 import junit.framework.TestCase;
-import org.alfresco.repo.download.DownloadModel;
 import org.alfresco.repo.node.NodeServicePolicies.OnDownloadNodePolicy;
 import org.alfresco.repo.policy.ClassPolicyDelegate;
 import org.alfresco.repo.policy.PolicyComponent;
-import org.alfresco.service.cmr.repository.AssociationRef;
 import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.cmr.repository.NodeService;
 import org.alfresco.service.cmr.repository.StoreRef;
@@ -50,7 +46,6 @@ import org.alfresco.service.namespace.QName;
 import org.alfresco.util.PolicyIgnoreUtil;
 import org.junit.Before;
 import org.junit.Test;
-import org.springframework.ui.Model;
 
 /**
  * @author Chris Shields
@@ -91,35 +86,6 @@ public class DownloadNotifierServiceImplUnitTest extends TestCase
         downloadNotifierService.downloadNotify(nodeRef);
     
         verify(policy).onDownloadNode(nodeRef);
-    }
-
-    @Test
-    public void testDownloadNotifyZip()
-    {
-        NodeRef nodeRef = new NodeRef(StoreRef.STORE_REF_WORKSPACE_SPACESSTORE, "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa");
-        NodeRef targetNodeRef1 = new NodeRef(StoreRef.STORE_REF_WORKSPACE_SPACESSTORE, "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb");
-        NodeRef targetNodeRef2 = new NodeRef(StoreRef.STORE_REF_WORKSPACE_SPACESSTORE, "cccccccc-cccc-cccc-cccc-cccccccccccc");
-
-        Set<QName> qnames = new HashSet<>();
-        QName typeQName = null;
-        AssociationRef associationRef1 = new AssociationRef(nodeRef, DownloadModel.ASSOC_REQUESTED_NODES, targetNodeRef1);
-        AssociationRef associationRef2 = new AssociationRef(nodeRef, DownloadModel.ASSOC_REQUESTED_NODES, targetNodeRef2);
-        List<AssociationRef> requestedNodes = Arrays.asList(associationRef1, associationRef2);
-
-        when(policyComponent.registerClassPolicy(NodeServicePolicies.OnDownloadNodePolicy.class)).thenReturn(onDownloadNodeDelegate);
-        when(nodeService.getType(nodeRef)).thenReturn(DownloadModel.TYPE_DOWNLOAD);
-        when(nodeService.getTargetAssocs(nodeRef, DownloadModel.ASSOC_REQUESTED_NODES)).thenReturn(requestedNodes);      
-        when(policyIgnoreUtil.ignorePolicy(nodeRef)).thenReturn(false);
-        when(nodeService.getAspects(nodeRef)).thenReturn(qnames);
-        when(onDownloadNodeDelegate.get(eq(nodeRef), any(Set.class))).thenReturn(policy);
-        when(onDownloadNodeDelegate.get(eq(targetNodeRef1), any(Set.class))).thenReturn(policy);
-        when(onDownloadNodeDelegate.get(eq(targetNodeRef2), any(Set.class))).thenReturn(policy);
-
-        downloadNotifierService.init();
-        downloadNotifierService.downloadNotify(nodeRef);
-
-        verify(policy).onDownloadNode(targetNodeRef1);
-        verify(policy).onDownloadNode(targetNodeRef2);
     }
 
     @Test
