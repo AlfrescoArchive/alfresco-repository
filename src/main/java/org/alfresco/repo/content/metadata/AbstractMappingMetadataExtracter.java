@@ -279,7 +279,7 @@ abstract public class AbstractMappingMetadataExtracter implements MetadataExtrac
         return supportedEmbedMimetypes.contains(sourceMimetype);
     }
 
-    private boolean isEnabled(String mimetype)
+    protected boolean isEnabled(String mimetype)
     {
         return properties == null || mimetypeService == null ||
                (getBooleanProperty(beanName+".enabled", true) &&
@@ -1212,8 +1212,6 @@ abstract public class AbstractMappingMetadataExtracter implements MetadataExtrac
             {
                 rawMetadata = new HashMap<String, Serializable>(1);
             }
-            // TODO Do the following when returned from a T-Engine.
-            //      The T-Engine must discard unwanted values. Currently part of mapRawToSystem.
 
             // Convert to system properties (standalone)
             Map<QName, Serializable> systemProperties = mapRawToSystem(rawMetadata);

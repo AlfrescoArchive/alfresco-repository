@@ -126,13 +126,16 @@ public class MetadataExtracterRegistry
         extracterCacheWriteLock.lock();
         try
         {
-            extracters.add(extracter);
-            extracterCache.clear();
-            embedderCache.clear();
             if (extracter instanceof AsynchronousExtractor)
             {
                 asynchronousExtractor = (AsynchronousExtractor)extracter;
             }
+            else
+            {
+                extracters.add(extracter);
+            }
+            extracterCache.clear();
+            embedderCache.clear();
         }
         finally
         {
@@ -150,7 +153,8 @@ public class MetadataExtracterRegistry
      */
     public MetadataExtracter getExtractor(String sourceMimetype, long sourceSizeInBytes)
     {
-        return asynchronousExtractor != null && asynchronousExtractor.isSupported(sourceMimetype, sourceSizeInBytes)
+        return asynchronousExtractor != null &&
+               asynchronousExtractor.isSupported(sourceMimetype, sourceSizeInBytes)
             ? asynchronousExtractor
             : getExtracter(sourceMimetype);
     }

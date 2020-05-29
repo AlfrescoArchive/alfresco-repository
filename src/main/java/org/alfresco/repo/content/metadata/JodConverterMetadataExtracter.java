@@ -39,6 +39,8 @@ import org.alfresco.service.cmr.repository.ContentReader;
 import org.alfresco.util.PropertyCheck;
 
 /**
+ * @deprecated The JodConverterMetadataExtracter has not been in use since 6.0.1
+ *
  * Extracts values from Open Office documents into the following:
  * <pre>
  *   <b>author:</b>                 --      cm:author
@@ -48,6 +50,7 @@ import org.alfresco.util.PropertyCheck;
  * 
  * @author Neil McErlean
  */
+@Deprecated
 public class JodConverterMetadataExtracter extends AbstractMappingMetadataExtracter implements OpenOfficeMetadataWorker
 {
     private OpenOfficeMetadataWorker worker;

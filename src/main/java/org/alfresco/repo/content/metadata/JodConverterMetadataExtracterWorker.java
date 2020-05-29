@@ -67,8 +67,11 @@ import com.sun.star.util.XRefreshable;
  *   <b>description:</b>            --      cm:description
  * </pre>
  *
+ * @deprecated The JodConverterMetadataExtracter has not been in use since 6.0.1
+ *
  * @author Neil McErlean
  */
+@Deprecated
 public class JodConverterMetadataExtracterWorker implements
         OpenOfficeMetadataWorker
 {

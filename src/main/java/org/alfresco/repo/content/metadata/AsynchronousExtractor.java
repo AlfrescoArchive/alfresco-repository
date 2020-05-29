@@ -25,8 +25,11 @@
  */
 package org.alfresco.repo.content.metadata;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.alfresco.model.ContentModel;
 import org.alfresco.repo.action.executer.ContentMetadataExtracter;
+import org.alfresco.repo.content.transform.TransformerDebug;
 import org.alfresco.repo.rendition2.RenditionService2;
 import org.alfresco.repo.rendition2.TransformDefinition;
 import org.alfresco.repo.security.authentication.AuthenticationUtil;
@@ -40,14 +43,23 @@ import org.alfresco.service.namespace.NamespaceException;
 import org.alfresco.service.namespace.NamespacePrefixResolver;
 import org.alfresco.service.namespace.QName;
 import org.alfresco.service.transaction.TransactionService;
+import org.alfresco.transform.client.model.config.TransformConfig;
 import org.alfresco.transform.client.registry.TransformServiceRegistry;
+import org.apache.commons.csv.CSVFormat;
+import org.apache.commons.csv.CSVParser;
+import org.apache.commons.csv.CSVRecord;
 
+import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.StringJoiner;
 
@@ -74,6 +86,8 @@ public class AsynchronousExtractor extends AbstractMappingMetadataExtracter
     private static final char SLASH = '/';
     public static final String EXTRACTOR_MIMETYPE_PREFIX = ALFRESCO_METADATA + EXTRACTOR + SLASH;
     public static final String EMBEDDER_MIMETYPE_PREFIX = ALFRESCO_METADATA + EMBEDDER + SLASH;
+
+    private final ObjectMapper jsonObjectMapper = new ObjectMapper();
 
     private NodeService nodeService;
     private NamespacePrefixResolver namespacePrefixResolver;
@@ -126,7 +140,7 @@ public class AsynchronousExtractor extends AbstractMappingMetadataExtracter
 
     public boolean isSupported(String sourceMimetype, long sourceSizeInBytes)
     {
-        return isSupported(sourceMimetype, sourceSizeInBytes, EXTRACTOR_MIMETYPE_PREFIX);
+        return isEnabled(sourceMimetype) && isSupported(sourceMimetype, sourceSizeInBytes, EXTRACTOR_MIMETYPE_PREFIX);
     }
 
     public boolean isEmbedderSupported(String sourceMimetype, long sourceSizeInBytes)
@@ -140,6 +154,11 @@ public class AsynchronousExtractor extends AbstractMappingMetadataExtracter
         return transformServiceRegistry.isSupported(sourceMimetype, sourceSizeInBytes, targetMimetype, Collections.emptyMap(), targetMimetype);
     }
 
+    public static boolean isMetadataMimetype(String targetMimetype)
+    {
+        return isMetadataExtractMimetype(targetMimetype) || isMetadataEmbedderMimetype(targetMimetype);
+    }
+
     public static boolean isMetadataExtractMimetype(String targetMimetype)
     {
         return targetMimetype.startsWith(EXTRACTOR_MIMETYPE_PREFIX);
@@ -151,8 +170,8 @@ public class AsynchronousExtractor extends AbstractMappingMetadataExtracter
     }
 
     /**
-     * Returns the file extension to be used, which will have been chaged if the {@code targetMimetype} is an extraction
-     * or embedding type.
+     * Returns a file extension used as the target in a transform. The normal extension is changed if the
+     * {@code targetMimetype} is an extraction or embedding type.
      *
      * @param targetMimetype the target mimetype
      * @param sourceExtension normal source extension
@@ -162,10 +181,26 @@ public class AsynchronousExtractor extends AbstractMappingMetadataExtracter
     public static String getExtension(String targetMimetype, String sourceExtension, String targetExtension)
     {
         return isMetadataExtractMimetype(targetMimetype)
-                ? "json"
+                ? "alfx"
                 : isMetadataEmbedderMimetype(targetMimetype)
                 ? sourceExtension
                 : targetExtension;
+    }
+
+    /**
+     * Returns a rendition name used in {@link TransformerDebug}. The normal name is changed if it is an extraction or
+     * embedding type. The name in this case is actually the target mimetype.
+     *
+     * @param renditionName normal name, but is the targetMimetype in the case of metadata extract and embed.
+     * @return the renditionName to be used.
+     */
+    public static String getRenditionName(String renditionName)
+    {
+        return isMetadataExtractMimetype(renditionName)
+                ? "metadata-extract"
+                : isMetadataEmbedderMimetype(renditionName)
+                ? "metadata-embed"
+                : renditionName;
     }
 
     @Override
@@ -183,7 +218,7 @@ public class AsynchronousExtractor extends AbstractMappingMetadataExtracter
     @Override
     protected Map<String, Serializable> extractRaw(ContentReader reader) throws Throwable
     {
-        return null;
+        throw new IllegalStateException("Overloaded method should have been called.");
     }
 
     @Override
@@ -233,32 +268,30 @@ public class AsynchronousExtractor extends AbstractMappingMetadataExtracter
             logger.debug("Update metadata on " + nodeRef);
         }
 
-        // TODO get map of document metadata from JSON
-        // TODO get overwritePolicy from JSON
-        // TODO get enableStringTagging from JSON - default false
-        // TODO get carryAspectProperties from JSON - default true
-        // TODO get stringTaggingSeparators from JSON - default DEFAULT_STRING_TAGGING_SEPARATORS
-        Map<String, String> documentMetadata = null;
-        String overwritePolicyName = "PRAGMATIC";
-        boolean enableStringTagging = false;
-        boolean carryAspectProperties = true;
-        List<String> stringTaggingSeparators = ContentMetadataExtracter.DEFAULT_STRING_TAGGING_SEPARATORS;
-
-        OverwritePolicy overwritePolicy;
-        try
+        Map<String, String> metadata = readMetadata(transformInputStream);
+        if (metadata == null)
         {
-            overwritePolicy = OverwritePolicy.valueOf(overwritePolicyName);
+            return; // Error state.
         }
-        catch (IllegalArgumentException e)
+
+        // Remove well know entries from the map that drive how the real metadata is applied.
+        OverwritePolicy overwritePolicy = removeOverwritePolicy(metadata, "sys:overwritePolicy", OverwritePolicy.PRAGMATIC);
+        Boolean enableStringTagging = removeBoolean(metadata, "sys:enableStringTagging", false);
+        Boolean carryAspectProperties = removeBoolean(metadata, "sys:carryAspectProperties", true);
+        List<String> stringTaggingSeparators = removeTaggingSeparators(metadata, "sys:stringTaggingSeparators",
+                ContentMetadataExtracter.DEFAULT_STRING_TAGGING_SEPARATORS);
+        if (overwritePolicy == null ||
+            enableStringTagging == null ||
+            carryAspectProperties == null ||
+            stringTaggingSeparators == null)
         {
-            logger.error("OverwritePolicy " + overwritePolicyName + " is invalid");
-            return;
+            return; // Error state.
         }
 
         AuthenticationUtil.runAsSystem((AuthenticationUtil.RunAsWork<Void>) () ->
                 transactionService.getRetryingTransactionHelper().doInTransaction(() ->
                 {
-                    Map<QName, Serializable> properties = convertKeysToQNames(documentMetadata);
+                    Map<QName, Serializable> properties = convertKeysToQNames(metadata);
                     properties = convertSystemPropertyValues(properties);
 
                     Map<QName, Serializable> nodeProperties = nodeService.getProperties(nodeRef);
@@ -276,6 +309,72 @@ public class AsynchronousExtractor extends AbstractMappingMetadataExtracter
 
                     return null;
                 }, false, true));
+    }
+
+    private Map<String, String> readMetadata(InputStream transformInputStream)
+    {
+        try
+        {
+            TypeReference<HashMap<String, String>> typeRef = new TypeReference<HashMap<String, String>>() {};
+            return jsonObjectMapper.readValue(transformInputStream, typeRef);
+        }
+        catch (IOException e)
+        {
+            logger.error("Failed to read metadata from transform result", e);
+            return null;
+        }
+    }
+
+    private OverwritePolicy removeOverwritePolicy(Map<String, String> map, String key, OverwritePolicy defaultValue)
+    {
+        String value = map.remove(key);
+        try
+        {
+            return OverwritePolicy.valueOf(value);
+        }
+        catch (IllegalArgumentException e)
+        {
+            logger.error(key + "=" + value + " is invalid");
+            return null;
+        }
+    }
+
+    private Boolean removeBoolean(Map<String, String> map, String key, boolean defaultValue)
+    {
+        String value = map.remove(key);
+        if (!Boolean.FALSE.toString().equals(value) && !Boolean.TRUE.toString().equals(value))
+        {
+            logger.error(key + "=" + value + " is invalid. Must be " + Boolean.TRUE + " or " + Boolean.FALSE);
+            return null; // no flexibility of parseBoolean(...). It is just invalid
+        }
+        return value == null ? defaultValue : Boolean.parseBoolean(value);
+    }
+
+    private List<String> removeTaggingSeparators(Map<String, String> map, String key, List<String> defaultValue)
+    {
+        String value = map.remove(key);
+        if (value == null)
+        {
+            return defaultValue;
+        }
+
+        List<String> list = new ArrayList<>();
+        try (CSVParser parser = CSVParser.parse(value, CSVFormat.RFC4180))
+        {
+            Iterator<CSVRecord> iterator = parser.iterator();
+            CSVRecord record = iterator.next();
+            if (iterator.hasNext())
+            {
+                throw new IOException("Should only have one record");
+            }
+            record.forEach(f->list.add(f));
+        }
+        catch (IOException|NoSuchElementException e)
+        {
+            logger.error(key + "=" + value + " is invalid. Must be a CSV using CSVFormat.RFC4180");
+            return null;
+        }
+        return list;
     }
 
     private Map<QName, Serializable> convertKeysToQNames(Map<String, String> documentMetadata)

@@ -26,6 +26,7 @@
 package org.alfresco.repo.content.transform;
 
 import org.alfresco.model.ContentModel;
+import org.alfresco.repo.content.metadata.AsynchronousExtractor;
 import org.alfresco.service.cmr.repository.MimetypeService;
 import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.cmr.repository.NodeService;
@@ -884,7 +885,9 @@ public class TransformerDebug
 
     private String getRenditionName(String renditionName)
     {
-        return renditionName != null ? "-- "+renditionName+" -- " : "";
+        return renditionName != null
+            ? "-- "+ AsynchronousExtractor.getRenditionName(renditionName)+" -- "
+            : "";
     }
 
     /**

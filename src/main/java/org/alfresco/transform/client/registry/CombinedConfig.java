@@ -56,6 +56,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static org.alfresco.repo.content.metadata.AsynchronousExtractor.isMetadataMimetype;
+
 /**
  * This class reads multiple T-Engine config and local files and registers them all with a registry as if they were all
  * in one file. Transform options are shared between all sources.<p>
@@ -398,7 +400,8 @@ public class CombinedConfig
                                 // the source matches the last intermediate.
                                 Set<SupportedSourceAndTarget>  supportedSourceAndTargets = sourceMediaTypesAndMaxSizes.stream().
                                         flatMap(s -> stepTransformer.getSupportedSourceAndTargetList().stream().
-                                                filter(st -> st.getSourceMediaType().equals(src)).
+                                                filter(st -> st.getSourceMediaType().equals(src) &&
+                                                        !isMetadataMimetype(st.getTargetMediaType())).
                                                 map(t -> t.getTargetMediaType()).
                                                 map(trg -> SupportedSourceAndTarget.builder().
                                                         withSourceMediaType(s.getSourceMediaType()).

@@ -50,10 +50,12 @@ import org.junit.Ignore;
 import org.junit.Test;
 
 /**
- * 
+ * @deprecated The JodConverterMetadataExtracter has not been in use since 6.0.1
+ *
  * @author Neil McErlean
  * @since 3.2 SP1
  */
+@Deprecated
 public class JodMetadataExtractorOOoTest extends AbstractJodConverterBasedTest
 {
     protected static final String QUICK_TITLE = "The quick brown fox jumps over the lazy dog";
