@@ -27,6 +27,7 @@ package org.alfresco.repo.rendition2;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.alfresco.model.ContentModel;
+import org.alfresco.repo.content.metadata.AsynchronousExtractor;
 import org.alfresco.repo.policy.BehaviourFilter;
 import org.alfresco.repo.policy.PolicyComponent;
 import org.alfresco.repo.rendition.RenditionPreventionRegistry;
@@ -90,6 +91,7 @@ public class RenditionService2Test
     @Mock private RuleService ruleService;
     @Mock private TransformServiceRegistryImpl transformServiceRegistry;
     @Mock private TransformReplyProvider transformReplyProvider;
+    @Mock private AsynchronousExtractor asynchronousExtractor;
 
     private NodeRef nodeRef = new NodeRef("workspace://spacesStore/test-id");
     private NodeRef nodeRefMissing = new NodeRef("workspace://spacesStore/bad-test-id");
@@ -154,6 +156,7 @@ public class RenditionService2Test
         renditionService2.setTransformReplyProvider(transformReplyProvider);
         renditionService2.setEnabled(true);
         renditionService2.setThumbnailsEnabled(true);
+        renditionService2.setAsynchronousExtractor(asynchronousExtractor);
 
         renditionDefinitionRegistry2.setRenditionConfigDir("alfresco/renditions/test");
         renditionDefinitionRegistry2.afterPropertiesSet();
