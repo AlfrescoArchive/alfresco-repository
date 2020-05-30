@@ -268,7 +268,7 @@ public class AsynchronousExtractor extends AbstractMappingMetadataExtracter
             logger.debug("Update metadata on " + nodeRef);
         }
 
-        Map<String, String> metadata = readMetadata(transformInputStream);
+        Map<String, Serializable> metadata = readMetadata(transformInputStream);
         if (metadata == null)
         {
             return; // Error state.
@@ -311,11 +311,11 @@ public class AsynchronousExtractor extends AbstractMappingMetadataExtracter
                 }, false, true));
     }
 
-    private Map<String, String> readMetadata(InputStream transformInputStream)
+    private Map<String, Serializable> readMetadata(InputStream transformInputStream)
     {
         try
         {
-            TypeReference<HashMap<String, String>> typeRef = new TypeReference<HashMap<String, String>>() {};
+            TypeReference<HashMap<String, Serializable>> typeRef = new TypeReference<HashMap<String, Serializable>>() {};
             return jsonObjectMapper.readValue(transformInputStream, typeRef);
         }
         catch (IOException e)
@@ -325,47 +325,53 @@ public class AsynchronousExtractor extends AbstractMappingMetadataExtracter
         }
     }
 
-    private OverwritePolicy removeOverwritePolicy(Map<String, String> map, String key, OverwritePolicy defaultValue)
+    private OverwritePolicy removeOverwritePolicy(Map<String, Serializable> map, String key, OverwritePolicy defaultValue)
     {
-        String value = map.remove(key);
+        Serializable value = map.remove(key);
         try
         {
-            return OverwritePolicy.valueOf(value);
+            return OverwritePolicy.valueOf((String)value);
         }
-        catch (IllegalArgumentException e)
+        catch (IllegalArgumentException|ClassCastException e)
         {
             logger.error(key + "=" + value + " is invalid");
             return null;
         }
     }
 
-    private Boolean removeBoolean(Map<String, String> map, String key, boolean defaultValue)
+    private Boolean removeBoolean(Map<String, Serializable> map, Serializable key, boolean defaultValue)
     {
-        String value = map.remove(key);
-        if (!Boolean.FALSE.toString().equals(value) && !Boolean.TRUE.toString().equals(value))
+        Serializable value = map.remove(key);
+        if (!(value instanceof String) || !Boolean.FALSE.toString().equals(value) && !Boolean.TRUE.toString().equals(value))
         {
             logger.error(key + "=" + value + " is invalid. Must be " + Boolean.TRUE + " or " + Boolean.FALSE);
             return null; // no flexibility of parseBoolean(...). It is just invalid
         }
-        return value == null ? defaultValue : Boolean.parseBoolean(value);
+        return value == null ? defaultValue : Boolean.parseBoolean((String)value);
     }
 
-    private List<String> removeTaggingSeparators(Map<String, String> map, String key, List<String> defaultValue)
+    private List<String> removeTaggingSeparators(Map<String, Serializable> map, String key, List<String> defaultValue)
     {
-        String value = map.remove(key);
+        Serializable value = map.remove(key);
         if (value == null)
         {
             return defaultValue;
         }
+        if (!(value instanceof String))
+        {
+            logger.error(key + "=" + value + " is invalid.");
+            return null;
+        }
 
         List<String> list = new ArrayList<>();
-        try (CSVParser parser = CSVParser.parse(value, CSVFormat.RFC4180))
+        try (CSVParser parser = CSVParser.parse((String)value, CSVFormat.RFC4180))
         {
             Iterator<CSVRecord> iterator = parser.iterator();
             CSVRecord record = iterator.next();
             if (iterator.hasNext())
             {
-                throw new IOException("Should only have one record");
+                logger.error(key + "=" + value + " is invalid. Should only have one record");
+                return null;
             }
             record.forEach(f->list.add(f));
         }
@@ -377,13 +383,13 @@ public class AsynchronousExtractor extends AbstractMappingMetadataExtracter
         return list;
     }
 
-    private Map<QName, Serializable> convertKeysToQNames(Map<String, String> documentMetadata)
+    private Map<QName, Serializable> convertKeysToQNames(Map<String, Serializable> documentMetadata)
     {
         Map<QName, Serializable> properties = new HashMap<>();
-        for (Map.Entry<String, String> entry : documentMetadata.entrySet())
+        for (Map.Entry<String, Serializable> entry : documentMetadata.entrySet())
         {
             String key = entry.getKey();
-            String value = entry.getValue();
+            Serializable value = entry.getValue();
             try
             {
                 QName qName = QName.createQName(key, namespacePrefixResolver);
