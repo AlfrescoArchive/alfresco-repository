@@ -254,7 +254,7 @@
       ]
     },
     {
-      "transformerName": "OutlookMsg2Office",
+      "transformerName": "outlookMsgToLibreofficeViaText",
       "transformerPipeline" : [
         {"transformerName": "OutlookMsg",                              "targetMediaType": "text/plain"},
         {"transformerName": "libreoffice"}
