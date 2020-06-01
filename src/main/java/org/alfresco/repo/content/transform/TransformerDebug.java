@@ -352,7 +352,7 @@ public class TransformerDebug
         log(frame.sourceMimetype+' '+frame.targetMimetype, false);
         
         String fileName = getFileName(frame.sourceNodeRef, firstLevel, sourceSize);
-        log(getMimetypeExt(frame.sourceMimetype)+getMimetypeExt(frame.targetMimetype) +
+        log(getSourceAndTargetExt(frame.sourceMimetype, frame.targetMimetype) +
                 ((fileName != null) ? fileName+' ' : "")+
                 ((sourceSize >= 0) ? fileSize(sourceSize)+' ' : "") +
                 (firstLevel ? getRenditionName(renditionName) : "") + message);

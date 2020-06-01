@@ -43,13 +43,12 @@ import org.alfresco.service.namespace.NamespaceException;
 import org.alfresco.service.namespace.NamespacePrefixResolver;
 import org.alfresco.service.namespace.QName;
 import org.alfresco.service.transaction.TransactionService;
-import org.alfresco.transform.client.model.config.TransformConfig;
 import org.alfresco.transform.client.registry.TransformServiceRegistry;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
+import org.springframework.dao.ConcurrencyFailureException;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serializable;
@@ -62,6 +61,10 @@ import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.StringJoiner;
+import java.util.concurrent.ExecutorService;
+
+import static org.alfresco.repo.rendition2.TransformDefinition.TRANSFORM_NAMESPACE;
+import static org.alfresco.repo.rendition2.TransformDefinition.getTransformName;
 
 /**
  * Requests an extract of metadata via a remote async transform using
@@ -86,6 +89,8 @@ public class AsynchronousExtractor extends AbstractMappingMetadataExtracter
     private static final char SLASH = '/';
     public static final String EXTRACTOR_MIMETYPE_PREFIX = ALFRESCO_METADATA + EXTRACTOR + SLASH;
     public static final String EMBEDDER_MIMETYPE_PREFIX = ALFRESCO_METADATA + EMBEDDER + SLASH;
+    private static final Map<String, String> EMPTY_OPTIONS = Collections.emptyMap();
+    private static final Map<String, Serializable> EMPTY_METADATA = Collections.emptyMap();
 
     private final ObjectMapper jsonObjectMapper = new ObjectMapper();
 
@@ -161,12 +166,12 @@ public class AsynchronousExtractor extends AbstractMappingMetadataExtracter
 
     public static boolean isMetadataExtractMimetype(String targetMimetype)
     {
-        return targetMimetype.startsWith(EXTRACTOR_MIMETYPE_PREFIX);
+        return targetMimetype != null && targetMimetype.startsWith(EXTRACTOR_MIMETYPE_PREFIX);
     }
 
     public static boolean isMetadataEmbedderMimetype(String targetMimetype)
     {
-        return targetMimetype.startsWith(EMBEDDER_MIMETYPE_PREFIX);
+        return targetMimetype != null && targetMimetype.startsWith(EMBEDDER_MIMETYPE_PREFIX);
     }
 
     /**
@@ -191,15 +196,17 @@ public class AsynchronousExtractor extends AbstractMappingMetadataExtracter
      * Returns a rendition name used in {@link TransformerDebug}. The normal name is changed if it is an extraction or
      * embedding type. The name in this case is actually the target mimetype.
      *
-     * @param renditionName normal name, but is the targetMimetype in the case of metadata extract and embed.
+     * @param renditionName normal name, but is a transform name based on the targetMimetype in the case of metadata
+     *                     extract and embed.
      * @return the renditionName to be used.
      */
     public static String getRenditionName(String renditionName)
     {
-        return isMetadataExtractMimetype(renditionName)
-                ? "metadata-extract"
-                : isMetadataEmbedderMimetype(renditionName)
-                ? "metadata-embed"
+        String transformName = getTransformName(renditionName);
+        return isMetadataExtractMimetype(transformName)
+                ? "metadataExtract"
+                : isMetadataEmbedderMimetype(transformName)
+                ? "metadataEmbed"
                 : renditionName;
     }
 
@@ -223,10 +230,11 @@ public class AsynchronousExtractor extends AbstractMappingMetadataExtracter
     }
 
     @Override
-    protected Map<String, Serializable> extractRaw(NodeRef nodeRef, ContentReader reader) throws Throwable
+    protected Map<String, Serializable> extractRawInThread(NodeRef nodeRef, ContentReader reader, MetadataExtracterLimits limits)
+            throws Throwable
     {
-        transform(nodeRef, reader, EXTRACTOR_MIMETYPE_PREFIX, EXTRACTOR, Collections.emptyMap());
-        return Collections.emptyMap();
+        transformInBackground(nodeRef, reader, EXTRACTOR_MIMETYPE_PREFIX, EXTRACTOR, EMPTY_OPTIONS);
+        return EMPTY_METADATA;
     }
 
     @Override
@@ -234,7 +242,28 @@ public class AsynchronousExtractor extends AbstractMappingMetadataExtracter
     {
         // TODO pass metadata as a transform option
         Map<String, String> options = Collections.emptyMap();
-         transform(nodeRef, reader, EMBEDDER_MIMETYPE_PREFIX, EMBEDDER, options);
+        transformInBackground(nodeRef, reader, EMBEDDER_MIMETYPE_PREFIX, EMBEDDER, options);
+    }
+
+    private void transformInBackground(NodeRef nodeRef, ContentReader reader, String prefix, String action,
+                                       Map<String, String> options)
+    {
+        ExecutorService executorService = getExecutorService();
+        executorService.execute(new Runnable()
+        {
+            @Override
+            public void run()
+            {
+                try
+                {
+                    transform(nodeRef, reader, EXTRACTOR_MIMETYPE_PREFIX, EXTRACTOR, options);
+                }
+                finally
+                {
+                    extractRawThreadFinished();
+                }
+            }
+        });
     }
 
     private void transform(NodeRef nodeRef, ContentReader reader, String prefix, String action, Map<String, String> options)
@@ -257,7 +286,18 @@ public class AsynchronousExtractor extends AbstractMappingMetadataExtracter
                 (AuthenticationUtil.RunAsWork<Void>) () ->
                 transactionService.getRetryingTransactionHelper().doInTransaction(() ->
                 {
-                    renditionService2.transform(nodeRef, transformDefinition);
+                    try
+                    {
+                        renditionService2.transform(nodeRef, transformDefinition);
+                    }
+                    catch (IllegalArgumentException e)
+                    {
+                        if (e.getMessage().endsWith("The supplied sourceNodeRef "+nodeRef+" does not exist."))
+                        {
+                            throw new ConcurrencyFailureException(
+                                    "The original transaction may not have finished. " + e.getMessage());
+                        }
+                    }
                     return null;
                 }), AuthenticationUtil.getSystemUserName());
     }
@@ -328,7 +368,11 @@ public class AsynchronousExtractor extends AbstractMappingMetadataExtracter
 
     private OverwritePolicy removeOverwritePolicy(Map<String, Serializable> map, String key, OverwritePolicy defaultValue)
     {
-        @SuppressWarnings("SuspiciousMethodCalls") Serializable value = map.remove(key);
+        Serializable value = map.remove(key);
+        if (value == null)
+        {
+            return defaultValue;
+        }
         try
         {
             return OverwritePolicy.valueOf((String)value);

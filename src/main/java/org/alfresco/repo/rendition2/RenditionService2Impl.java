@@ -393,11 +393,11 @@ public class RenditionService2Impl implements RenditionService2, InitializingBea
         {
             TransformDefinition transformDefinition = (TransformDefinition)renditionDefinition;
             String targetMimetype = transformDefinition.getTargetMimetype();
-            if (asynchronousExtractor.isMetadataExtractMimetype(targetMimetype))
+            if (AsynchronousExtractor.isMetadataExtractMimetype(targetMimetype))
             {
                 consumeExtractedMetadata(sourceNodeRef, sourceContentHashCode, transformInputStream, transformDefinition, transformContentHashCode);
             }
-            else if (asynchronousExtractor.isMetadataEmbedderMimetype(targetMimetype))
+            else if (AsynchronousExtractor.isMetadataEmbedderMimetype(targetMimetype))
             {
                 consumeEmbeddedMetadata(sourceNodeRef, sourceContentHashCode, transformInputStream, transformDefinition, transformContentHashCode);
             }

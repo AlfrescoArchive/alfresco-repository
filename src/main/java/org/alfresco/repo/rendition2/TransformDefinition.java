@@ -80,7 +80,14 @@ public class TransformDefinition extends RenditionDefinition2Impl
     public String getTransformName()
     {
         String renditionName = getRenditionName();
-        return renditionName == null ? null : renditionName.substring(TRANSFORM_NAMESPACE.length());
+        return getTransformName(renditionName);
+    }
+
+    public static String getTransformName(String renditionName)
+    {
+        return renditionName == null || !renditionName.startsWith(TRANSFORM_NAMESPACE)
+                ? null
+                : renditionName.substring(TRANSFORM_NAMESPACE.length());
     }
 
     public String getClientData()

@@ -1240,7 +1240,7 @@ abstract public class AbstractMappingMetadataExtracter implements MetadataExtrac
             //  the current mime type is plausible
             String typeErrorMessage = null;
             String differentType = null;
-            if(mimetypeService != null)
+            if (mimetypeService != null)
             {
                differentType = mimetypeService.getMimetypeIfNotMatches(reader.getReader());
             }
@@ -1249,7 +1249,7 @@ abstract public class AbstractMappingMetadataExtracter implements MetadataExtrac
                logger.info("Unable to verify mimetype of " + reader.getReader() + 
                            " as no MimetypeService available to " + getClass().getName());
             }
-            if(differentType != null)
+            if (differentType != null)
             {
                typeErrorMessage = "\n" +
                   "   claimed mime type: " + reader.getMimetype() + "\n" +
@@ -2029,11 +2029,9 @@ abstract public class AbstractMappingMetadataExtracter implements MetadataExtrac
     private class ExtractRawCallable implements Callable<Map<String,Serializable>>
     {
         private ContentReader contentReader;
-        private NodeRef nodeRef;
         
-        public ExtractRawCallable(NodeRef nodeRef, ContentReader reader)
+        public ExtractRawCallable(ContentReader reader)
         {
-            this.nodeRef = nodeRef;
             this.contentReader = reader;
         }
         
@@ -2042,7 +2040,7 @@ abstract public class AbstractMappingMetadataExtracter implements MetadataExtrac
         {
             try
             {
-                return extractRaw(nodeRef, contentReader);
+                return extractRaw(contentReader);
             }
             catch (Throwable e)
             {
@@ -2053,7 +2051,7 @@ abstract public class AbstractMappingMetadataExtracter implements MetadataExtrac
     
     /**
      * Exception wrapper to handle any {@link Throwable} from 
-     * {@link AbstractMappingMetadataExtracter#extractRaw(NodeRef, ContentReader)}
+     * {@link AbstractMappingMetadataExtracter#extractRaw(ContentReader)}
      */
     private class ExtractRawCallableException extends Exception
     {
@@ -2098,9 +2096,6 @@ abstract public class AbstractMappingMetadataExtracter implements MetadataExtrac
     private Map<String, Serializable> extractRaw(NodeRef nodeRef,
             ContentReader reader, MetadataExtracterLimits limits) throws Throwable
     {
-        FutureTask<Map<String, Serializable>> task = null;
-        StreamAwareContentReaderProxy proxiedReader = null;
-        
         if (reader.getSize() > limits.getMaxDocumentSizeMB() * MEGABYTE_SIZE)
         {
             throw new LimitExceededException("Max doc size exceeded " + limits.getMaxDocumentSizeMB() + " MB");
@@ -2125,11 +2120,20 @@ abstract public class AbstractMappingMetadataExtracter implements MetadataExtrac
                 throw new LimitExceededException("Reached concurrent extractions limit - " + limits.getMaxConcurrentExtractionsCount());
             }
         }
-        
+
+        return extractRawInThread(nodeRef, reader, limits);
+    }
+
+    protected Map<String, Serializable> extractRawInThread(NodeRef nodeRef, ContentReader reader,
+                                                           MetadataExtracterLimits limits)
+            throws Throwable
+    {
+        FutureTask<Map<String, Serializable>> task = null;
+        StreamAwareContentReaderProxy proxiedReader = null;
         try
         {
             proxiedReader = new StreamAwareContentReaderProxy(reader);
-            task = new FutureTask<Map<String,Serializable>>(new ExtractRawCallable(nodeRef, proxiedReader));
+            task = new FutureTask<Map<String,Serializable>>(new ExtractRawCallable(proxiedReader));
             getExecutorService().execute(task);
             return task.get(limits.getTimeoutMs(), TimeUnit.MILLISECONDS);
         }
@@ -2160,22 +2164,17 @@ abstract public class AbstractMappingMetadataExtracter implements MetadataExtrac
         }
         finally
         {
-            int totalDocCount = CONCURRENT_EXTRACTIONS_COUNT.decrementAndGet();
-            if (logger.isDebugEnabled())
-            {
-                logger.debug("Extraction finalized. Remaining concurrent extraction : " + totalDocCount);
-            }
+            extractRawThreadFinished();
         }
     }
 
-    protected Map<String, Serializable> extractRaw(NodeRef nodeRef, ContentReader reader) throws Throwable
+    protected void extractRawThreadFinished()
     {
-        return extractRaw(reader);
-    }
-
-    protected void embedInternal(NodeRef nodeRef, Map<String, Serializable> metadata, ContentReader reader, ContentWriter writer) throws Throwable
-    {
-        embedInternal(metadata, reader, writer);
+        int totalDocCount = CONCURRENT_EXTRACTIONS_COUNT.decrementAndGet();
+        if (logger.isDebugEnabled())
+        {
+            logger.debug("Extraction finalized. Remaining concurrent extraction : " + totalDocCount);
+        }
     }
 
     /**
@@ -2212,6 +2211,11 @@ abstract public class AbstractMappingMetadataExtracter implements MetadataExtrac
      * @see #getDefaultMapping()
      */
     protected abstract Map<String, Serializable> extractRaw(ContentReader reader) throws Throwable;
+
+    protected void embedInternal(NodeRef nodeRef, Map<String, Serializable> metadata, ContentReader reader, ContentWriter writer) throws Throwable
+    {
+        embedInternal(metadata, reader, writer);
+    }
 
     /**
      * Override to embed metadata values.  An extracter should embed
