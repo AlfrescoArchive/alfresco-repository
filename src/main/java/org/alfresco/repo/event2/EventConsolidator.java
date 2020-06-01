@@ -171,8 +171,6 @@ public class EventConsolidator implements EventSupportedPolicies
 
         createBuilderIfAbsent(nodeRef);
 
-        // Sometimes onCreateNode policy is out of order
-        // TODO: Check that the correct properties are appearing on the resource and the beforeResource.
         this.propertiesBefore = null;
         setBeforeProperties(Collections.emptyMap());
         setAfterProperties(helper.getProperties(nodeRef));
