@@ -68,20 +68,20 @@ import java.util.StringJoiner;
  * {@link RenditionService2#transform(NodeRef, TransformDefinition)}. The properties that will extracted are defined
  * by the transform. This allows out of process metadata extracts to be defined without the need to apply an AMP.
  * The actual transform is a request to go from the source mimetype to a target mimetype that is the source mimetype
- * prefix by {@code "alfresco-metadata-extractor/"}. The resulting transform is a Map in json of properties and values
+ * prefix by {@code "alfresco-metadata-extract/"}. The resulting transform is a Map in json of properties and values
  * to be set on the source node.
  * <p>
  * As with other sub-classes of {@link AbstractMappingMetadataExtracter} it also supports embedding of metadata in
  * a source node. In this case the remote async transform states that it supports a transform from a source mimetype
- * to a target mimetype that is the source mimetype prefix by {@code "alfresco-metadata-embedder/"}. The resulting
+ * to a target mimetype that is the source mimetype prefix by {@code "alfresco-metadata-embed/"}. The resulting
  * transform is a replacement for the content of the node.
  *
  * @author adavis
  */
 public class AsynchronousExtractor extends AbstractMappingMetadataExtracter
 {
-    private static final String EXTRACTOR = "extractor";
-    private static final String EMBEDDER = "embedder";
+    private static final String EXTRACTOR = "extract";
+    private static final String EMBEDDER = "embed";
     private static final String ALFRESCO_METADATA = "alfresco-metadata-";
     private static final char SLASH = '/';
     public static final String EXTRACTOR_MIMETYPE_PREFIX = ALFRESCO_METADATA + EXTRACTOR + SLASH;
@@ -216,9 +216,10 @@ public class AsynchronousExtractor extends AbstractMappingMetadataExtracter
     }
 
     @Override
+    // Not called. Overloaded method with the NodeRef is called.
     protected Map<String, Serializable> extractRaw(ContentReader reader) throws Throwable
     {
-        throw new IllegalStateException("Overloaded method should have been called.");
+        return null;
     }
 
     @Override
@@ -327,7 +328,7 @@ public class AsynchronousExtractor extends AbstractMappingMetadataExtracter
 
     private OverwritePolicy removeOverwritePolicy(Map<String, Serializable> map, String key, OverwritePolicy defaultValue)
     {
-        Serializable value = map.remove(key);
+        @SuppressWarnings("SuspiciousMethodCalls") Serializable value = map.remove(key);
         try
         {
             return OverwritePolicy.valueOf((String)value);
@@ -341,8 +342,10 @@ public class AsynchronousExtractor extends AbstractMappingMetadataExtracter
 
     private Boolean removeBoolean(Map<String, Serializable> map, Serializable key, boolean defaultValue)
     {
-        Serializable value = map.remove(key);
-        if (!(value instanceof String) || !Boolean.FALSE.toString().equals(value) && !Boolean.TRUE.toString().equals(value))
+        @SuppressWarnings("SuspiciousMethodCalls") Serializable value = map.remove(key);
+        if (value != null &&
+            (!(value instanceof String) ||
+             (!(Boolean.FALSE.toString().equals(value) || Boolean.TRUE.toString().equals(value)))))
         {
             logger.error(key + "=" + value + " is invalid. Must be " + Boolean.TRUE + " or " + Boolean.FALSE);
             return null; // no flexibility of parseBoolean(...). It is just invalid
@@ -373,7 +376,7 @@ public class AsynchronousExtractor extends AbstractMappingMetadataExtracter
                 logger.error(key + "=" + value + " is invalid. Should only have one record");
                 return null;
             }
-            record.forEach(f->list.add(f));
+            record.forEach(list::add);
         }
         catch (IOException|NoSuchElementException e)
         {

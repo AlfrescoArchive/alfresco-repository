@@ -27,6 +27,7 @@ package org.alfresco.repo.content.transform;
 
 import org.alfresco.model.ContentModel;
 import org.alfresco.repo.content.filestore.FileContentWriter;
+import org.alfresco.repo.content.metadata.AsynchronousExtractor;
 import org.alfresco.repo.model.Repository;
 import org.alfresco.repo.rendition2.SynchronousTransformClient;
 import org.alfresco.repo.transaction.RetryingTransactionHelper;
@@ -249,7 +250,7 @@ public class AdminUiTransformerDebug extends TransformerDebug implements Applica
                                      boolean firstTransformer)
     {
         String mimetypes = firstTransformer
-                ? getMimetypeExt(sourceMimetype)+getMimetypeExt(targetMimetype)
+                ? getSourceAndTargetExt(sourceMimetype, targetMimetype)
                 : spaces(10);
         char c = (char)('a'+transformerCount);
         log(mimetypes+

@@ -249,7 +249,7 @@ public class LocalTransformServiceRegistryConfigTest extends TransformServiceReg
         imagemagickSupportedTransformation.put("image/gif", targetMimetype);
         imagemagickSupportedTransformation.put("image/jpeg", targetMimetype);
         targetMimetype = new ArrayList<>(targetMimetype);
-        targetMimetype.add("alfresco-metadata-extractor/image/png"); // Metadata extract types should be excluded from pipeline cartesian products
+        targetMimetype.add("alfresco-metadata-extract/image/png"); // Metadata extract types should be excluded from pipeline cartesian products
         imagemagickSupportedTransformation.put("image/png", targetMimetype);
         targetMimetype = new ArrayList<>();
         targetMimetype.add("target1");

@@ -371,7 +371,7 @@ public class TransformerDebug
                       Map<String, String> options, String renditionName, String message)
     {
         String fileName = getFileName(sourceNodeRef, true, -1);
-        log("              "+getMimetypeExt(sourceMimetype)+getMimetypeExt(targetMimetype) +
+        log("              "+ getSourceAndTargetExt(sourceMimetype, targetMimetype) +
                 ((fileName != null) ? fileName+' ' : "")+
                 ((sourceSize >= 0) ? fileSize(sourceSize)+' ' : "") +
                 (getRenditionName(renditionName)) + message);
@@ -463,8 +463,7 @@ public class TransformerDebug
         {
             String failureReason = frame.getFailureReason();
             boolean firstLevel = size == 1;
-            String sourceExt = getMimetypeExt(frame.sourceMimetype);
-            String targetExt = getMimetypeExt(frame.targetMimetype);
+            String sourceAndTargetExt = getSourceAndTargetExt(frame.sourceMimetype, frame.targetMimetype);
             String fileName = getFileName(frame.sourceNodeRef, firstLevel, frame.sourceSize);
             long sourceSize = frame.getSourceSize();
             String transformerName = frame.getTransformerName();
@@ -507,19 +506,18 @@ public class TransformerDebug
 
             if (level != null)
             {
-                infoLog(getReference(debug, false), sourceExt, targetExt, level, fileName, sourceSize,
+                infoLog(getReference(debug, false), sourceAndTargetExt, level, fileName, sourceSize,
                         transformerName, renditionName, failureReason, ms, debug);
             }
         }
     }
     
-    private void infoLog(String reference, String sourceExt, String targetExt, String level, String fileName,
+    private void infoLog(String reference, String sourceAndTargetExt, String level, String fileName,
             long sourceSize, String transformerName, String renditionName, String failureReason, String ms, boolean debug)
     {
         String message =
                 reference +
-                sourceExt +
-                targetExt +
+                sourceAndTargetExt +
                 (level == null ? "" : level+' ') +
                 (fileName == null ? "" : fileName) +
                 (sourceSize >= 0 ? ' '+fileSize(sourceSize) : "") +
@@ -784,6 +782,14 @@ public class TransformerDebug
         return result;
     }
 
+    protected String getSourceAndTargetExt(String sourceMimetype, String targetMimetype)
+    {
+        String sourceExt = getMimetypeExt(sourceMimetype);
+        String targetExt = getMimetypeExt(targetMimetype);
+        targetExt = AsynchronousExtractor.getExtension(targetMimetype, sourceExt, targetExt);
+        return sourceExt + targetExt;
+    }
+
     protected String getMimetypeExt(String mimetype)
     {
         StringBuilder sb = new StringBuilder("");
@@ -868,16 +874,15 @@ public class TransformerDebug
         if (isEnabled())
         {
             pushMisc();
-            String sourceExt = getMimetypeExt(sourceMimetype);
-            String targetExt = getMimetypeExt(targetMimetype);
-            debug(sourceExt + targetExt +
+            String sourceAndTargetExt = getSourceAndTargetExt(sourceMimetype, targetMimetype);
+            debug(sourceAndTargetExt +
                     ((fileName != null) ? fileName + ' ' : "") +
                     ((sourceSize >= 0) ? fileSize(sourceSize) + ' ' : "") +
                     getRenditionName(renditionName) + " "+ TRANSFORM_SERVICE_NAME);
             log(options);
             log(sourceNodeRef.toString() + ' ' + contentHashcode);
             String reference = getReference(true, false);
-            infoLog(reference, sourceExt, targetExt, null, fileName, sourceSize, TRANSFORM_SERVICE_NAME,
+            infoLog(reference, sourceAndTargetExt, null, fileName, sourceSize, TRANSFORM_SERVICE_NAME,
                     renditionName, null, "", true);
         }
         return pop(Call.AVAILABLE, true, false);
