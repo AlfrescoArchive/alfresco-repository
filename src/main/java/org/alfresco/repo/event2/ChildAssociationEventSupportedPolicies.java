@@ -23,48 +23,18 @@
  * along with Alfresco. If not, see <http://www.gnu.org/licenses/>.
  * #L%
  */
+
 package org.alfresco.repo.event2;
 
+import org.alfresco.repo.node.NodeServicePolicies;
+
 /**
- * List of supported event types.
+ * Event generator supported policies.
  *
  * @author Jamal Kaabi-Mofrad
  */
-public enum EventType
+public interface ChildAssociationEventSupportedPolicies extends NodeServicePolicies.OnCreateChildAssociationPolicy,
+                                                                NodeServicePolicies.BeforeDeleteChildAssociationPolicy
 {
-    //TODO: handle new event type: "org.alfresco.event.assoc.child.Created"
-    NODE_CREATED("Created"), NODE_UPDATED("Updated"), NODE_DELETED("Deleted"), NODE_DOWNLOADED("Downloaded"),
-    CHILD_ASSOC_CREATED("child.Created"), CHILD_ASSOC_DELETED("child.Deleted");
-
-    private static final String PREFIX = "org.alfresco.event.";
-    private static final String CONTEXT = "node.";
-    private String type;
-
-    EventType(String type)
-    {
-        this.type = type;
-    }
-
-    // Should be overridden if a type requires different context. E.g. auth
-    /* package*/ String getContext()
-    {
-        return CONTEXT;
-    }
-
-    @Override
-    public String toString()
-    {
-        return PREFIX + getContext() + type;
-    }
-
-    /**
-     * Gets the type of an event prefixed with a reverse-DNS name.
-     * <p>
-     * See <a href="https://github.com/cloudevents/spec/blob/v1.0/spec.md#type">v1.0 spec#type</a>
-     */
-    public String getType()
-    {
-        return toString();
-    }
 }
 

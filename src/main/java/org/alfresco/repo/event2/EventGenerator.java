@@ -36,8 +36,10 @@ import org.alfresco.repo.event.v1.model.RepoEvent;
 import org.alfresco.repo.event2.filter.EventFilterRegistry;
 import org.alfresco.repo.event2.filter.EventUserFilter;
 import org.alfresco.repo.event2.filter.NodeTypeFilter;
+import org.alfresco.repo.node.NodeServicePolicies.BeforeDeleteChildAssociationPolicy;
 import org.alfresco.repo.node.NodeServicePolicies.BeforeDeleteNodePolicy;
 import org.alfresco.repo.node.NodeServicePolicies.OnAddAspectPolicy;
+import org.alfresco.repo.node.NodeServicePolicies.OnCreateChildAssociationPolicy;
 import org.alfresco.repo.node.NodeServicePolicies.OnCreateNodePolicy;
 import org.alfresco.repo.node.NodeServicePolicies.OnDownloadNodePolicy;
 import org.alfresco.repo.node.NodeServicePolicies.OnMoveNodePolicy;
@@ -71,7 +73,7 @@ import org.springframework.extensions.surf.util.AbstractLifecycleBean;
  *
  * @author Jamal Kaabi-Mofrad
  */
-public class EventGenerator extends AbstractLifecycleBean implements InitializingBean, EventSupportedPolicies
+public class EventGenerator extends AbstractLifecycleBean implements InitializingBean, EventSupportedPolicies, ChildAssociationEventSupportedPolicies
 {
     private static final Log LOGGER = LogFactory.getLog(EventGenerator.class);
 
@@ -89,6 +91,7 @@ public class EventGenerator extends AbstractLifecycleBean implements Initializin
     private EventUserFilter userFilter;
     private NodeResourceHelper nodeResourceHelper;
     private final EventTransactionListener transactionListener = new EventTransactionListener();
+    private final ChildAssociationEventTransactionListener transactionListenerChildAssoc = new ChildAssociationEventTransactionListener();
 
     @Override
     public void afterPropertiesSet()
@@ -128,6 +131,10 @@ public class EventGenerator extends AbstractLifecycleBean implements Initializin
                                            new JavaBehaviour(this, "onMoveNode"));
         policyComponent.bindClassBehaviour(OnDownloadNodePolicy.QNAME, this,
                                            new JavaBehaviour(this, "onDownloadNode"));
+        policyComponent.bindClassBehaviour(OnCreateChildAssociationPolicy.QNAME, this,
+                                           new JavaBehaviour(this, "onCreateChildAssociation"));
+        policyComponent.bindClassBehaviour(BeforeDeleteChildAssociationPolicy.QNAME, this,
+                                           new JavaBehaviour(this, "beforeDeleteChildAssociation"));
     }
 
     public void setPolicyComponent(PolicyComponent policyComponent)
@@ -204,7 +211,7 @@ public class EventGenerator extends AbstractLifecycleBean implements Initializin
     {
         getEventConsolidator(nodeRef).onDownloadNode(nodeRef);
     }
-    
+
     @Override
     public void beforeDeleteNode(NodeRef nodeRef)
     {
@@ -221,6 +228,18 @@ public class EventGenerator extends AbstractLifecycleBean implements Initializin
     public void onRemoveAspect(NodeRef nodeRef, QName aspectTypeQName)
     {
         getEventConsolidator(nodeRef).onRemoveAspect(nodeRef, aspectTypeQName);
+    }
+
+    @Override
+    public void onCreateChildAssociation(ChildAssociationRef childAssociationRef, boolean isNewNode)
+    {
+        getEventConsolidator(childAssociationRef).onCreateChildAssociation(childAssociationRef, isNewNode);
+    }
+
+    @Override
+    public void beforeDeleteChildAssociation(ChildAssociationRef childAssociationRef)
+    {
+        getEventConsolidator(childAssociationRef).beforeDeleteChildAssociation(childAssociationRef);
     }
 
     /**
@@ -247,6 +266,38 @@ public class EventGenerator extends AbstractLifecycleBean implements Initializin
     private Map<NodeRef, EventConsolidator> getTxnResourceMap(Object resourceKey)
     {
         Map<NodeRef, EventConsolidator> map = AlfrescoTransactionSupport.getResource(resourceKey);
+        if (map == null)
+        {
+            map = new LinkedHashMap<>(29);
+            AlfrescoTransactionSupport.bindResource(resourceKey, map);
+        }
+        return map;
+    }
+
+    /**
+     * @return the {@link EventConsolidator} for the supplied {@code chAssociationNodeRef} from
+     * the current transaction context.
+     */
+    private ChildAssociationEventConsolidator getEventConsolidator(ChildAssociationRef childAssociationRef)
+    {
+        Map<ChildAssociationRef, ChildAssociationEventConsolidator> assocEvents = getTxnChildAssocResourceMap(transactionListenerChildAssoc);
+        if (assocEvents.isEmpty())
+        {
+            AlfrescoTransactionSupport.bindListener(transactionListenerChildAssoc);
+        }
+
+        ChildAssociationEventConsolidator eventConsolidator = assocEvents.get(childAssociationRef);
+        if (eventConsolidator == null)
+        {
+            eventConsolidator = new ChildAssociationEventConsolidator(childAssociationRef);
+            assocEvents.put(childAssociationRef, eventConsolidator);
+        }
+        return eventConsolidator;
+    }
+
+    private Map<ChildAssociationRef, ChildAssociationEventConsolidator> getTxnChildAssocResourceMap(Object resourceKey)
+    {
+        Map<ChildAssociationRef, ChildAssociationEventConsolidator> map = AlfrescoTransactionSupport.getResource(resourceKey);
         if (map == null)
         {
             map = new LinkedHashMap<>(29);
@@ -310,6 +361,49 @@ public class EventGenerator extends AbstractLifecycleBean implements Initializin
         }, true, false);
     }
 
+    private void sendEvent(ChildAssociationRef childAssociationRef, ChildAssociationEventConsolidator consolidator)
+    {
+        if (consolidator.isTemporaryChildAssociation())
+        {
+            if (LOGGER.isTraceEnabled())
+            {
+                LOGGER.trace("Ignoring temporary child association: " + childAssociationRef);
+            }
+            return;
+        }
+
+        final String user = AuthenticationUtil.getFullyAuthenticatedUser();
+        // Get the repo event before the filtering,
+        // so we can take the latest node info into account
+        final RepoEvent<?> event = consolidator.getRepoEvent(getEventInfo(user));
+
+        /*TODO: filter renditions
+        final QName nodeType = consolidator.getNodeType();
+        if (isFiltered(nodeType, user))
+        {
+            if (LOGGER.isTraceEnabled())
+            {
+                LOGGER.trace("EventFilter - Excluding node: '" + nodeRef + "' of type: '"
+                        + ((nodeType == null) ? "Unknown' " : nodeType.toPrefixString())
+                        + "' created by: " + user);
+            }
+            return;
+        }
+         */
+
+        if (LOGGER.isTraceEnabled())
+        {
+            LOGGER.trace("List of Events:" + consolidator.getEventTypes());
+            LOGGER.trace("Sending event:" + event);
+        }
+        // Need to execute this in another read txn because Camel expects it
+        transactionService.getRetryingTransactionHelper().doInTransaction((RetryingTransactionCallback<Void>) () -> {
+            event2MessageProducer.send(event);
+
+            return null;
+        }, true, false);
+    }
+
     @Override
     protected void onBootstrap(ApplicationEvent applicationEvent)
     {
@@ -329,10 +423,34 @@ public class EventGenerator extends AbstractLifecycleBean implements Initializin
         {
             try
             {
+                // Node events
                 final Map<NodeRef, EventConsolidator> changedNodes = getTxnResourceMap(this);
                 for (Map.Entry<NodeRef, EventConsolidator> entry : changedNodes.entrySet())
                 {
                     EventConsolidator eventConsolidator = entry.getValue();
+                    sendEvent(entry.getKey(), eventConsolidator);
+                }
+            }
+            catch (Exception e)
+            {
+                // Must consume the exception to protect other TransactionListeners
+                LOGGER.error("Unexpected error while sending repository events", e);
+            }
+        }
+    }
+
+    private class ChildAssociationEventTransactionListener extends TransactionListenerAdapter
+    {
+        @Override
+        public void afterCommit()
+        {
+            try
+            {
+                // Child assoc events
+                final Map<ChildAssociationRef, ChildAssociationEventConsolidator> changedAssocs = getTxnChildAssocResourceMap(this);
+                for (Map.Entry<ChildAssociationRef, ChildAssociationEventConsolidator> entry : changedAssocs.entrySet())
+                {
+                    ChildAssociationEventConsolidator eventConsolidator = entry.getValue();
                     sendEvent(entry.getKey(), eventConsolidator);
                 }
             }
