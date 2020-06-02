@@ -43,7 +43,7 @@ import org.junit.Test;
  */
 public class DownloadRepoEventIT extends AbstractContextAwareRepoEvent
 {
-    ContentService contentService;
+    private ContentService contentService;
 
     @Before
     public void setup()
