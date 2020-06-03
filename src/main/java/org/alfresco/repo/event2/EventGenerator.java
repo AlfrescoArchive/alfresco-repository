@@ -138,10 +138,6 @@ public class EventGenerator extends AbstractLifecycleBean implements Initializin
                                            new JavaBehaviour(this, "onCreateChildAssociation"));
         policyComponent.bindAssociationBehaviour(BeforeDeleteChildAssociationPolicy.QNAME, this,
                                            new JavaBehaviour(this, "beforeDeleteChildAssociation"));
-        policyComponent.bindAssociationBehaviour(OnCreateAssociationPolicy.QNAME, this,
-                                           new JavaBehaviour(this, "onCreateAssociation"));
-        policyComponent.bindAssociationBehaviour(BeforeDeleteAssociationPolicy.QNAME, this,
-                                           new JavaBehaviour(this, "beforeDeleteAssociation"));
     }
 
     public void setPolicyComponent(PolicyComponent policyComponent)
