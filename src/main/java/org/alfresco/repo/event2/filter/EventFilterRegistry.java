@@ -85,11 +85,6 @@ public class EventFilterRegistry implements BeanFactoryAware
         return getFilter("event2NodePropertyFilter", NodePropertyFilter.class);
     }
 
-    public ChildAssociationTypeFilter getChildAssociationTypeFilter()
-    {
-        return getFilter("event2ChildAssociationTypeFilter", ChildAssociationTypeFilter.class);
-    }
-
     public EventUserFilter getEventUserFilter()
     {
         return getFilter("event2UserFilter", EventUserFilter.class);
