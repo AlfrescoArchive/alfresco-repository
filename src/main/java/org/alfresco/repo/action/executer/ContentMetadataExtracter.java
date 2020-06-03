@@ -424,29 +424,12 @@ public class ContentMetadataExtracter extends ActionExecuterAbstractBase
             return;
         }
 
-        addExtractedMetadataToNode(actionedUponNodeRef, nodeProperties, modifiedProperties);
-    }
-
-    private void addExtractedMetadataToNode(NodeRef actionedUponNodeRef, Map<QName, Serializable> nodeProperties,
-                                            Map<QName, Serializable> modifiedProperties)
-    {
         addExtractedMetadataToNode(actionedUponNodeRef, nodeProperties, modifiedProperties,
                 nodeService, dictionaryService, taggingService, enableStringTagging, carryAspectProperties,
                 stringTaggingSeparators);
     }
 
-    public static void addExtractedMetadataToNode(NodeRef actionedUponNodeRef, Map<QName, Serializable> modifiedProperties,
-                                                  NodeService nodeService, DictionaryService dictionaryService,
-                                                  TaggingService taggingService, boolean enableStringTagging,
-                                                  boolean carryAspectProperties, List<String> stringTaggingSeparators)
-    {
-        Map<QName, Serializable> nodeProperties = nodeService.getProperties(actionedUponNodeRef);
-        addExtractedMetadataToNode(actionedUponNodeRef, nodeProperties, modifiedProperties,
-                nodeService, dictionaryService, taggingService, enableStringTagging, carryAspectProperties,
-                stringTaggingSeparators);
-    }
-
-    private static void addExtractedMetadataToNode(NodeRef actionedUponNodeRef, Map<QName, Serializable> nodeProperties,
+    public static void addExtractedMetadataToNode(NodeRef actionedUponNodeRef, Map<QName, Serializable> nodeProperties,
                                                    Map<QName, Serializable> modifiedProperties,
                                                    NodeService nodeService, DictionaryService dictionaryService,
                                                    TaggingService taggingService, boolean enableStringTagging,

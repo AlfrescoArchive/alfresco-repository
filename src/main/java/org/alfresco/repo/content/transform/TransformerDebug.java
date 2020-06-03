@@ -787,7 +787,7 @@ public class TransformerDebug
         String sourceExt = getMimetypeExt(sourceMimetype);
         String targetExt = getMimetypeExt(targetMimetype);
         targetExt = AsynchronousExtractor.getExtension(targetMimetype, sourceExt, targetExt);
-        return sourceExt + targetExt;
+        return sourceExt + targetExt + spaces(1+4-targetExt.length());
     }
 
     protected String getMimetypeExt(String mimetype)

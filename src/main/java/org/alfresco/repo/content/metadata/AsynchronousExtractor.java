@@ -95,7 +95,6 @@ public class AsynchronousExtractor extends AbstractMappingMetadataExtracter
     private final ObjectMapper jsonObjectMapper = new ObjectMapper();
 
     private NodeService nodeService;
-    private NamespacePrefixResolver namespacePrefixResolver;
     private RenditionService2 renditionService2;
     private ContentService contentService;
     private TransactionService transactionService;
@@ -105,11 +104,6 @@ public class AsynchronousExtractor extends AbstractMappingMetadataExtracter
     public void setNodeService(NodeService nodeService)
     {
         this.nodeService = nodeService;
-    }
-
-    public void setNamespacePrefixResolver(NamespacePrefixResolver namespacePrefixResolver)
-    {
-        this.namespacePrefixResolver = namespacePrefixResolver;
     }
 
     public void setRenditionService2(RenditionService2 renditionService2)
@@ -140,7 +134,7 @@ public class AsynchronousExtractor extends AbstractMappingMetadataExtracter
     @Override
     protected Map<String, Set<QName>> getDefaultMapping()
     {
-        return Collections.emptyMap(); // Mappings are done by the transform
+        return Collections.emptyMap(); // Mappings are done by the transform, but a non null value must be returned.
     }
 
     public boolean isSupported(String sourceMimetype, long sourceSizeInBytes)
@@ -332,15 +326,24 @@ public class AsynchronousExtractor extends AbstractMappingMetadataExtracter
         AuthenticationUtil.runAsSystem((AuthenticationUtil.RunAsWork<Void>) () ->
                 transactionService.getRetryingTransactionHelper().doInTransaction(() ->
                 {
-                    Map<QName, Serializable> properties = convertKeysToQNames(metadata);
-                    properties = convertSystemPropertyValues(properties);
-
+                    // Based on: AbstractMappingMetadataExtracter.extract
                     Map<QName, Serializable> nodeProperties = nodeService.getProperties(nodeRef);
-                    Map<QName, Serializable> changedProperties =
-                            overwritePolicy.applyProperties(properties, nodeProperties);
+                    // Convert to system properties (standalone)
+                    Map<QName, Serializable> systemProperties = convertKeysToQNames(metadata);
+                    // Convert the properties according to the dictionary types
+                    systemProperties = convertSystemPropertyValues(systemProperties);
+                    // There is no last filter in the AsynchronousExtractor.
+                    // Now use the proper overwrite policy
+                    Map<QName, Serializable> changedProperties = overwritePolicy.applyProperties(systemProperties, nodeProperties);
 
-                    ContentMetadataExtracter.addExtractedMetadataToNode(nodeRef, changedProperties, nodeService,
-                            dictionaryService, taggingService,
+                    // Based on: ContentMetadataExtracter.executeImpl
+                    // If none of the properties where changed, then there is nothing more to do
+                    if (changedProperties.size() == 0)
+                    {
+                        return null;
+                    }
+                    ContentMetadataExtracter.addExtractedMetadataToNode(nodeRef, nodeProperties, changedProperties,
+                            nodeService, dictionaryService, taggingService,
                             enableStringTagging, carryAspectProperties, stringTaggingSeparators);
 
                     if (logger.isDebugEnabled())
@@ -439,7 +442,7 @@ public class AsynchronousExtractor extends AbstractMappingMetadataExtracter
             Serializable value = entry.getValue();
             try
             {
-                QName qName = QName.createQName(key, namespacePrefixResolver);
+                QName qName = QName.createQName(key);
                 properties.put(qName, value);
             }
             catch (NamespaceException e)

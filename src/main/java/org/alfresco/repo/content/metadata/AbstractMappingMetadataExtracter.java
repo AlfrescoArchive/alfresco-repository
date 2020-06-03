@@ -715,10 +715,10 @@ abstract public class AbstractMappingMetadataExtracter implements MetadataExtrac
     {
         return readMappingProperties(mappingProperties.entrySet());
     }
-    
+
     /**
      * A utility method to convert mapping properties entries to the Map form.
-     * 
+     *
      * @see #setMappingProperties(Properties)
      */
     private Map<String, Set<QName>> readMappingProperties(Set<Entry<Object, Object>> mappingPropertiesEntries)
@@ -766,8 +766,8 @@ abstract public class AbstractMappingMetadataExtracter implements MetadataExtrac
                     {
                         throw new AlfrescoRuntimeException(
                                 "No prefix mapping for extracter property mapping: \n" +
-                                "   Extracter: " + this + "\n" +
-                                "   Mapping: " + entry);
+                                        "   Extracter: " + this + "\n" +
+                                        "   Mapping: " + entry);
                     }
                     qnameStr = QName.NAMESPACE_BEGIN + uri + QName.NAMESPACE_END + suffix;
                 }
@@ -781,8 +781,8 @@ abstract public class AbstractMappingMetadataExtracter implements MetadataExtrac
                 {
                     throw new AlfrescoRuntimeException(
                             "Can't create metadata extracter property mapping: \n" +
-                            "   Extracter: " + this + "\n" +
-                            "   Mapping: " + entry);
+                                    "   Extracter: " + this + "\n" +
+                                    "   Mapping: " + entry);
                 }
             }
             if (logger.isTraceEnabled())
