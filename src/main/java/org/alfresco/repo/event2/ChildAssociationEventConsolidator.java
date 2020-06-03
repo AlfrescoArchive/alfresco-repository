@@ -28,6 +28,7 @@ package org.alfresco.repo.event2;
 import java.util.ArrayDeque;
 import java.util.Deque;
 
+import org.alfresco.model.RenditionModel;
 import org.alfresco.repo.event.v1.model.ChildAssociationResource;
 import org.alfresco.repo.event.v1.model.EventData;
 import org.alfresco.repo.event.v1.model.RepoEvent;
@@ -169,7 +170,7 @@ public class ChildAssociationEventConsolidator implements ChildAssociationEventS
     private boolean isExcludedChildAssociation(ChildAssociationRef childAssociationRef)
     {
         //TODO: use form of isFiltered for renditions?
-        return (childAssociationRef.isPrimary() || childAssociationRef.getTypeQName().equals("rn:rendition"));
+        return (childAssociationRef.isPrimary() || childAssociationRef.getTypeQName().equals(RenditionModel.ASSOC_RENDITION));
     }
 
     public Deque<EventType> getEventTypes()

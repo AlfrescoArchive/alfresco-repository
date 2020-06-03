@@ -32,13 +32,16 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.UUID;
 
+import org.alfresco.model.RenditionModel;
 import org.alfresco.repo.event.v1.model.RepoEvent;
 import org.alfresco.repo.event2.filter.EventFilterRegistry;
 import org.alfresco.repo.event2.filter.EventUserFilter;
 import org.alfresco.repo.event2.filter.NodeTypeFilter;
+import org.alfresco.repo.node.NodeServicePolicies.BeforeDeleteAssociationPolicy;
 import org.alfresco.repo.node.NodeServicePolicies.BeforeDeleteChildAssociationPolicy;
 import org.alfresco.repo.node.NodeServicePolicies.BeforeDeleteNodePolicy;
 import org.alfresco.repo.node.NodeServicePolicies.OnAddAspectPolicy;
+import org.alfresco.repo.node.NodeServicePolicies.OnCreateAssociationPolicy;
 import org.alfresco.repo.node.NodeServicePolicies.OnCreateChildAssociationPolicy;
 import org.alfresco.repo.node.NodeServicePolicies.OnCreateNodePolicy;
 import org.alfresco.repo.node.NodeServicePolicies.OnDownloadNodePolicy;
@@ -131,10 +134,14 @@ public class EventGenerator extends AbstractLifecycleBean implements Initializin
                                            new JavaBehaviour(this, "onMoveNode"));
         policyComponent.bindClassBehaviour(OnDownloadNodePolicy.QNAME, this,
                                            new JavaBehaviour(this, "onDownloadNode"));
-        policyComponent.bindClassBehaviour(OnCreateChildAssociationPolicy.QNAME, this,
+        policyComponent.bindAssociationBehaviour(OnCreateChildAssociationPolicy.QNAME, this,
                                            new JavaBehaviour(this, "onCreateChildAssociation"));
-        policyComponent.bindClassBehaviour(BeforeDeleteChildAssociationPolicy.QNAME, this,
+        policyComponent.bindAssociationBehaviour(BeforeDeleteChildAssociationPolicy.QNAME, this,
                                            new JavaBehaviour(this, "beforeDeleteChildAssociation"));
+        policyComponent.bindAssociationBehaviour(OnCreateAssociationPolicy.QNAME, this,
+                                           new JavaBehaviour(this, "onCreateAssociation"));
+        policyComponent.bindAssociationBehaviour(BeforeDeleteAssociationPolicy.QNAME, this,
+                                           new JavaBehaviour(this, "beforeDeleteAssociation"));
     }
 
     public void setPolicyComponent(PolicyComponent policyComponent)

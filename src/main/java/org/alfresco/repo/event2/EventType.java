@@ -32,23 +32,24 @@ package org.alfresco.repo.event2;
  */
 public enum EventType
 {
-    //TODO: handle new event type: "org.alfresco.event.assoc.child.Created"
-    NODE_CREATED("Created"), NODE_UPDATED("Updated"), NODE_DELETED("Deleted"), NODE_DOWNLOADED("Downloaded"),
-    CHILD_ASSOC_CREATED("child.Created"), CHILD_ASSOC_DELETED("child.Deleted");
+    NODE_CREATED("Created", ContextType.NODE), NODE_UPDATED("Updated", ContextType.NODE), NODE_DELETED("Deleted", ContextType.NODE), NODE_DOWNLOADED("Downloaded", ContextType.NODE),
+    CHILD_ASSOC_CREATED("Created", ContextType.CHILD_ASSOC), CHILD_ASSOC_DELETED("Deleted", ContextType.CHILD_ASSOC),
+    PEER_ASSOC_CREATED("Created", ContextType.PEER_ASSOC), PEER_ASSOC_DELETED("Deleted", ContextType.PEER_ASSOC);
 
     private static final String PREFIX = "org.alfresco.event.";
-    private static final String CONTEXT = "node.";
     private String type;
+    private ContextType contextType;
 
-    EventType(String type)
+    EventType(String type, ContextType contextType)
     {
         this.type = type;
+        this.contextType = contextType;
     }
 
     // Should be overridden if a type requires different context. E.g. auth
     /* package*/ String getContext()
     {
-        return CONTEXT;
+        return contextType.getContext();
     }
 
     @Override
@@ -65,6 +66,21 @@ public enum EventType
     public String getType()
     {
         return toString();
+    }
+
+    enum ContextType
+    {
+        NODE("node."), CHILD_ASSOC("assoc.child."), PEER_ASSOC("assoc.peer.");
+        private String context;
+        ContextType(String context)
+        {
+            this.context = context;
+        }
+
+        String getContext()
+        {
+            return context;
+        }
     }
 }
 
