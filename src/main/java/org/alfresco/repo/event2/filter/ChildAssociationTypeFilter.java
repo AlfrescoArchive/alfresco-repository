@@ -25,12 +25,10 @@
  */
 package org.alfresco.repo.event2.filter;
 
-import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import org.alfresco.model.ContentModel;
 import org.alfresco.service.namespace.QName;
 
 /**

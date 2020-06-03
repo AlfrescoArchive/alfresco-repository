@@ -28,11 +28,11 @@ package org.alfresco.repo.event2;
 import java.util.ArrayDeque;
 import java.util.Deque;
 
-import org.alfresco.model.RenditionModel;
 import org.alfresco.repo.event.v1.model.ChildAssociationResource;
 import org.alfresco.repo.event.v1.model.EventData;
 import org.alfresco.repo.event.v1.model.RepoEvent;
 import org.alfresco.service.cmr.repository.ChildAssociationRef;
+import org.alfresco.service.namespace.QName;
 
 /**
  * Encapsulates events occurred in a single transaction.
@@ -80,26 +80,18 @@ public class ChildAssociationEventConsolidator implements ChildAssociationEventS
     @Override
     public void onCreateChildAssociation(ChildAssociationRef childAssociationRef, boolean isNewNode)
     {
-        if (!isExcludedChildAssociation(childAssociationRef))
+        if (!childAssociationRef.isPrimary())
         {
-            //TODO: change event type
             eventTypes.add(EventType.CHILD_ASSOC_CREATED);
-
-            //NodeRef parentNodeRef = childAssocRef.getParentRef();
-            //NodeRef childNodeRef = childAssocRef.getChildRef();
-            //QName assocType = childAssocRef.getTypeQName();
-            //this.childAssociationRef = childAssociationRef;
         }
     }
 
     @Override
     public void beforeDeleteChildAssociation(ChildAssociationRef childAssocRef)
     {
-        if (!isExcludedChildAssociation(childAssocRef))
+        if (!childAssociationRef.isPrimary())
         {
-            //TODO: change event type
             eventTypes.add(EventType.CHILD_ASSOC_DELETED);
-            //this.childAssociationRef = childAssociationRef;
         }
     }
 
@@ -129,7 +121,6 @@ public class ChildAssociationEventConsolidator implements ChildAssociationEventS
     /**
      * @return a derived event for a transaction.
      */
-    //TODO: change types
     private EventType getDerivedEvent()
     {
         if (isTemporaryChildAssociation())
@@ -164,13 +155,9 @@ public class ChildAssociationEventConsolidator implements ChildAssociationEventS
         return eventTypes.contains(EventType.CHILD_ASSOC_CREATED) && eventTypes.getLast() == EventType.CHILD_ASSOC_DELETED;
     }
 
-    /*
-     * Helper method to check whether an association should be excluded
-     */
-    private boolean isExcludedChildAssociation(ChildAssociationRef childAssociationRef)
+    public QName getChildAssocType()
     {
-        //TODO: use form of isFiltered for renditions?
-        return (childAssociationRef.isPrimary() || childAssociationRef.getTypeQName().equals(RenditionModel.ASSOC_RENDITION));
+        return childAssociationRef.getTypeQName();
     }
 
     public Deque<EventType> getEventTypes()

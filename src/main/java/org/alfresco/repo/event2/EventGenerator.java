@@ -34,6 +34,7 @@ import java.util.UUID;
 
 import org.alfresco.model.RenditionModel;
 import org.alfresco.repo.event.v1.model.RepoEvent;
+import org.alfresco.repo.event2.filter.ChildAssociationTypeFilter;
 import org.alfresco.repo.event2.filter.EventFilterRegistry;
 import org.alfresco.repo.event2.filter.EventUserFilter;
 import org.alfresco.repo.event2.filter.NodeTypeFilter;
@@ -91,6 +92,7 @@ public class EventGenerator extends AbstractLifecycleBean implements Initializin
     private PersonService personService;
 
     private NodeTypeFilter nodeTypeFilter;
+    private ChildAssociationTypeFilter childAssociationTypeFilter;
     private EventUserFilter userFilter;
     private NodeResourceHelper nodeResourceHelper;
     private final EventTransactionListener transactionListener = new EventTransactionListener();
@@ -110,6 +112,7 @@ public class EventGenerator extends AbstractLifecycleBean implements Initializin
         PropertyCheck.mandatory(this, "personService", personService);
 
         this.nodeTypeFilter = eventFilterRegistry.getNodeTypeFilter();
+        this.childAssociationTypeFilter = eventFilterRegistry.getChildAssociationTypeFilter();
         this.userFilter = eventFilterRegistry.getEventUserFilter();
         this.nodeResourceHelper = new NodeResourceHelper(nodeService, namespaceService, dictionaryService,
                                                          personService,
@@ -314,6 +317,11 @@ public class EventGenerator extends AbstractLifecycleBean implements Initializin
         return (nodeTypeFilter.isExcluded(nodeType) || (userFilter.isExcluded(user)));
     }
 
+    private boolean isFilteredChildAssociation(QName childAssocType, String user)
+    {
+        return (childAssociationTypeFilter.isExcluded(childAssocType) || (userFilter.isExcluded(user)));
+    }
+
     private EventInfo getEventInfo(String user)
     {
         return new EventInfo().setTimestamp(ZonedDateTime.now())
@@ -377,22 +385,20 @@ public class EventGenerator extends AbstractLifecycleBean implements Initializin
 
         final String user = AuthenticationUtil.getFullyAuthenticatedUser();
         // Get the repo event before the filtering,
-        // so we can take the latest node info into account
+        // so we can take the latest association info into account
         final RepoEvent<?> event = consolidator.getRepoEvent(getEventInfo(user));
 
-        /*TODO: filter renditions
-        final QName nodeType = consolidator.getNodeType();
-        if (isFiltered(nodeType, user))
+        final QName childAssocType = consolidator.getChildAssocType();
+        if (isFilteredChildAssociation(childAssocType, user))
         {
             if (LOGGER.isTraceEnabled())
             {
-                LOGGER.trace("EventFilter - Excluding node: '" + nodeRef + "' of type: '"
-                        + ((nodeType == null) ? "Unknown' " : nodeType.toPrefixString())
+                LOGGER.trace("EventFilter - Excluding child association: '" + childAssociationRef + "' of type: '"
+                        + ((childAssocType == null) ? "Unknown' " : childAssocType.toPrefixString())
                         + "' created by: " + user);
             }
             return;
         }
-         */
 
         if (LOGGER.isTraceEnabled())
         {
