@@ -36,6 +36,7 @@ import javax.jms.ConnectionFactory;
 
 import org.alfresco.model.ContentModel;
 import org.alfresco.repo.event.databind.ObjectMapperFactory;
+import org.alfresco.repo.event.v1.model.ChildAssociationResource;
 import org.alfresco.repo.event.v1.model.EventData;
 import org.alfresco.repo.event.v1.model.NodeResource;
 import org.alfresco.repo.event.v1.model.RepoEvent;
@@ -228,6 +229,17 @@ public abstract class AbstractContextAwareRepoEvent extends BaseSpringTest
         EventData<NodeResource> eventData = repoEvent.getData();
         assertNotNull(eventData);
         NodeResource resource = eventData.getResource();
+        assertNotNull(resource);
+
+        return resource;
+    }
+
+    protected ChildAssociationResource getChildAssocResource(RepoEvent repoEvent)
+    {
+        assertNotNull(repoEvent);
+        EventData<ChildAssociationResource> eventData = repoEvent.getData();
+        assertNotNull(eventData);
+        ChildAssociationResource resource = eventData.getResource();
         assertNotNull(resource);
 
         return resource;
