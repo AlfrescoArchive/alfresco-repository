@@ -51,6 +51,7 @@ public class ChildAssociationEventConsolidator implements ChildAssociationEventS
     {
         this.eventTypes = new ArrayDeque<>();
         this.childAssociationRef = childAssociationRef;
+        resource = buildChildAssociationResource(this.childAssociationRef);
     }
 
     /**
@@ -85,11 +86,8 @@ public class ChildAssociationEventConsolidator implements ChildAssociationEventS
     @Override
     public void onCreateChildAssociation(ChildAssociationRef childAssociationRef, boolean isNewNode)
     {
-        if (!childAssociationRef.isPrimary())
-        {
-            eventTypes.add(EventType.CHILD_ASSOC_CREATED);
-            resource = buildChildAssociationResource(childAssociationRef);
-        }
+        eventTypes.add(EventType.CHILD_ASSOC_CREATED);
+        resource = buildChildAssociationResource(childAssociationRef);
     }
 
     /**
@@ -100,11 +98,8 @@ public class ChildAssociationEventConsolidator implements ChildAssociationEventS
     @Override
     public void beforeDeleteChildAssociation(ChildAssociationRef childAssociationRef)
     {
-        if (!childAssociationRef.isPrimary())
-        {
-            eventTypes.add(EventType.CHILD_ASSOC_DELETED);
-            resource = buildChildAssociationResource(childAssociationRef);
-        }
+        eventTypes.add(EventType.CHILD_ASSOC_DELETED);
+        resource = buildChildAssociationResource(childAssociationRef);
     }
 
     private ChildAssociationResource buildChildAssociationResource(ChildAssociationRef childAssociationRef)
