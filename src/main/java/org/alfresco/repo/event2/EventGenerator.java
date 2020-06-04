@@ -441,6 +441,16 @@ public class EventGenerator extends AbstractLifecycleBean implements Initializin
             }
             return;
         }
+        else if (childAssociationRef.isPrimary())
+        {
+            if (LOGGER.isTraceEnabled())
+            {
+                LOGGER.trace("EventFilter - Excluding primary child association: '" + childAssociationRef + "' of type: '"
+                        + ((childAssocType == null) ? "Unknown' " : childAssocType.toPrefixString())
+                        + "' created by: " + user);
+            }
+            return;
+        }
 
         logAndSendEvent(event, consolidator.getEventTypes());
     }
