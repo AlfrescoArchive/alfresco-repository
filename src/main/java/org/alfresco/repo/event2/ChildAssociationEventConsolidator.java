@@ -35,7 +35,7 @@ import org.alfresco.service.cmr.repository.ChildAssociationRef;
 import org.alfresco.service.namespace.QName;
 
 /**
- * Encapsulates events occurred in a single transaction.
+ * Encapsulates child association events that occurred in a single transaction.
  *
  * @author Chris Shields
  * @author Sara Aspery
@@ -137,20 +137,30 @@ public class ChildAssociationEventConsolidator implements ChildAssociationEventS
     }
 
     /**
-     * Whether or not the association has been created and then deleted, i.e. a temporary association.
+     * Whether or not the child association has been created and then deleted, i.e. a temporary child association.
      *
-     * @return {@code true} if the association has been created and then deleted, otherwise false
+     * @return {@code true} if the child association has been created and then deleted, otherwise false
      */
     public boolean isTemporaryChildAssociation()
     {
         return eventTypes.contains(EventType.CHILD_ASSOC_CREATED) && eventTypes.getLast() == EventType.CHILD_ASSOC_DELETED;
     }
 
+    /**
+     * Get child association type.
+     *
+     * @return QName the child association type
+     */
     public QName getChildAssocType()
     {
         return childAssociationRef.getTypeQName();
     }
 
+    /**
+     * Get event types.
+     *
+     * @return Deque<EventType> queue of event types
+     */
     public Deque<EventType> getEventTypes()
     {
         return eventTypes;

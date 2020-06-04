@@ -79,8 +79,8 @@ import org.springframework.extensions.surf.util.AbstractLifecycleBean;
  * @author Jamal Kaabi-Mofrad
  */
 public class EventGenerator extends AbstractLifecycleBean implements InitializingBean, EventSupportedPolicies,
-                                                                    ChildAssociationEventSupportedPolicies,
-                                                                    PeerAssociationEventSupportedPolicies
+                                                                     ChildAssociationEventSupportedPolicies,
+                                                                     PeerAssociationEventSupportedPolicies
 {
     private static final Log LOGGER = LogFactory.getLog(EventGenerator.class);
 
@@ -301,7 +301,7 @@ public class EventGenerator extends AbstractLifecycleBean implements Initializin
     }
 
     /**
-     * @return the {@link EventConsolidator} for the supplied {@code chAssociationNodeRef} from
+     * @return the {@link EventConsolidator} for the supplied {@code childAssociationRef} from
      * the current transaction context.
      */
     private ChildAssociationEventConsolidator getEventConsolidator(ChildAssociationRef childAssociationRef)
@@ -333,7 +333,7 @@ public class EventGenerator extends AbstractLifecycleBean implements Initializin
     }
 
     /**
-     * @return the {@link EventConsolidator} for the supplied {@code associationNodeRef} from
+     * @return the {@link EventConsolidator} for the supplied {@code peerAssociationRef} from
      * the current transaction context.
      */
     private PeerAssociationEventConsolidator getEventConsolidator(AssociationRef peerAssociationRef)

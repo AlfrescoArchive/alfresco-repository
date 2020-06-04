@@ -31,7 +31,8 @@ import org.alfresco.repo.node.NodeServicePolicies;
 /**
  * Event generator supported policies.
  *
- * @author Jamal Kaabi-Mofrad
+ * @author Chris Shields
+ * @author Sara Aspery
  */
 public interface ChildAssociationEventSupportedPolicies extends NodeServicePolicies.OnCreateChildAssociationPolicy,
                                                                 NodeServicePolicies.BeforeDeleteChildAssociationPolicy
