@@ -28,11 +28,11 @@ package org.alfresco.repo.event2;
 import java.io.Serializable;
 import java.net.URI;
 import java.time.ZonedDateTime;
+import java.util.Deque;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.UUID;
 
-import org.alfresco.model.RenditionModel;
 import org.alfresco.repo.event.v1.model.RepoEvent;
 import org.alfresco.repo.event2.filter.ChildAssociationTypeFilter;
 import org.alfresco.repo.event2.filter.EventFilterRegistry;
@@ -56,6 +56,7 @@ import org.alfresco.repo.security.authentication.AuthenticationUtil;
 import org.alfresco.repo.transaction.AlfrescoTransactionSupport;
 import org.alfresco.repo.transaction.RetryingTransactionHelper.RetryingTransactionCallback;
 import org.alfresco.service.cmr.dictionary.DictionaryService;
+import org.alfresco.service.cmr.repository.AssociationRef;
 import org.alfresco.service.cmr.repository.ChildAssociationRef;
 import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.cmr.repository.NodeService;
@@ -77,7 +78,9 @@ import org.springframework.extensions.surf.util.AbstractLifecycleBean;
  *
  * @author Jamal Kaabi-Mofrad
  */
-public class EventGenerator extends AbstractLifecycleBean implements InitializingBean, EventSupportedPolicies, ChildAssociationEventSupportedPolicies
+public class EventGenerator extends AbstractLifecycleBean implements InitializingBean, EventSupportedPolicies,
+                                                                    ChildAssociationEventSupportedPolicies,
+                                                                    PeerAssociationEventSupportedPolicies
 {
     private static final Log LOGGER = LogFactory.getLog(EventGenerator.class);
 
@@ -97,6 +100,7 @@ public class EventGenerator extends AbstractLifecycleBean implements Initializin
     private NodeResourceHelper nodeResourceHelper;
     private final EventTransactionListener transactionListener = new EventTransactionListener();
     private final ChildAssociationEventTransactionListener transactionListenerChildAssoc = new ChildAssociationEventTransactionListener();
+    private final PeerAssociationEventTransactionListener transactionListenerPeerAssoc = new PeerAssociationEventTransactionListener();
 
     @Override
     public void afterPropertiesSet()
@@ -141,6 +145,10 @@ public class EventGenerator extends AbstractLifecycleBean implements Initializin
                                            new JavaBehaviour(this, "onCreateChildAssociation"));
         policyComponent.bindAssociationBehaviour(BeforeDeleteChildAssociationPolicy.QNAME, this,
                                            new JavaBehaviour(this, "beforeDeleteChildAssociation"));
+        policyComponent.bindAssociationBehaviour(OnCreateAssociationPolicy.QNAME, this,
+                                           new JavaBehaviour(this, "onCreateAssociation"));
+        policyComponent.bindAssociationBehaviour(BeforeDeleteAssociationPolicy.QNAME, this,
+                                           new JavaBehaviour(this, "beforeDeleteAssociation"));
     }
 
     public void setPolicyComponent(PolicyComponent policyComponent)
@@ -248,6 +256,18 @@ public class EventGenerator extends AbstractLifecycleBean implements Initializin
         getEventConsolidator(childAssociationRef).beforeDeleteChildAssociation(childAssociationRef);
     }
 
+    @Override
+    public void onCreateAssociation(AssociationRef associationRef)
+    {
+        getEventConsolidator(associationRef).onCreateAssociation(associationRef);
+    }
+
+    @Override
+    public void beforeDeleteAssociation(AssociationRef associationRef)
+    {
+        getEventConsolidator(associationRef).beforeDeleteAssociation(associationRef);
+    }
+
     /**
      * @return the {@link EventConsolidator} for the supplied {@code nodeRef} from
      * the current transaction context.
@@ -312,6 +332,38 @@ public class EventGenerator extends AbstractLifecycleBean implements Initializin
         return map;
     }
 
+    /**
+     * @return the {@link EventConsolidator} for the supplied {@code associationNodeRef} from
+     * the current transaction context.
+     */
+    private PeerAssociationEventConsolidator getEventConsolidator(AssociationRef peerAssociationRef)
+    {
+        Map<AssociationRef, PeerAssociationEventConsolidator> assocEvents = getTxnPeerAssocResourceMap(transactionListenerPeerAssoc);
+        if (assocEvents.isEmpty())
+        {
+            AlfrescoTransactionSupport.bindListener(transactionListenerPeerAssoc);
+        }
+
+        PeerAssociationEventConsolidator eventConsolidator = assocEvents.get(peerAssociationRef);
+        if (eventConsolidator == null)
+        {
+            eventConsolidator = new PeerAssociationEventConsolidator(peerAssociationRef);
+            assocEvents.put(peerAssociationRef, eventConsolidator);
+        }
+        return eventConsolidator;
+    }
+
+    private Map<AssociationRef, PeerAssociationEventConsolidator> getTxnPeerAssocResourceMap(Object resourceKey)
+    {
+        Map<AssociationRef, PeerAssociationEventConsolidator> map = AlfrescoTransactionSupport.getResource(resourceKey);
+        if (map == null)
+        {
+            map = new LinkedHashMap<>(29);
+            AlfrescoTransactionSupport.bindResource(resourceKey, map);
+        }
+        return map;
+    }
+
     private boolean isFiltered(QName nodeType, String user)
     {
         return (nodeTypeFilter.isExcluded(nodeType) || (userFilter.isExcluded(user)));
@@ -359,17 +411,7 @@ public class EventGenerator extends AbstractLifecycleBean implements Initializin
             return;
         }
 
-        if (LOGGER.isTraceEnabled())
-        {
-            LOGGER.trace("List of Events:" + consolidator.getEventTypes());
-            LOGGER.trace("Sending event:" + event);
-        }
-        // Need to execute this in another read txn because Camel expects it
-        transactionService.getRetryingTransactionHelper().doInTransaction((RetryingTransactionCallback<Void>) () -> {
-            event2MessageProducer.send(event);
-
-            return null;
-        }, true, false);
+        logAndSendEvent(event, consolidator.getEventTypes());
     }
 
     private void sendEvent(ChildAssociationRef childAssociationRef, ChildAssociationEventConsolidator consolidator)
@@ -400,17 +442,26 @@ public class EventGenerator extends AbstractLifecycleBean implements Initializin
             return;
         }
 
-        if (LOGGER.isTraceEnabled())
-        {
-            LOGGER.trace("List of Events:" + consolidator.getEventTypes());
-            LOGGER.trace("Sending event:" + event);
-        }
-        // Need to execute this in another read txn because Camel expects it
-        transactionService.getRetryingTransactionHelper().doInTransaction((RetryingTransactionCallback<Void>) () -> {
-            event2MessageProducer.send(event);
+        logAndSendEvent(event, consolidator.getEventTypes());
+    }
 
-            return null;
-        }, true, false);
+    private void sendEvent(AssociationRef peerAssociationRef, PeerAssociationEventConsolidator consolidator)
+    {
+        if (consolidator.isTemporaryPeerAssociation())
+        {
+            if (LOGGER.isTraceEnabled())
+            {
+                LOGGER.trace("Ignoring temporary peer association: " + peerAssociationRef);
+            }
+            return;
+        }
+
+        final String user = AuthenticationUtil.getFullyAuthenticatedUser();
+        // Get the repo event before the filtering,
+        // so we can take the latest association info into account
+        final RepoEvent<?> event = consolidator.getRepoEvent(getEventInfo(user));
+
+        logAndSendEvent(event, consolidator.getEventTypes());
     }
 
     @Override
@@ -423,6 +474,21 @@ public class EventGenerator extends AbstractLifecycleBean implements Initializin
     protected void onShutdown(ApplicationEvent applicationEvent)
     {
         //NOOP
+    }
+
+    private void logAndSendEvent(RepoEvent<?> event, Deque<EventType> listOfEvents)
+    {
+        if (LOGGER.isTraceEnabled())
+        {
+            LOGGER.trace("List of Events:" + listOfEvents);
+            LOGGER.trace("Sending event:" + event);
+        }
+        // Need to execute this in another read txn because Camel expects it
+        transactionService.getRetryingTransactionHelper().doInTransaction((RetryingTransactionCallback<Void>) () -> {
+            event2MessageProducer.send(event);
+
+            return null;
+        }, true, false);
     }
 
     private class EventTransactionListener extends TransactionListenerAdapter
@@ -470,4 +536,28 @@ public class EventGenerator extends AbstractLifecycleBean implements Initializin
             }
         }
     }
+
+    private class PeerAssociationEventTransactionListener extends TransactionListenerAdapter
+    {
+        @Override
+        public void afterCommit()
+        {
+            try
+            {
+                // Peer assoc events
+                final Map<AssociationRef, PeerAssociationEventConsolidator> changedAssocs = getTxnPeerAssocResourceMap(this);
+                for (Map.Entry<AssociationRef, PeerAssociationEventConsolidator> entry : changedAssocs.entrySet())
+                {
+                    PeerAssociationEventConsolidator eventConsolidator = entry.getValue();
+                    sendEvent(entry.getKey(), eventConsolidator);
+                }
+            }
+            catch (Exception e)
+            {
+                // Must consume the exception to protect other TransactionListeners
+                LOGGER.error("Unexpected error while sending repository events", e);
+            }
+        }
+    }
+
 }
