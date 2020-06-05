@@ -46,7 +46,6 @@ public enum EventType
         this.contextType = contextType;
     }
 
-    // Should be overridden if a type requires different context. E.g. auth
     /* package*/ String getContext()
     {
         return contextType.getContext();

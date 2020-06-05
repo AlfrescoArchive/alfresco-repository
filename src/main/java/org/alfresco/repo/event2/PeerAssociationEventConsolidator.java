@@ -145,11 +145,21 @@ public class PeerAssociationEventConsolidator implements PeerAssociationEventSup
         return eventTypes.contains(EventType.PEER_ASSOC_CREATED) && eventTypes.getLast() == EventType.PEER_ASSOC_DELETED;
     }
 
+    /**
+     * Get peer association type.
+     *
+     * @return QName the peer association type
+     */
     public QName getAssocType()
     {
         return associationRef.getTypeQName();
     }
 
+    /**
+     * Get event types.
+     *
+     * @return Deque<EventType> queue of event types
+     */
     public Deque<EventType> getEventTypes()
     {
         return eventTypes;

@@ -45,6 +45,10 @@ public class ChildAssociationTypeFilter extends AbstractNodeEventFilter
         this.assocTypesBlackList = parseFilterList(filteredChildAssocTypes);
     }
 
+    /**
+     *
+     * @see org.alfresco.repo.event2.filter.AbstractNodeEventFilter#getExcludedTypes()
+     */
     @Override
     public Set<QName> getExcludedTypes()
     {
