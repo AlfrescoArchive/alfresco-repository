@@ -99,8 +99,6 @@ public class EventGenerator extends AbstractLifecycleBean implements Initializin
     private EventUserFilter userFilter;
     private NodeResourceHelper nodeResourceHelper;
     private final EventTransactionListener transactionListener = new EventTransactionListener();
-    private final ChildAssociationEventTransactionListener transactionListenerChildAssoc = new ChildAssociationEventTransactionListener();
-    private final PeerAssociationEventTransactionListener transactionListenerPeerAssoc = new PeerAssociationEventTransactionListener();
 
     @Override
     public void afterPropertiesSet()
@@ -274,7 +272,8 @@ public class EventGenerator extends AbstractLifecycleBean implements Initializin
      */
     private EventConsolidator getEventConsolidator(NodeRef nodeRef)
     {
-        Map<NodeRef, EventConsolidator> nodeEvents = getTxnResourceMap(transactionListener);
+        Consolidators consolidators = getTxnConsolidators(transactionListener);
+        Map<NodeRef, EventConsolidator> nodeEvents = consolidators.getNodes();
         if (nodeEvents.isEmpty())
         {
             AlfrescoTransactionSupport.bindListener(transactionListener);
@@ -289,15 +288,16 @@ public class EventGenerator extends AbstractLifecycleBean implements Initializin
         return eventConsolidator;
     }
 
-    private Map<NodeRef, EventConsolidator> getTxnResourceMap(Object resourceKey)
+
+    private Consolidators getTxnConsolidators(Object resourceKey)
     {
-        Map<NodeRef, EventConsolidator> map = AlfrescoTransactionSupport.getResource(resourceKey);
-        if (map == null)
+        Consolidators consolidators = AlfrescoTransactionSupport.getResource(resourceKey);
+        if (consolidators == null)
         {
-            map = new LinkedHashMap<>(29);
-            AlfrescoTransactionSupport.bindResource(resourceKey, map);
+            consolidators = new Consolidators();
+            AlfrescoTransactionSupport.bindResource(resourceKey, consolidators);
         }
-        return map;
+        return consolidators;
     }
 
     /**
@@ -306,10 +306,11 @@ public class EventGenerator extends AbstractLifecycleBean implements Initializin
      */
     private ChildAssociationEventConsolidator getEventConsolidator(ChildAssociationRef childAssociationRef)
     {
-        Map<ChildAssociationRef, ChildAssociationEventConsolidator> assocEvents = getTxnChildAssocResourceMap(transactionListenerChildAssoc);
+        Consolidators consolidators = getTxnConsolidators(transactionListener);
+        Map<ChildAssociationRef, ChildAssociationEventConsolidator> assocEvents = consolidators.getChildAssocs();
         if (assocEvents.isEmpty())
         {
-            AlfrescoTransactionSupport.bindListener(transactionListenerChildAssoc);
+            AlfrescoTransactionSupport.bindListener(transactionListener);
         }
 
         ChildAssociationEventConsolidator eventConsolidator = assocEvents.get(childAssociationRef);
@@ -338,10 +339,11 @@ public class EventGenerator extends AbstractLifecycleBean implements Initializin
      */
     private PeerAssociationEventConsolidator getEventConsolidator(AssociationRef peerAssociationRef)
     {
-        Map<AssociationRef, PeerAssociationEventConsolidator> assocEvents = getTxnPeerAssocResourceMap(transactionListenerPeerAssoc);
+        Consolidators consolidators = getTxnConsolidators(transactionListener);
+        Map<AssociationRef, PeerAssociationEventConsolidator> assocEvents = consolidators.getPeerAssocs();
         if (assocEvents.isEmpty())
         {
-            AlfrescoTransactionSupport.bindListener(transactionListenerPeerAssoc);
+            AlfrescoTransactionSupport.bindListener(transactionListener);
         }
 
         PeerAssociationEventConsolidator eventConsolidator = assocEvents.get(peerAssociationRef);
@@ -508,60 +510,29 @@ public class EventGenerator extends AbstractLifecycleBean implements Initializin
         {
             try
             {
+                final Consolidators consolidators = getTxnConsolidators(this);
+
                 // Node events
-                final Map<NodeRef, EventConsolidator> changedNodes = getTxnResourceMap(this);
-                for (Map.Entry<NodeRef, EventConsolidator> entry : changedNodes.entrySet())
+                for (Map.Entry<NodeRef, EventConsolidator> entry : consolidators.getNodes().entrySet())
                 {
                     EventConsolidator eventConsolidator = entry.getValue();
                     sendEvent(entry.getKey(), eventConsolidator);
                 }
-            }
-            catch (Exception e)
-            {
-                // Must consume the exception to protect other TransactionListeners
-                LOGGER.error("Unexpected error while sending repository events", e);
-            }
-        }
-    }
 
-    private class ChildAssociationEventTransactionListener extends TransactionListenerAdapter
-    {
-        @Override
-        public void afterCommit()
-        {
-            try
-            {
                 // Child assoc events
-                final Map<ChildAssociationRef, ChildAssociationEventConsolidator> changedAssocs = getTxnChildAssocResourceMap(this);
-                for (Map.Entry<ChildAssociationRef, ChildAssociationEventConsolidator> entry : changedAssocs.entrySet())
+                for (Map.Entry<ChildAssociationRef, ChildAssociationEventConsolidator> entry : consolidators.getChildAssocs().entrySet())
                 {
                     ChildAssociationEventConsolidator eventConsolidator = entry.getValue();
                     sendEvent(entry.getKey(), eventConsolidator);
                 }
-            }
-            catch (Exception e)
-            {
-                // Must consume the exception to protect other TransactionListeners
-                LOGGER.error("Unexpected error while sending repository events", e);
-            }
-        }
-    }
 
-    private class PeerAssociationEventTransactionListener extends TransactionListenerAdapter
-    {
-        @Override
-        public void afterCommit()
-        {
-            try
-            {
                 // Peer assoc events
-                final Map<AssociationRef, PeerAssociationEventConsolidator> changedAssocs = getTxnPeerAssocResourceMap(this);
-                for (Map.Entry<AssociationRef, PeerAssociationEventConsolidator> entry : changedAssocs.entrySet())
+                for (Map.Entry<AssociationRef, PeerAssociationEventConsolidator> entry : consolidators.getPeerAssocs().entrySet())
                 {
                     PeerAssociationEventConsolidator eventConsolidator = entry.getValue();
                     sendEvent(entry.getKey(), eventConsolidator);
                 }
-            }
+            } 
             catch (Exception e)
             {
                 // Must consume the exception to protect other TransactionListeners
@@ -570,4 +541,27 @@ public class EventGenerator extends AbstractLifecycleBean implements Initializin
         }
     }
 
+
+    private class Consolidators
+    {
+        // TODO: These maps should be lazily created.
+        Map<NodeRef, EventConsolidator> nodes = new LinkedHashMap<>(29);
+        Map<ChildAssociationRef, ChildAssociationEventConsolidator> childAssocs = new LinkedHashMap<>(29);
+        Map<AssociationRef, PeerAssociationEventConsolidator> peerAssocs = new LinkedHashMap<>(29);
+
+        public Map<NodeRef, EventConsolidator> getNodes()
+        {
+            return nodes;
+        }
+
+        public Map<ChildAssociationRef, ChildAssociationEventConsolidator> getChildAssocs()
+        {
+            return childAssocs;
+        }
+
+        public Map<AssociationRef, PeerAssociationEventConsolidator> getPeerAssocs()
+        {
+            return peerAssocs;
+        }
+    }
 }
