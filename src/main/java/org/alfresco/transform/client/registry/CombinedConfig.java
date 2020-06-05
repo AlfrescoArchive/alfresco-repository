@@ -48,7 +48,6 @@ import org.apache.http.util.EntityUtils;
 import java.io.IOException;
 import java.io.StringReader;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -56,7 +55,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static org.alfresco.repo.content.metadata.AsynchronousExtractor.isMetadataMimetype;
+import static org.alfresco.repo.content.metadata.AsynchronousExtractor.isMetadataEmbedMimetype;
+import static org.alfresco.repo.content.metadata.AsynchronousExtractor.isMetadataExtractMimetype;
 
 /**
  * This class reads multiple T-Engine config and local files and registers them all with a registry as if they were all
@@ -400,8 +400,13 @@ public class CombinedConfig
                                 // the source matches the last intermediate.
                                 Set<SupportedSourceAndTarget>  supportedSourceAndTargets = sourceMediaTypesAndMaxSizes.stream().
                                         flatMap(s -> stepTransformer.getSupportedSourceAndTargetList().stream().
-                                                filter(st -> st.getSourceMediaType().equals(src) &&
-                                                        !isMetadataMimetype(st.getTargetMediaType())).
+                                                filter(st ->
+                                                {
+                                                    String targetMimetype = st.getTargetMediaType();
+                                                    return st.getSourceMediaType().equals(src) &&
+                                                            !(isMetadataExtractMimetype(targetMimetype) ||
+                                                              isMetadataEmbedMimetype(targetMimetype));
+                                                }).
                                                 map(t -> t.getTargetMediaType()).
                                                 map(trg -> SupportedSourceAndTarget.builder().
                                                         withSourceMediaType(s.getSourceMediaType()).

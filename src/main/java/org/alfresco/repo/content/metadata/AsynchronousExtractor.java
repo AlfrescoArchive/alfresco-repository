@@ -63,38 +63,35 @@ import java.util.Set;
 import java.util.StringJoiner;
 import java.util.concurrent.ExecutorService;
 
-import static org.alfresco.repo.rendition2.TransformDefinition.TRANSFORM_NAMESPACE;
 import static org.alfresco.repo.rendition2.TransformDefinition.getTransformName;
 
 /**
  * Requests an extract of metadata via a remote async transform using
  * {@link RenditionService2#transform(NodeRef, TransformDefinition)}. The properties that will extracted are defined
  * by the transform. This allows out of process metadata extracts to be defined without the need to apply an AMP.
- * The actual transform is a request to go from the source mimetype to a target mimetype that is the source mimetype
- * prefix by {@code "alfresco-metadata-extract/"}. The resulting transform is a Map in json of properties and values
- * to be set on the source node.
+ * The actual transform is a request to go from the source mimetype to {@code "alfresco-metadata-extract"}. The
+ * resulting transform is a Map in json of properties and values to be set on the source node.
  * <p>
  * As with other sub-classes of {@link AbstractMappingMetadataExtracter} it also supports embedding of metadata in
  * a source node. In this case the remote async transform states that it supports a transform from a source mimetype
- * to a target mimetype that is the source mimetype prefix by {@code "alfresco-metadata-embed/"}. The resulting
- * transform is a replacement for the content of the node.
+ * to  {@code "alfresco-metadata-embed"}. The resulting transform is a replacement for the content of the node.
  *
  * @author adavis
  */
 public class AsynchronousExtractor extends AbstractMappingMetadataExtracter
 {
-    private static final String EXTRACTOR = "extract";
-    private static final String EMBEDDER = "embed";
-    private static final String ALFRESCO_METADATA = "alfresco-metadata-";
-    private static final char SLASH = '/';
-    public static final String EXTRACTOR_MIMETYPE_PREFIX = ALFRESCO_METADATA + EXTRACTOR + SLASH;
-    public static final String EMBEDDER_MIMETYPE_PREFIX = ALFRESCO_METADATA + EMBEDDER + SLASH;
+    private static final String EXTRACT = "extract";
+    private static final String EMBED = "embed";
+    private static final String EXTRACT_MIMETYPE = "alfresco-metadata-" + EXTRACT;
+    private static final String EMBED_MIMETYPE = "alfresco-metadata-" + EMBED;
     private static final Map<String, String> EMPTY_OPTIONS = Collections.emptyMap();
     private static final Map<String, Serializable> EMPTY_METADATA = Collections.emptyMap();
 
     private final ObjectMapper jsonObjectMapper = new ObjectMapper();
 
     private NodeService nodeService;
+    private NamespacePrefixResolver namespacePrefixResolver;
+    private TransformerDebug transformerDebug;
     private RenditionService2 renditionService2;
     private ContentService contentService;
     private TransactionService transactionService;
@@ -104,6 +101,16 @@ public class AsynchronousExtractor extends AbstractMappingMetadataExtracter
     public void setNodeService(NodeService nodeService)
     {
         this.nodeService = nodeService;
+    }
+
+    public void setNamespacePrefixResolver(NamespacePrefixResolver namespacePrefixResolver)
+    {
+        this.namespacePrefixResolver = namespacePrefixResolver;
+    }
+
+    public void setTransformerDebug(TransformerDebug transformerDebug)
+    {
+        this.transformerDebug = transformerDebug;
     }
 
     public void setRenditionService2(RenditionService2 renditionService2)
@@ -139,33 +146,27 @@ public class AsynchronousExtractor extends AbstractMappingMetadataExtracter
 
     public boolean isSupported(String sourceMimetype, long sourceSizeInBytes)
     {
-        return isEnabled(sourceMimetype) && isSupported(sourceMimetype, sourceSizeInBytes, EXTRACTOR_MIMETYPE_PREFIX);
+        return isEnabled(sourceMimetype) && isSupported(sourceMimetype, sourceSizeInBytes, EXTRACT_MIMETYPE);
     }
 
     public boolean isEmbedderSupported(String sourceMimetype, long sourceSizeInBytes)
     {
-        return isSupported(sourceMimetype, sourceSizeInBytes, EMBEDDER_MIMETYPE_PREFIX);
+        return isSupported(sourceMimetype, sourceSizeInBytes, EMBED_MIMETYPE);
     }
 
-    private boolean isSupported(String sourceMimetype, long sourceSizeInBytes, String prefix)
+    private boolean isSupported(String sourceMimetype, long sourceSizeInBytes, String targetMimetype)
     {
-        String targetMimetype = prefix + sourceMimetype;
         return transformServiceRegistry.isSupported(sourceMimetype, sourceSizeInBytes, targetMimetype, Collections.emptyMap(), targetMimetype);
-    }
-
-    public static boolean isMetadataMimetype(String targetMimetype)
-    {
-        return isMetadataExtractMimetype(targetMimetype) || isMetadataEmbedderMimetype(targetMimetype);
     }
 
     public static boolean isMetadataExtractMimetype(String targetMimetype)
     {
-        return targetMimetype != null && targetMimetype.startsWith(EXTRACTOR_MIMETYPE_PREFIX);
+        return EXTRACT_MIMETYPE.equals(targetMimetype);
     }
 
-    public static boolean isMetadataEmbedderMimetype(String targetMimetype)
+    public static boolean isMetadataEmbedMimetype(String targetMimetype)
     {
-        return targetMimetype != null && targetMimetype.startsWith(EMBEDDER_MIMETYPE_PREFIX);
+        return EMBED_MIMETYPE.equals(targetMimetype);
     }
 
     /**
@@ -174,32 +175,32 @@ public class AsynchronousExtractor extends AbstractMappingMetadataExtracter
      *
      * @param targetMimetype the target mimetype
      * @param sourceExtension normal source extension
-     * @param targetExtension current target extension (normally {@code "bin" in these cases})
+     * @param targetExtension current target extension (normally {@code "bin" for embedding and extraction})
      * @return the extension to be used.
      */
     public static String getExtension(String targetMimetype, String sourceExtension, String targetExtension)
     {
         return isMetadataExtractMimetype(targetMimetype)
-                ? "alfx"
-                : isMetadataEmbedderMimetype(targetMimetype)
+                ? "json"
+                : isMetadataEmbedMimetype(targetMimetype)
                 ? sourceExtension
                 : targetExtension;
     }
 
     /**
-     * Returns a rendition name used in {@link TransformerDebug}. The normal name is changed if it is an extraction or
-     * embedding type. The name in this case is actually the target mimetype.
+     * Returns a rendition name used in {@link TransformerDebug}. The normal name is changed if it is a metadata
+     * extract or embed. The name in this case is actually the {@code "alfresco-metadata-extract/"}
+     * {@code "alfresco-metadata-embed/"} followed by the source mimetype.
      *
-     * @param renditionName normal name, but is a transform name based on the targetMimetype in the case of metadata
-     *                     extract and embed.
+     * @param renditionName the normal name, or a special one based on the source mimetype and a prefixed.
      * @return the renditionName to be used.
      */
     public static String getRenditionName(String renditionName)
     {
         String transformName = getTransformName(renditionName);
-        return isMetadataExtractMimetype(transformName)
+        return    transformName != null && transformName.startsWith(EXTRACT_MIMETYPE)
                 ? "metadataExtract"
-                : isMetadataEmbedderMimetype(transformName)
+                : transformName != null && transformName.startsWith(EMBED_MIMETYPE)
                 ? "metadataEmbed"
                 : renditionName;
     }
@@ -227,7 +228,7 @@ public class AsynchronousExtractor extends AbstractMappingMetadataExtracter
     protected Map<String, Serializable> extractRawInThread(NodeRef nodeRef, ContentReader reader, MetadataExtracterLimits limits)
             throws Throwable
     {
-        transformInBackground(nodeRef, reader, EXTRACTOR_MIMETYPE_PREFIX, EXTRACTOR, EMPTY_OPTIONS);
+        transformInBackground(nodeRef, reader, EXTRACT_MIMETYPE, EXTRACT, EMPTY_OPTIONS);
         return EMPTY_METADATA;
     }
 
@@ -236,11 +237,11 @@ public class AsynchronousExtractor extends AbstractMappingMetadataExtracter
     {
         // TODO pass metadata as a transform option
         Map<String, String> options = Collections.emptyMap();
-        transformInBackground(nodeRef, reader, EMBEDDER_MIMETYPE_PREFIX, EMBEDDER, options);
+        transformInBackground(nodeRef, reader, EMBED_MIMETYPE, EMBED, options);
     }
 
-    private void transformInBackground(NodeRef nodeRef, ContentReader reader, String prefix, String action,
-                                       Map<String, String> options)
+    private void transformInBackground(NodeRef nodeRef, ContentReader reader, String targetMimetype,
+                                       String embedOrExtract, Map<String, String> options)
     {
         ExecutorService executorService = getExecutorService();
         executorService.execute(new Runnable()
@@ -250,7 +251,7 @@ public class AsynchronousExtractor extends AbstractMappingMetadataExtracter
             {
                 try
                 {
-                    transform(nodeRef, reader, EXTRACTOR_MIMETYPE_PREFIX, EXTRACTOR, options);
+                    transform(nodeRef, reader, targetMimetype, embedOrExtract, options);
                 }
                 finally
                 {
@@ -260,20 +261,24 @@ public class AsynchronousExtractor extends AbstractMappingMetadataExtracter
         });
     }
 
-    private void transform(NodeRef nodeRef, ContentReader reader, String prefix, String action, Map<String, String> options)
+    private void transform(NodeRef nodeRef, ContentReader reader, String targetMimetype,
+                           String embedOrExtract, Map<String, String> options)
     {
         String sourceMimetype = reader.getMimetype();
-        String targetMimetype = prefix + sourceMimetype;
 
-        TransformDefinition transformDefinition = new TransformDefinition(targetMimetype, targetMimetype,
+        // This needs to be specific to each source mimetype and the extract or embed as the name
+        // is used to cache the transform name that will be used.
+        String transformName = targetMimetype + '/' + sourceMimetype;
+
+        TransformDefinition transformDefinition = new TransformDefinition(transformName, targetMimetype,
                 options, null, null, null);
 
-        if (logger.isDebugEnabled())
+        if (logger.isTraceEnabled())
         {
             StringJoiner sj = new StringJoiner("\n");
-            sj.add("Request " + action + " transform on " + nodeRef);
+            sj.add("Request " + embedOrExtract + " transform on " + nodeRef);
             options.forEach((k,v)->sj.add("  "+k+"="+v));
-            logger.debug(sj);
+            logger.trace(sj);
         }
 
         AuthenticationUtil.runAs(
@@ -298,9 +303,9 @@ public class AsynchronousExtractor extends AbstractMappingMetadataExtracter
 
     public void setMetadata(NodeRef nodeRef, InputStream transformInputStream)
     {
-        if (logger.isDebugEnabled())
+        if (logger.isTraceEnabled())
         {
-            logger.debug("Update metadata on " + nodeRef);
+            logger.trace("Update metadata on " + nodeRef);
         }
 
         Map<String, Serializable> metadata = readMetadata(transformInputStream);
@@ -342,13 +347,32 @@ public class AsynchronousExtractor extends AbstractMappingMetadataExtracter
                     {
                         return null;
                     }
+                    boolean transformerDebugEnabled = transformerDebug.isEnabled();
+                    boolean debugEnabled = logger.isDebugEnabled();
+                    if (transformerDebugEnabled || debugEnabled)
+                    {
+                        for (Map.Entry<QName, Serializable> entry : changedProperties.entrySet())
+                        {
+                            QName qname = entry.getKey();
+                            String prefixString = qname.toPrefixString(namespacePrefixResolver);
+                            String debugMessage = prefixString + "=" + entry.getValue();
+                            if (transformerDebugEnabled)
+                            {
+                                transformerDebug.debugUsingPreviousReference("  "+debugMessage);
+                            }
+                            if (debugEnabled)
+                            {
+                                logger.debug(debugMessage);
+                            }
+                        }
+                    }
                     ContentMetadataExtracter.addExtractedMetadataToNode(nodeRef, nodeProperties, changedProperties,
                             nodeService, dictionaryService, taggingService,
                             enableStringTagging, carryAspectProperties, stringTaggingSeparators);
 
-                    if (logger.isDebugEnabled())
+                    if (logger.isTraceEnabled())
                     {
-                        logger.debug("Extraction of Metadata from " + nodeRef + " complete " + changedProperties);
+                        logger.trace("Extraction of Metadata from " + nodeRef + " complete " + changedProperties);
                     }
 
                     return null;
@@ -474,9 +498,9 @@ public class AsynchronousExtractor extends AbstractMappingMetadataExtracter
                         writer.setEncoding(encoding);
                         writer.putContent(transformInputStream);
 
-                        if (logger.isDebugEnabled())
+                        if (logger.isTraceEnabled())
                         {
-                            logger.debug("Embedded Metadata on " + nodeRef + " complete");
+                            logger.trace("Embedded Metadata on " + nodeRef + " complete");
                         }
                     }
                     catch (Exception e)

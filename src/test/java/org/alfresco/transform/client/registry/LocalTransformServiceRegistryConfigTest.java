@@ -2,7 +2,7 @@
  * #%L
  * Alfresco Repository
  * %%
- * Copyright (C) 2019-2020 Alfresco Software Limited
+ * Copyright (C) 2005 - 2019 Alfresco Software Limited
  * %%
  * This file is part of the Alfresco software.
  * If the software was purchased under a paid Alfresco license, the terms of
@@ -249,7 +249,7 @@ public class LocalTransformServiceRegistryConfigTest extends TransformServiceReg
         imagemagickSupportedTransformation.put("image/gif", targetMimetype);
         imagemagickSupportedTransformation.put("image/jpeg", targetMimetype);
         targetMimetype = new ArrayList<>(targetMimetype);
-        targetMimetype.add("alfresco-metadata-extract/image/png"); // Metadata extract types should be excluded from pipeline cartesian products
+        targetMimetype.add("alfresco-metadata-extract"); // Metadata extract and embed types should be excluded from pipeline cartesian products
         imagemagickSupportedTransformation.put("image/png", targetMimetype);
         targetMimetype = new ArrayList<>();
         targetMimetype.add("target1");

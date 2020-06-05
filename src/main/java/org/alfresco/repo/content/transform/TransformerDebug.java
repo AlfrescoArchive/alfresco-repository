@@ -69,6 +69,7 @@ public class TransformerDebug
     protected Log logger;
     protected NodeService nodeService;
     protected MimetypeService mimetypeService;
+    private final ThreadLocal<Integer> previousTransformId = ThreadLocal.withInitial(()->-1);
 
     protected enum Call
     {
@@ -281,6 +282,16 @@ public class TransformerDebug
         this.mimetypeService = mimetypeService;
     }
 
+    public void setPreviousTransformId(int id)
+    {
+        previousTransformId.set(id);
+    }
+
+    private int getPreviousTransformId()
+    {
+        return previousTransformId.get();
+    }
+
     public void afterPropertiesSet() throws Exception
     {
         PropertyCheck.mandatory(this, "nodeService", nodeService);
@@ -454,6 +465,7 @@ public class TransformerDebug
                 ourStack.pop();
             }
         }
+        setPreviousTransformId(id);
         return id;
     }
 
@@ -506,7 +518,7 @@ public class TransformerDebug
 
             if (level != null)
             {
-                infoLog(getReference(debug, false), sourceAndTargetExt, level, fileName, sourceSize,
+                infoLog(getReference(debug, false, false), sourceAndTargetExt, level, fileName, sourceSize,
                         transformerName, renditionName, failureReason, ms, debug);
             }
         }
@@ -565,6 +577,18 @@ public class TransformerDebug
         if (isEnabled() && message != null)
         {
             log(message);
+        }
+    }
+
+    /**
+     * Log a message prefixed with the previous transformation reference, used by this Thread.
+     * @param message
+     */
+    public void debugUsingPreviousReference(String message)
+    {
+        if (isEnabled() && message != null)
+        {
+            log(message, null,true, true);
         }
     }
 
@@ -630,16 +654,21 @@ public class TransformerDebug
     {
         log(message, null, debug);
     }
-    
+
     private void log(String message, Throwable t, boolean debug)
+    {
+        log(message, t, debug, false);
+    }
+
+    private void log(String message, Throwable t, boolean debug, boolean usePreviousRef)
     {
         if (debug && ThreadInfo.getDebugOutput() && logger.isDebugEnabled())
         {
-            logger.debug(getReference(false, false)+message, t);
+            logger.debug(getReference(false, false, usePreviousRef)+message, t);
         }
         else if (logger.isTraceEnabled())
         {
-            logger.trace(getReference(false, false)+message, t);
+            logger.trace(getReference(false, false, usePreviousRef)+message, t);
         }
 
         if (debug)
@@ -647,7 +676,7 @@ public class TransformerDebug
             StringBuilder sb = ThreadInfo.getStringBuilder();
             if (sb != null)
             {
-                sb.append(getReference(false, true));
+                sb.append(getReference(false, true, usePreviousRef));
                 sb.append(message);
                 if (t != null)
                 {
@@ -690,10 +719,21 @@ public class TransformerDebug
      * Returns a N.N.N style reference to the transformation.
      * @param firstLevelOnly indicates if only the top level should be included and no extra padding.
      * @param overrideFirstLevel if the first level id should just be set to 1 (used in test methods)
+     * @param usePreviousRef if the reference of the last transform performed by this Thread should be used.
      * @return a padded (fixed length) reference.
      */
-    private String getReference(boolean firstLevelOnly, boolean overrideFirstLevel)
+    private String getReference(boolean firstLevelOnly, boolean overrideFirstLevel, boolean usePreviousRef)
     {
+        if (usePreviousRef)
+        {
+            int id = getPreviousTransformId();
+            String ref = "";
+            if (id >= 0)
+            {
+                ref = Integer.toString(id)+spaces(13);
+            }
+            return ref;
+        }
         StringBuilder sb = new StringBuilder("");
         Frame frame = null;
         Iterator<Frame> iterator = ThreadInfo.getStack().descendingIterator();
@@ -736,7 +776,7 @@ public class TransformerDebug
             }
             else
             {
-            sb.append(spaces(13-sb.length()+lengthOfFirstId)); // Try to pad to level 7
+                sb.append(spaces(13-sb.length()+lengthOfFirstId)); // Try to pad to level 7
             }
         }
         return sb.toString();
@@ -881,7 +921,7 @@ public class TransformerDebug
                     getRenditionName(renditionName) + " "+ TRANSFORM_SERVICE_NAME);
             log(options);
             log(sourceNodeRef.toString() + ' ' + contentHashcode);
-            String reference = getReference(true, false);
+            String reference = getReference(true, false, false);
             infoLog(reference, sourceAndTargetExt, null, fileName, sourceSize, TRANSFORM_SERVICE_NAME,
                     renditionName, null, "", true);
         }
@@ -899,12 +939,12 @@ public class TransformerDebug
      * Debugs a response to the Transform Service
      */
     public void debugTransformServiceResponse(NodeRef sourceNodeRef, int contentHashcode,
-                                              long requested, int seq, String sourceExt, String targetExt, String msg)
+                                              long requested, int id, String sourceExt, String targetExt, String msg)
     {
         pushMisc();
         Frame frame = ThreadInfo.getStack().getLast();
-        frame.id = seq;
-        boolean suppressFinish = seq == -1 || requested == -1;
+        frame.id = id;
+        boolean suppressFinish = id == -1 || requested == -1;
         if (!suppressFinish)
         {
             frame.start = requested;

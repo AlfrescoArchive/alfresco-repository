@@ -233,6 +233,11 @@ abstract public class AbstractMappingMetadataExtracter implements MetadataExtrac
         this.dictionaryService = dictionaryService;
     }
 
+    public Set<String> getSupportedMimetypes()
+    {
+        return supportedMimetypes;
+    }
+
     /**
      * Set the mimetypes that are supported by the extracter.
      * 

@@ -38,7 +38,6 @@ import org.alfresco.repo.transaction.RetryingTransactionHelper;
 import org.alfresco.repo.util.PostTxnCallbackScheduler;
 import org.alfresco.service.cmr.repository.ChildAssociationRef;
 import org.alfresco.service.cmr.repository.ContentData;
-import org.alfresco.service.cmr.repository.ContentReader;
 import org.alfresco.service.cmr.repository.ContentService;
 import org.alfresco.service.cmr.repository.ContentWriter;
 import org.alfresco.service.cmr.repository.NodeRef;
@@ -397,7 +396,7 @@ public class RenditionService2Impl implements RenditionService2, InitializingBea
             {
                 consumeExtractedMetadata(sourceNodeRef, sourceContentHashCode, transformInputStream, transformDefinition, transformContentHashCode);
             }
-            else if (AsynchronousExtractor.isMetadataEmbedderMimetype(targetMimetype))
+            else if (AsynchronousExtractor.isMetadataEmbedMimetype(targetMimetype))
             {
                 consumeEmbeddedMetadata(sourceNodeRef, sourceContentHashCode, transformInputStream, transformDefinition, transformContentHashCode);
             }
