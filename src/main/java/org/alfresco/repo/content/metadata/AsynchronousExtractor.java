@@ -354,8 +354,9 @@ public class AsynchronousExtractor extends AbstractMappingMetadataExtracter
                         for (Map.Entry<QName, Serializable> entry : changedProperties.entrySet())
                         {
                             QName qname = entry.getKey();
+                            Serializable value = entry.getValue();
                             String prefixString = qname.toPrefixString(namespacePrefixResolver);
-                            String debugMessage = prefixString + "=" + entry.getValue();
+                            String debugMessage = prefixString + "=" + (value == null ? "" : value);
                             if (transformerDebugEnabled)
                             {
                                 transformerDebug.debugUsingPreviousReference("  "+debugMessage);
