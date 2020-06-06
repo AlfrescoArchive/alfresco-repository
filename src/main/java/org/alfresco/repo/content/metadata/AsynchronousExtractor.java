@@ -25,6 +25,7 @@
  */
 package org.alfresco.repo.content.metadata;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.alfresco.model.ContentModel;
@@ -38,6 +39,8 @@ import org.alfresco.service.cmr.repository.ContentService;
 import org.alfresco.service.cmr.repository.ContentWriter;
 import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.cmr.repository.NodeService;
+import org.alfresco.service.cmr.repository.datatype.DefaultTypeConverter;
+import org.alfresco.service.cmr.repository.datatype.TypeConversionException;
 import org.alfresco.service.cmr.tagging.TaggingService;
 import org.alfresco.service.namespace.NamespaceException;
 import org.alfresco.service.namespace.NamespacePrefixResolver;
@@ -47,12 +50,14 @@ import org.alfresco.transform.client.registry.TransformServiceRegistry;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
+import org.apache.tika.metadata.Metadata;
 import org.springframework.dao.ConcurrencyFailureException;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -235,8 +240,9 @@ public class AsynchronousExtractor extends AbstractMappingMetadataExtracter
     @Override
     protected void embedInternal(NodeRef nodeRef, Map<String, Serializable> metadata, ContentReader reader, ContentWriter writer)
     {
-        // TODO pass metadata as a transform option
         Map<String, String> options = Collections.emptyMap();
+        String metadataAsJson = metadataToString(metadata);
+        options.put("metadata", metadataAsJson);
         transformInBackground(nodeRef, reader, EMBED_MIMETYPE, EMBED, options);
     }
 
@@ -390,6 +396,20 @@ public class AsynchronousExtractor extends AbstractMappingMetadataExtracter
         catch (IOException e)
         {
             logger.error("Failed to read metadata from transform result", e);
+            return null;
+        }
+    }
+
+    private String metadataToString(Map<String, Serializable> metadata)
+    {
+        Map<String, String> metadataAsStrings = TikaPoweredMetadataExtracter.convertMetadataToStrings(metadata);
+        try
+        {
+            return jsonObjectMapper.writeValueAsString(metadataAsStrings);
+        }
+        catch (JsonProcessingException e)
+        {
+            logger.error("Failed to save metadata as Json", e);
             return null;
         }
     }

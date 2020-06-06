@@ -473,8 +473,19 @@ public abstract class TikaPoweredMetadataExtracter
         {
             return;
         }
-        
+
+        Map<String, String> metadataAsStrings = convertMetadataToStrings(properties);
         Metadata metadataToEmbed = new Metadata();
+        metadataAsStrings.forEach((k,v)->metadataToEmbed.add(k, v));
+
+        InputStream inputStream = getInputStream(reader);
+        OutputStream outputStream = writer.getContentOutputStream();
+        embedder.embed(metadataToEmbed, inputStream, outputStream, null);
+    }
+
+    public static Map<String, String> convertMetadataToStrings(Map<String, Serializable> properties)
+    {
+        Map<String, String> propertiesAsStrings = new HashMap<>();
         for (String metadataKey : properties.keySet())
         {
             Serializable value = properties.get(metadataKey);
@@ -489,7 +500,7 @@ public abstract class TikaPoweredMetadataExtracter
                     try
                     {
                         // Convert to a string value for Tika
-                        metadataToEmbed.add(metadataKey, DefaultTypeConverter.INSTANCE.convert(String.class, singleValue));
+                        propertiesAsStrings.put(metadataKey, DefaultTypeConverter.INSTANCE.convert(String.class, singleValue));
                     }
                     catch (TypeConversionException e)
                     {
@@ -502,7 +513,7 @@ public abstract class TikaPoweredMetadataExtracter
                 try
                 {
                     // Convert to a string value for Tika
-                    metadataToEmbed.add(metadataKey, DefaultTypeConverter.INSTANCE.convert(String.class, value));
+                    propertiesAsStrings.put(metadataKey, DefaultTypeConverter.INSTANCE.convert(String.class, value));
                 }
                 catch (TypeConversionException e)
                 {
@@ -510,9 +521,7 @@ public abstract class TikaPoweredMetadataExtracter
                 }
             }
         }
-        InputStream inputStream = getInputStream(reader);
-        OutputStream outputStream = writer.getContentOutputStream();
-        embedder.embed(metadataToEmbed, inputStream, outputStream, null);
+        return propertiesAsStrings;
     }
 
     private Serializable getMetadataValues(Metadata metadata, String key)
