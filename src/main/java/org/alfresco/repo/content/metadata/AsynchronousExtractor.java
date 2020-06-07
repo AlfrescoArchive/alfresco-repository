@@ -39,8 +39,6 @@ import org.alfresco.service.cmr.repository.ContentService;
 import org.alfresco.service.cmr.repository.ContentWriter;
 import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.cmr.repository.NodeService;
-import org.alfresco.service.cmr.repository.datatype.DefaultTypeConverter;
-import org.alfresco.service.cmr.repository.datatype.TypeConversionException;
 import org.alfresco.service.cmr.tagging.TaggingService;
 import org.alfresco.service.namespace.NamespaceException;
 import org.alfresco.service.namespace.NamespacePrefixResolver;
@@ -50,14 +48,12 @@ import org.alfresco.transform.client.registry.TransformServiceRegistry;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
-import org.apache.tika.metadata.Metadata;
 import org.springframework.dao.ConcurrencyFailureException;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -87,8 +83,9 @@ public class AsynchronousExtractor extends AbstractMappingMetadataExtracter
 {
     private static final String EXTRACT = "extract";
     private static final String EMBED = "embed";
-    private static final String EXTRACT_MIMETYPE = "alfresco-metadata-" + EXTRACT;
-    private static final String EMBED_MIMETYPE = "alfresco-metadata-" + EMBED;
+    private static final String MIMETYPE_METADATA_EXTRACT = "alfresco-metadata-extract";
+    private static final String MIMETYPE_METADATA_EMBED = "alfresco-metadata-embed";
+    private static final String METADATA = "metadata";
     private static final Map<String, String> EMPTY_OPTIONS = Collections.emptyMap();
     private static final Map<String, Serializable> EMPTY_METADATA = Collections.emptyMap();
 
@@ -151,12 +148,12 @@ public class AsynchronousExtractor extends AbstractMappingMetadataExtracter
 
     public boolean isSupported(String sourceMimetype, long sourceSizeInBytes)
     {
-        return isEnabled(sourceMimetype) && isSupported(sourceMimetype, sourceSizeInBytes, EXTRACT_MIMETYPE);
+        return isEnabled(sourceMimetype) && isSupported(sourceMimetype, sourceSizeInBytes, MIMETYPE_METADATA_EXTRACT);
     }
 
     public boolean isEmbedderSupported(String sourceMimetype, long sourceSizeInBytes)
     {
-        return isSupported(sourceMimetype, sourceSizeInBytes, EMBED_MIMETYPE);
+        return isSupported(sourceMimetype, sourceSizeInBytes, MIMETYPE_METADATA_EMBED);
     }
 
     private boolean isSupported(String sourceMimetype, long sourceSizeInBytes, String targetMimetype)
@@ -166,12 +163,12 @@ public class AsynchronousExtractor extends AbstractMappingMetadataExtracter
 
     public static boolean isMetadataExtractMimetype(String targetMimetype)
     {
-        return EXTRACT_MIMETYPE.equals(targetMimetype);
+        return MIMETYPE_METADATA_EXTRACT.equals(targetMimetype);
     }
 
     public static boolean isMetadataEmbedMimetype(String targetMimetype)
     {
-        return EMBED_MIMETYPE.equals(targetMimetype);
+        return MIMETYPE_METADATA_EMBED.equals(targetMimetype);
     }
 
     /**
@@ -203,9 +200,9 @@ public class AsynchronousExtractor extends AbstractMappingMetadataExtracter
     public static String getRenditionName(String renditionName)
     {
         String transformName = getTransformName(renditionName);
-        return    transformName != null && transformName.startsWith(EXTRACT_MIMETYPE)
+        return    transformName != null && transformName.startsWith(MIMETYPE_METADATA_EXTRACT)
                 ? "metadataExtract"
-                : transformName != null && transformName.startsWith(EMBED_MIMETYPE)
+                : transformName != null && transformName.startsWith(MIMETYPE_METADATA_EMBED)
                 ? "metadataEmbed"
                 : renditionName;
     }
@@ -233,7 +230,7 @@ public class AsynchronousExtractor extends AbstractMappingMetadataExtracter
     protected Map<String, Serializable> extractRawInThread(NodeRef nodeRef, ContentReader reader, MetadataExtracterLimits limits)
             throws Throwable
     {
-        transformInBackground(nodeRef, reader, EXTRACT_MIMETYPE, EXTRACT, EMPTY_OPTIONS);
+        transformInBackground(nodeRef, reader, MIMETYPE_METADATA_EXTRACT, EXTRACT, EMPTY_OPTIONS);
         return EMPTY_METADATA;
     }
 
@@ -242,8 +239,8 @@ public class AsynchronousExtractor extends AbstractMappingMetadataExtracter
     {
         Map<String, String> options = Collections.emptyMap();
         String metadataAsJson = metadataToString(metadata);
-        options.put("metadata", metadataAsJson);
-        transformInBackground(nodeRef, reader, EMBED_MIMETYPE, EMBED, options);
+        options.put(METADATA, metadataAsJson);
+        transformInBackground(nodeRef, reader, MIMETYPE_METADATA_EMBED, EMBED, options);
     }
 
     private void transformInBackground(NodeRef nodeRef, ContentReader reader, String targetMimetype,
