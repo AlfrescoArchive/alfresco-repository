@@ -118,7 +118,6 @@ public class PeerAssociationRepoEventIT extends AbstractContextAwareRepoEvent
 
 
     @Test
-    @Ignore
     public void testRemovePeerAssociation()
     {
         final NodeRef content1NodeRef = createNode(ContentModel.TYPE_CONTENT);
