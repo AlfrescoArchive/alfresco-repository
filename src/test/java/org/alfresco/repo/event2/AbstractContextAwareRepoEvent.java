@@ -39,6 +39,7 @@ import org.alfresco.repo.event.databind.ObjectMapperFactory;
 import org.alfresco.repo.event.v1.model.ChildAssociationResource;
 import org.alfresco.repo.event.v1.model.EventData;
 import org.alfresco.repo.event.v1.model.NodeResource;
+import org.alfresco.repo.event.v1.model.PeerAssociationResource;
 import org.alfresco.repo.event.v1.model.RepoEvent;
 import org.alfresco.repo.security.authentication.AuthenticationUtil;
 import org.alfresco.repo.transaction.RetryingTransactionHelper;
@@ -245,6 +246,17 @@ public abstract class AbstractContextAwareRepoEvent extends BaseSpringTest
         return resource;
     }
 
+    protected PeerAssociationResource getPeerAssocResource(RepoEvent repoEvent)
+    {
+        assertNotNull(repoEvent);
+        EventData<PeerAssociationResource> eventData = repoEvent.getData();
+        assertNotNull(eventData);
+        PeerAssociationResource resource = eventData.getResource();
+        assertNotNull(resource);
+
+        return resource;
+    }
+    
     protected NodeResource getNodeResourceBefore(int eventSequenceNumber)
     {
         EventData<NodeResource> eventData = getEventData(eventSequenceNumber);

@@ -541,12 +541,14 @@ public class ChildAssociationRepoEventIT extends AbstractContextAwareRepoEvent
             return null;
         });
 
+        checkNumOfEvents(12);
+        
         //3 assoc.child.Deleted events should be created
         int numberOfChildAssocEvents = getChildAssocEvents(repoEventsContainer,
             EventType.CHILD_ASSOC_DELETED).size();
         assertEquals("Wrong association events number", 3, numberOfChildAssocEvents);
     }
-
+    
     @Test
     public void testDeleteAssociationOneParentMultipleChildrenDifferentTransactions()
     {
@@ -804,6 +806,50 @@ public class ChildAssociationRepoEventIT extends AbstractContextAwareRepoEvent
 
         assertEquals(1, childAssociationRefs.size());
         assertFalse(childAssociationRefs.get(0).isPrimary());
+    }
+
+    @Test
+    public void testUpdateNodeAddChildAssociationNodeEventsFirst()
+    {
+        final NodeRef parentNodeRef = createNode(ContentModel.TYPE_CONTENT);
+        final NodeRef childNodeRef = createNode(ContentModel.TYPE_CONTENT);
+
+        checkNumOfEvents(2);
+
+        RepoEvent<NodeResource> resultRepoEvent = repoEventsContainer.getEvent(1);
+        assertEquals("Wrong repo event type.", EventType.NODE_CREATED.getType(),
+                resultRepoEvent.getType());
+
+        resultRepoEvent = repoEventsContainer.getEvent(2);
+        assertEquals("Wrong repo event type.", EventType.NODE_CREATED.getType(),
+                resultRepoEvent.getType());
+
+        retryingTransactionHelper.doInTransaction(() ->
+                {
+                    nodeService.setType(parentNodeRef, ContentModel.TYPE_FOLDER);
+
+                    return nodeService.addChild(
+                            parentNodeRef,
+                            childNodeRef,
+                            ContentModel.ASSOC_CONTAINS,
+                            QName.createQName(TEST_NAMESPACE, GUID.generate()));
+                });
+
+        List<ChildAssociationRef> childAssociationRefs = retryingTransactionHelper.doInTransaction(
+                () ->
+                        nodeService.getChildAssocs(parentNodeRef));
+        assertEquals(1, childAssociationRefs.size());
+        assertFalse(childAssociationRefs.get(0).isPrimary());
+
+        checkNumOfEvents(5);
+
+        // Check the node events occur before the child association event
+        List<RepoEvent<NodeResource>> repoEvents = getRepoEventsContainer().getEvents();
+        assertEquals("org.alfresco.event.node.Created", repoEventsContainer.getEvent(1).getType());
+        assertEquals("org.alfresco.event.node.Created", repoEventsContainer.getEvent(2).getType());
+        assertEquals("org.alfresco.event.node.Updated", repoEventsContainer.getEvent(3).getType());
+        assertEquals("org.alfresco.event.node.Updated", repoEventsContainer.getEvent(4).getType());
+        assertEquals("org.alfresco.event.assoc.child.Created", repoEventsContainer.getEvent(5).getType());
     }
 
     private List<RepoEvent> getChildAssocEvents(RepoEventContainer repoEventContainer,
