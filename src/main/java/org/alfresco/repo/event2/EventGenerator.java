@@ -544,23 +544,34 @@ public class EventGenerator extends AbstractLifecycleBean implements Initializin
 
     private class Consolidators
     {
-        // TODO: These maps should be lazily created.
-        Map<NodeRef, EventConsolidator> nodes = new LinkedHashMap<>(29);
-        Map<ChildAssociationRef, ChildAssociationEventConsolidator> childAssocs = new LinkedHashMap<>(29);
-        Map<AssociationRef, PeerAssociationEventConsolidator> peerAssocs = new LinkedHashMap<>(29);
+        Map<NodeRef, EventConsolidator> nodes;
+        Map<ChildAssociationRef, ChildAssociationEventConsolidator> childAssocs;
+        Map<AssociationRef, PeerAssociationEventConsolidator> peerAssocs;
 
         public Map<NodeRef, EventConsolidator> getNodes()
         {
+            if (nodes == null)
+            {
+                nodes = new LinkedHashMap<>(29);
+            }
             return nodes;
         }
 
         public Map<ChildAssociationRef, ChildAssociationEventConsolidator> getChildAssocs()
         {
+            if (childAssocs == null)
+            {
+                childAssocs = new LinkedHashMap<>(29);
+            }
             return childAssocs;
         }
 
         public Map<AssociationRef, PeerAssociationEventConsolidator> getPeerAssocs()
         {
+            if (peerAssocs == null)
+            {
+                 peerAssocs = new LinkedHashMap<>(29);
+            }
             return peerAssocs;
         }
     }
