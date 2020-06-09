@@ -26,7 +26,6 @@
 
 package org.alfresco.repo.event2;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import org.alfresco.model.ContentModel;
@@ -37,7 +36,6 @@ import org.alfresco.repo.event.v1.model.RepoEvent;
 import org.alfresco.service.cmr.repository.AssociationRef;
 import org.alfresco.service.cmr.repository.NodeRef;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 
 /**
@@ -63,12 +61,10 @@ public class PeerAssociationRepoEventIT extends AbstractContextAwareRepoEvent
         checkNumOfEvents(2);
 
         RepoEvent<NodeResource> resultRepoEvent = repoEventsContainer.getEvent(1);
-        assertEquals("Wrong repo event type.", EventType.NODE_CREATED.getType(),
-                resultRepoEvent.getType());
+        assertEquals("Wrong repo event type.", EventType.NODE_CREATED.getType(), resultRepoEvent.getType());
 
         resultRepoEvent = repoEventsContainer.getEvent(2);
-        assertEquals("Wrong repo event type.", EventType.NODE_CREATED.getType(),
-                resultRepoEvent.getType());
+        assertEquals("Wrong repo event type.", EventType.NODE_CREATED.getType(), resultRepoEvent.getType());
         
         retryingTransactionHelper.doInTransaction(() ->
                 nodeService.createAssociation(
@@ -83,7 +79,7 @@ public class PeerAssociationRepoEventIT extends AbstractContextAwareRepoEvent
 
         checkNumOfEvents(4);
 
-        final RepoEvent peerAssocRepoEvent = getChildAssocEvents(repoEventsContainer,
+        final RepoEvent<NodeResource> peerAssocRepoEvent = getChildAssocEvents(repoEventsContainer,
                 EventType.PEER_ASSOC_CREATED).get(0);
 
         assertEquals("Wrong repo event type.",
@@ -99,21 +95,15 @@ public class PeerAssociationRepoEventIT extends AbstractContextAwareRepoEvent
                 peerAssocRepoEvent.getDatacontenttype());
         assertEquals(EventData.JSON_SCHEMA, peerAssocRepoEvent.getDataschema());
 
-        final EventData nodeResourceEventData = getEventData(peerAssocRepoEvent);
+        final EventData<NodeResource> nodeResourceEventData = getEventData(peerAssocRepoEvent);
         // EventData attributes
-        assertNotNull("Event data group ID is not available. ",
-                nodeResourceEventData.getEventGroupId());
-        assertNull("resourceBefore property is not available",
-                nodeResourceEventData.getResourceBefore());
+        assertNotNull("Event data group ID is not available. ", nodeResourceEventData.getEventGroupId());
+        assertNull("resourceBefore property is not available", nodeResourceEventData.getResourceBefore());
 
-        final PeerAssociationResource peerAssociationResource = getPeerAssocResource(
-                peerAssocRepoEvent);
-        assertEquals("Wrong source", content1NodeRef.getId(),
-                peerAssociationResource.getSource().getId());
-        assertEquals("Wrong target", content2NodeRef.getId(),
-                peerAssociationResource.getTarget().getId());
-        assertEquals("Wrong assoc type", ContentModel.ASSOC_ORIGINAL.toString(),
-                peerAssociationResource.getAssocType());
+        final PeerAssociationResource peerAssociationResource = getPeerAssocResource(peerAssocRepoEvent);
+        assertEquals("Wrong source", content1NodeRef.getId(), peerAssociationResource.getSource().getId());
+        assertEquals("Wrong target", content2NodeRef.getId(), peerAssociationResource.getTarget().getId());
+        assertEquals("Wrong assoc type", ContentModel.ASSOC_ORIGINAL.toString(), peerAssociationResource.getAssocType());
     }
 
 
@@ -126,12 +116,10 @@ public class PeerAssociationRepoEventIT extends AbstractContextAwareRepoEvent
         checkNumOfEvents(2);
 
         RepoEvent<NodeResource> resultRepoEvent = repoEventsContainer.getEvent(1);
-        assertEquals("Wrong repo event type.", EventType.NODE_CREATED.getType(),
-                resultRepoEvent.getType());
+        assertEquals("Wrong repo event type.", EventType.NODE_CREATED.getType(), resultRepoEvent.getType());
 
         resultRepoEvent = repoEventsContainer.getEvent(2);
-        assertEquals("Wrong repo event type.", EventType.NODE_CREATED.getType(),
-                resultRepoEvent.getType());
+        assertEquals("Wrong repo event type.", EventType.NODE_CREATED.getType(), resultRepoEvent.getType());
 
         // Create peer association
         retryingTransactionHelper.doInTransaction(() ->
@@ -165,7 +153,7 @@ public class PeerAssociationRepoEventIT extends AbstractContextAwareRepoEvent
         checkNumOfEvents(6);
         
         // Check the peer assoc created event
-        final RepoEvent peerAssocRepoEvent = getChildAssocEvents(repoEventsContainer,
+        final RepoEvent<NodeResource> peerAssocRepoEvent = getChildAssocEvents(repoEventsContainer,
                 EventType.PEER_ASSOC_CREATED).get(0);
 
         assertEquals("Wrong repo event type.",
@@ -198,7 +186,7 @@ public class PeerAssociationRepoEventIT extends AbstractContextAwareRepoEvent
                 peerAssociationResource.getAssocType());
 
         // Check the peer assoc deleted event
-        final RepoEvent peerAssocRepoEvent2 = getChildAssocEvents(repoEventsContainer,
+        final RepoEvent<NodeResource> peerAssocRepoEvent2 = getChildAssocEvents(repoEventsContainer,
                 EventType.PEER_ASSOC_DELETED).get(0);
 
         assertEquals("Wrong repo event type.",
@@ -270,17 +258,5 @@ public class PeerAssociationRepoEventIT extends AbstractContextAwareRepoEvent
         assertEquals(0, peerAssociationRefs.size());
 
         checkNumOfEvents(3);
-    }
-
-    private List<RepoEvent> getChildAssocEvents(RepoEventContainer repoEventContainer,
-                                                EventType eventType)
-    {
-        List<RepoEvent> assocChildCreatedEvents = new ArrayList<RepoEvent>();
-        for (int i = 1; i <= getRepoEventsContainer().getEvents().size(); i++)
-        {
-            if (getRepoEventsContainer().getEvent(i).getType().equals(eventType.getType()))
-                assocChildCreatedEvents.add(getRepoEventsContainer().getEvent(i));
-        }
-        return assocChildCreatedEvents;
     }
 }

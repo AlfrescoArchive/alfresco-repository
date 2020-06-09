@@ -26,7 +26,6 @@
 
 package org.alfresco.repo.event2;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -40,9 +39,7 @@ import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.namespace.QName;
 import org.alfresco.util.GUID;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
-import org.springframework.context.annotation.Description;
 
 /**
  * @author Adina Ababei
@@ -82,63 +79,51 @@ public class ChildAssociationRepoEventIT extends AbstractContextAwareRepoEvent
                 ContentModel.ASSOC_CONTAINS,
                 QName.createQName(TEST_NAMESPACE, GUID.generate())));
 
-        List<ChildAssociationRef> childAssociationRefs = retryingTransactionHelper.doInTransaction(
-            () ->
+        List<ChildAssociationRef> childAssociationRefs = retryingTransactionHelper.doInTransaction(() ->
                 nodeService.getChildAssocs(parentNodeRef));
+
         assertEquals(1, childAssociationRefs.size());
         assertFalse(childAssociationRefs.get(0).isPrimary());
 
         checkNumOfEvents(4);
 
-        final RepoEvent childAssocRepoEvent = getChildAssocEvents(repoEventsContainer,
+        final RepoEvent<NodeResource> childAssocRepoEvent = getChildAssocEvents(repoEventsContainer,
             EventType.CHILD_ASSOC_CREATED).get(0);
 
-        assertEquals("Wrong repo event type.",
-            EventType.CHILD_ASSOC_CREATED.getType(),
-            childAssocRepoEvent.getType());
-        assertNotNull("Repo event ID is not available. ", childAssocRepoEvent.getId());
+        assertEquals("Wrong repo event type.", EventType.CHILD_ASSOC_CREATED.getType(), childAssocRepoEvent.getType());
+        assertNotNull("Repo event ID is not available.", childAssocRepoEvent.getId());
         assertNotNull("Source is not available", childAssocRepoEvent.getSource());
-        assertEquals("Repo event source is not available. ",
+        assertEquals("Repo event source is not available.",
             "/" + descriptorService.getCurrentRepositoryDescriptor().getId(),
             childAssocRepoEvent.getSource().toString());
-        assertNotNull("Repo event creation time is not available. ", childAssocRepoEvent.getTime());
-        assertEquals("Repo event datacontenttype", "application/json",
+        assertNotNull("Repo event creation time is not available.", childAssocRepoEvent.getTime());
+        assertEquals("Invalid repo event datacontenttype", "application/json",
             childAssocRepoEvent.getDatacontenttype());
         assertEquals(EventData.JSON_SCHEMA, childAssocRepoEvent.getDataschema());
 
-        final EventData nodeResourceEventData = getEventData(childAssocRepoEvent);
+        final EventData<NodeResource> nodeResourceEventData = getEventData(childAssocRepoEvent);
         // EventData attributes
-        assertNotNull("Event data group ID is not available. ",
-            nodeResourceEventData.getEventGroupId());
-        assertNull("resourceBefore property is not available",
-            nodeResourceEventData.getResourceBefore());
+        assertNotNull("Event data group ID is not available. ", nodeResourceEventData.getEventGroupId());
+        assertNull("resourceBefore property is not available", nodeResourceEventData.getResourceBefore());
 
-        final ChildAssociationResource childAssociationResource = getChildAssocResource(
-            childAssocRepoEvent);
-        assertEquals("Wrong parent", parentNodeRef.getId(),
-            childAssociationResource.getParent().getId());
-        assertEquals("Wrong child", childNodeRef.getId(),
-            childAssociationResource.getChild().getId());
-        System.out.println("TEST1" + ContentModel.ASSOC_CONTAINS.toString().length());
-        System.out.println(childAssociationResource.getAssocType().length());
-        assertEquals("Wrong assoc type", ContentModel.ASSOC_CONTAINS.toString(),
-            childAssociationResource.getAssocType());
+        final ChildAssociationResource childAssociationResource = getChildAssocResource(childAssocRepoEvent);
+        assertEquals("Wrong parent", parentNodeRef.getId(), childAssociationResource.getParent().getId());
+        assertEquals("Wrong child", childNodeRef.getId(), childAssociationResource.getChild().getId());
+        assertEquals("Wrong assoc type", ContentModel.ASSOC_CONTAINS.toString(), childAssociationResource.getAssocType());
     }
 
     @Test
     public void testRemoveChildAssociation()
     {
         final NodeRef parentNodeRef = createNode(ContentModel.TYPE_FOLDER);
-        checkNumOfEvents(1);
-        RepoEvent<NodeResource> parentRepoEvent = getRepoEvent(1);
-        assertEquals("Wrong repo event type.", EventType.NODE_CREATED.getType(),
-            parentRepoEvent.getType());
-
         final NodeRef childNodeRef = createNode(ContentModel.TYPE_CONTENT);
+
         checkNumOfEvents(2);
-        RepoEvent<NodeResource> childRepoEvent = getRepoEvent(2);
-        assertEquals("Wrong repo event type.", EventType.NODE_CREATED.getType(),
-            childRepoEvent.getType());
+        RepoEvent<NodeResource> parentRepoEvent = repoEventsContainer.getEvent(1);
+        assertEquals("Wrong repo event type.", EventType.NODE_CREATED.getType(), parentRepoEvent.getType());
+
+        RepoEvent<NodeResource> childRepoEvent = repoEventsContainer.getEvent(2);
+        assertEquals("Wrong repo event type.", EventType.NODE_CREATED.getType(), childRepoEvent.getType());
 
         ChildAssociationRef childAssociationRef = retryingTransactionHelper.doInTransaction(() ->
             nodeService.addChild(
@@ -147,8 +132,7 @@ public class ChildAssociationRepoEventIT extends AbstractContextAwareRepoEvent
                 ContentModel.ASSOC_CONTAINS,
                 QName.createQName(TEST_NAMESPACE, GUID.generate())));
 
-        List<ChildAssociationRef> childAssociationRefs = retryingTransactionHelper.doInTransaction(
-            () ->
+        List<ChildAssociationRef> childAssociationRefs = retryingTransactionHelper.doInTransaction(() ->
                 nodeService.getChildAssocs(parentNodeRef));
 
         assertEquals(1, childAssociationRefs.size());
@@ -166,41 +150,31 @@ public class ChildAssociationRepoEventIT extends AbstractContextAwareRepoEvent
 
         checkNumOfEvents(6);
 
-        final RepoEvent childAssocRepoEvent = getChildAssocEvents(repoEventsContainer,
+        final RepoEvent<NodeResource> childAssocRepoEvent = getChildAssocEvents(repoEventsContainer,
             EventType.CHILD_ASSOC_DELETED).get(0);
 
-        assertEquals("Wrong repo event type.",
-            EventType.CHILD_ASSOC_DELETED.getType(),
-            childAssocRepoEvent.getType());
+        assertEquals("Wrong repo event type.", EventType.CHILD_ASSOC_DELETED.getType(), childAssocRepoEvent.getType());
         assertNotNull("Repo event ID is not available. ", childAssocRepoEvent.getId());
         assertNotNull("Source is not available", childAssocRepoEvent.getSource());
         assertEquals("Repo event source is not available. ",
             "/" + descriptorService.getCurrentRepositoryDescriptor().getId(),
             childAssocRepoEvent.getSource().toString());
         assertNotNull("Repo event creation time is not available. ", childAssocRepoEvent.getTime());
-        assertEquals("Repo event datacontenttype", "application/json",
-            childAssocRepoEvent.getDatacontenttype());
+        assertEquals("Repo event datacontenttype", "application/json", childAssocRepoEvent.getDatacontenttype());
         assertEquals(EventData.JSON_SCHEMA, childAssocRepoEvent.getDataschema());
 
-        final EventData nodeResourceEventData = getEventData(childAssocRepoEvent);
+        final EventData<NodeResource> nodeResourceEventData = getEventData(childAssocRepoEvent);
         // EventData attributes
-        assertNotNull("Event data group ID is not available. ",
-            nodeResourceEventData.getEventGroupId());
-        assertNull("resourceBefore property is not available",
-            nodeResourceEventData.getResourceBefore());
+        assertNotNull("Event data group ID is not available. ", nodeResourceEventData.getEventGroupId());
+        assertNull("resourceBefore property is not available", nodeResourceEventData.getResourceBefore());
 
-        final ChildAssociationResource childAssociationResource = getChildAssocResource(
-            childAssocRepoEvent);
-        assertEquals("Wrong parent", parentNodeRef.getId(),
-            childAssociationResource.getParent().getId());
-        assertEquals("Wrong child", childNodeRef.getId(),
-            childAssociationResource.getChild().getId());
-        assertEquals("Wrong assoc type", ContentModel.ASSOC_CONTAINS.toString(),
-            childAssociationResource.getAssocType());
+        final ChildAssociationResource childAssociationResource = getChildAssocResource(childAssocRepoEvent);
+        assertEquals("Wrong parent", parentNodeRef.getId(), childAssociationResource.getParent().getId());
+        assertEquals("Wrong child", childNodeRef.getId(), childAssociationResource.getChild().getId());
+        assertEquals("Wrong assoc type", ContentModel.ASSOC_CONTAINS.toString(), childAssociationResource.getAssocType());
     }
 
     @Test
-    @Description("")
     public void testOneChildListOfParentsAssociations()
     {
         final NodeRef parent1NodeRef = createNode(ContentModel.TYPE_FOLDER);
@@ -213,20 +187,16 @@ public class ChildAssociationRepoEventIT extends AbstractContextAwareRepoEvent
         checkNumOfEvents(4);
 
         RepoEvent<NodeResource> resultRepoEvent = repoEventsContainer.getEvent(1);
-        assertEquals("Wrong repo event type.", EventType.NODE_CREATED.getType(),
-            resultRepoEvent.getType());
+        assertEquals("Wrong repo event type.", EventType.NODE_CREATED.getType(), resultRepoEvent.getType());
 
         resultRepoEvent = repoEventsContainer.getEvent(2);
-        assertEquals("Wrong repo event type.", EventType.NODE_CREATED.getType(),
-            resultRepoEvent.getType());
+        assertEquals("Wrong repo event type.", EventType.NODE_CREATED.getType(), resultRepoEvent.getType());
 
         resultRepoEvent = repoEventsContainer.getEvent(3);
-        assertEquals("Wrong repo event type.", EventType.NODE_CREATED.getType(),
-            resultRepoEvent.getType());
+        assertEquals("Wrong repo event type.", EventType.NODE_CREATED.getType(), resultRepoEvent.getType());
 
         resultRepoEvent = repoEventsContainer.getEvent(4);
-        assertEquals("Wrong repo event type.", EventType.NODE_CREATED.getType(),
-            resultRepoEvent.getType());
+        assertEquals("Wrong repo event type.", EventType.NODE_CREATED.getType(), resultRepoEvent.getType());
 
         retryingTransactionHelper.doInTransaction(() ->
             nodeService.addChild(
@@ -249,10 +219,10 @@ public class ChildAssociationRepoEventIT extends AbstractContextAwareRepoEvent
             return null;
         });
 
-        //3 assoc.child.Created events should be created
-        int numberOfChildAssocEvents = getChildAssocEvents(repoEventsContainer,
-            EventType.CHILD_ASSOC_CREATED).size();
-        assertEquals("Wrong association events number", 3, numberOfChildAssocEvents);
+        // 3 assoc.child.Created events should be created
+
+        List<RepoEvent<NodeResource>> childAssocEvents = getChildAssocEvents(repoEventsContainer, EventType.CHILD_ASSOC_CREATED);
+        assertEquals("Wrong association events number",3, childAssocEvents.size());
     }
 
     @Test
@@ -267,20 +237,16 @@ public class ChildAssociationRepoEventIT extends AbstractContextAwareRepoEvent
         checkNumOfEvents(4);
 
         RepoEvent<NodeResource> resultRepoEvent = repoEventsContainer.getEvent(1);
-        assertEquals("Wrong repo event type.", EventType.NODE_CREATED.getType(),
-            resultRepoEvent.getType());
+        assertEquals("Wrong repo event type.", EventType.NODE_CREATED.getType(), resultRepoEvent.getType());
 
         resultRepoEvent = repoEventsContainer.getEvent(2);
-        assertEquals("Wrong repo event type.", EventType.NODE_CREATED.getType(),
-            resultRepoEvent.getType());
+        assertEquals("Wrong repo event type.", EventType.NODE_CREATED.getType(), resultRepoEvent.getType());
 
         resultRepoEvent = repoEventsContainer.getEvent(3);
-        assertEquals("Wrong repo event type.", EventType.NODE_CREATED.getType(),
-            resultRepoEvent.getType());
+        assertEquals("Wrong repo event type.", EventType.NODE_CREATED.getType(), resultRepoEvent.getType());
 
         resultRepoEvent = repoEventsContainer.getEvent(4);
-        assertEquals("Wrong repo event type.", EventType.NODE_CREATED.getType(),
-            resultRepoEvent.getType());
+        assertEquals("Wrong repo event type.", EventType.NODE_CREATED.getType(), resultRepoEvent.getType());
 
         retryingTransactionHelper.doInTransaction(() -> {
             for (NodeRef parent : parents)
@@ -290,7 +256,6 @@ public class ChildAssociationRepoEventIT extends AbstractContextAwareRepoEvent
                     ContentModel.ASSOC_CONTAINS,
                     QName.createQName(TEST_NAMESPACE, GUID.generate()));
             }
-
             return null;
         });
 
@@ -308,23 +273,17 @@ public class ChildAssociationRepoEventIT extends AbstractContextAwareRepoEvent
             return null;
         });
 
-        //3 assoc.child.Created events should be created
-        int numberOfChildAssocEvents = getChildAssocEvents(repoEventsContainer,
-            EventType.CHILD_ASSOC_CREATED).size();
-        assertEquals("Wrong association events number", 3, numberOfChildAssocEvents);
+        // 3 assoc.child.Created events should be created
+        List<RepoEvent<NodeResource>> childAssocEvents = getChildAssocEvents(repoEventsContainer, EventType.CHILD_ASSOC_CREATED);
+        assertEquals("Wrong association events number",3, childAssocEvents.size());
 
-        //All events in the transaction should have the same eventGroupId
-        String assocEventGroupID1 = getEventData(
-            getChildAssocEvents(repoEventsContainer, EventType.CHILD_ASSOC_CREATED).get(0))
-            .getEventGroupId();
-        String assocEventGroupID2 = getEventData(getChildAssocEvents(repoEventsContainer,
-            EventType.CHILD_ASSOC_CREATED).get(1))
-            .getEventGroupId();
-        String assocEventGroupID3 = getEventData(getChildAssocEvents(repoEventsContainer,
-            EventType.CHILD_ASSOC_CREATED).get(2))
-            .getEventGroupId();
-        assertTrue(assocEventGroupID1.equals(assocEventGroupID2) && assocEventGroupID2.equals(
-            assocEventGroupID3));
+        // All events in the transaction should have the same eventGroupId
+        String assocEventGroupID1 = getEventData(childAssocEvents.get(0)).getEventGroupId();
+        String assocEventGroupID2 = getEventData(childAssocEvents.get(1)).getEventGroupId();
+        String assocEventGroupID3 = getEventData(childAssocEvents.get(2)).getEventGroupId();
+
+        assertEquals(assocEventGroupID1, assocEventGroupID2);
+        assertEquals(assocEventGroupID2, assocEventGroupID3);
     }
 
     @Test
@@ -340,20 +299,16 @@ public class ChildAssociationRepoEventIT extends AbstractContextAwareRepoEvent
         checkNumOfEvents(4);
 
         RepoEvent<NodeResource> resultRepoEvent = repoEventsContainer.getEvent(1);
-        assertEquals("Wrong repo event type.", EventType.NODE_CREATED.getType(),
-            resultRepoEvent.getType());
+        assertEquals("Wrong repo event type.", EventType.NODE_CREATED.getType(), resultRepoEvent.getType());
 
         resultRepoEvent = repoEventsContainer.getEvent(2);
-        assertEquals("Wrong repo event type.", EventType.NODE_CREATED.getType(),
-            resultRepoEvent.getType());
+        assertEquals("Wrong repo event type.", EventType.NODE_CREATED.getType(), resultRepoEvent.getType());
 
         resultRepoEvent = repoEventsContainer.getEvent(3);
-        assertEquals("Wrong repo event type.", EventType.NODE_CREATED.getType(),
-            resultRepoEvent.getType());
+        assertEquals("Wrong repo event type.", EventType.NODE_CREATED.getType(), resultRepoEvent.getType());
 
         resultRepoEvent = repoEventsContainer.getEvent(4);
-        assertEquals("Wrong repo event type.", EventType.NODE_CREATED.getType(),
-            resultRepoEvent.getType());
+        assertEquals("Wrong repo event type.", EventType.NODE_CREATED.getType(), resultRepoEvent.getType());
 
         for (NodeRef parent : parents)
         {
@@ -379,10 +334,21 @@ public class ChildAssociationRepoEventIT extends AbstractContextAwareRepoEvent
             return null;
         });
 
-        //3 assoc.child.Created events should be created
-        int numberOfChildAssocEvents = getChildAssocEvents(repoEventsContainer,
-            EventType.CHILD_ASSOC_CREATED).size();
-        assertEquals("Wrong association events number", 3, numberOfChildAssocEvents);
+        // 3 assoc.child.Created events should be created
+        List<RepoEvent<NodeResource>> childAssocEvents = getChildAssocEvents(repoEventsContainer, EventType.CHILD_ASSOC_CREATED);
+        assertEquals("Wrong association events number",3, childAssocEvents.size());
+
+        assertEquals(parent1NodeRef.getId(), getChildAssocResource(childAssocEvents.get(0)).getParent().getId());
+        assertEquals(childNodeRef.getId(), getChildAssocResource(childAssocEvents.get(0)).getChild().getId());
+        assertEquals(ContentModel.ASSOC_CONTAINS.toString(), getChildAssocResource(childAssocEvents.get(0)).getAssocType());
+
+        assertEquals(parent2NodeRef.getId(), getChildAssocResource(childAssocEvents.get(1)).getParent().getId());
+        assertEquals(childNodeRef.getId(), getChildAssocResource(childAssocEvents.get(1)).getChild().getId());
+        assertEquals(ContentModel.ASSOC_CONTAINS.toString(), getChildAssocResource(childAssocEvents.get(1)).getAssocType());
+
+        assertEquals(parent3NodeRef.getId(), getChildAssocResource(childAssocEvents.get(2)).getParent().getId());
+        assertEquals(childNodeRef.getId(), getChildAssocResource(childAssocEvents.get(2)).getChild().getId());
+        assertEquals(ContentModel.ASSOC_CONTAINS.toString(), getChildAssocResource(childAssocEvents.get(2)).getAssocType());
     }
 
     @Test
@@ -398,20 +364,16 @@ public class ChildAssociationRepoEventIT extends AbstractContextAwareRepoEvent
         checkNumOfEvents(4);
 
         RepoEvent<NodeResource> resultRepoEvent = repoEventsContainer.getEvent(1);
-        assertEquals("Wrong repo event type.", EventType.NODE_CREATED.getType(),
-            resultRepoEvent.getType());
+        assertEquals("Wrong repo event type.", EventType.NODE_CREATED.getType(), resultRepoEvent.getType());
 
         resultRepoEvent = repoEventsContainer.getEvent(2);
-        assertEquals("Wrong repo event type.", EventType.NODE_CREATED.getType(),
-            resultRepoEvent.getType());
+        assertEquals("Wrong repo event type.", EventType.NODE_CREATED.getType(), resultRepoEvent.getType());
 
         resultRepoEvent = repoEventsContainer.getEvent(3);
-        assertEquals("Wrong repo event type.", EventType.NODE_CREATED.getType(),
-            resultRepoEvent.getType());
+        assertEquals("Wrong repo event type.", EventType.NODE_CREATED.getType(), resultRepoEvent.getType());
 
         resultRepoEvent = repoEventsContainer.getEvent(4);
-        assertEquals("Wrong repo event type.", EventType.NODE_CREATED.getType(),
-            resultRepoEvent.getType());
+        assertEquals("Wrong repo event type.", EventType.NODE_CREATED.getType(), resultRepoEvent.getType());
 
         retryingTransactionHelper.doInTransaction(() -> {
             for (NodeRef child : children)
@@ -419,7 +381,6 @@ public class ChildAssociationRepoEventIT extends AbstractContextAwareRepoEvent
                 nodeService.addChild(parentNodeRef, child, ContentModel.ASSOC_CONTAINS,
                     QName.createQName(TEST_NAMESPACE, GUID.generate()));
             }
-
             return null;
         });
 
@@ -430,10 +391,9 @@ public class ChildAssociationRepoEventIT extends AbstractContextAwareRepoEvent
             return null;
         });
 
-        //3 assoc.child.Created events should be created
-        int numberOfChildAssocEvents = getChildAssocEvents(repoEventsContainer,
-            EventType.CHILD_ASSOC_CREATED).size();
-        assertEquals("Wrong association events number", 3, numberOfChildAssocEvents);
+        // 3 assoc.child.Created events should be created
+        List<RepoEvent<NodeResource>> childAssocEvents = getChildAssocEvents(repoEventsContainer, EventType.CHILD_ASSOC_CREATED);
+        assertEquals("Wrong association events number",3, childAssocEvents.size());
     }
 
     @Test
@@ -449,20 +409,16 @@ public class ChildAssociationRepoEventIT extends AbstractContextAwareRepoEvent
         checkNumOfEvents(4);
 
         RepoEvent<NodeResource> resultRepoEvent = repoEventsContainer.getEvent(1);
-        assertEquals("Wrong repo event type.", EventType.NODE_CREATED.getType(),
-            resultRepoEvent.getType());
+        assertEquals("Wrong repo event type.", EventType.NODE_CREATED.getType(), resultRepoEvent.getType());
 
         resultRepoEvent = repoEventsContainer.getEvent(2);
-        assertEquals("Wrong repo event type.", EventType.NODE_CREATED.getType(),
-            resultRepoEvent.getType());
+        assertEquals("Wrong repo event type.", EventType.NODE_CREATED.getType(), resultRepoEvent.getType());
 
         resultRepoEvent = repoEventsContainer.getEvent(3);
-        assertEquals("Wrong repo event type.", EventType.NODE_CREATED.getType(),
-            resultRepoEvent.getType());
+        assertEquals("Wrong repo event type.", EventType.NODE_CREATED.getType(), resultRepoEvent.getType());
 
         resultRepoEvent = repoEventsContainer.getEvent(4);
-        assertEquals("Wrong repo event type.", EventType.NODE_CREATED.getType(),
-            resultRepoEvent.getType());
+        assertEquals("Wrong repo event type.", EventType.NODE_CREATED.getType(), resultRepoEvent.getType());
 
         for (NodeRef child : children)
         {
@@ -478,10 +434,21 @@ public class ChildAssociationRepoEventIT extends AbstractContextAwareRepoEvent
             return null;
         });
 
-        //3 assoc.child.Created events should be created
-        int numberOfChildAssocEvents = getChildAssocEvents(repoEventsContainer,
-            EventType.CHILD_ASSOC_CREATED).size();
-        assertEquals("Wrong association events number", 3, numberOfChildAssocEvents);
+        // 3 assoc.child.Created events should be created
+        List<RepoEvent<NodeResource>> childAssocEvents = getChildAssocEvents(repoEventsContainer, EventType.CHILD_ASSOC_CREATED);
+        assertEquals("Wrong association events number",3, childAssocEvents.size());
+
+        assertEquals(parentNodeRef.getId(), getChildAssocResource(childAssocEvents.get(0)).getParent().getId());
+        assertEquals(child1NodeRef.getId(), getChildAssocResource(childAssocEvents.get(0)).getChild().getId());
+        assertEquals(ContentModel.ASSOC_CONTAINS.toString(), getChildAssocResource(childAssocEvents.get(0)).getAssocType());
+
+        assertEquals(parentNodeRef.getId(), getChildAssocResource(childAssocEvents.get(1)).getParent().getId());
+        assertEquals(child2NodeRef.getId(), getChildAssocResource(childAssocEvents.get(1)).getChild().getId());
+        assertEquals(ContentModel.ASSOC_CONTAINS.toString(), getChildAssocResource(childAssocEvents.get(1)).getAssocType());
+
+        assertEquals(parentNodeRef.getId(), getChildAssocResource(childAssocEvents.get(2)).getParent().getId());
+        assertEquals(child3NodeRef.getId(), getChildAssocResource(childAssocEvents.get(2)).getChild().getId());
+        assertEquals(ContentModel.ASSOC_CONTAINS.toString(), getChildAssocResource(childAssocEvents.get(2)).getAssocType());
     }
 
     @Test
@@ -497,27 +464,22 @@ public class ChildAssociationRepoEventIT extends AbstractContextAwareRepoEvent
         checkNumOfEvents(4);
 
         RepoEvent<NodeResource> resultRepoEvent = repoEventsContainer.getEvent(1);
-        assertEquals("Wrong repo event type.", EventType.NODE_CREATED.getType(),
-            resultRepoEvent.getType());
+        assertEquals("Wrong repo event type.", EventType.NODE_CREATED.getType(), resultRepoEvent.getType());
 
         resultRepoEvent = repoEventsContainer.getEvent(2);
-        assertEquals("Wrong repo event type.", EventType.NODE_CREATED.getType(),
-            resultRepoEvent.getType());
+        assertEquals("Wrong repo event type.", EventType.NODE_CREATED.getType(), resultRepoEvent.getType());
 
         resultRepoEvent = repoEventsContainer.getEvent(3);
-        assertEquals("Wrong repo event type.", EventType.NODE_CREATED.getType(),
-            resultRepoEvent.getType());
+        assertEquals("Wrong repo event type.", EventType.NODE_CREATED.getType(), resultRepoEvent.getType());
 
         resultRepoEvent = repoEventsContainer.getEvent(4);
-        assertEquals("Wrong repo event type.", EventType.NODE_CREATED.getType(),
-            resultRepoEvent.getType());
+        assertEquals("Wrong repo event type.", EventType.NODE_CREATED.getType(), resultRepoEvent.getType());
 
         retryingTransactionHelper.doInTransaction(() ->
             nodeService.addChild(parents, childNodeRef, ContentModel.ASSOC_CONTAINS,
                 QName.createQName(TEST_NAMESPACE, GUID.generate())));
 
-        List<ChildAssociationRef> listChildAssociationRefs = retryingTransactionHelper.doInTransaction(
-            () -> {
+        List<ChildAssociationRef> listChildAssociationRefs = retryingTransactionHelper.doInTransaction(() -> {
                 List<ChildAssociationRef> childAssocParent1 = nodeService.getChildAssocs(
                     parent1NodeRef);
                 List<ChildAssociationRef> childAssocParent2 = nodeService.getChildAssocs(
@@ -529,8 +491,7 @@ public class ChildAssociationRepoEventIT extends AbstractContextAwareRepoEvent
                 assertEquals(1, childAssocParent2.size());
                 assertEquals(1, childAssocParent3.size());
 
-                return Arrays.asList(childAssocParent1.get(0), childAssocParent2.get(0),
-                    childAssocParent3.get(0));
+                return Arrays.asList(childAssocParent1.get(0), childAssocParent2.get(0), childAssocParent3.get(0));
             });
 
         retryingTransactionHelper.doInTransaction(() -> {
@@ -542,11 +503,10 @@ public class ChildAssociationRepoEventIT extends AbstractContextAwareRepoEvent
         });
 
         checkNumOfEvents(12);
-        
-        //3 assoc.child.Deleted events should be created
-        int numberOfChildAssocEvents = getChildAssocEvents(repoEventsContainer,
-            EventType.CHILD_ASSOC_DELETED).size();
-        assertEquals("Wrong association events number", 3, numberOfChildAssocEvents);
+
+        // 3 assoc.child.Deleted events should be created
+        List<RepoEvent<NodeResource>> childAssocEvents = getChildAssocEvents(repoEventsContainer, EventType.CHILD_ASSOC_DELETED);
+        assertEquals("Wrong association events number",3, childAssocEvents.size());
     }
     
     @Test
@@ -562,27 +522,22 @@ public class ChildAssociationRepoEventIT extends AbstractContextAwareRepoEvent
         checkNumOfEvents(4);
 
         RepoEvent<NodeResource> resultRepoEvent = repoEventsContainer.getEvent(1);
-        assertEquals("Wrong repo event type.", EventType.NODE_CREATED.getType(),
-            resultRepoEvent.getType());
+        assertEquals("Wrong repo event type.", EventType.NODE_CREATED.getType(), resultRepoEvent.getType());
 
         resultRepoEvent = repoEventsContainer.getEvent(2);
-        assertEquals("Wrong repo event type.", EventType.NODE_CREATED.getType(),
-            resultRepoEvent.getType());
+        assertEquals("Wrong repo event type.", EventType.NODE_CREATED.getType(), resultRepoEvent.getType());
 
         resultRepoEvent = repoEventsContainer.getEvent(3);
-        assertEquals("Wrong repo event type.", EventType.NODE_CREATED.getType(),
-            resultRepoEvent.getType());
+        assertEquals("Wrong repo event type.", EventType.NODE_CREATED.getType(), resultRepoEvent.getType());
 
         resultRepoEvent = repoEventsContainer.getEvent(4);
-        assertEquals("Wrong repo event type.", EventType.NODE_CREATED.getType(),
-            resultRepoEvent.getType());
+        assertEquals("Wrong repo event type.", EventType.NODE_CREATED.getType(), resultRepoEvent.getType());
 
         retryingTransactionHelper.doInTransaction(() ->
             nodeService.addChild(parents, childNodeRef, ContentModel.ASSOC_CONTAINS,
                 QName.createQName(TEST_NAMESPACE, GUID.generate())));
 
-        List<ChildAssociationRef> listChildAssociationRefs = retryingTransactionHelper.doInTransaction(
-            () -> {
+        List<ChildAssociationRef> listChildAssociationRefs = retryingTransactionHelper.doInTransaction(() -> {
                 List<ChildAssociationRef> childAssocParent1 = nodeService.getChildAssocs(
                     parent1NodeRef);
                 List<ChildAssociationRef> childAssocParent2 = nodeService.getChildAssocs(
@@ -594,8 +549,7 @@ public class ChildAssociationRepoEventIT extends AbstractContextAwareRepoEvent
                 assertEquals(1, childAssocParent2.size());
                 assertEquals(1, childAssocParent3.size());
 
-                return Arrays.asList(childAssocParent1.get(0), childAssocParent2.get(0),
-                    childAssocParent3.get(0));
+                return Arrays.asList(childAssocParent1.get(0), childAssocParent2.get(0), childAssocParent3.get(0));
             });
 
         for (ChildAssociationRef childAssociationRef : listChildAssociationRefs)
@@ -606,10 +560,21 @@ public class ChildAssociationRepoEventIT extends AbstractContextAwareRepoEvent
 
         checkNumOfEvents(14);
 
-        //3 assoc.child.Deleted events should be created
-        int numberOfChildAssocEvents = getChildAssocEvents(repoEventsContainer,
-            EventType.CHILD_ASSOC_DELETED).size();
-        assertEquals("Wrong association events number", 3, numberOfChildAssocEvents);
+        // 3 assoc.child.Deleted events should be created
+        List<RepoEvent<NodeResource>> childAssocEvents = getChildAssocEvents(repoEventsContainer, EventType.CHILD_ASSOC_DELETED);
+        assertEquals("Wrong association events number",3, childAssocEvents.size());
+
+        assertEquals(parent1NodeRef.getId(), getChildAssocResource(childAssocEvents.get(0)).getParent().getId());
+        assertEquals(childNodeRef.getId(), getChildAssocResource(childAssocEvents.get(0)).getChild().getId());
+        assertEquals(ContentModel.ASSOC_CONTAINS.toString(), getChildAssocResource(childAssocEvents.get(0)).getAssocType());
+
+        assertEquals(parent2NodeRef.getId(), getChildAssocResource(childAssocEvents.get(1)).getParent().getId());
+        assertEquals(childNodeRef.getId(), getChildAssocResource(childAssocEvents.get(1)).getChild().getId());
+        assertEquals(ContentModel.ASSOC_CONTAINS.toString(), getChildAssocResource(childAssocEvents.get(1)).getAssocType());
+
+        assertEquals(parent3NodeRef.getId(), getChildAssocResource(childAssocEvents.get(2)).getParent().getId());
+        assertEquals(childNodeRef.getId(), getChildAssocResource(childAssocEvents.get(2)).getChild().getId());
+        assertEquals(ContentModel.ASSOC_CONTAINS.toString(), getChildAssocResource(childAssocEvents.get(2)).getAssocType());
     }
 
     @Test
@@ -625,20 +590,16 @@ public class ChildAssociationRepoEventIT extends AbstractContextAwareRepoEvent
         checkNumOfEvents(4);
 
         RepoEvent<NodeResource> resultRepoEvent = repoEventsContainer.getEvent(1);
-        assertEquals("Wrong repo event type.", EventType.NODE_CREATED.getType(),
-            resultRepoEvent.getType());
+        assertEquals("Wrong repo event type.", EventType.NODE_CREATED.getType(), resultRepoEvent.getType());
 
         resultRepoEvent = repoEventsContainer.getEvent(2);
-        assertEquals("Wrong repo event type.", EventType.NODE_CREATED.getType(),
-            resultRepoEvent.getType());
+        assertEquals("Wrong repo event type.", EventType.NODE_CREATED.getType(), resultRepoEvent.getType());
 
         resultRepoEvent = repoEventsContainer.getEvent(3);
-        assertEquals("Wrong repo event type.", EventType.NODE_CREATED.getType(),
-            resultRepoEvent.getType());
+        assertEquals("Wrong repo event type.", EventType.NODE_CREATED.getType(), resultRepoEvent.getType());
 
         resultRepoEvent = repoEventsContainer.getEvent(4);
-        assertEquals("Wrong repo event type.", EventType.NODE_CREATED.getType(),
-            resultRepoEvent.getType());
+        assertEquals("Wrong repo event type.", EventType.NODE_CREATED.getType(), resultRepoEvent.getType());
 
         retryingTransactionHelper.doInTransaction(() -> {
             for (NodeRef child : children)
@@ -661,10 +622,9 @@ public class ChildAssociationRepoEventIT extends AbstractContextAwareRepoEvent
 
         checkNumOfEvents(17);
 
-        //3 assoc.child.Deleted events should be created
-        int numberOfChildAssocEvents = getChildAssocEvents(repoEventsContainer,
-            EventType.CHILD_ASSOC_DELETED).size();
-        assertEquals("Wrong association events number", 3, numberOfChildAssocEvents);
+        // 3 assoc.child.Deleted events should be created
+        List<RepoEvent<NodeResource>> childAssocEvents = getChildAssocEvents(repoEventsContainer, EventType.CHILD_ASSOC_DELETED);
+        assertEquals("Wrong association events number",3, childAssocEvents.size());
     }
 
     @Test
@@ -680,20 +640,16 @@ public class ChildAssociationRepoEventIT extends AbstractContextAwareRepoEvent
         checkNumOfEvents(4);
 
         RepoEvent<NodeResource> resultRepoEvent = repoEventsContainer.getEvent(1);
-        assertEquals("Wrong repo event type.", EventType.NODE_CREATED.getType(),
-            resultRepoEvent.getType());
+        assertEquals("Wrong repo event type.", EventType.NODE_CREATED.getType(), resultRepoEvent.getType());
 
         resultRepoEvent = repoEventsContainer.getEvent(2);
-        assertEquals("Wrong repo event type.", EventType.NODE_CREATED.getType(),
-            resultRepoEvent.getType());
+        assertEquals("Wrong repo event type.", EventType.NODE_CREATED.getType(), resultRepoEvent.getType());
 
         resultRepoEvent = repoEventsContainer.getEvent(3);
-        assertEquals("Wrong repo event type.", EventType.NODE_CREATED.getType(),
-            resultRepoEvent.getType());
+        assertEquals("Wrong repo event type.", EventType.NODE_CREATED.getType(), resultRepoEvent.getType());
 
         resultRepoEvent = repoEventsContainer.getEvent(4);
-        assertEquals("Wrong repo event type.", EventType.NODE_CREATED.getType(),
-            resultRepoEvent.getType());
+        assertEquals("Wrong repo event type.", EventType.NODE_CREATED.getType(), resultRepoEvent.getType());
 
         retryingTransactionHelper.doInTransaction(() ->
             nodeService.addChild(parents, childNodeRef, ContentModel.ASSOC_CONTAINS,
@@ -717,95 +673,9 @@ public class ChildAssociationRepoEventIT extends AbstractContextAwareRepoEvent
 
         checkNumOfEvents(12);
 
-        //3 assoc.child.Deleted events should be created
-        int numberOfChildAssocEvents = getChildAssocEvents(repoEventsContainer,
-            EventType.CHILD_ASSOC_DELETED).size();
-        assertEquals("Wrong association events number", 3, numberOfChildAssocEvents);
-    }
-
-    @Test
-    @Ignore
-    public void testMoveNodeWithChildAssociation()
-    {
-        final NodeRef parent1NodeRef = createNode(ContentModel.TYPE_FOLDER);
-        final NodeRef parent2NodeRef = createNode(ContentModel.TYPE_FOLDER);
-        final NodeRef childNodeRef = createNode(ContentModel.TYPE_CONTENT);
-
-        checkNumOfEvents(3);
-
-        RepoEvent<NodeResource> resultRepoEvent = repoEventsContainer.getEvent(1);
-        assertEquals("Wrong repo event type.", EventType.NODE_CREATED.getType(),
-            resultRepoEvent.getType());
-
-        resultRepoEvent = repoEventsContainer.getEvent(2);
-        assertEquals("Wrong repo event type.", EventType.NODE_CREATED.getType(),
-            resultRepoEvent.getType());
-
-        resultRepoEvent = repoEventsContainer.getEvent(3);
-        assertEquals("Wrong repo event type.", EventType.NODE_CREATED.getType(),
-            resultRepoEvent.getType());
-
-        QName test = QName.createQName(TEST_NAMESPACE, GUID.generate());
-
-        retryingTransactionHelper.doInTransaction(() ->
-            nodeService.addChild(parent1NodeRef, childNodeRef, ContentModel.ASSOC_CONTAINS,
-                test));
-
-        List<ChildAssociationRef> childAssociationRefs = retryingTransactionHelper.doInTransaction(
-            () ->
-                nodeService.getChildAssocs(parent1NodeRef));
-
-        assertEquals(1, childAssociationRefs.size());
-        assertFalse(childAssociationRefs.get(0).isPrimary());
-
-        ChildAssociationRef childAssociationRef = retryingTransactionHelper.doInTransaction(() ->
-            nodeService.moveNode(
-                childNodeRef,
-                parent2NodeRef,
-                ContentModel.ASSOC_CONTAINS,
-                test));
-
-        childAssociationRefs = retryingTransactionHelper.doInTransaction(() ->
-            nodeService.getChildAssocs(parent2NodeRef));
-
-        assertEquals(1, childAssociationRefs.size());
-        assertTrue(childAssociationRefs.get(0).isPrimary());
-        assertFalse(childAssociationRef.isPrimary());
-    }
-
-    @Test
-    @Ignore
-    public void testOneChildOneParentMultipleAssociations()
-    {
-        final NodeRef parentNodeRef = createNode(ContentModel.TYPE_FOLDER);
-        checkNumOfEvents(1);
-        RepoEvent<NodeResource> parentRepoEvent = getRepoEvent(1);
-        assertEquals("Wrong repo event type.", EventType.NODE_CREATED.getType(),
-            parentRepoEvent.getType());
-
-        final NodeRef childNodeRef = createNode(ContentModel.TYPE_CONTENT);
-        checkNumOfEvents(2);
-        RepoEvent<NodeResource> childRepoEvent = getRepoEvent(2);
-        assertEquals("Wrong repo event type.", EventType.NODE_CREATED.getType(),
-            childRepoEvent.getType());
-
-        ChildAssociationRef childAssociationRef = retryingTransactionHelper.doInTransaction(() ->
-            nodeService.addChild(
-                parentNodeRef,
-                childNodeRef,
-                ContentModel.ASSOC_CONTAINS,
-                QName.createQName(TEST_NAMESPACE, GUID.generate())));
-
-        retryingTransactionHelper.doInTransaction(() ->
-            nodeService.addChild(parentNodeRef, childNodeRef, ContentModel.ASSOC_WORKING_COPY_LINK,
-                QName.createQName(TEST_NAMESPACE, GUID.generate())));
-
-        List<ChildAssociationRef> childAssociationRefs = retryingTransactionHelper.doInTransaction(
-            () ->
-                nodeService.getChildAssocs(parentNodeRef));
-
-        assertEquals(1, childAssociationRefs.size());
-        assertFalse(childAssociationRefs.get(0).isPrimary());
+        // 3 assoc.child.Deleted events should be created
+        List<RepoEvent<NodeResource>> childAssocEvents = getChildAssocEvents(repoEventsContainer, EventType.CHILD_ASSOC_DELETED);
+        assertEquals("Wrong association events number",3, childAssocEvents.size());
     }
 
     @Test
@@ -817,27 +687,25 @@ public class ChildAssociationRepoEventIT extends AbstractContextAwareRepoEvent
         checkNumOfEvents(2);
 
         RepoEvent<NodeResource> resultRepoEvent = repoEventsContainer.getEvent(1);
-        assertEquals("Wrong repo event type.", EventType.NODE_CREATED.getType(),
-                resultRepoEvent.getType());
+        assertEquals("Wrong repo event type.", EventType.NODE_CREATED.getType(), resultRepoEvent.getType());
 
         resultRepoEvent = repoEventsContainer.getEvent(2);
-        assertEquals("Wrong repo event type.", EventType.NODE_CREATED.getType(),
-                resultRepoEvent.getType());
+        assertEquals("Wrong repo event type.", EventType.NODE_CREATED.getType(), resultRepoEvent.getType());
 
         retryingTransactionHelper.doInTransaction(() ->
                 {
                     nodeService.setType(parentNodeRef, ContentModel.TYPE_FOLDER);
 
                     return nodeService.addChild(
-                            parentNodeRef,
-                            childNodeRef,
-                            ContentModel.ASSOC_CONTAINS,
-                            QName.createQName(TEST_NAMESPACE, GUID.generate()));
+                                parentNodeRef,
+                                childNodeRef,
+                                ContentModel.ASSOC_CONTAINS,
+                                QName.createQName(TEST_NAMESPACE, GUID.generate()));
                 });
 
-        List<ChildAssociationRef> childAssociationRefs = retryingTransactionHelper.doInTransaction(
-                () ->
+        List<ChildAssociationRef> childAssociationRefs = retryingTransactionHelper.doInTransaction(() ->
                         nodeService.getChildAssocs(parentNodeRef));
+
         assertEquals(1, childAssociationRefs.size());
         assertFalse(childAssociationRefs.get(0).isPrimary());
 
@@ -845,22 +713,10 @@ public class ChildAssociationRepoEventIT extends AbstractContextAwareRepoEvent
 
         // Check the node events occur before the child association event
         List<RepoEvent<NodeResource>> repoEvents = getRepoEventsContainer().getEvents();
-        assertEquals("org.alfresco.event.node.Created", repoEventsContainer.getEvent(1).getType());
-        assertEquals("org.alfresco.event.node.Created", repoEventsContainer.getEvent(2).getType());
-        assertEquals("org.alfresco.event.node.Updated", repoEventsContainer.getEvent(3).getType());
-        assertEquals("org.alfresco.event.node.Updated", repoEventsContainer.getEvent(4).getType());
-        assertEquals("org.alfresco.event.assoc.child.Created", repoEventsContainer.getEvent(5).getType());
-    }
-
-    private List<RepoEvent> getChildAssocEvents(RepoEventContainer repoEventContainer,
-        EventType eventType)
-    {
-        List<RepoEvent> assocChildCreatedEvents = new ArrayList<RepoEvent>();
-        for (int i = 1; i <= getRepoEventsContainer().getEvents().size(); i++)
-        {
-            if (getRepoEventsContainer().getEvent(i).getType().equals(eventType.getType()))
-                assocChildCreatedEvents.add(getRepoEventsContainer().getEvent(i));
-        }
-        return assocChildCreatedEvents;
+        assertEquals("org.alfresco.event.node.Created", repoEvents.get(0).getType());
+        assertEquals("org.alfresco.event.node.Created", repoEvents.get(1).getType());
+        assertEquals("org.alfresco.event.node.Updated", repoEvents.get(2).getType());
+        assertEquals("org.alfresco.event.node.Updated", repoEvents.get(3).getType());
+        assertEquals("org.alfresco.event.assoc.child.Created", repoEvents.get(4).getType());
     }
 }

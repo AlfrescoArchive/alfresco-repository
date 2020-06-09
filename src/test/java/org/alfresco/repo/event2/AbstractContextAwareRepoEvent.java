@@ -359,6 +359,17 @@ public abstract class AbstractContextAwareRepoEvent extends BaseSpringTest
             events.clear();
         }
     }
+
+    public List<RepoEvent<NodeResource>> getChildAssocEvents(RepoEventContainer repoEventContainer, EventType eventType)
+    {
+        List<RepoEvent<NodeResource>> assocChildCreatedEvents = new ArrayList<>();
+        for (int i = 1; i <= repoEventContainer.getEvents().size(); i++)
+        {
+            if (repoEventContainer.getEvent(i).getType().equals(eventType.getType()))
+                assocChildCreatedEvents.add(repoEventContainer.getEvent(i));
+        }
+        return assocChildCreatedEvents;
+    }
 }
 
 
