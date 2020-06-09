@@ -31,6 +31,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.alfresco.model.ContentModel;
 import org.alfresco.repo.action.executer.ContentMetadataExtracter;
 import org.alfresco.repo.content.transform.TransformerDebug;
+import org.alfresco.repo.rendition2.RenditionDefinition2;
 import org.alfresco.repo.rendition2.RenditionService2;
 import org.alfresco.repo.rendition2.TransformDefinition;
 import org.alfresco.repo.security.authentication.AuthenticationUtil;
@@ -64,6 +65,7 @@ import java.util.Set;
 import java.util.StringJoiner;
 import java.util.concurrent.ExecutorService;
 
+import static org.alfresco.repo.rendition2.RenditionDefinition2.TIMEOUT;
 import static org.alfresco.repo.rendition2.TransformDefinition.getTransformName;
 
 /**
@@ -86,7 +88,6 @@ public class AsynchronousExtractor extends AbstractMappingMetadataExtracter
     private static final String MIMETYPE_METADATA_EXTRACT = "alfresco-metadata-extract";
     private static final String MIMETYPE_METADATA_EMBED = "alfresco-metadata-embed";
     private static final String METADATA = "metadata";
-    private static final Map<String, String> EMPTY_OPTIONS = Collections.emptyMap();
     private static final Map<String, Serializable> EMPTY_METADATA = Collections.emptyMap();
 
     private final ObjectMapper jsonObjectMapper = new ObjectMapper();
@@ -99,6 +100,7 @@ public class AsynchronousExtractor extends AbstractMappingMetadataExtracter
     private TransactionService transactionService;
     private TransformServiceRegistry transformServiceRegistry;
     private TaggingService taggingService;
+    private long timeout;
 
     public void setNodeService(NodeService nodeService)
     {
@@ -230,16 +232,17 @@ public class AsynchronousExtractor extends AbstractMappingMetadataExtracter
     protected Map<String, Serializable> extractRawInThread(NodeRef nodeRef, ContentReader reader, MetadataExtracterLimits limits)
             throws Throwable
     {
-        transformInBackground(nodeRef, reader, MIMETYPE_METADATA_EXTRACT, EXTRACT, EMPTY_OPTIONS);
+        long timeoutMs = limits.getTimeoutMs();
+        Map<String, String> options = Collections.singletonMap(TIMEOUT, Long.toString(timeoutMs));
+        transformInBackground(nodeRef, reader, MIMETYPE_METADATA_EXTRACT, EXTRACT, options);
         return EMPTY_METADATA;
     }
 
     @Override
     protected void embedInternal(NodeRef nodeRef, Map<String, Serializable> metadata, ContentReader reader, ContentWriter writer)
     {
-        Map<String, String> options = Collections.emptyMap();
         String metadataAsJson = metadataToString(metadata);
-        options.put(METADATA, metadataAsJson);
+        Map<String, String> options = Collections.singletonMap(METADATA, metadataAsJson);
         transformInBackground(nodeRef, reader, MIMETYPE_METADATA_EMBED, EMBED, options);
     }
 
