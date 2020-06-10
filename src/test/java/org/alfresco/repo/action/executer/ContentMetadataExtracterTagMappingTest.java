@@ -43,6 +43,7 @@ import org.alfresco.repo.action.ActionImpl;
 import org.alfresco.repo.action.ActionModel;
 import org.alfresco.repo.action.AsynchronousActionExecutionQueuePolicies;
 import org.alfresco.repo.content.MimetypeMap;
+import org.alfresco.repo.content.metadata.AbstractMappingMetadataExtracter;
 import org.alfresco.repo.content.metadata.MetadataExtracterRegistry;
 import org.alfresco.repo.content.metadata.TikaPoweredMetadataExtracter;
 import org.alfresco.repo.content.transform.AbstractContentTransformerTest;

@@ -37,6 +37,8 @@ import org.apache.tika.parser.ParseContext;
 import org.apache.tika.parser.Parser;
 
 /**
+ * @deprecated Tika extractors have been moved to a T-Engine.
+ *
  * A Metadata Extractor which makes use of Apache Tika,
  *  and allows the selection of the Tika parser to be
  *  sprung-in to extract the metadata from your document.
@@ -56,6 +58,7 @@ import org.apache.tika.parser.Parser;
  * @author Nick Burch
  */
 @AlfrescoPublicApi
+@Deprecated
 public class TikaSpringConfiguredMetadataExtracter extends TikaPoweredMetadataExtracter
 {
     protected static Log logger = LogFactory.getLog(TikaSpringConfiguredMetadataExtracter.class);
