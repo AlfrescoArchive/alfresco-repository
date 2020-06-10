@@ -257,6 +257,6 @@ public class PeerAssociationRepoEventIT extends AbstractContextAwareRepoEvent
                         nodeService.getSourceAssocs(content2NodeRef, ContentModel.ASSOC_ORIGINAL));
         assertEquals(0, peerAssociationRefs.size());
 
-        checkNumOfEvents(3);
+        checkNumOfEvents(2);
     }
 }

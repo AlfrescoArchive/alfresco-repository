@@ -148,7 +148,7 @@ public class ChildAssociationRepoEventIT extends AbstractContextAwareRepoEvent
 
         assertEquals(0, childAssociationRefs.size());
 
-        checkNumOfEvents(6);
+        checkNumOfEvents(5);
 
         final RepoEvent<NodeResource> childAssocRepoEvent = getChildAssocEvents(repoEventsContainer,
             EventType.CHILD_ASSOC_DELETED).get(0);
@@ -502,7 +502,7 @@ public class ChildAssociationRepoEventIT extends AbstractContextAwareRepoEvent
             return null;
         });
 
-        checkNumOfEvents(12);
+        checkNumOfEvents(11);
 
         // 3 assoc.child.Deleted events should be created
         List<RepoEvent<NodeResource>> childAssocEvents = getChildAssocEvents(repoEventsContainer, EventType.CHILD_ASSOC_DELETED);
@@ -558,7 +558,7 @@ public class ChildAssociationRepoEventIT extends AbstractContextAwareRepoEvent
                 nodeService.removeChildAssociation(childAssociationRef));
         }
 
-        checkNumOfEvents(14);
+        checkNumOfEvents(11);
 
         // 3 assoc.child.Deleted events should be created
         List<RepoEvent<NodeResource>> childAssocEvents = getChildAssocEvents(repoEventsContainer, EventType.CHILD_ASSOC_DELETED);
@@ -620,7 +620,7 @@ public class ChildAssociationRepoEventIT extends AbstractContextAwareRepoEvent
 
         deleteNode(parentNodeRef);
 
-        checkNumOfEvents(17);
+        checkNumOfEvents(14);
 
         // 3 assoc.child.Deleted events should be created
         List<RepoEvent<NodeResource>> childAssocEvents = getChildAssocEvents(repoEventsContainer, EventType.CHILD_ASSOC_DELETED);

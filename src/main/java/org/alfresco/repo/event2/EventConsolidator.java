@@ -266,6 +266,8 @@ public class EventConsolidator implements EventSupportedPolicies
             return null;
         }
 
+        boolean allNull = true;
+        
         Builder builder = NodeResource.builder();
 
         Map<QName, Serializable> changedPropsBefore = getBeforeMapChanges(propertiesBefore, propertiesAfter);
@@ -276,27 +278,33 @@ public class EventConsolidator implements EventSupportedPolicies
             if (!mappedProps.isEmpty())
             {
                 builder.setProperties(mappedProps);
+                allNull = false;
             }
             String name = (String) changedPropsBefore.get(ContentModel.PROP_NAME);
             if (name != null)
             {
                 builder.setName(name);
+                allNull = false;
             }
             ContentInfo contentInfo = helper.getContentInfo(changedPropsBefore);
             if (contentInfo != null)
             {
                 builder.setContent(contentInfo);
+                allNull = false;
             }
+
             UserInfo modifier = helper.getUserInfo((String) changedPropsBefore.get(ContentModel.PROP_MODIFIER));
             if (modifier != null)
             {
                 builder.setModifiedByUser(modifier);
+                allNull = false;
             }
             ZonedDateTime modifiedAt =
                         helper.getZonedDateTime((Date) changedPropsBefore.get(ContentModel.PROP_MODIFIED));
             if (modifiedAt != null)
             {
                 builder.setModifiedAt(modifiedAt);
+                allNull = false;
             }
         }
 
@@ -304,21 +312,26 @@ public class EventConsolidator implements EventSupportedPolicies
         if (!aspectsBefore.isEmpty())
         {
             builder.setAspectNames(aspectsBefore);
+            allNull = false;
         }
 
         if (primaryHierarchyBefore != null && !primaryHierarchyBefore.isEmpty())
         {
             builder.setPrimaryHierarchy(primaryHierarchyBefore);
+            allNull = false;
         }
 
         if (nodeTypeBefore != null)
         {
             builder.setNodeType(helper.getQNamePrefixString(nodeTypeBefore));
+            allNull = false;
         }
-
+        
+        builder.setAllNull(allNull);
+        
         return builder.build();
     }
-
+    
     private Set<String> getMappedAspectsBefore(Set<String> currentAspects)
     {
         if (currentAspects == null)
@@ -348,7 +361,15 @@ public class EventConsolidator implements EventSupportedPolicies
 
     private boolean hasChangedAspect()
     {
-        return !(aspectsRemoved.isEmpty() && aspectsAdded.isEmpty());
+        if (aspectsRemoved.isEmpty() && aspectsAdded.isEmpty())
+        {
+            return false;
+        }
+        else if (aspectsRemoved.size() == aspectsAdded.size() && aspectsRemoved.containsAll(aspectsAdded))
+        {
+            return false;
+        }
+        return true;
     }
 
     private <K, V> Map<K, V> getBeforeMapChanges(Map<K, V> before, Map<K, V> after)

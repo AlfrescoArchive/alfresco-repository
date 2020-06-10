@@ -33,6 +33,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.UUID;
 
+import org.alfresco.repo.event.v1.model.NodeResource;
 import org.alfresco.repo.event.v1.model.RepoEvent;
 import org.alfresco.repo.event2.filter.ChildAssociationTypeFilter;
 import org.alfresco.repo.event2.filter.EventFilterRegistry;
@@ -322,17 +323,6 @@ public class EventGenerator extends AbstractLifecycleBean implements Initializin
         return eventConsolidator;
     }
 
-    private Map<ChildAssociationRef, ChildAssociationEventConsolidator> getTxnChildAssocResourceMap(Object resourceKey)
-    {
-        Map<ChildAssociationRef, ChildAssociationEventConsolidator> map = AlfrescoTransactionSupport.getResource(resourceKey);
-        if (map == null)
-        {
-            map = new LinkedHashMap<>(29);
-            AlfrescoTransactionSupport.bindResource(resourceKey, map);
-        }
-        return map;
-    }
-
     /**
      * @return the {@link EventConsolidator} for the supplied {@code peerAssociationRef} from
      * the current transaction context.
@@ -353,17 +343,6 @@ public class EventGenerator extends AbstractLifecycleBean implements Initializin
             assocEvents.put(peerAssociationRef, eventConsolidator);
         }
         return eventConsolidator;
-    }
-
-    private Map<AssociationRef, PeerAssociationEventConsolidator> getTxnPeerAssocResourceMap(Object resourceKey)
-    {
-        Map<AssociationRef, PeerAssociationEventConsolidator> map = AlfrescoTransactionSupport.getResource(resourceKey);
-        if (map == null)
-        {
-            map = new LinkedHashMap<>(29);
-            AlfrescoTransactionSupport.bindResource(resourceKey, map);
-        }
-        return map;
     }
 
     private boolean isFiltered(QName nodeType, String user)
@@ -401,6 +380,7 @@ public class EventGenerator extends AbstractLifecycleBean implements Initializin
         // so we can take the latest node info into account
         final RepoEvent<?> event = consolidator.getRepoEvent(getEventInfo(user));
 
+        
         final QName nodeType = consolidator.getNodeType();
         if (isFiltered(nodeType, user))
         {
@@ -412,8 +392,23 @@ public class EventGenerator extends AbstractLifecycleBean implements Initializin
             }
             return;
         }
+        
+        if (event.getType().equals(EventType.NODE_UPDATED.getType()) && resourceBeforeAllFieldsNull(event))
+        {
+            if (LOGGER.isTraceEnabled())
+            {
+                LOGGER.trace("Ignoring node updated event as no fields have been updated: " + nodeRef);
+            }
+            return;
+        }
 
         logAndSendEvent(event, consolidator.getEventTypes());
+    }
+
+    private boolean resourceBeforeAllFieldsNull(RepoEvent<?> event)
+    {
+        // FIXME: Remove this cast.
+        return ((NodeResource)event.getData().getResourceBefore()).isAllNull();
     }
 
     private void sendEvent(ChildAssociationRef childAssociationRef, ChildAssociationEventConsolidator consolidator)

@@ -76,6 +76,8 @@ public class UpdateRepoEventIT extends AbstractContextAwareRepoEvent
             return null;
         });
 
+        checkNumOfEvents(2);
+        
         resultRepoEvent = getRepoEvent(2);
         assertEquals("Wrong repo event type.", EventType.NODE_UPDATED.getType(),
             resultRepoEvent.getType());
@@ -152,6 +154,8 @@ public class UpdateRepoEventIT extends AbstractContextAwareRepoEvent
             return null;
         });
 
+        checkNumOfEvents(2);
+        
         resultRepoEvent = getRepoEvent(2);
         assertEquals("Wrong repo event type.", EventType.NODE_UPDATED.getType(), resultRepoEvent.getType());
 
