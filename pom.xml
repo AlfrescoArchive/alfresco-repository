@@ -2,7 +2,7 @@
     <modelVersion>4.0.0</modelVersion>
     <artifactId>alfresco-repository</artifactId>
     <name>Alfresco Repository</name>
-    <version>8.191-SNAPSHOT</version>
+    <version>8.200-SNAPSHOT</version>
     <packaging>jar</packaging>
     <parent>
         <groupId>org.alfresco</groupId>
@@ -36,8 +36,8 @@
 
         <maven.build.sourceVersion>11</maven.build.sourceVersion>
 
-        <dependency.alfresco-data-model.version>8.115</dependency.alfresco-data-model.version>
-        <dependency.alfresco-core.version>8.33</dependency.alfresco-core.version>
+        <dependency.alfresco-data-model.version>8.118</dependency.alfresco-data-model.version>
+        <dependency.alfresco-core.version>8.34</dependency.alfresco-core.version>
 
         <dependency.alfresco-legacy-lucene.version>6.2</dependency.alfresco-legacy-lucene.version>
         <dependency.alfresco-greenmail.version>6.1</dependency.alfresco-greenmail.version>
@@ -51,11 +51,11 @@
         <dependency.httpcomponents.version>4.5.10</dependency.httpcomponents.version>
         <dependency.truezip.version>7.7.10</dependency.truezip.version>
         <dependency.poi.version>4.1.1</dependency.poi.version>
-        <dependency.webscripts.version>8.2</dependency.webscripts.version>
+        <dependency.webscripts.version>8.3</dependency.webscripts.version>
         <dependency.opencmis.version>1.0.0</dependency.opencmis.version>
         <dependency.activiti-engine.version>5.23.0</dependency.activiti-engine.version>
         <dependency.activiti.version>5.23.0</dependency.activiti.version>
-        <dependency.postgresql.version>42.2.12</dependency.postgresql.version>
+        <dependency.postgresql.version>42.2.13</dependency.postgresql.version>
         <dependency.mysql.version>8.0.20</dependency.mysql.version>
         <dependency.mariadb.version>2.6.0</dependency.mariadb.version>
         <dependency.antlr.version>3.5.2</dependency.antlr.version>
@@ -64,7 +64,7 @@
         <dependency.jboss.logging.version>3.4.1.Final</dependency.jboss.logging.version>
         <dependency.camel.version>2.24.2</dependency.camel.version>
         <dependency.activemq.version>5.15.12</dependency.activemq.version>
-        <dependency.pdfbox.version>2.0.19</dependency.pdfbox.version>
+        <dependency.pdfbox.version>2.0.20</dependency.pdfbox.version>
         <dependency.cxf.version>3.3.6</dependency.cxf.version>
         <dependency.jackson.version>2.11.0</dependency.jackson.version>
         <dependency.jackson-databind.version>2.10.2</dependency.jackson-databind.version>
@@ -265,7 +265,7 @@
         <dependency>
             <groupId>commons-io</groupId>
             <artifactId>commons-io</artifactId>
-            <version>2.6</version>
+            <version>2.7</version>
         </dependency>
         <dependency>
             <groupId>commons-pool</groupId>
