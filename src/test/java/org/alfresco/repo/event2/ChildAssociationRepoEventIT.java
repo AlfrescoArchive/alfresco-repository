@@ -109,7 +109,7 @@ public class ChildAssociationRepoEventIT extends AbstractContextAwareRepoEvent
         final ChildAssociationResource childAssociationResource = getChildAssocResource(childAssocRepoEvent);
         assertEquals("Wrong parent", parentNodeRef.getId(), childAssociationResource.getParent().getId());
         assertEquals("Wrong child", childNodeRef.getId(), childAssociationResource.getChild().getId());
-        assertEquals("Wrong assoc type", ContentModel.ASSOC_CONTAINS.toString(), childAssociationResource.getAssocType());
+        assertEquals("Wrong assoc type", "cm:contains", childAssociationResource.getAssocType());
     }
 
     @Test
@@ -171,7 +171,7 @@ public class ChildAssociationRepoEventIT extends AbstractContextAwareRepoEvent
         final ChildAssociationResource childAssociationResource = getChildAssocResource(childAssocRepoEvent);
         assertEquals("Wrong parent", parentNodeRef.getId(), childAssociationResource.getParent().getId());
         assertEquals("Wrong child", childNodeRef.getId(), childAssociationResource.getChild().getId());
-        assertEquals("Wrong assoc type", ContentModel.ASSOC_CONTAINS.toString(), childAssociationResource.getAssocType());
+        assertEquals("Wrong assoc type", "cm:contains", childAssociationResource.getAssocType());
     }
 
     @Test
@@ -342,15 +342,15 @@ public class ChildAssociationRepoEventIT extends AbstractContextAwareRepoEvent
 
         assertEquals(parent1NodeRef.getId(), getChildAssocResource(childAssocEvents.get(0)).getParent().getId());
         assertEquals(childNodeRef.getId(), getChildAssocResource(childAssocEvents.get(0)).getChild().getId());
-        assertEquals(ContentModel.ASSOC_CONTAINS.toString(), getChildAssocResource(childAssocEvents.get(0)).getAssocType());
+        assertEquals("cm:contains", getChildAssocResource(childAssocEvents.get(0)).getAssocType());
 
         assertEquals(parent2NodeRef.getId(), getChildAssocResource(childAssocEvents.get(1)).getParent().getId());
         assertEquals(childNodeRef.getId(), getChildAssocResource(childAssocEvents.get(1)).getChild().getId());
-        assertEquals(ContentModel.ASSOC_CONTAINS.toString(), getChildAssocResource(childAssocEvents.get(1)).getAssocType());
+        assertEquals("cm:contains", getChildAssocResource(childAssocEvents.get(1)).getAssocType());
 
         assertEquals(parent3NodeRef.getId(), getChildAssocResource(childAssocEvents.get(2)).getParent().getId());
         assertEquals(childNodeRef.getId(), getChildAssocResource(childAssocEvents.get(2)).getChild().getId());
-        assertEquals(ContentModel.ASSOC_CONTAINS.toString(), getChildAssocResource(childAssocEvents.get(2)).getAssocType());
+        assertEquals("cm:contains", getChildAssocResource(childAssocEvents.get(2)).getAssocType());
     }
 
     @Test
@@ -442,15 +442,15 @@ public class ChildAssociationRepoEventIT extends AbstractContextAwareRepoEvent
 
         assertEquals(parentNodeRef.getId(), getChildAssocResource(childAssocEvents.get(0)).getParent().getId());
         assertEquals(child1NodeRef.getId(), getChildAssocResource(childAssocEvents.get(0)).getChild().getId());
-        assertEquals(ContentModel.ASSOC_CONTAINS.toString(), getChildAssocResource(childAssocEvents.get(0)).getAssocType());
+        assertEquals("cm:contains", getChildAssocResource(childAssocEvents.get(0)).getAssocType());
 
         assertEquals(parentNodeRef.getId(), getChildAssocResource(childAssocEvents.get(1)).getParent().getId());
         assertEquals(child2NodeRef.getId(), getChildAssocResource(childAssocEvents.get(1)).getChild().getId());
-        assertEquals(ContentModel.ASSOC_CONTAINS.toString(), getChildAssocResource(childAssocEvents.get(1)).getAssocType());
+        assertEquals("cm:contains", getChildAssocResource(childAssocEvents.get(1)).getAssocType());
 
         assertEquals(parentNodeRef.getId(), getChildAssocResource(childAssocEvents.get(2)).getParent().getId());
         assertEquals(child3NodeRef.getId(), getChildAssocResource(childAssocEvents.get(2)).getChild().getId());
-        assertEquals(ContentModel.ASSOC_CONTAINS.toString(), getChildAssocResource(childAssocEvents.get(2)).getAssocType());
+        assertEquals("cm:contains", getChildAssocResource(childAssocEvents.get(2)).getAssocType());
     }
 
     @Test
@@ -568,15 +568,15 @@ public class ChildAssociationRepoEventIT extends AbstractContextAwareRepoEvent
 
         assertEquals(parent1NodeRef.getId(), getChildAssocResource(childAssocEvents.get(0)).getParent().getId());
         assertEquals(childNodeRef.getId(), getChildAssocResource(childAssocEvents.get(0)).getChild().getId());
-        assertEquals(ContentModel.ASSOC_CONTAINS.toString(), getChildAssocResource(childAssocEvents.get(0)).getAssocType());
+        assertEquals("cm:contains", getChildAssocResource(childAssocEvents.get(0)).getAssocType());
 
         assertEquals(parent2NodeRef.getId(), getChildAssocResource(childAssocEvents.get(1)).getParent().getId());
         assertEquals(childNodeRef.getId(), getChildAssocResource(childAssocEvents.get(1)).getChild().getId());
-        assertEquals(ContentModel.ASSOC_CONTAINS.toString(), getChildAssocResource(childAssocEvents.get(1)).getAssocType());
+        assertEquals("cm:contains", getChildAssocResource(childAssocEvents.get(1)).getAssocType());
 
         assertEquals(parent3NodeRef.getId(), getChildAssocResource(childAssocEvents.get(2)).getParent().getId());
         assertEquals(childNodeRef.getId(), getChildAssocResource(childAssocEvents.get(2)).getChild().getId());
-        assertEquals(ContentModel.ASSOC_CONTAINS.toString(), getChildAssocResource(childAssocEvents.get(2)).getAssocType());
+        assertEquals("cm:contains", getChildAssocResource(childAssocEvents.get(2)).getAssocType());
     }
 
     @Test

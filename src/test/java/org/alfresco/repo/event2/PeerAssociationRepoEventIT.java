@@ -103,7 +103,7 @@ public class PeerAssociationRepoEventIT extends AbstractContextAwareRepoEvent
         final PeerAssociationResource peerAssociationResource = getPeerAssocResource(peerAssocRepoEvent);
         assertEquals("Wrong source", content1NodeRef.getId(), peerAssociationResource.getSource().getId());
         assertEquals("Wrong target", content2NodeRef.getId(), peerAssociationResource.getTarget().getId());
-        assertEquals("Wrong assoc type", ContentModel.ASSOC_ORIGINAL.toString(), peerAssociationResource.getAssocType());
+        assertEquals("Wrong assoc type", "cm:original", peerAssociationResource.getAssocType());
     }
 
     @Test
@@ -204,7 +204,7 @@ public class PeerAssociationRepoEventIT extends AbstractContextAwareRepoEvent
                 content2NodeRef.getId(),
                 getPeerAssocResource(peerAssocRepoEvent.get(0)).getTarget().getId());
         assertEquals("Wrong assoc type",
-                ContentModel.ASSOC_ORIGINAL.toString(),
+                "cm:original",
                 getPeerAssocResource(peerAssocRepoEvent.get(0)).getAssocType());
 
         assertEquals("Wrong source",
@@ -214,7 +214,7 @@ public class PeerAssociationRepoEventIT extends AbstractContextAwareRepoEvent
                 content2NodeRef.getId(),
                 getPeerAssocResource(peerAssocRepoEvent.get(1)).getTarget().getId());
         assertEquals("Wrong assoc type",
-                ContentModel.ASSOC_ORIGINAL.toString(), 
+                "cm:original",
                 getPeerAssocResource(peerAssocRepoEvent.get(1)).getAssocType());
     }
 
@@ -294,7 +294,7 @@ public class PeerAssociationRepoEventIT extends AbstractContextAwareRepoEvent
                 peerAssociationResource.getSource().getId());
         assertEquals("Wrong target", content2NodeRef.getId(),
                 peerAssociationResource.getTarget().getId());
-        assertEquals("Wrong assoc type", ContentModel.ASSOC_ORIGINAL.toString(),
+        assertEquals("Wrong assoc type", "cm:original",
                 peerAssociationResource.getAssocType());
 
         // Check the peer assoc deleted event
@@ -327,7 +327,7 @@ public class PeerAssociationRepoEventIT extends AbstractContextAwareRepoEvent
                 peerAssociationResource2.getSource().getId());
         assertEquals("Wrong target", content2NodeRef.getId(),
                 peerAssociationResource2.getTarget().getId());
-        assertEquals("Wrong assoc type", ContentModel.ASSOC_ORIGINAL.toString(),
+        assertEquals("Wrong assoc type", "cm:original",
                 peerAssociationResource2.getAssocType());
     }
 
