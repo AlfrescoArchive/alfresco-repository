@@ -157,9 +157,10 @@ public interface ContentService extends ContentTransformService
      * Gets a presigned URL to directly access a binary content. It is up to the content store
      * if it can fulfil this request with an expiry time or not.
      *
-     * @param contentUrl A content store URL
+     * @param nodeRef a reference to a node having a content property
      * @param expiryTime Expiration time in milliseconds 
      * @return A direct access URL for a binary content or empty string if not supported
      */
-    public String getDirectAccessUrl(String contentUrl, int expiryTime);
+    @Auditable(parameters = {"nodeRef", "expiryTime"})
+    public String getDirectAccessUrl(NodeRef nodeRef, int expiryTime);
 }
