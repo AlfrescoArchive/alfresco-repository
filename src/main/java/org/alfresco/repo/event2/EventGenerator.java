@@ -393,7 +393,7 @@ public class EventGenerator extends AbstractLifecycleBean implements Initializin
             return;
         }
         
-        if (event.getType().equals(EventType.NODE_UPDATED.getType()) && resourceBeforeAllFieldsNull(event))
+        if (event.getType().equals(EventType.NODE_UPDATED.getType()) && consolidator.isResourceBeforeAllFieldsNull())
         {
             if (LOGGER.isTraceEnabled())
             {
@@ -403,12 +403,6 @@ public class EventGenerator extends AbstractLifecycleBean implements Initializin
         }
 
         logAndSendEvent(event, consolidator.getEventTypes());
-    }
-
-    private boolean resourceBeforeAllFieldsNull(RepoEvent<?> event)
-    {
-        // FIXME: Remove this cast.
-        return ((NodeResource)event.getData().getResourceBefore()).isAllNull();
     }
 
     private void sendEvent(ChildAssociationRef childAssociationRef, ChildAssociationEventConsolidator consolidator)

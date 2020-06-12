@@ -68,6 +68,7 @@ public class EventConsolidator implements EventSupportedPolicies
     private QName nodeType;
     private QName nodeTypeBefore;
     private List<String> primaryHierarchyBefore;
+    private boolean resourceBeforeAllFieldsNull = true;
 
     public EventConsolidator(NodeResourceHelper nodeResourceHelper)
     {
@@ -290,8 +291,6 @@ public class EventConsolidator implements EventSupportedPolicies
         {
             return null;
         }
-
-        boolean allNull = true;
         
         Builder builder = NodeResource.builder();
 
@@ -303,33 +302,33 @@ public class EventConsolidator implements EventSupportedPolicies
             if (!mappedProps.isEmpty())
             {
                 builder.setProperties(mappedProps);
-                allNull = false;
+                resourceBeforeAllFieldsNull = false;
             }
             String name = (String) changedPropsBefore.get(ContentModel.PROP_NAME);
             if (name != null)
             {
                 builder.setName(name);
-                allNull = false;
+                resourceBeforeAllFieldsNull = false;
             }
             ContentInfo contentInfo = helper.getContentInfo(changedPropsBefore);
             if (contentInfo != null)
             {
                 builder.setContent(contentInfo);
-                allNull = false;
+                resourceBeforeAllFieldsNull = false;
             }
 
             UserInfo modifier = helper.getUserInfo((String) changedPropsBefore.get(ContentModel.PROP_MODIFIER));
             if (modifier != null)
             {
                 builder.setModifiedByUser(modifier);
-                allNull = false;
+                resourceBeforeAllFieldsNull = false;
             }
             ZonedDateTime modifiedAt =
                         helper.getZonedDateTime((Date) changedPropsBefore.get(ContentModel.PROP_MODIFIED));
             if (modifiedAt != null)
             {
                 builder.setModifiedAt(modifiedAt);
-                allNull = false;
+                resourceBeforeAllFieldsNull = false;
             }
         }
 
@@ -337,22 +336,20 @@ public class EventConsolidator implements EventSupportedPolicies
         if (!aspectsBefore.isEmpty())
         {
             builder.setAspectNames(aspectsBefore);
-            allNull = false;
+            resourceBeforeAllFieldsNull = false;
         }
 
         if (primaryHierarchyBefore != null && !primaryHierarchyBefore.isEmpty())
         {
             builder.setPrimaryHierarchy(primaryHierarchyBefore);
-            allNull = false;
+            resourceBeforeAllFieldsNull = false;
         }
 
         if (nodeTypeBefore != null)
         {
             builder.setNodeType(helper.getQNamePrefixString(nodeTypeBefore));
-            allNull = false;
+            resourceBeforeAllFieldsNull = false;
         }
-        
-        builder.setAllNull(allNull);
         
         return builder.build();
     }
@@ -473,5 +470,10 @@ public class EventConsolidator implements EventSupportedPolicies
     public List<QName> getAspectsRemoved()
     {
         return aspectsRemoved;
+    }
+
+    public boolean isResourceBeforeAllFieldsNull()
+    {
+        return resourceBeforeAllFieldsNull;
     }
 }
