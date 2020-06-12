@@ -219,12 +219,14 @@ public class ChildAssociationRepoEventIT extends AbstractContextAwareRepoEvent
             return null;
         });
 
+        checkNumOfEvents(7);
+        
         // 3 assoc.child.Created events should be created
 
         List<RepoEvent<NodeResource>> childAssocEvents = getChildAssocEvents(repoEventsContainer, EventType.CHILD_ASSOC_CREATED);
         assertEquals("Wrong association events number",3, childAssocEvents.size());
     }
-
+    
     @Test
     public void testOneChildMultipleParentsSameTransaction()
     {
