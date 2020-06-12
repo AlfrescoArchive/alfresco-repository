@@ -53,8 +53,6 @@ import org.alfresco.service.cmr.repository.NodeService;
 import org.alfresco.service.cmr.repository.Path;
 import org.alfresco.service.cmr.security.NoSuchPersonException;
 import org.alfresco.service.cmr.security.PersonService;
-import org.alfresco.service.namespace.NamespaceException;
-import org.alfresco.service.namespace.NamespaceService;
 import org.alfresco.service.namespace.QName;
 import org.alfresco.util.PathUtil;
 import org.apache.commons.logging.Log;
@@ -70,22 +68,23 @@ public class NodeResourceHelper
     private static final Log LOGGER = LogFactory.getLog(NodeResourceHelper.class);
 
     private final NodeService nodeService;
-    private final NamespaceService namespaceService;
     private final DictionaryService dictionaryService;
     private final PersonService personService;
     private final NodeAspectFilter nodeAspectFilter;
     private final NodePropertyFilter nodePropertyFilter;
+    private final QNameHelper qNameHelper;
 
-    public NodeResourceHelper(NodeService nodeService, NamespaceService namespaceService,
+    public NodeResourceHelper(NodeService nodeService,
                               DictionaryService dictionaryService, PersonService personService,
-                              EventFilterRegistry eventFilterRegistry)
+                              EventFilterRegistry eventFilterRegistry,
+                              QNameHelper qNameHelper)
     {
         this.nodeService = nodeService;
-        this.namespaceService = namespaceService;
         this.dictionaryService = dictionaryService;
         this.personService = personService;
         this.nodeAspectFilter = eventFilterRegistry.getNodeAspectFilter();
         this.nodePropertyFilter = eventFilterRegistry.getNodePropertyFilter();
+        this.qNameHelper = qNameHelper;
     }
 
     public NodeResource.Builder createNodeResourceBuilder(NodeRef nodeRef)
@@ -226,16 +225,7 @@ public class NodeResourceHelper
     // returns it in the form {uri}local.
     public String getQNamePrefixString(QName k)
     {
-        String key;
-        try
-        {
-            key = k.toPrefixString(namespaceService);
-        }
-        catch (NamespaceException e)
-        {
-            key = k.toString();
-        }
-        return key;
+        return qNameHelper.getQNamePrefixString(k);
     }
 
     public Set<String> mapToNodeAspects(Collection<QName> aspects)

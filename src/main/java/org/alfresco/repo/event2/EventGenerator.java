@@ -33,7 +33,6 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.UUID;
 
-import org.alfresco.repo.event.v1.model.NodeResource;
 import org.alfresco.repo.event.v1.model.RepoEvent;
 import org.alfresco.repo.event2.filter.ChildAssociationTypeFilter;
 import org.alfresco.repo.event2.filter.EventFilterRegistry;
@@ -99,6 +98,7 @@ public class EventGenerator extends AbstractLifecycleBean implements Initializin
     private ChildAssociationTypeFilter childAssociationTypeFilter;
     private EventUserFilter userFilter;
     private NodeResourceHelper nodeResourceHelper;
+    private QNameHelper qNameHelper;
     private final EventTransactionListener transactionListener = new EventTransactionListener();
 
     @Override
@@ -117,9 +117,11 @@ public class EventGenerator extends AbstractLifecycleBean implements Initializin
         this.nodeTypeFilter = eventFilterRegistry.getNodeTypeFilter();
         this.childAssociationTypeFilter = eventFilterRegistry.getChildAssociationTypeFilter();
         this.userFilter = eventFilterRegistry.getEventUserFilter();
-        this.nodeResourceHelper = new NodeResourceHelper(nodeService, namespaceService, dictionaryService,
-                                                         personService,
-                                                         eventFilterRegistry);
+        this.qNameHelper = new QNameHelper(namespaceService);
+        this.nodeResourceHelper = new NodeResourceHelper(nodeService, dictionaryService,
+                personService,
+                eventFilterRegistry,
+                qNameHelper);
     }
 
     private void bindBehaviours()
@@ -317,7 +319,7 @@ public class EventGenerator extends AbstractLifecycleBean implements Initializin
         ChildAssociationEventConsolidator eventConsolidator = assocEvents.get(childAssociationRef);
         if (eventConsolidator == null)
         {
-            eventConsolidator = new ChildAssociationEventConsolidator(childAssociationRef);
+            eventConsolidator = new ChildAssociationEventConsolidator(childAssociationRef, qNameHelper);
             assocEvents.put(childAssociationRef, eventConsolidator);
         }
         return eventConsolidator;
@@ -339,7 +341,7 @@ public class EventGenerator extends AbstractLifecycleBean implements Initializin
         PeerAssociationEventConsolidator eventConsolidator = assocEvents.get(peerAssociationRef);
         if (eventConsolidator == null)
         {
-            eventConsolidator = new PeerAssociationEventConsolidator(peerAssociationRef);
+            eventConsolidator = new PeerAssociationEventConsolidator(peerAssociationRef, qNameHelper);
             assocEvents.put(peerAssociationRef, eventConsolidator);
         }
         return eventConsolidator;

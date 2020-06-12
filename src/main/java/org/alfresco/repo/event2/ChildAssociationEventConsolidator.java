@@ -46,11 +46,13 @@ public class ChildAssociationEventConsolidator implements ChildAssociationEventS
 
     private ChildAssociationRef childAssociationRef;
     private ChildAssociationResource resource;
+    QNameHelper helper;
 
-    public ChildAssociationEventConsolidator(ChildAssociationRef childAssociationRef)
+    public ChildAssociationEventConsolidator(ChildAssociationRef childAssociationRef, QNameHelper helper)
     {
         this.eventTypes = new ArrayDeque<>();
         this.childAssociationRef = childAssociationRef;
+        this.helper = helper;
         resource = buildChildAssociationResource(this.childAssociationRef);
     }
 
@@ -106,7 +108,7 @@ public class ChildAssociationEventConsolidator implements ChildAssociationEventS
     {
         String parentId = childAssociationRef.getParentRef().getId();
         String childId = childAssociationRef.getChildRef().getId();
-        String assocType = childAssociationRef.getTypeQName().toString();
+        String assocType = helper.getQNamePrefixString(childAssociationRef.getTypeQName());
         return new ChildAssociationResource(parentId, childId, assocType);
     }
 

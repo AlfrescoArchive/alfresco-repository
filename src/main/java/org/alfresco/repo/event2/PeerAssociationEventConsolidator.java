@@ -45,11 +45,13 @@ public class PeerAssociationEventConsolidator implements PeerAssociationEventSup
 
     private AssociationRef associationRef;
     PeerAssociationResource resource;
+    QNameHelper helper;
 
-    public PeerAssociationEventConsolidator(AssociationRef associationRef)
+    public PeerAssociationEventConsolidator(AssociationRef associationRef, QNameHelper helper)
     {
         this.eventTypes = new ArrayDeque<>();
         this.associationRef = associationRef;
+        this.helper = helper;
     }
 
     /**
@@ -104,7 +106,7 @@ public class PeerAssociationEventConsolidator implements PeerAssociationEventSup
     {
         String sourceId = associationRef.getSourceRef().getId();
         String targetId = associationRef.getTargetRef().getId();
-        String assocType = associationRef.getTypeQName().toString();
+        String assocType = helper.getQNamePrefixString(associationRef.getTypeQName());
 
         return new PeerAssociationResource(sourceId, targetId, assocType);
     }
