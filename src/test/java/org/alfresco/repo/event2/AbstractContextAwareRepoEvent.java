@@ -371,5 +371,3 @@ public abstract class AbstractContextAwareRepoEvent extends BaseSpringTest
         return assocChildCreatedEvents;
     }
 }
-
-

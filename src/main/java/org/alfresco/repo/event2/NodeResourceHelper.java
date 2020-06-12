@@ -28,8 +28,7 @@ package org.alfresco.repo.event2;
 import java.io.Serializable;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
-import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -239,7 +238,7 @@ public class NodeResourceHelper
         return key;
     }
 
-    public Set<String> mapToNodeAspects(Set<QName> aspects)
+    public Set<String> mapToNodeAspects(Collection<QName> aspects)
     {
         Set<String> filteredAspects = new HashSet<>(aspects.size());
 

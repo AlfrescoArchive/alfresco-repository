@@ -34,7 +34,8 @@ import org.junit.runners.Suite.SuiteClasses;
                 org.alfresco.repo.event2.UpdateRepoEventIT.class,
                 org.alfresco.repo.event2.DeleteRepoEventIT.class,
                 org.alfresco.repo.event2.ChildAssociationRepoEventIT.class,
-                org.alfresco.repo.event2.PeerAssociationRepoEventIT.class })
+                org.alfresco.repo.event2.PeerAssociationRepoEventIT.class,
+                org.alfresco.repo.event2.EventConsolidator.class })
 public class RepoEvent2ITSuite
 {
 }
