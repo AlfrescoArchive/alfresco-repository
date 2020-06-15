@@ -70,12 +70,16 @@ import javax.transaction.UserTransaction;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serializable;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
 import java.util.StringJoiner;
 
+import static java.util.Arrays.asList;
 import static org.alfresco.model.ContentModel.PROP_MODIFIED;
 import static org.alfresco.model.ContentModel.PROP_MODIFIER;
 import static org.alfresco.repo.rendition2.RenditionService2Impl.SOURCE_HAS_NO_CONTENT;
@@ -94,9 +98,9 @@ public class AsynchronousExtractorTest extends BaseSpringTest
     private final static String ID = GUID.generate();
     private static final String AFTER_CALLING_EXECUTE = "after calling execute";
     private static final String AFTER_THE_TRANSFORM = "after the transform";
-    private static final int ORIG_SIZE = 23697;
     private static final Integer UNCHANGED_HASHCODE = null;
     private static final Integer CHANGED_HASHCODE = 1234;
+    private static final SimpleDateFormat SIMPLE_DATE_FORMAT = new SimpleDateFormat("EEE MMM dd HH:mm:ss Z yyyy");
 
     private NodeService nodeService;
     private ContentService contentService;
@@ -147,8 +151,9 @@ public class AsynchronousExtractorTest extends BaseSpringTest
 
         /**
          * Creates an AsynchronousExtractor that simulates a extract or embed.
-         * @param mockResult if specified indicates a value was returned. The result is read as a resource from
-         *                   the classpath.
+         *
+         * @param mockResult      if specified indicates a value was returned. The result is read as a resource from
+         *                        the classpath.
          * @param changedHashcode if specified indicates that the source node content changed or was deleted between
          *                        the request to extract or embed and the response.
          */
@@ -197,7 +202,7 @@ public class AsynchronousExtractorTest extends BaseSpringTest
                 transformerDebug.popMisc();
             }
 
-            int transformContentHashCode = changedHashcode == null ?  sourceContentHashCode : changedHashcode;
+            int transformContentHashCode = changedHashcode == null ? sourceContentHashCode : changedHashcode;
             if (mockResult != null)
             {
                 try (InputStream transformInputStream = getClass().getClassLoader().getResourceAsStream(mockResult))
@@ -214,7 +219,7 @@ public class AsynchronousExtractorTest extends BaseSpringTest
                 renditionService2.failure(sourceNodeRef, renditionDefinition, transformContentHashCode);
             }
 
-            synchronized(this)
+            synchronized (this)
             {
                 finished = true;
                 notifyAll();
@@ -223,14 +228,15 @@ public class AsynchronousExtractorTest extends BaseSpringTest
 
         /**
          * Wait for a few milliseconds or until the finished flag is set.
+         *
          * @param from inclusive lower bound.
-         * @param to exclusive upper bound.
+         * @param to   exclusive upper bound.
          * @return the wait.
          */
         public synchronized long wait(int from, int to)
         {
             long start = System.currentTimeMillis();
-            long end = start + from + random.nextInt(to-from);
+            long end = start + from + random.nextInt(to - from);
 
             while (!finished && System.currentTimeMillis() < end)
             {
@@ -274,21 +280,21 @@ public class AsynchronousExtractorTest extends BaseSpringTest
         contentMetadataExtracter.setContentService(contentService);
         contentMetadataExtracter.setDictionaryService(dictionaryService);
         contentMetadataExtracter.setMetadataExtracterRegistry(metadataExtracterRegistry);
-        contentMetadataExtracter.setApplicableTypes(new String[] { ContentModel.TYPE_CONTENT.toString() });
+        contentMetadataExtracter.setApplicableTypes(new String[]{ContentModel.TYPE_CONTENT.toString()});
         contentMetadataExtracter.setCarryAspectProperties(true);
 
         contentMetadataEmbedder = new ContentMetadataEmbedder();
         contentMetadataEmbedder.setNodeService(nodeService);
         contentMetadataEmbedder.setContentService(contentService);
         contentMetadataEmbedder.setMetadataExtracterRegistry(metadataExtracterRegistry);
-        contentMetadataEmbedder.setApplicableTypes(new String[] { ContentModel.TYPE_CONTENT.toString() });
+        contentMetadataEmbedder.setApplicableTypes(new String[]{ContentModel.TYPE_CONTENT.toString()});
 
         transactionService.getRetryingTransactionHelper().doInTransaction(new RetryingTransactionHelper.RetryingTransactionCallback<Void>()
         {
             @Override
             public Void execute() throws Throwable
             {
-                AuthenticationComponent authenticationComponent = (AuthenticationComponent)applicationContext.getBean("authenticationComponent");
+                AuthenticationComponent authenticationComponent = (AuthenticationComponent) applicationContext.getBean("authenticationComponent");
                 authenticationComponent.setSystemUserAsCurrentUser();
 
                 // Create the store and get the root node
@@ -358,11 +364,11 @@ public class AsynchronousExtractorTest extends BaseSpringTest
         long size = getSize(nodeRef);
         if (expectSize == origSize)
         {
-            assertEquals("The content should remain unchanged "+state, origSize, size);
+            assertEquals("The content should remain unchanged " + state, origSize, size);
         }
         else
         {
-            assertEquals("The content should change "+state, expectSize, size);
+            assertEquals("The content should change " + state, expectSize, size);
         }
     }
 
@@ -377,25 +383,36 @@ public class AsynchronousExtractorTest extends BaseSpringTest
         properties = nodeService.getProperties(nodeRef);
         if (expectProperties.equals(origProperties))
         {
-            assertEquals("The properties should remain unchanged "+state, origProperties, properties);
+            assertEquals("The properties should remain unchanged " + state, origProperties, properties);
         }
         else
         {
             StringJoiner sj = new StringJoiner("\n");
-            expectProperties.forEach((k,v)->
+            for (Map.Entry<QName, Serializable> entry : expectProperties.entrySet())
+            {
+                QName k = entry.getKey();
+                Serializable v = entry.getValue();
+                Serializable actual = properties.get(k);
+                if (!(asList(PROP_MODIFIED, PROP_MODIFIER)).contains(k) &&
+                        !v.equals(actual))
+                {
+                    sj.add(k + "\n  Expected: " + v + "\n       Was: " + actual);
+                }
+            }
+            for (QName k : properties.keySet())
             {
                 Serializable actual = properties.get(k);
-                if (!(Arrays.asList(PROP_MODIFIED, PROP_MODIFIER)).contains(k) &&
-                    !v.equals(actual))
+                if (!expectProperties.containsKey(k))
                 {
-                    sj.add(k+"\n  Expected: "+v+"\n       Was: "+actual);
+                    sj.add(k + "\n  Expected: null\n       Was: " + actual);
                 }
-            });
+            }
+            Map<QName, Serializable> extraProperties = new HashMap<>(properties);
             if (sj.length() != 0)
             {
                 fail(sj.toString());
             }
-            assertEquals("Properties keys "+state, expectProperties.keySet(), properties.keySet());
+            assertEquals("Properties keys " + state, expectProperties.keySet(), properties.keySet());
         }
 
         // Example original properties:
@@ -454,7 +471,6 @@ public class AsynchronousExtractorTest extends BaseSpringTest
     @Test
     public void testExtractMsg() throws Exception // has dates as RFC822
     {
-        // {
         //  "{http://www.alfresco.org/model/content/1.0}addressee" : "mark.rogers@alfresco.com",
         //  "{http://www.alfresco.org/model/content/1.0}description" : "This is a quick test",
         //  "{http://www.alfresco.org/model/content/1.0}addressees" : [ "mark.rogers@alfresco.com", "speedy@quick.com", "mrquick@nowhere.com" ],
@@ -462,12 +478,15 @@ public class AsynchronousExtractorTest extends BaseSpringTest
         //  "{http://www.alfresco.org/model/content/1.0}subjectline" : "This is a quick test",
         //  "{http://www.alfresco.org/model/content/1.0}author" : "Mark Rogers",
         //  "{http://www.alfresco.org/model/content/1.0}originator" : "Mark Rogers"
-        //}
+        expectedProperties.put(QName.createQName("cm:addressee", namespacePrefixResolver), "mark.rogers@alfresco.com");
+        expectedProperties.put(QName.createQName("cm:description", namespacePrefixResolver), "This is a quick test");
+        expectedProperties.put(QName.createQName("cm:addressees", namespacePrefixResolver),
+                new ArrayList<>(asList("mark.rogers@alfresco.com", "speedy@quick.com", "mrquick@nowhere.com")));
 
-        // TODO check props - are they really the same as html
-        expectedProperties.put(QName.createQName("cm:author", namespacePrefixResolver), "Nevin Nollop");
-        expectedProperties.put(QName.createQName("cm:description", namespacePrefixResolver), "Gym class featuring a brown fox and lazy dog");
-        expectedProperties.put(QName.createQName("cm:title", namespacePrefixResolver), "The quick brown fox jumps over the lazy dog");
+        expectedProperties.put(QName.createQName("cm:sentdate", namespacePrefixResolver), SIMPLE_DATE_FORMAT.parse("Fri Jan 18 13:44:20 GMT 2013")); // 2013-01-18T13:44:20Z
+        expectedProperties.put(QName.createQName("cm:subjectline", namespacePrefixResolver), "This is a quick test");
+        expectedProperties.put(QName.createQName("cm:author", namespacePrefixResolver), "Mark Rogers");
+        expectedProperties.put(QName.createQName("cm:originator", namespacePrefixResolver), "Mark Rogers");
 
         assertAsyncMetadataExecute(contentMetadataExtracter, "quick/quick.msg_metadata.json",
                 UNCHANGED_HASHCODE, origSize, expectedProperties);
@@ -478,7 +497,6 @@ public class AsynchronousExtractorTest extends BaseSpringTest
     @Test
     public void testExtractEml() throws Exception // has dates as longs since 1970
     {
-        // {
         //  "{http://www.alfresco.org/model/content/1.0}addressee" : "Nevin Nollop <nevin.nollop@gmail.com>",
         //  "{http://www.alfresco.org/model/content/1.0}description" : "The quick brown fox jumps over the lazy dog",
         //  "{http://www.alfresco.org/model/content/1.0}addressees" : "Nevin Nollop <nevinn@alfresco.com>",
@@ -492,12 +510,20 @@ public class AsynchronousExtractorTest extends BaseSpringTest
         //  "{http://www.alfresco.org/model/content/1.0}subjectline" : "The quick brown fox jumps over the lazy dog",
         //  "{http://www.alfresco.org/model/imap/1.0}messageFrom" : "Nevin Nollop <nevin.nollop@alfresco.com>",
         //  "{http://www.alfresco.org/model/content/1.0}originator" : "Nevin Nollop <nevin.nollop@alfresco.com>"
-        //}
 
-        // TODO check props - are they really the same as html
-        expectedProperties.put(QName.createQName("cm:author", namespacePrefixResolver), "Nevin Nollop");
+        expectedProperties.put(QName.createQName("cm:addressee", namespacePrefixResolver), "Nevin Nollop <nevin.nollop@gmail.com>");
         expectedProperties.put(QName.createQName("cm:description", namespacePrefixResolver), "The quick brown fox jumps over the lazy dog");
+        expectedProperties.put(QName.createQName("cm:addressees", namespacePrefixResolver), "Nevin Nollop <nevinn@alfresco.com>");
+        expectedProperties.put(QName.createQName("imap:dateSent", namespacePrefixResolver), SIMPLE_DATE_FORMAT.parse("Fri Jun 04 13:23:22 BST 2004"));
+        expectedProperties.put(QName.createQName("imap:messageTo", namespacePrefixResolver), "Nevin Nollop <nevin.nollop@gmail.com>");
+        expectedProperties.put(QName.createQName("imap:messageId", namespacePrefixResolver), "<20040604122322.GV1905@phoenix.home>");
         expectedProperties.put(QName.createQName("cm:title", namespacePrefixResolver), "The quick brown fox jumps over the lazy dog");
+        expectedProperties.put(QName.createQName("imap:messageSubject", namespacePrefixResolver), "The quick brown fox jumps over the lazy dog");
+        expectedProperties.put(QName.createQName("imap:messageCc", namespacePrefixResolver), "Nevin Nollop <nevinn@alfresco.com>");
+        expectedProperties.put(QName.createQName("cm:sentdate", namespacePrefixResolver), SIMPLE_DATE_FORMAT.parse("Fri Jun 04 13:23:22 BST 2004"));
+        expectedProperties.put(QName.createQName("cm:subjectline", namespacePrefixResolver), "The quick brown fox jumps over the lazy dog");
+        expectedProperties.put(QName.createQName("imap:messageFrom", namespacePrefixResolver), "Nevin Nollop <nevin.nollop@alfresco.com>");
+        expectedProperties.put(QName.createQName("cm:originator", namespacePrefixResolver), "Nevin Nollop <nevin.nollop@alfresco.com>");
 
         // Note: As the metadata is for eml, an aspect gets added resulting in a second extract because of
         // ImapContentPolicy.onAddAspect. I cannot see a good way to avoid this.
@@ -508,13 +534,17 @@ public class AsynchronousExtractorTest extends BaseSpringTest
     @Test
     public void testEmbed() throws Exception
     {
-        long htmlSize = 23697-100; // TODO just make sure it changes
- //       assertNotEquals("HTLM size should not be the same as the pdf", htmlSize, origSize);
+        long htmlSize = 23697 - 100; // TODO just make sure it changes
+        //       assertNotEquals("HTLM size should not be the same as the pdf", htmlSize, origSize);
         assertAsyncMetadataExecute(contentMetadataEmbedder, "quick.html", // just replace the pdf with html!
                 UNCHANGED_HASHCODE, htmlSize, expectedProperties);
     }
 
     // TODO add embed failures
 
-    // TODO possibly: Add extract tests for tags, other override policies...
+    // TODO Write tests for: overwritePolicy, enableStringTagging and carryAspectProperties.
+    //      Values are set in AsynchronousExtractor.setMetadata(...) but make use of original code within
+    //      MetadataExtracter and AbstractMappingMetadataExtracter.
+    //      As the tests for exiting extractors are to be removed in ACS 7.0, it is possible that they were being used
+    //      to test these values.
 }
