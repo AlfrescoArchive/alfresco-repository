@@ -35,7 +35,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.alfresco.repo.content.JodConverter;
-import org.alfresco.repo.content.metadata.OpenOfficeMetadataWorker;
 import org.alfresco.service.cmr.repository.ContentReader;
 import org.alfresco.service.cmr.repository.MimetypeService;
 import org.alfresco.util.TempFileProvider;
