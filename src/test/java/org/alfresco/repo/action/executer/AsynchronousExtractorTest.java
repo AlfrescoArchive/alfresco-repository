@@ -81,6 +81,9 @@ import java.util.Random;
 import java.util.StringJoiner;
 
 import static java.util.Arrays.asList;
+import static org.alfresco.model.ContentModel.PROP_CONTENT;
+import static org.alfresco.model.ContentModel.PROP_CREATED;
+import static org.alfresco.model.ContentModel.PROP_CREATOR;
 import static org.alfresco.model.ContentModel.PROP_MODIFIED;
 import static org.alfresco.model.ContentModel.PROP_MODIFIER;
 import static org.alfresco.repo.rendition2.RenditionService2Impl.SOURCE_HAS_NO_CONTENT;
@@ -369,7 +372,7 @@ public class AsynchronousExtractorTest extends BaseSpringTest
         }
         else
         {
-            assertEquals("The content should change " + state, expectSize, size);
+            assertEquals("The content should have changed " + state, expectSize, size);
         }
     }
 
@@ -382,52 +385,51 @@ public class AsynchronousExtractorTest extends BaseSpringTest
     private void assertProperties(NodeRef nodeRef, Map<QName, Serializable> expectProperties, String state)
     {
         properties = nodeService.getProperties(nodeRef);
-        if (expectProperties.equals(origProperties))
+
+        // Work out the difference in a human readable form and ignore the 5 system set properties, as they always change
+        StringJoiner sj = new StringJoiner("\n");
+        for (Map.Entry<QName, Serializable> entry : expectProperties.entrySet())
         {
-            assertEquals("The properties should remain unchanged " + state, origProperties, properties);
+            QName k = entry.getKey();
+            Serializable v = entry.getValue();
+            Serializable actual = properties.get(k);
+            if (!(asList(PROP_MODIFIED, PROP_MODIFIER, PROP_CONTENT, PROP_CREATED, PROP_CREATOR)).contains(k) &&
+                    !v.equals(actual))
+            {
+                sj.add(k + "\n  Expected: " + v + "\n       Was: " + actual);
+            }
         }
-        else
+        for (QName k : properties.keySet())
         {
-            StringJoiner sj = new StringJoiner("\n");
-            for (Map.Entry<QName, Serializable> entry : expectProperties.entrySet())
+            Serializable actual = properties.get(k);
+            if (!expectProperties.containsKey(k))
             {
-                QName k = entry.getKey();
-                Serializable v = entry.getValue();
-                Serializable actual = properties.get(k);
-                if (!(asList(PROP_MODIFIED, PROP_MODIFIER)).contains(k) &&
-                        !v.equals(actual))
-                {
-                    sj.add(k + "\n  Expected: " + v + "\n       Was: " + actual);
-                }
+                sj.add(k + "\n  Expected: null\n       Was: " + actual);
             }
-            for (QName k : properties.keySet())
-            {
-                Serializable actual = properties.get(k);
-                if (!expectProperties.containsKey(k))
-                {
-                    sj.add(k + "\n  Expected: null\n       Was: " + actual);
-                }
-            }
-            Map<QName, Serializable> extraProperties = new HashMap<>(properties);
-            if (sj.length() != 0)
-            {
-                fail(sj.toString());
-            }
-            assertEquals("Properties keys " + state, expectProperties.keySet(), properties.keySet());
         }
 
-        // Example original properties:
-        // {http://www.alfresco.org/model/content/1.0}created=Fri Jun 12 19:45:39 BST 2020
-        // {http://www.alfresco.org/model/content/1.0}creator=System
-        // {http://www.alfresco.org/model/system/1.0}node-uuid=b60f9fc5-d77a-449f-bcbc-ab2a812f6913
-        // {http://www.alfresco.org/model/system/1.0}store-protocol=workspace
-        // {http://www.alfresco.org/model/content/1.0}name=b60f9fc5-d77a-449f-bcbc-ab2a812f6913
-        // {http://www.alfresco.org/model/content/1.0}content=contentUrl=store://2020/6/12/19/45/c1d12a90-151b-42f7-8245-6682fb409ea0.bin|mimetype=application/pdf|size=23697|encoding=UTF-8|locale=en_GB_|id=157
-        // {http://www.alfresco.org/model/system/1.0}store-identifier=Test_1591987539567
-        // {http://www.alfresco.org/model/system/1.0}node-dbid=738
-        // {http://www.alfresco.org/model/system/1.0}locale=en_GB
-        // {http://www.alfresco.org/model/content/1.0}modifier=System
-        // {http://www.alfresco.org/model/content/1.0}modified=Fri Jun 12 19:45:39 BST 2020
+        if (sj.length() != 0)
+        {
+            if (expectProperties.equals(origProperties))
+            {
+                fail("The properties should remain unchanged " + state + "\n" + sj.length());
+            }
+            else
+            {
+                fail("The properties should have changed " + state + "\n" + sj.length());
+            }
+        }
+    }
+
+    @Test
+    public void testExtractHtml() throws Exception
+    {
+        expectedProperties.put(QName.createQName("cm:author", namespacePrefixResolver), "Nevin Nollop");
+        expectedProperties.put(QName.createQName("cm:description", namespacePrefixResolver), "Gym class featuring a brown fox and lazy dog");
+        expectedProperties.put(QName.createQName("cm:title", namespacePrefixResolver), "The quick brown fox jumps over the lazy dog");
+
+        assertAsyncMetadataExecute(contentMetadataExtracter, "quick/quick.html_metadata.json",
+                UNCHANGED_HASHCODE, origSize, expectedProperties);
     }
 
     @Test
@@ -456,17 +458,6 @@ public class AsynchronousExtractorTest extends BaseSpringTest
     {
         assertAsyncMetadataExecute(contentMetadataExtracter, "quick.html", // not json
                 UNCHANGED_HASHCODE, origSize, origProperties);
-    }
-
-    @Test
-    public void testExtractHtml() throws Exception
-    {
-        expectedProperties.put(QName.createQName("cm:author", namespacePrefixResolver), "Nevin Nollop");
-        expectedProperties.put(QName.createQName("cm:description", namespacePrefixResolver), "Gym class featuring a brown fox and lazy dog");
-        expectedProperties.put(QName.createQName("cm:title", namespacePrefixResolver), "The quick brown fox jumps over the lazy dog");
-
-        assertAsyncMetadataExecute(contentMetadataExtracter, "quick/quick.html_metadata.json",
-                UNCHANGED_HASHCODE, origSize, expectedProperties);
     }
 
     @Test
@@ -529,16 +520,33 @@ public class AsynchronousExtractorTest extends BaseSpringTest
                 UNCHANGED_HASHCODE, origSize, expectedProperties);
     }
 
+
     @Test
     public void testEmbed() throws Exception
     {
-        long htmlSize = 23697 - 100; // TODO just make sure it changes
-        //       assertNotEquals("HTLM size should not be the same as the pdf", htmlSize, origSize);
-        assertAsyncMetadataExecute(contentMetadataEmbedder, "quick.html", // just replace the pdf with html!
-                UNCHANGED_HASHCODE, htmlSize, expectedProperties);
+        assertAsyncMetadataExecute(contentMetadataEmbedder, "quick/quick.html", // just replace the pdf with html!
+                UNCHANGED_HASHCODE, 428, expectedProperties);
+    }
+    @Test
+    public void testEmbedNodeDeleted() throws Exception
+    {
+        assertAsyncMetadataExecute(contentMetadataEmbedder, "quick/quick.html",
+                SOURCE_HAS_NO_CONTENT, origSize, origProperties);
     }
 
-    // TODO add embed failures
+    @Test
+    public void testEmbedContentChanged() throws Exception
+    {
+        assertAsyncMetadataExecute(contentMetadataEmbedder, "quick/quick.html",
+                1234, origSize, origProperties);
+    }
+
+    @Test
+    public void testEmbedTransformFailure() throws Exception
+    {
+        assertAsyncMetadataExecute(contentMetadataEmbedder, null,
+                UNCHANGED_HASHCODE, origSize, origProperties);
+    }
 
     // TODO Write tests for: overwritePolicy, enableStringTagging and carryAspectProperties.
     //      Values are set in AsynchronousExtractor.setMetadata(...) but make use of original code within
