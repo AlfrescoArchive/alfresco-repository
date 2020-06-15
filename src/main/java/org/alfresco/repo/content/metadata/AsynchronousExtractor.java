@@ -31,7 +31,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.alfresco.model.ContentModel;
 import org.alfresco.repo.action.executer.ContentMetadataExtracter;
 import org.alfresco.repo.content.transform.TransformerDebug;
-import org.alfresco.repo.rendition2.RenditionDefinition2;
 import org.alfresco.repo.rendition2.RenditionService2;
 import org.alfresco.repo.rendition2.TransformDefinition;
 import org.alfresco.repo.security.authentication.AuthenticationUtil;
@@ -100,7 +99,6 @@ public class AsynchronousExtractor extends AbstractMappingMetadataExtracter
     private TransactionService transactionService;
     private TransformServiceRegistry transformServiceRegistry;
     private TaggingService taggingService;
-    private long timeout;
 
     public void setNodeService(NodeService nodeService)
     {
@@ -223,7 +221,7 @@ public class AsynchronousExtractor extends AbstractMappingMetadataExtracter
 
     @Override
     // Not called. Overloaded method with the NodeRef is called.
-    protected Map<String, Serializable> extractRaw(ContentReader reader) throws Throwable
+    protected Map<String, Serializable> extractRaw(ContentReader reader)
     {
         return null;
     }
@@ -250,19 +248,15 @@ public class AsynchronousExtractor extends AbstractMappingMetadataExtracter
                                        String embedOrExtract, Map<String, String> options)
     {
         ExecutorService executorService = getExecutorService();
-        executorService.execute(new Runnable()
+        executorService.execute(() ->
         {
-            @Override
-            public void run()
+            try
             {
-                try
-                {
-                    transform(nodeRef, reader, targetMimetype, embedOrExtract, options);
-                }
-                finally
-                {
-                    extractRawThreadFinished();
-                }
+                transform(nodeRef, reader, targetMimetype, embedOrExtract, options);
+            }
+            finally
+            {
+                extractRawThreadFinished();
             }
         });
     }
@@ -402,7 +396,7 @@ public class AsynchronousExtractor extends AbstractMappingMetadataExtracter
 
     private String metadataToString(Map<String, Serializable> metadata)
     {
-        Map<String, String> metadataAsStrings = TikaPoweredMetadataExtracter.convertMetadataToStrings(metadata);
+        Map<String, String> metadataAsStrings = AbstractMappingMetadataExtracter.convertMetadataToStrings(metadata);
         try
         {
             return jsonObjectMapper.writeValueAsString(metadataAsStrings);

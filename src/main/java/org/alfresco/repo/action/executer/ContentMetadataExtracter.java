@@ -493,6 +493,10 @@ public class ContentMetadataExtracter extends ActionExecuterAbstractBase
             }
         }
 
+        // The following code can result in a postCommit to extract the metadata again via JavaBehaviour
+        // (such as ImapContentPolicy.onAddAspect). Not very efficient, but I cannot think of a way to
+        // avoid it that does not risk memory leaks or disabling behaviour we want.
+
         // Add all the properties to the node BEFORE we add the aspects
         nodeService.setProperties(actionedUponNodeRef, nodeProperties);
 

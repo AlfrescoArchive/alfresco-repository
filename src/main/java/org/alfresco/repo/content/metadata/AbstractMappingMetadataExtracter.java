@@ -1543,6 +1543,10 @@ abstract public class AbstractMappingMetadataExtracter implements MetadataExtrac
                     {
                         convertedPropertyValue = propertyValue;
                     }
+                    else if (propertyValue instanceof Long)
+                    {
+                        convertedPropertyValue = new Date((Long)propertyValue);
+                    }
                     else if (propertyValue instanceof Collection)
                     {
                         convertedPropertyValue = (Serializable) makeDates((Collection<String>) propertyValue);
@@ -1561,7 +1565,9 @@ abstract public class AbstractMappingMetadataExtracter implements MetadataExtrac
                         {
                             StringBuilder mesg = new StringBuilder();
                             mesg.append("Unable to convert Date property: ").append(propertyQName)
-                                .append(", value: ").append(propertyValue).append(", type: ").append(propertyTypeDef.getName());
+                                .append(", value: ").append(propertyValue).append(" (")
+                                .append(propertyValue.getClass().getSimpleName())
+                                .append("), type: ").append(propertyTypeDef.getName());
                             logger.warn(mesg.toString());
                         }
                     }
@@ -1729,6 +1735,21 @@ abstract public class AbstractMappingMetadataExtracter implements MetadataExtrac
                         // Didn't work
                     }
                 }
+            }
+
+            // Try milliseconds. This was introduced with T-Engine extractors. Previously Dates would have been
+            // created and then converted to a Alfresco Date property in a single operation. T-Engines do not know
+            // about Alfresco Date property formats.
+            try
+            {
+                long ms = Long.valueOf(dateStr);
+                if (Long.toString(ms).equals(dateStr))
+                {
+                    date = new Date(ms);
+                }
+            }
+            catch (NumberFormatException ignore)
+            {
             }
 
             if (date == null)
@@ -2241,5 +2262,47 @@ abstract public class AbstractMappingMetadataExtracter implements MetadataExtrac
     protected void embedInternal(Map<String, Serializable> metadata, ContentReader reader, ContentWriter writer) throws Throwable
     {
         // TODO make this an abstract method once more extracters support embedding
+    }
+
+    // Originally in TikaPoweredMetadataExtracter
+    public static Map<String, String> convertMetadataToStrings(Map<String, Serializable> properties)
+    {
+        Map<String, String> propertiesAsStrings = new HashMap<>();
+        for (String metadataKey : properties.keySet())
+        {
+            Serializable value = properties.get(metadataKey);
+            if (value == null)
+            {
+                continue;
+            }
+            if (value instanceof Collection<?>)
+            {
+                for (Object singleValue : (Collection<?>) value)
+                {
+                    try
+                    {
+                        // Convert to a string value
+                        propertiesAsStrings.put(metadataKey, DefaultTypeConverter.INSTANCE.convert(String.class, singleValue));
+                    }
+                    catch (TypeConversionException e)
+                    {
+                        TikaPoweredMetadataExtracter.logger.info("Could not convert " + metadataKey + ": " + e.getMessage());
+                    }
+                }
+            }
+            else
+            {
+                try
+                {
+                    // Convert to a string value
+                    propertiesAsStrings.put(metadataKey, DefaultTypeConverter.INSTANCE.convert(String.class, value));
+                }
+                catch (TypeConversionException e)
+                {
+                    TikaPoweredMetadataExtracter.logger.info("Could not convert " + metadataKey + ": " + e.getMessage());
+                }
+            }
+        }
+        return propertiesAsStrings;
     }
 }

@@ -255,7 +255,10 @@
    </bean>
 
    <!-- Metadata Extraction Registry -->
-   <bean id="metadataExtracterRegistry" class="org.alfresco.repo.content.metadata.MetadataExtracterRegistry" />
+   <bean id="metadataExtracterRegistry" class="org.alfresco.repo.content.metadata.MetadataExtracterRegistry">
+       <property name="asyncExtractEnabled" value="${content.metadata.async.extract.enabled}" />
+       <property name="asyncEmbedEnabled" value="${content.metadata.async.embed.enabled}" />
+   </bean>
    
    <!-- Abstract bean definition defining base definition for all metadata extracters -->
    <bean id="baseMetadataExtracter"
@@ -338,7 +341,7 @@
       <property name="contentService" ref="ContentService" />
       <property name="transactionService" ref="transactionService" />
       <property name="transformServiceRegistry" ref="transformServiceRegistry" />
-       <property name="taggingService" ref="taggingService" />
+      <property name="taggingService" ref="taggingService" />
    </bean>
 
    <!-- Content Transformation Regisitry -->

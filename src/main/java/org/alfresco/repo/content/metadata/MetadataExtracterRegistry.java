@@ -80,6 +80,9 @@ public class MetadataExtracterRegistry
     /** controls write access to the cache */
     private Lock extracterCacheWriteLock;
 
+    private boolean asyncExtractEnabled = true;
+    private boolean asyncEmbedEnabled = true;
+
     public MetadataExtracterRegistry()
     {
         // initialise lists
@@ -143,8 +146,18 @@ public class MetadataExtracterRegistry
         }
     }
 
+    public void setAsyncExtractEnabled(boolean asyncExtractEnabled)
+    {
+        this.asyncExtractEnabled = asyncExtractEnabled;
+    }
+
+    public void setAsyncEmbedEnabled(boolean asyncEmbedEnabled)
+    {
+        this.asyncEmbedEnabled = asyncEmbedEnabled;
+    }
+
     /**
-     * Returns the {@link AsynchronousExtractor} if it is able to perform the extraction. Failing that it
+     * Returns the {@link AsynchronousExtractor} if it is able to perform the extraction and is enabled. Failing that it
      * calls {@link #getExtracter(String)}.
      *
      * @param sourceSizeInBytes size of the source content.
@@ -153,7 +166,7 @@ public class MetadataExtracterRegistry
      */
     public MetadataExtracter getExtractor(String sourceMimetype, long sourceSizeInBytes)
     {
-        return asynchronousExtractor != null &&
+        return asyncExtractEnabled && asynchronousExtractor != null &&
                asynchronousExtractor.isSupported(sourceMimetype, sourceSizeInBytes)
             ? asynchronousExtractor
             : getExtracter(sourceMimetype);
@@ -279,7 +292,7 @@ public class MetadataExtracterRegistry
     }
 
     /**
-     * Returns the {@link AsynchronousExtractor} if it is able to perform the embedding. Failing that it
+     * Returns the {@link AsynchronousExtractor} if it is able to perform the embedding and is enabled. Failing that it
      * calls {@link #getEmbedder(String)}.
      *
      * @param sourceSizeInBytes size of the source content.
@@ -288,7 +301,8 @@ public class MetadataExtracterRegistry
      */
     public MetadataEmbedder getEmbedder(String sourceMimetype, long sourceSizeInBytes)
     {
-        return asynchronousExtractor != null && asynchronousExtractor.isEmbedderSupported(sourceMimetype, sourceSizeInBytes)
+        return asyncEmbedEnabled && asynchronousExtractor != null &&
+               asynchronousExtractor.isEmbedderSupported(sourceMimetype, sourceSizeInBytes)
                 ? asynchronousExtractor
                 : getEmbedder(sourceMimetype);
     }

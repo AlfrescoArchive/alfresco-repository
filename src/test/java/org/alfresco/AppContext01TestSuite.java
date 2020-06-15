@@ -45,9 +45,12 @@ import org.junit.runners.Suite;
     org.alfresco.repo.action.evaluator.HasAspectEvaluatorTest.class,
     org.alfresco.repo.action.executer.SetPropertyValueActionExecuterTest.class,
     org.alfresco.repo.action.executer.AddFeaturesActionExecuterTest.class,
+
     org.alfresco.repo.action.executer.ContentMetadataExtracterTest.class,
     org.alfresco.repo.action.executer.ContentMetadataExtracterTagMappingTest.class,
     org.alfresco.repo.action.executer.ContentMetadataEmbedderTest.class,
+    org.alfresco.repo.action.executer.AsynchronousExtractorTest.class,
+
     org.alfresco.repo.rule.RuleLinkTest.class,
     org.alfresco.repo.rule.RuleServiceCoverageTest.class,
     org.alfresco.repo.rule.RuleServiceImplTest.class,
