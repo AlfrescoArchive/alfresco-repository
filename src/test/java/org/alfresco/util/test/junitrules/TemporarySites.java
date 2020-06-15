@@ -320,6 +320,7 @@ public class TemporarySites extends AbstractPersonRule
 
                     log.debug("Creating temporary site group " + groupName);
                     final String groupId = authorityService.createAuthority(AuthorityType.GROUP, groupName);
+                    authorityService.setAuthorityDisplayName(groupId, GUID.generate());
                     authorityService.addAuthority(groupId, userName);
                     siteService.setMembership(siteShortName, groupId, shareRole);
                     groups.add(userName);

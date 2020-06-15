@@ -89,7 +89,7 @@ public class SiteGroupCannedQuery extends AbstractCannedQuery<SiteGroup>
     {
 		if(authorityService.authorityExists(authority))
 		{
-		  String displayName = authorityService.getShortName(authority);
+		  String displayName = authorityService.getAuthorityDisplayName(authority);
 		  siteGroups.add(new SiteGroup(siteInfo, authority, role, displayName));
 		}
     }

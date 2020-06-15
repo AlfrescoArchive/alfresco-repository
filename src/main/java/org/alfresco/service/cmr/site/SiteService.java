@@ -600,10 +600,8 @@ public interface SiteService
     PagingResults<SiteGroup> listGroupsPaged(String shortName, List<Pair<SortFields, Boolean>> sortProps, PagingRequest pagingRequest);
 
     /**
-     * List the members of the site.  This includes both users and groups.
-     * Users and groups can be controlled by passing params
+     * Returns a paged list of the members of the site.
      * <p>
-     * Name and role filters are optional and if not specified all the members of the site are returned.
      *
      * @param shortName         site short name
      * @param sortProps         sorting options
