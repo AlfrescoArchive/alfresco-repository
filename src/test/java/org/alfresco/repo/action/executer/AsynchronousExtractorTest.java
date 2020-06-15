@@ -76,6 +76,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
 import java.util.StringJoiner;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import static java.util.Arrays.asList;
 import static org.alfresco.model.ContentModel.PROP_CONTENT;
@@ -102,6 +104,7 @@ public class AsynchronousExtractorTest extends BaseSpringTest
     private static final Integer UNCHANGED_HASHCODE = null;
     private static final Integer CHANGED_HASHCODE = 1234;
     private static final SimpleDateFormat SIMPLE_DATE_FORMAT = new SimpleDateFormat("EEE MMM dd HH:mm:ss Z yyyy");
+    private static final ExecutorService executorService = Executors.newCachedThreadPool();
 
     private NodeService nodeService;
     private ContentService contentService;
@@ -174,6 +177,7 @@ public class AsynchronousExtractorTest extends BaseSpringTest
             setRegistry(metadataExtracterRegistry);
             setMimetypeService(mimetypeService);
             setDictionaryService(dictionaryService);
+            setExecutorService(executorService);
             register();
 
             renditionService2.setTransformClient(mockTransformClient);
@@ -196,7 +200,7 @@ public class AsynchronousExtractorTest extends BaseSpringTest
             try
             {
                 transformerDebug.pushMisc();
-                wait(200, 1000);
+                wait(50, 700);
             }
             finally
             {
@@ -230,14 +234,14 @@ public class AsynchronousExtractorTest extends BaseSpringTest
         /**
          * Wait for a few milliseconds or until the finished flag is set.
          *
-         * @param from inclusive lower bound.
+         * @param from inclusive lower bound. If negative, there is only an upper bound.
          * @param to   exclusive upper bound.
          * @return the wait.
          */
-        public synchronized long wait(int from, int to)
+        public synchronized void wait(int from, int to)
         {
             long start = System.currentTimeMillis();
-            long end = start + from + random.nextInt(to - from);
+            long end = start + (from < 0 ? to : from + random.nextInt(to - from));
 
             while (!finished && System.currentTimeMillis() < end)
             {
@@ -253,8 +257,6 @@ public class AsynchronousExtractorTest extends BaseSpringTest
                 {
                 }
             }
-
-            return System.currentTimeMillis() - start;
         }
     }
 
@@ -345,7 +347,7 @@ public class AsynchronousExtractorTest extends BaseSpringTest
         assertContentSize(nodeRef, origSize, AFTER_CALLING_EXECUTE);
         assertProperties(nodeRef, origProperties, AFTER_CALLING_EXECUTE);
 
-        extractor.wait(0, 10000);
+        extractor.wait(-1, 10000);
         assertContentSize(nodeRef, expectedSize, AFTER_THE_TRANSFORM);
         assertProperties(nodeRef, expectedProperties, AFTER_THE_TRANSFORM);
     }
@@ -409,11 +411,11 @@ public class AsynchronousExtractorTest extends BaseSpringTest
         {
             if (expectProperties.equals(origProperties))
             {
-                fail("The properties should remain unchanged " + state + "\n" + sj.length());
+                fail("The properties should remain unchanged " + state + "\n" + sj);
             }
             else
             {
-                fail("The properties should have changed " + state + "\n" + sj.length());
+                fail("The properties should have changed " + state + "\n" + sj);
             }
         }
     }
