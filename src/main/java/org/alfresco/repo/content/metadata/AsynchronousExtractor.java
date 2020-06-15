@@ -482,12 +482,19 @@ public class AsynchronousExtractor extends AbstractMappingMetadataExtracter
             try
             {
                 QName qName = QName.createQName(key);
-                properties.put(qName, value);
+                try
+                {
+                    qName.toPrefixString(namespacePrefixResolver);
+                    properties.put(qName, value);
+                }
+                catch (NamespaceException e)
+                {
+                    logger.error("Error unregistered namespace in " + qName);
+                }
             }
             catch (NamespaceException e)
             {
                 logger.error("Error creating qName from "+key);
-                return Collections.emptyMap();
             }
         }
         return properties;
