@@ -52,7 +52,7 @@ import org.alfresco.util.Pair;
  *
  */
 //TODO currently have to read all sites into memory for sorting purposes. Find a way that doesn't involve doing this.
-public class SiteMembersCannedQuery extends AbstractCannedQuery<SiteMembership>
+public class SiteMembersCannedQuery<T extends SiteMembership> extends AbstractCannedQuery<T>
 {
 	private NodeService nodeService;
 	private PersonService personService;
@@ -67,21 +67,20 @@ public class SiteMembersCannedQuery extends AbstractCannedQuery<SiteMembership>
     }
     
     @Override
-    protected List<SiteMembership> queryAndFilter(CannedQueryParameters parameters)
+    protected List<T> queryAndFilter(CannedQueryParameters parameters)
     {
         SiteMembersCannedQueryParams paramBean = (SiteMembersCannedQueryParams)parameters.getParameterBean();
         
         String siteShortName = paramBean.getShortName();
-        boolean collapseGroups = paramBean.isCollapseGroups();
 
 		CannedQuerySortDetails sortDetails = parameters.getSortDetails();
 		List<Pair<? extends Object, SortOrder>> sortPairs = sortDetails.getSortPairs();
 		
     	final CQSiteMembersCallback callback = new CQSiteMembersCallback(siteShortName, sortPairs);
-    	siteService.listMembers(siteShortName, null, null, collapseGroups, callback);
+    	siteService.listMembers(siteShortName, null, null, true, false, paramBean.isExpandGroups(), callback);
     	callback.done();
 
-        return callback.getSiteMembers();
+        return (List<T>) callback.getSiteMembers();
     }
     
     @Override
@@ -95,17 +94,25 @@ public class SiteMembersCannedQuery extends AbstractCannedQuery<SiteMembership>
     {
     	private String siteShortName;
     	private SiteInfo siteInfo;
-    	private Set<SiteMembership> siteMembers;
+    	private Set<SiteMember> siteMembers;
 
     	CQSiteMembersCallback(String siteShortName, List<Pair<? extends Object, SortOrder>> sortPairs)
     	{
     		this.siteShortName = siteShortName;
 			this.siteInfo = siteService.getSite(siteShortName);
-    		this.siteMembers = sortPairs != null && sortPairs.size() > 0 ? new TreeSet<SiteMembership>(new SiteMembershipComparator(sortPairs, SiteMembershipComparator.Type.MEMBERS)) : new HashSet<SiteMembership>();
+    		this.siteMembers = sortPairs != null && sortPairs.size() > 0
+					? new TreeSet<SiteMember>(SiteMember.getComparator(sortPairs))
+					: new HashSet<SiteMember>();
     	}
 
+		/*
+		 * deprecated from 7.0.0
+		 */
 		@Override
-		public void siteMember(String authority, String permission)
+		public void siteMember(String authority, String permission) {}
+
+		@Override
+		public void siteMember(String authority, String permission, boolean isMemberOfGroup)
 		{
 			String firstName = null;
 			String lastName = null;
@@ -113,11 +120,11 @@ public class SiteMembersCannedQuery extends AbstractCannedQuery<SiteMembership>
 			if(personService.personExists(authority))
 			{
 				NodeRef nodeRef = personService.getPerson(authority);
-				firstName = (String)nodeService.getProperty(nodeRef, ContentModel.PROP_FIRSTNAME);
-				lastName = (String)nodeService.getProperty(nodeRef, ContentModel.PROP_LASTNAME);
+				firstName = (String) nodeService.getProperty(nodeRef, ContentModel.PROP_FIRSTNAME);
+				lastName = (String) nodeService.getProperty(nodeRef, ContentModel.PROP_LASTNAME);
 			}
 
-			SiteMembership siteMember = new SiteMembership(siteInfo, authority, firstName, lastName, permission);
+			SiteMember siteMember = new SiteMember(siteInfo, authority, firstName, lastName, permission, isMemberOfGroup);
     		siteMembers.add(siteMember);
 		}
 
@@ -127,18 +134,9 @@ public class SiteMembersCannedQuery extends AbstractCannedQuery<SiteMembership>
 			return false; // need to read in all site members for sort
 		}
 		
-		List<SiteMembership> getSiteMembers()
+		List<SiteMember> getSiteMembers()
 		{
-    		// "drain" the site memberships into a (sorted) list
-
-    		List<SiteMembership> siteMemberships = new ArrayList<SiteMembership>(siteMembers.size());
-    		Iterator<SiteMembership> it = siteMembers.iterator();
-    		while(it.hasNext())
-    		{
-    			siteMemberships.add(it.next());
-    			it.remove();
-    		}
-    		return siteMemberships;
+    		return new ArrayList<>(siteMembers);
 		}
 
 		void done()

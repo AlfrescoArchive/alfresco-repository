@@ -48,12 +48,6 @@ public class SiteMembersCannedQueryParams
 		return shortName;
 	}
 
-	/** deprecated from 7.0.0 use isExpandGroups method instead */
-	public boolean isCollapseGroups()
-	{
-		return expandGroups;
-	}
-
 	public boolean isExpandGroups()
 	{
 		return expandGroups;

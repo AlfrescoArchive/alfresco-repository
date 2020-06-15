@@ -25,9 +25,8 @@
  */
 package org.alfresco.util.test.junitrules;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
+import java.io.Serializable;
+import java.util.*;
 
 import org.alfresco.model.ContentModel;
 import org.alfresco.repo.domain.activities.ActivityPostDAO;
@@ -41,6 +40,7 @@ import org.alfresco.repo.transaction.RetryingTransactionHelper.RetryingTransacti
 import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.cmr.security.AuthorityService;
 import org.alfresco.service.cmr.security.AuthorityType;
+import org.alfresco.service.cmr.security.PersonService;
 import org.alfresco.service.cmr.site.SiteInfo;
 import org.alfresco.service.cmr.site.SiteService;
 import org.alfresco.service.cmr.site.SiteVisibility;
@@ -294,6 +294,7 @@ public class TemporarySites extends AbstractPersonRule
         final RetryingTransactionHelper transactionHelper = appContextRule.getApplicationContext().getBean("retryingTransactionHelper", RetryingTransactionHelper.class);
         final SiteService siteService = appContextRule.getApplicationContext().getBean("siteService", SiteService.class);
         final AuthorityService authorityService = appContextRule.getApplicationContext().getBean("authorityService", AuthorityService.class);
+        final PersonService personService = appContextRule.getApplicationContext().getBean("personService", PersonService.class);
 
         AuthenticationUtil.pushAuthentication();
         AuthenticationUtil.setFullyAuthenticatedUser(siteCreator);
@@ -309,8 +310,13 @@ public class TemporarySites extends AbstractPersonRule
                     final String userName = "Test_User_" + GUID.generate();
 
                     log.debug("Creating temporary site user " + userName);
-                    createPerson(userName);
-                    siteService.setMembership(siteShortName, userName, shareRole);
+
+                    final Map<QName, Serializable> properties = new HashMap<QName, Serializable>();
+                    properties.put(ContentModel.PROP_USERNAME, userName);
+                    properties.put(ContentModel.PROP_FIRSTNAME, GUID.generate());
+                    properties.put(ContentModel.PROP_LASTNAME, GUID.generate());
+                    properties.put(ContentModel.PROP_EMAIL, GUID.generate() + "@test.com");
+                    personService.createPerson(properties);
 
                     log.debug("Creating temporary site group " + groupName);
                     final String groupId = authorityService.createAuthority(AuthorityType.GROUP, groupName);

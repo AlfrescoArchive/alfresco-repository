@@ -1871,7 +1871,7 @@ public class SiteServiceImpl extends AbstractLifecycleBean implements SiteServic
     public PagingResults<SiteMembership> listMembersPaged(String shortName, boolean collapseGroups, List<Pair<SiteService.SortFields, Boolean>> sortProps, PagingRequest pagingRequest) {
         CannedQueryParameters params = getCannedQueryParameters(shortName, collapseGroups, sortProps, pagingRequest);
 
-		CannedQuery<SiteMembership> query = new SiteMembersCannedQuery(this, personService, nodeService, params);
+		CannedQuery<SiteMembership> query = new SiteMembersCannedQuery<SiteMembership>(this, personService, nodeService, params);
 
         CannedQueryResults<SiteMembership> results = query.execute();
 
@@ -1960,15 +1960,8 @@ public class SiteServiceImpl extends AbstractLifecycleBean implements SiteServic
             final String sName = tenantService.getBaseName(shortName, true);
 
             return AuthenticationUtil.runAs(
-                        new AuthenticationUtil.RunAsWork<List<SiteMemberInfo>>()
-                        {
-                            public List<SiteMemberInfo> doWork() throws Exception
-                            {
-                                return listMembersInfoImpl(sName, nameFilter, roleFilter, size,
-                                        expandGroups);
-                            }
-                        }, tenantService.getDomainUser(AuthenticationUtil.getSystemUserName(),
-                                    tenantDomain));
+                    () -> listMembersInfoImpl(sName, nameFilter, roleFilter, size, expandGroups),
+                    tenantService.getDomainUser(AuthenticationUtil.getSystemUserName(), tenantDomain));
         }
         else
         {
@@ -3383,7 +3376,8 @@ public class SiteServiceImpl extends AbstractLifecycleBean implements SiteServic
     }
 
     @Override
-    public void listMembers(String shortName, final String nameFilter, final String roleFilter, boolean includeUsers, boolean includeGroups, boolean expandGroups, SiteMembersCallback callback) {
+    public void listMembers(String shortName, final String nameFilter, final String roleFilter, boolean includeUsers, boolean includeGroups, boolean expandGroups, SiteMembersCallback callback)
+    {
         // MT share - for activity service system callback
         if (tenantService.isEnabled() && (AuthenticationUtil.SYSTEM_USER_NAME.equals(AuthenticationUtil.getRunAsUser())) && tenantService.isTenantName(shortName)) {
             final String tenantDomain = tenantService.getDomain(shortName);
@@ -3402,16 +3396,28 @@ public class SiteServiceImpl extends AbstractLifecycleBean implements SiteServic
     }
 
     @Override
-    public PagingResults<SiteMembership> listGroupsPaged(String shortName, List<Pair<SortFields, Boolean>> sortProps, PagingRequest pagingRequest) {
+    public PagingResults<SiteGroup> listGroupsPaged(String shortName, List<Pair<SortFields, Boolean>> sortProps, PagingRequest pagingRequest)
+    {
         CannedQueryParameters params = getCannedQueryParameters(shortName, false, sortProps, pagingRequest);
-        CannedQuery<SiteMembership> query = new SiteGroupCannedQuery(this, authorityService, params);
+        CannedQuery<SiteGroup> query = new SiteGroupCannedQuery(this, authorityService, params);
 
-        CannedQueryResults<SiteMembership> results = query.execute();
+        CannedQueryResults<SiteGroup> results = query.execute();
 
         return getPagingResults(pagingRequest, results);
     }
 
-    private CannedQueryParameters getCannedQueryParameters(String shortName, boolean expandGroups, List<Pair<SortFields, Boolean>> sortProps, PagingRequest pagingRequest) {
+    @Override
+    public PagingResults<SiteMember> listMembersPaged(String shortName, List<Pair<SortFields, Boolean>> sortProps, PagingRequest pagingRequest) {
+        CannedQueryParameters params = getCannedQueryParameters(shortName, true, sortProps, pagingRequest);
+        CannedQuery<SiteMember> query = new SiteMembersCannedQuery<SiteMember>(this, personService, nodeService, params);
+
+        CannedQueryResults<SiteMember> results = query.execute();
+
+        return getPagingResults(pagingRequest, results);
+    }
+
+    private CannedQueryParameters getCannedQueryParameters(String shortName, boolean expandGroups, List<Pair<SortFields, Boolean>> sortProps, PagingRequest pagingRequest)
+    {
         CannedQueryPageDetails pageDetails = new CannedQueryPageDetails(pagingRequest.getSkipCount(), pagingRequest.getMaxItems());
 
         List<Pair<? extends Object, SortOrder>> sortPairs = sortProps.stream().map(props -> new Pair<SortFields, SortOrder>(props.getFirst(), (props.getSecond() ? SortOrder.ASCENDING : SortOrder.DESCENDING))).collect(Collectors.toList());
