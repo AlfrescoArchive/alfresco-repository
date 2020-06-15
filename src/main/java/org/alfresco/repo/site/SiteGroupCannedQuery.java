@@ -80,7 +80,7 @@ public class SiteGroupCannedQuery extends AbstractCannedQuery<SiteMembership>
       this.siteInfo = siteService.getSite(siteShortName);
       this.siteGroups = sortPairs != null && sortPairs.size() > 0
               ? new TreeSet<>(new SiteMembershipComparator(sortPairs, SiteMembershipComparator.Type.MEMBERS))
-              : Collections.emptySet();
+              : new HashSet<>();
     }
 
     @Override
