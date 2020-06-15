@@ -857,6 +857,26 @@ public class SiteServiceImplMoreTest
         });
     }
 
+    @Test public void testSiteGroupsPaged() {
+        // Choose a site name that will link back to this test case...
+        final String siteShortName = testName.getMethodName();
+        log.debug("Creating test site called: " + siteShortName);
+
+        TRANSACTION_HELPER.doInTransaction(new RetryingTransactionCallback<Void>() {
+            public Void execute() throws Throwable {
+                perMethodTestSites.createTestSiteWithGroups(siteShortName, "sitePreset", SiteVisibility.PUBLIC, AuthenticationUtil.getAdminUserName(), 10);
+                PagingResults<SiteMembership> pagedMembers = SITE_SERVICE.listGroupsPaged(siteShortName, new ArrayList<>(), new PagingRequest(5));
+                assertNotNull(pagedMembers);
+                assertNotNull(pagedMembers.getQueryExecutionId());
+                assertTrue(pagedMembers.hasMoreItems());
+                assertEquals(pagedMembers.getPage().size(), 5);
+                log.debug("About to delete site completely.");
+                SITE_SERVICE.deleteSite(siteShortName);
+                return null;
+            }
+        });
+    }
+
     @Test public void testTokenizer()
     {
         String[] res = SiteServiceImpl.tokenizeFilterLowercase("Fred");

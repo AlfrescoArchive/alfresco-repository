@@ -48,7 +48,7 @@ public class SiteMembershipTest
     String lastName = UUID.randomUUID().toString();
     String role = "Consumer";
 
-    String personErrorMessage = "Person required building site membership of ";
+    String personErrorMessage = "Id required building site membership of ";
     String firstNameErrorMessage = "FirstName required building site membership of ";
     String lastNameErrorMessage = "LastName required building site membership of ";
     String roleErrorMessage = "Role required building site membership of ";
@@ -122,7 +122,7 @@ public class SiteMembershipTest
     }
 
     @Test
-    public void testNullLastNale() throws Exception
+    public void testNullLastName() throws Exception
     {
         try
         {

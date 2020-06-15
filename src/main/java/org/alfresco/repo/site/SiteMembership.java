@@ -26,7 +26,6 @@
 package org.alfresco.repo.site;
 
 import org.alfresco.service.cmr.site.SiteInfo;
-import org.alfresco.service.cmr.site.SiteRole;
 
 /**
  * Conveys information for a member of a site.
@@ -37,12 +36,17 @@ import org.alfresco.service.cmr.site.SiteRole;
 public class SiteMembership
 {
     private SiteInfo siteInfo;
-    private String personId;
-    private String firstName;
-    private String lastName;
+    private String id;          // contains both userId and authority Id
     private String role;
 
-    public SiteMembership(SiteInfo siteInfo, String personId, String firstName, String lastName,
+    // backward compatibility
+    private String firstName;
+    private String lastName;
+
+    /*
+     * deprecated from 7.0.0
+     */
+    public SiteMembership(SiteInfo siteInfo, String id, String firstName, String lastName,
             String role)
     {
         super();
@@ -50,10 +54,10 @@ public class SiteMembership
         {
             throw new java.lang.IllegalArgumentException();
         }
-        if (personId == null)
+        if (id == null)
         {
             throw new java.lang.IllegalArgumentException(
-                    "Person required building site membership of " + siteInfo.getShortName());
+                    "Id required building site membership of " + siteInfo.getShortName());
         }
         if (firstName == null)
         {
@@ -71,23 +75,23 @@ public class SiteMembership
                     "Role required building site membership of " + siteInfo.getShortName());
         }
         this.siteInfo = siteInfo;
-        this.personId = personId;
+        this.id = id;
         this.firstName = firstName;
         this.lastName = lastName;
         this.role = role;
     }
 
-    public SiteMembership(SiteInfo siteInfo, String personId, String role)
+    public SiteMembership(SiteInfo siteInfo, String id, String role)
     {
         super();
         if (siteInfo == null)
         {
             throw new java.lang.IllegalArgumentException();
         }
-        if (personId == null)
+        if (id == null)
         {
             throw new java.lang.IllegalArgumentException(
-                    "Person required building site membership of " + siteInfo.getShortName());
+                    "Id required building site membership of " + siteInfo.getShortName());
         }
         if (role == null)
         {
@@ -96,7 +100,7 @@ public class SiteMembership
         }
 
         this.siteInfo = siteInfo;
-        this.personId = personId;
+        this.id = id;
         this.role = role;
     }
 
@@ -105,9 +109,13 @@ public class SiteMembership
         return siteInfo;
     }
 
-    public String getPersonId()
-    {
-        return personId;
+    /** deprecated from 7.0.0 use getId instead */
+    public String getPersonId() {
+        return id;
+    }
+
+    public String getId() {
+        return id;
     }
 
     public String getFirstName()
@@ -130,7 +138,7 @@ public class SiteMembership
     {
         final int prime = 31;
         int result = 1;
-        result = prime * result + ((personId == null) ? 0 : personId.hashCode());
+        result = prime * result + ((id == null) ? 0 : id.hashCode());
         result = prime * result + ((role == null) ? 0 : role.hashCode());
         result = prime * result + ((getSiteInfo() == null) ? 0 : getSiteInfo().hashCode());
         return result;
@@ -146,12 +154,12 @@ public class SiteMembership
         if (getClass() != obj.getClass())
             return false;
         SiteMembership other = (SiteMembership) obj;
-        if (personId == null)
+        if (id == null)
         {
-            if (other.personId != null)
+            if (other.id != null)
                 return false;
         }
-        else if (!personId.equals(other.personId))
+        else if (!id.equals(other.id))
             return false;
         if (role != other.role)
             return false;
@@ -168,7 +176,7 @@ public class SiteMembership
     @Override
     public String toString()
     {
-        return "SiteMembership [siteInfo=" + getSiteInfo() + ", personId=" + personId
+        return "SiteMembership [siteInfo=" + getSiteInfo() + ", id=" + id
                 + ", firstName=" + firstName + ", lastName=" + lastName + ", role=" + role + "]";
     }
 
