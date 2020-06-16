@@ -73,6 +73,7 @@ import java.io.Serializable;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.StringJoiner;
@@ -339,17 +340,18 @@ public class AsynchronousExtractorTest extends BaseSpringTest
 
     private void assertAsyncMetadataExecute(ActionExecuterAbstractBase executor, String mockResult,
                                             Integer changedHashcode, long expectedSize,
-                                            Map<QName, Serializable> expectedProperties) throws Exception
+                                            Map<QName, Serializable> expectedProperties,
+                                            QName... ignoreProperties) throws Exception
     {
         TestAsynchronousExtractor extractor = new TestAsynchronousExtractor(mockResult, changedHashcode);
 
         executeAction(executor, extractor);
         assertContentSize(nodeRef, origSize, AFTER_CALLING_EXECUTE);
-        assertProperties(nodeRef, origProperties, AFTER_CALLING_EXECUTE);
+        assertProperties(nodeRef, origProperties, AFTER_CALLING_EXECUTE, ignoreProperties);
 
         extractor.wait(-1, 10000);
         assertContentSize(nodeRef, expectedSize, AFTER_THE_TRANSFORM);
-        assertProperties(nodeRef, expectedProperties, AFTER_THE_TRANSFORM);
+        assertProperties(nodeRef, expectedProperties, AFTER_THE_TRANSFORM, ignoreProperties);
     }
 
     private void executeAction(ActionExecuterAbstractBase extractor, TestAsynchronousExtractor asynchronousExtractor)
@@ -381,19 +383,22 @@ public class AsynchronousExtractorTest extends BaseSpringTest
         return reader.getSize();
     }
 
-    private void assertProperties(NodeRef nodeRef, Map<QName, Serializable> expectProperties, String state)
+    private void assertProperties(NodeRef nodeRef, Map<QName, Serializable> expectProperties, String state,
+                                  QName[] ignoreProperties)
     {
         properties = nodeService.getProperties(nodeRef);
 
-        // Work out the difference in a human readable form and ignore the 5 system set properties, as they always change
+        // Work out the difference in a human readable form and ignore the 5 system set properties (as they always
+        // change) plus any the caller has requested.
         StringJoiner sj = new StringJoiner("\n");
+        List<QName> ignoreKeys = new ArrayList<>(asList(PROP_MODIFIED, PROP_MODIFIER, PROP_CONTENT, PROP_CREATED, PROP_CREATOR));
+        ignoreKeys.addAll(asList(ignoreProperties));
         for (Map.Entry<QName, Serializable> entry : expectProperties.entrySet())
         {
             QName k = entry.getKey();
             Serializable v = entry.getValue();
             Serializable actual = properties.get(k);
-            if (!(asList(PROP_MODIFIED, PROP_MODIFIER, PROP_CONTENT, PROP_CREATED, PROP_CREATOR)).contains(k) &&
-                    !v.equals(actual))
+            if (!ignoreKeys.contains(k) && !v.equals(actual))
             {
                 sj.add(k + "\n  Expected: " + v + "\n       Was: " + actual);
             }
@@ -401,7 +406,7 @@ public class AsynchronousExtractorTest extends BaseSpringTest
         for (QName k : properties.keySet())
         {
             Serializable actual = properties.get(k);
-            if (!expectProperties.containsKey(k))
+            if (!ignoreKeys.contains(k) && !expectProperties.containsKey(k))
             {
                 sj.add(k + "\n  Expected: null\n       Was: " + actual);
             }
@@ -508,15 +513,14 @@ public class AsynchronousExtractorTest extends BaseSpringTest
 
         // Note: As the metadata is for eml, an aspect gets added resulting in a second extract because of
         // ImapContentPolicy.onAddAspect. I cannot see a good way to avoid this.
-
-        // cm:author is not in the quick.eml_metadata.json but is being added by th second extract which thinks the
-        // source mimetype is MimetypeMap.MIMETYPE_PDF, because that is what the before() method sets the content to.
-        // As a result the PdfBox metadata extractor is called, which extracts cm:author. We could fix this up, but
-        // it does not add anything to the test.
-        expectedProperties.put(QName.createQName("cm:author", namespacePrefixResolver), "Nevin Nollop");
-
         assertAsyncMetadataExecute(contentMetadataExtracter, "quick/quick.eml_metadata.json",
-                UNCHANGED_HASHCODE, origSize, expectedProperties);
+                UNCHANGED_HASHCODE, origSize, expectedProperties,
+                // cm:author is not in the quick.eml_metadata.json but is being added by the second extract which thinks
+                // the source mimetype is MimetypeMap.MIMETYPE_PDF, because that is what the before() method sets the
+                // content to. As a result the PdfBox metadata extractor is called, which extracts cm:author. Given that
+                // we don't know when this will take place, we simply ignore this property. We could fix this up, but it
+                // does not add anything to the test.
+                QName.createQName("cm:author", namespacePrefixResolver));
     }
 
 
