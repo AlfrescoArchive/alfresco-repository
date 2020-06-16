@@ -27,7 +27,6 @@ package org.alfresco.repo.site;
 
 import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
@@ -94,15 +93,15 @@ public class SiteMembersCannedQuery<T extends SiteMembership> extends AbstractCa
     {
     	private String siteShortName;
     	private SiteInfo siteInfo;
-    	private Set<SiteMember> siteMembers;
+    	private Set<SiteUserMembership> siteMembers;
 
     	CQSiteMembersCallback(String siteShortName, List<Pair<? extends Object, SortOrder>> sortPairs)
     	{
     		this.siteShortName = siteShortName;
 			this.siteInfo = siteService.getSite(siteShortName);
     		this.siteMembers = sortPairs != null && sortPairs.size() > 0
-					? new TreeSet<SiteMember>(SiteMember.getComparator(sortPairs))
-					: new HashSet<SiteMember>();
+					? new TreeSet<SiteUserMembership>(SiteUserMembership.getComparator(sortPairs))
+					: new HashSet<SiteUserMembership>();
     	}
 
 		/*
@@ -124,7 +123,7 @@ public class SiteMembersCannedQuery<T extends SiteMembership> extends AbstractCa
 				lastName = (String) nodeService.getProperty(nodeRef, ContentModel.PROP_LASTNAME);
 			}
 
-			SiteMember siteMember = new SiteMember(siteInfo, authority, firstName, lastName, permission, isMemberOfGroup);
+			SiteUserMembership siteMember = new SiteUserMembership(siteInfo, authority, firstName, lastName, permission, isMemberOfGroup);
     		siteMembers.add(siteMember);
 		}
 
@@ -134,7 +133,7 @@ public class SiteMembersCannedQuery<T extends SiteMembership> extends AbstractCa
 			return false; // need to read in all site members for sort
 		}
 		
-		List<SiteMember> getSiteMembers()
+		List<SiteUserMembership> getSiteMembers()
 		{
     		return new ArrayList<>(siteMembers);
 		}

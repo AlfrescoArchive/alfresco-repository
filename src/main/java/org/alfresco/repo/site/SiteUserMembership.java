@@ -33,13 +33,13 @@ import java.util.Comparator;
 import java.util.List;
 
 
-public class SiteMember extends SiteMembership
+public class SiteUserMembership extends SiteMembership
 {
     private final String firstName;
     private final String lastName;
     private final boolean isMemberOfGroup;
 
-    public SiteMember(SiteInfo siteInfo, String id, String firstName, String lastName, String role, boolean isMemberOfGroup)
+    public SiteUserMembership(SiteInfo siteInfo, String id, String firstName, String lastName, String role, boolean isMemberOfGroup)
     {
         super(siteInfo, id, firstName, lastName, role);
         this.firstName = firstName;
@@ -70,7 +70,7 @@ public class SiteMember extends SiteMembership
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         if (!super.equals(o)) return false;
-        SiteMember that = (SiteMember) o;
+        SiteUserMembership that = (SiteUserMembership) o;
         return firstName.equals(that.firstName) &&
                 lastName.equals(that.lastName);
     }
@@ -78,14 +78,14 @@ public class SiteMember extends SiteMembership
     @Override
     public String toString()
     {
-        return "SiteMember{" +
+        return "SiteUserMembership{" +
                 "firstName='" + firstName + '\'' +
                 ", lastName='" + lastName + '\'' +
                 '}';
     }
 
 
-    static int compareTo(List<Pair<? extends Object, CannedQuerySortDetails.SortOrder>> sortPairs, SiteMember o1, SiteMember o2)
+    static int compareTo(List<Pair<? extends Object, CannedQuerySortDetails.SortOrder>> sortPairs, SiteUserMembership o1, SiteUserMembership o2)
     {
         String personId1 = o1.getPersonId();
         String personId2 = o2.getPersonId();
@@ -113,8 +113,8 @@ public class SiteMember extends SiteMembership
         return SiteMembershipComparator.compareSiteMembersBody(sortPairs, personId1, personId2, lastName1, lastName2, siteRole1, siteRole2, personId, firstName, lastName, siteRole, 0);
     }
 
-    static Comparator<SiteMember> getComparator(List<Pair<?, CannedQuerySortDetails.SortOrder>> sortPairs)
+    static Comparator<SiteUserMembership> getComparator(List<Pair<?, CannedQuerySortDetails.SortOrder>> sortPairs)
     {
-        return (SiteMember o1, SiteMember o2) -> compareTo(sortPairs, o1, o2);
+        return (SiteUserMembership o1, SiteUserMembership o2) -> compareTo(sortPairs, o1, o2);
     }
 }

@@ -32,11 +32,11 @@ import org.alfresco.util.Pair;
 import java.util.Comparator;
 import java.util.List;
 
-public class SiteGroup extends SiteMembership
+public class SiteGroupMembership extends SiteMembership
 {
     private String displayName;
 
-    public SiteGroup(SiteInfo siteInfo, String id, String role, String displayName) {
+    public SiteGroupMembership(SiteInfo siteInfo, String id, String role, String displayName) {
         super(siteInfo, id, role);
         this.displayName = displayName;
     }
@@ -46,7 +46,7 @@ public class SiteGroup extends SiteMembership
     }
 
 
-    static int compareTo(List<Pair<? extends Object, CannedQuerySortDetails.SortOrder>> sortPairs, SiteGroup o1, SiteGroup o2)
+    static int compareTo(List<Pair<? extends Object, CannedQuerySortDetails.SortOrder>> sortPairs, SiteGroupMembership o1, SiteGroupMembership o2)
     {
         String displayName1 = o1.getDisplayName();
         String displayName2 = o2.getDisplayName();
@@ -67,8 +67,8 @@ public class SiteGroup extends SiteMembership
         return SiteMembershipComparator.compareSiteGroupsBody(sortPairs, displayName1, displayName2,  siteRole1, siteRole2, groupName, siteRole , 0);
     }
 
-    static Comparator<SiteGroup> getComparator(List<Pair<?, CannedQuerySortDetails.SortOrder>> sortPairs)
+    static Comparator<SiteGroupMembership> getComparator(List<Pair<?, CannedQuerySortDetails.SortOrder>> sortPairs)
     {
-        return (SiteGroup o1, SiteGroup o2) -> compareTo(sortPairs, o1, o2);
+        return (SiteGroupMembership o1, SiteGroupMembership o2) -> compareTo(sortPairs, o1, o2);
     }
 }

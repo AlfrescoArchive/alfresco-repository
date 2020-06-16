@@ -3396,22 +3396,22 @@ public class SiteServiceImpl extends AbstractLifecycleBean implements SiteServic
     }
 
     @Override
-    public PagingResults<SiteGroup> listGroupsPaged(String shortName, List<Pair<SortFields, Boolean>> sortProps, PagingRequest pagingRequest)
+    public PagingResults<SiteGroupMembership> listGroupsPaged(String shortName, List<Pair<SortFields, Boolean>> sortProps, PagingRequest pagingRequest)
     {
         CannedQueryParameters params = getCannedQueryParameters(shortName, false, sortProps, pagingRequest);
-        CannedQuery<SiteGroup> query = new SiteGroupCannedQuery(this, authorityService, params);
+        CannedQuery<SiteGroupMembership> query = new SiteGroupCannedQuery(this, authorityService, params);
 
-        CannedQueryResults<SiteGroup> results = query.execute();
+        CannedQueryResults<SiteGroupMembership> results = query.execute();
 
         return getPagingResults(pagingRequest, results);
     }
 
     @Override
-    public PagingResults<SiteMember> listMembersPaged(String shortName, List<Pair<SortFields, Boolean>> sortProps, PagingRequest pagingRequest, boolean expandGroups) {
+    public PagingResults<SiteUserMembership> listMembersPaged(String shortName, List<Pair<SortFields, Boolean>> sortProps, PagingRequest pagingRequest, boolean expandGroups) {
         CannedQueryParameters params = getCannedQueryParameters(shortName, expandGroups, sortProps, pagingRequest);
-        CannedQuery<SiteMember> query = new SiteMembersCannedQuery<SiteMember>(this, personService, nodeService, params);
+        CannedQuery<SiteUserMembership> query = new SiteMembersCannedQuery<SiteUserMembership>(this, personService, nodeService, params);
 
-        CannedQueryResults<SiteMember> results = query.execute();
+        CannedQueryResults<SiteUserMembership> results = query.execute();
 
         return getPagingResults(pagingRequest, results);
     }

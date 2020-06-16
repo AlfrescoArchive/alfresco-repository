@@ -38,7 +38,7 @@ import org.alfresco.util.Pair;
 import java.util.*;
 
 // TODO currently have to read all sites into memory for sorting purposes. Find a way that doesn't
-public class SiteGroupCannedQuery extends AbstractCannedQuery<SiteGroup>
+public class SiteGroupCannedQuery extends AbstractCannedQuery<SiteGroupMembership>
 {
   private AuthorityService authorityService;
   private SiteService siteService;
@@ -51,7 +51,7 @@ public class SiteGroupCannedQuery extends AbstractCannedQuery<SiteGroup>
   }
 
   @Override
-  protected List<SiteGroup> queryAndFilter(CannedQueryParameters parameters)
+  protected List<SiteGroupMembership> queryAndFilter(CannedQueryParameters parameters)
   {
     SiteMembersCannedQueryParams paramBean = (SiteMembersCannedQueryParams) parameters.getParameterBean();
 
@@ -75,12 +75,12 @@ public class SiteGroupCannedQuery extends AbstractCannedQuery<SiteGroup>
   private class CQSiteGroupsCallback implements SiteMembersCallback
   {
     private SiteInfo siteInfo;
-    private Set<SiteGroup> siteGroups;
+    private Set<SiteGroupMembership> siteGroups;
 
     CQSiteGroupsCallback(String siteShortName, List<Pair<? extends Object, SortOrder>> sortPairs) {
       this.siteInfo = siteService.getSite(siteShortName);
       this.siteGroups = sortPairs != null && sortPairs.size() > 0
-              ? new TreeSet<>(SiteGroup.getComparator(sortPairs))
+              ? new TreeSet<>(SiteGroupMembership.getComparator(sortPairs))
               : new HashSet<>();
     }
 
@@ -90,7 +90,7 @@ public class SiteGroupCannedQuery extends AbstractCannedQuery<SiteGroup>
 		if(authorityService.authorityExists(authority))
 		{
 		  String displayName = authorityService.getAuthorityDisplayName(authority);
-		  siteGroups.add(new SiteGroup(siteInfo, authority, role, displayName));
+		  siteGroups.add(new SiteGroupMembership(siteInfo, authority, role, displayName));
 		}
     }
 
@@ -101,7 +101,7 @@ public class SiteGroupCannedQuery extends AbstractCannedQuery<SiteGroup>
       return false;
     }
 
-    List<SiteGroup> getSiteMembers()
+    List<SiteGroupMembership> getSiteMembers()
     {
       return new ArrayList<>(siteGroups);
     }

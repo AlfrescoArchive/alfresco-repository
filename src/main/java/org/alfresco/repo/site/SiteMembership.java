@@ -118,13 +118,13 @@ public class SiteMembership
         return id;
     }
 
-    /** deprecated from 7.0.0 use SiteMember instead */
+    /** deprecated from 7.0.0 use SiteUserMembership instead */
     public String getFirstName()
     {
         return firstName;
     }
 
-    /** deprecated from 7.0.0 use SiteMember instead */
+    /** deprecated from 7.0.0 use SiteUserMembership instead */
     public String getLastName()
     {
         return lastName;

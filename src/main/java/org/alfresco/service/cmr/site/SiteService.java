@@ -35,8 +35,8 @@ import org.alfresco.query.PagingRequest;
 import org.alfresco.query.PagingResults;
 import org.alfresco.repo.node.getchildren.FilterProp;
 import org.alfresco.repo.security.authority.UnknownAuthorityException;
-import org.alfresco.repo.site.SiteGroup;
-import org.alfresco.repo.site.SiteMember;
+import org.alfresco.repo.site.SiteGroupMembership;
+import org.alfresco.repo.site.SiteUserMembership;
 import org.alfresco.repo.site.SiteMembership;
 import org.alfresco.service.Auditable;
 import org.alfresco.service.NotAuditable;
@@ -597,7 +597,7 @@ public interface SiteService
      * @return the authority name and their role
      */
     @NotAuditable
-    PagingResults<SiteGroup> listGroupsPaged(String shortName, List<Pair<SortFields, Boolean>> sortProps, PagingRequest pagingRequest);
+    PagingResults<SiteGroupMembership> listGroupsPaged(String shortName, List<Pair<SortFields, Boolean>> sortProps, PagingRequest pagingRequest);
 
     /**
      * Returns a paged list of the members of the site.
@@ -609,5 +609,5 @@ public interface SiteService
      * @param expandGroups      true if expand group member into user list, false otherwise (where class)
      */
     @NotAuditable
-    PagingResults<SiteMember> listMembersPaged(String shortName, List<Pair<SortFields, Boolean>> sortProps, PagingRequest pagingRequest, boolean expandGroups);
+    PagingResults<SiteUserMembership> listMembersPaged(String shortName, List<Pair<SortFields, Boolean>> sortProps, PagingRequest pagingRequest, boolean expandGroups);
 }
