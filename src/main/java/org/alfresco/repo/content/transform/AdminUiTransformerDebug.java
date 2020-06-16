@@ -27,7 +27,6 @@ package org.alfresco.repo.content.transform;
 
 import org.alfresco.model.ContentModel;
 import org.alfresco.repo.content.filestore.FileContentWriter;
-import org.alfresco.repo.content.metadata.AsynchronousExtractor;
 import org.alfresco.repo.model.Repository;
 import org.alfresco.repo.rendition2.SynchronousTransformClient;
 import org.alfresco.repo.transaction.RetryingTransactionHelper;
