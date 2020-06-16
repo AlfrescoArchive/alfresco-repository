@@ -890,7 +890,7 @@ public class SiteServiceImplMoreTest
                 perMethodTestSites.createTestSiteWithGroups(siteShortName, "sitePreset", SiteVisibility.PUBLIC, AuthenticationUtil.getAdminUserName(), 10);
                 List<Pair<SiteService.SortFields, Boolean>> sortProps = new ArrayList<Pair<SiteService.SortFields, Boolean>>(1);
                 sortProps.add(new Pair<SiteService.SortFields, Boolean>(SiteService.SortFields.FirstName, true));
-                PagingResults<SiteMember> pagedMembers = SITE_SERVICE.listMembersPaged(siteShortName, sortProps, new PagingRequest(100));
+                PagingResults<SiteMember> pagedMembers = SITE_SERVICE.listMembersPaged(siteShortName, sortProps, new PagingRequest(100), true);
                 assertNotNull(pagedMembers);
                 assertNotNull(pagedMembers.getQueryExecutionId());
                 assertFalse(pagedMembers.hasMoreItems());
@@ -900,6 +900,18 @@ public class SiteServiceImplMoreTest
                 List<SiteMember> groupsUsers = pagedMembers.getPage().stream().filter(SiteMember::isMemberOfGroup).collect(Collectors.toList());
                 assertEquals(users.size(), 1);
                 assertEquals(groupsUsers.size(), 10);
+
+                pagedMembers = SITE_SERVICE.listMembersPaged(siteShortName, sortProps, new PagingRequest(100), false);
+                assertNotNull(pagedMembers);
+                assertNotNull(pagedMembers.getQueryExecutionId());
+                assertFalse(pagedMembers.hasMoreItems());
+                assertEquals(pagedMembers.getPage().size(), 1);
+
+                users = pagedMembers.getPage().stream().filter((member) -> !member.isMemberOfGroup()).collect(Collectors.toList());
+                groupsUsers = pagedMembers.getPage().stream().filter(SiteMember::isMemberOfGroup).collect(Collectors.toList());
+                assertEquals(users.size(), 1);
+                assertEquals(groupsUsers.size(), 0);
+
                 log.debug("About to delete site completely.");
                 SITE_SERVICE.deleteSite(siteShortName);
                 return null;

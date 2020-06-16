@@ -606,7 +606,8 @@ public interface SiteService
      * @param shortName         site short name
      * @param sortProps         sorting options
      * @param pagingRequest     the paging request
+     * @param expandGroups      true if expand group member into user list, false otherwise (where class)
      */
     @NotAuditable
-    PagingResults<SiteMember> listMembersPaged(String shortName, List<Pair<SortFields, Boolean>> sortProps, PagingRequest pagingRequest);
+    PagingResults<SiteMember> listMembersPaged(String shortName, List<Pair<SortFields, Boolean>> sortProps, PagingRequest pagingRequest, boolean expandGroups);
 }

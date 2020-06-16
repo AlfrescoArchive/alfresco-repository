@@ -3407,8 +3407,8 @@ public class SiteServiceImpl extends AbstractLifecycleBean implements SiteServic
     }
 
     @Override
-    public PagingResults<SiteMember> listMembersPaged(String shortName, List<Pair<SortFields, Boolean>> sortProps, PagingRequest pagingRequest) {
-        CannedQueryParameters params = getCannedQueryParameters(shortName, true, sortProps, pagingRequest);
+    public PagingResults<SiteMember> listMembersPaged(String shortName, List<Pair<SortFields, Boolean>> sortProps, PagingRequest pagingRequest, boolean expandGroups) {
+        CannedQueryParameters params = getCannedQueryParameters(shortName, expandGroups, sortProps, pagingRequest);
         CannedQuery<SiteMember> query = new SiteMembersCannedQuery<SiteMember>(this, personService, nodeService, params);
 
         CannedQueryResults<SiteMember> results = query.execute();
