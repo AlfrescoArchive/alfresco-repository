@@ -163,8 +163,8 @@ public interface ContentService extends ContentTransformService
      * @param expiryTime
      *            the expiration time in milliseconds of the direct access url. This
      *            is the length of time in milliseconds that the link is valid for.
-     * @return A direct access URL for a binary content or empty string if not
-     *         supported
+     * @return A direct access URL for a binary content or returns null if there is
+     *         no binary content for the node or empty string if not supported
      */
     @Auditable(parameters = {"nodeRef", "expiryTime"})
     public String getDirectAccessUrl(NodeRef nodeRef, int expiryTime);
