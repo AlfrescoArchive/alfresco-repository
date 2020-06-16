@@ -506,7 +506,7 @@ public class AsynchronousExtractor extends AbstractMappingMetadataExtracter
         {
             logger.debug("Update of content to include metadata on " + nodeRef);
         }
-        AuthenticationUtil.runAsSystem((AuthenticationUtil.RunAsWork<Void>) () ->
+        AuthenticationUtil.runAsSystem(() ->
                 transactionService.getRetryingTransactionHelper().doInTransaction(() ->
                 {
                     try

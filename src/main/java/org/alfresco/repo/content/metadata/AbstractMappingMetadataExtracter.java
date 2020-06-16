@@ -1742,7 +1742,7 @@ abstract public class AbstractMappingMetadataExtracter implements MetadataExtrac
             // about Alfresco Date property formats.
             try
             {
-                long ms = Long.valueOf(dateStr);
+                long ms = Long.parseLong(dateStr);
                 if (Long.toString(ms).equals(dateStr))
                 {
                     date = new Date(ms);

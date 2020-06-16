@@ -100,7 +100,7 @@ public class ContentMetadataExtracter extends ActionExecuterAbstractBase
     private boolean enableStringTagging = false;
 
     // Default list of separators (when enableStringTagging is enabled)
-    public static List<String> DEFAULT_STRING_TAGGING_SEPARATORS = Arrays.asList(",", ";", "\\|");
+    public final static List<String> DEFAULT_STRING_TAGGING_SEPARATORS = Arrays.asList(",", ";", "\\|");
     protected List<String> stringTaggingSeparators = DEFAULT_STRING_TAGGING_SEPARATORS;
 
     public ContentMetadataExtracter()
