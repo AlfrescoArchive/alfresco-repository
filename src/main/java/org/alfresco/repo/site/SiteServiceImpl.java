@@ -1747,7 +1747,8 @@ public class SiteServiceImpl extends AbstractLifecycleBean implements SiteServic
     // note that this may return an authority more than once
     protected void listMembersImpl(String shortName, String nameFilter, String roleFilter, boolean expandGroups, SiteMembersCallback callback, boolean includeUsers, boolean includeGroups) {
         NodeRef siteNodeRef = getSiteNodeRef(shortName);
-        if (siteNodeRef == null) {
+        if (siteNodeRef == null)
+        {
             throw new SiteDoesNotExistException(shortName);
         }
 
@@ -1767,7 +1768,8 @@ public class SiteServiceImpl extends AbstractLifecycleBean implements SiteServic
                 Set<String> authorities = this.authorityService.getContainedAuthorities(null, groupName, true);
                 for (String authority : authorities)
                 {
-                    switch (AuthorityType.getAuthorityType(authority)) {
+                    switch (AuthorityType.getAuthorityType(authority))
+                    {
 
                     case USER:
                         if(includeUsers)
@@ -1872,7 +1874,8 @@ public class SiteServiceImpl extends AbstractLifecycleBean implements SiteServic
         return nameFilters;
     }
 
-    public PagingResults<SiteMembership> listMembersPaged(String shortName, boolean collapseGroups, List<Pair<SiteService.SortFields, Boolean>> sortProps, PagingRequest pagingRequest) {
+    public PagingResults<SiteMembership> listMembersPaged(String shortName, boolean collapseGroups, List<Pair<SiteService.SortFields, Boolean>> sortProps, PagingRequest pagingRequest)
+    {
         CannedQueryParameters params = getCannedQueryParameters(shortName, collapseGroups, sortProps, pagingRequest);
 
 		CannedQuery<SiteMembership> query = new SiteMembersCannedQuery<SiteMembership>(this, personService, nodeService, params);
@@ -2121,7 +2124,8 @@ public class SiteServiceImpl extends AbstractLifecycleBean implements SiteServic
         return members;
     }
 
-    private boolean hasValidName(String nameFilter, String[] nameFilters, String name) {
+    private boolean hasValidName(String nameFilter, String[] nameFilters, String name)
+    {
         boolean addUser = true;
         if (nameFilter != null && nameFilter.length() != 0 && !nameFilter.equals(name))
         {
@@ -2823,7 +2827,8 @@ public class SiteServiceImpl extends AbstractLifecycleBean implements SiteServic
           final TaggingService taggingService)
     {
        // Does the site exist?
-       if(siteService.getSite(siteShortName) == null) {
+       if(siteService.getSite(siteShortName) == null)
+       {
           // Either the site doesn't exist, or you're not allowed to see it
           if(! create)
           {
@@ -3383,18 +3388,18 @@ public class SiteServiceImpl extends AbstractLifecycleBean implements SiteServic
     public void listMembers(String shortName, final String nameFilter, final String roleFilter, boolean includeUsers, boolean includeGroups, boolean expandGroups, SiteMembersCallback callback)
     {
         // MT share - for activity service system callback
-        if (tenantService.isEnabled() && (AuthenticationUtil.SYSTEM_USER_NAME.equals(AuthenticationUtil.getRunAsUser())) && tenantService.isTenantName(shortName)) {
+        if (tenantService.isEnabled() && (AuthenticationUtil.SYSTEM_USER_NAME.equals(AuthenticationUtil.getRunAsUser())) && tenantService.isTenantName(shortName))
+        {
             final String tenantDomain = tenantService.getDomain(shortName);
             final String sName = tenantService.getBaseName(shortName, true);
 
-            TenantUtil.runAsSystemTenant(new TenantRunAsWork<Void>() {
-                public Void doWork() throws Exception {
-                    listMembersImpl(sName, nameFilter, roleFilter, expandGroups, callback, includeUsers, includeGroups);
-                    return null;
-                }
+            TenantUtil.runAsSystemTenant(() -> {
+                listMembersImpl(sName, nameFilter, roleFilter, expandGroups, callback, includeUsers, includeGroups);
+                return null;
             }, tenantDomain);
         }
-        else {
+        else
+        {
             listMembersImpl(shortName, nameFilter, roleFilter, expandGroups, callback, includeUsers, includeGroups);
         }
     }
@@ -3411,7 +3416,8 @@ public class SiteServiceImpl extends AbstractLifecycleBean implements SiteServic
     }
 
     @Override
-    public PagingResults<SiteUserMembership> listMembersPaged(String shortName, List<Pair<SortFields, Boolean>> sortProps, PagingRequest pagingRequest, boolean expandGroups) {
+    public PagingResults<SiteUserMembership> listMembersPaged(String shortName, List<Pair<SortFields, Boolean>> sortProps, PagingRequest pagingRequest, boolean expandGroups)
+    {
         CannedQueryParameters params = getCannedQueryParameters(shortName, expandGroups, sortProps, pagingRequest);
         CannedQuery<SiteUserMembership> query = new SiteMembersCannedQuery<SiteUserMembership>(this, personService, nodeService, params);
 

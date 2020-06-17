@@ -841,8 +841,8 @@ public class SiteServiceImplMoreTest
         {
             public Void execute() throws Throwable
             {
-                // create the site
-                perMethodTestSites.createTestSiteWithUserPerRole(siteShortName, "sitePreset", SiteVisibility.PUBLIC, AuthenticationUtil.getAdminUserName());
+                // ...and create the site
+                final TestSiteAndMemberInfo testSiteAndMemberInfo = perMethodTestSites.createTestSiteWithUserPerRole(siteShortName, "sitePreset", SiteVisibility.PUBLIC, AuthenticationUtil.getAdminUserName());
 
                 List<Pair<SiteService.SortFields, Boolean>> sortProps = new ArrayList<Pair<SiteService.SortFields, Boolean>>(1);
                 sortProps.add(new Pair<SiteService.SortFields, Boolean>(SiteService.SortFields.FirstName, true));
@@ -858,12 +858,14 @@ public class SiteServiceImplMoreTest
         });
     }
 
-    @Test public void testSiteGroupsPaged() {
+    @Test public void testSiteGroupsPaged()
+    {
         // Choose a site name that will link back to this test case...
         final String siteShortName = testName.getMethodName();
         log.debug("Creating test site called: " + siteShortName);
 
-        TRANSACTION_HELPER.doInTransaction(() -> {
+        TRANSACTION_HELPER.doInTransaction(() ->
+        {
             perMethodTestSites.createTestSiteWithGroups(siteShortName, "sitePreset", SiteVisibility.PUBLIC, AuthenticationUtil.getAdminUserName(), 10);
             List<Pair<SiteService.SortFields, Boolean>> sortProps = new ArrayList<Pair<SiteService.SortFields, Boolean>>(1);
             sortProps.add(new Pair<SiteService.SortFields, Boolean>(SiteService.SortFields.DisplayName, true));
@@ -878,12 +880,14 @@ public class SiteServiceImplMoreTest
         });
     }
 
-    @Test public void testSiteMembersPagedV2() {
+    @Test public void testSiteMembersPagedV2()
+    {
         // Choose a site name that will link back to this test case...
         final String siteShortName = testName.getMethodName();
         log.debug("Creating test site called: " + siteShortName);
 
-        TRANSACTION_HELPER.doInTransaction(() -> {
+        TRANSACTION_HELPER.doInTransaction(() ->
+        {
             perMethodTestSites.createTestSiteWithGroups(siteShortName, "sitePreset", SiteVisibility.PUBLIC, AuthenticationUtil.getAdminUserName(), 10);
             List<Pair<SiteService.SortFields, Boolean>> sortProps = new ArrayList<Pair<SiteService.SortFields, Boolean>>(1);
             sortProps.add(new Pair<SiteService.SortFields, Boolean>(SiteService.SortFields.FirstName, true));

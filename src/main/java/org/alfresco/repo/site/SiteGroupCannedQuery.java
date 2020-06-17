@@ -77,7 +77,8 @@ public class SiteGroupCannedQuery extends AbstractCannedQuery<SiteGroupMembershi
     private SiteInfo siteInfo;
     private Set<SiteGroupMembership> siteGroups;
 
-    CQSiteGroupsCallback(String siteShortName, List<Pair<? extends Object, SortOrder>> sortPairs) {
+    CQSiteGroupsCallback(String siteShortName, List<Pair<? extends Object, SortOrder>> sortPairs)
+    {
       this.siteInfo = siteService.getSite(siteShortName);
       this.siteGroups = sortPairs != null && sortPairs.size() > 0
               ? new TreeSet<>(SiteGroupMembership.getComparator(sortPairs))

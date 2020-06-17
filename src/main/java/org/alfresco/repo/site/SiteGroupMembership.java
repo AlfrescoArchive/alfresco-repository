@@ -38,12 +38,14 @@ public class SiteGroupMembership extends SiteMembership
 {
     private String displayName;
 
-    public SiteGroupMembership(SiteInfo siteInfo, String id, String role, String displayName) {
+    public SiteGroupMembership(SiteInfo siteInfo, String id, String role, String displayName)
+    {
         super(siteInfo, id, role);
         this.displayName = displayName;
     }
 
-    public String getDisplayName() {
+    public String getDisplayName()
+    {
         return displayName;
     }
 
