@@ -192,7 +192,6 @@ public class EventConsolidatorUnitTest
 
         Set<String> removed = new HashSet<>();
         removed.add("cm:contains");
-//        removed.add("cm:contains");
         Set<String> added = new HashSet<>();
         added.add("cm:contains");
         
