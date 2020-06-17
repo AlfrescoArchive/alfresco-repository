@@ -2,7 +2,7 @@
  * #%L
  * Alfresco Repository
  * %%
- * Copyright (C) 2005 - 2017 Alfresco Software Limited
+ * Copyright (C) 2005 - 2020 Alfresco Software Limited
  * %%
  * This file is part of the Alfresco software. 
  * If the software was purchased under a paid Alfresco license, the terms of 
@@ -52,8 +52,6 @@ import org.alfresco.repo.rendition.executer.AbstractRenderingEngine;
 import org.alfresco.repo.rendition.executer.ImageRenderingEngine;
 import org.alfresco.repo.rendition.executer.ReformatRenderingEngine;
 import org.alfresco.repo.security.authentication.AuthenticationUtil;
-import org.alfresco.repo.transaction.AlfrescoTransactionSupport;
-import org.alfresco.repo.transaction.AlfrescoTransactionSupport.TxnReadState;
 import org.alfresco.repo.transaction.RetryingTransactionHelper;
 import org.alfresco.repo.transaction.RetryingTransactionHelper.RetryingTransactionCallback;
 import org.alfresco.repo.transaction.TransactionalResourceHelper;
@@ -408,12 +406,8 @@ public class ThumbnailServiceImpl implements ThumbnailService,
         
         RetryingTransactionHelper txnHelper = transactionService.getRetryingTransactionHelper();
         txnHelper.setForceWritable(true);
-        boolean requiresNew = false;
-        if (AlfrescoTransactionSupport.getTransactionReadState() != TxnReadState.TXN_READ_WRITE)
-        {
-            //We can be in a read-only transaction, so force a new transaction 
-            requiresNew = true;
-        }
+        // Always requires a new transaction otherwise the parent transaction is invalidated
+        // if there is a problem.
         return txnHelper.doInTransaction(new RetryingTransactionCallback<NodeRef>()
         {
 
@@ -434,7 +428,7 @@ public class ThumbnailServiceImpl implements ThumbnailService,
                 }, AuthenticationUtil.getSystemUserName());
             }
     
-        }, false, requiresNew);
+        }, false, true);
         
     }
     
