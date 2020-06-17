@@ -18,6 +18,7 @@ branches:
   only:
     - master
     - /support\/.*/
+    - fix/keycloak-secuirty-fix-test
 
 stages:
   - test
