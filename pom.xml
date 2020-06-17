@@ -2,7 +2,7 @@
     <modelVersion>4.0.0</modelVersion>
     <artifactId>alfresco-repository</artifactId>
     <name>Alfresco Repository</name>
-    <version>8.200-SNAPSHOT</version>
+    <version>8.213-SNAPSHOT</version>
     <packaging>jar</packaging>
     <parent>
         <groupId>org.alfresco</groupId>
@@ -51,11 +51,12 @@
         <dependency.httpcomponents.version>4.5.10</dependency.httpcomponents.version>
         <dependency.truezip.version>7.7.10</dependency.truezip.version>
         <dependency.poi.version>4.1.1</dependency.poi.version>
+        <dependency.ooxml-schemas.version>1.4</dependency.ooxml-schemas.version>
         <dependency.webscripts.version>8.3</dependency.webscripts.version>
         <dependency.opencmis.version>1.0.0</dependency.opencmis.version>
         <dependency.activiti-engine.version>5.23.0</dependency.activiti-engine.version>
         <dependency.activiti.version>5.23.0</dependency.activiti.version>
-        <dependency.postgresql.version>42.2.13</dependency.postgresql.version>
+        <dependency.postgresql.version>42.2.14</dependency.postgresql.version>
         <dependency.mysql.version>8.0.20</dependency.mysql.version>
         <dependency.mariadb.version>2.6.0</dependency.mariadb.version>
         <dependency.antlr.version>3.5.2</dependency.antlr.version>
@@ -69,8 +70,8 @@
         <dependency.jackson.version>2.11.0</dependency.jackson.version>
         <dependency.jackson-databind.version>2.10.2</dependency.jackson-databind.version>
         <dependency.apache.taglibs.version>1.2.5</dependency.apache.taglibs.version>
-        <dependency.acs-event-model.version>0.0.2</dependency.acs-event-model.version>
-        <dependency.awaitility.version>4.0.2</dependency.awaitility.version>
+        <dependency.acs-event-model.version>0.0.6</dependency.acs-event-model.version>
+        <dependency.awaitility.version>4.0.3</dependency.awaitility.version>
     </properties>
 
     <dependencyManagement>
@@ -527,6 +528,17 @@
             <groupId>org.apache.poi</groupId>
             <artifactId>poi-ooxml</artifactId>
             <version>${dependency.poi.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.apache.poi</groupId>
+                    <artifactId>poi-ooxml-schemas</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.poi</groupId>
+            <artifactId>ooxml-schemas</artifactId>
+            <version>${dependency.ooxml-schemas.version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.poi</groupId>
