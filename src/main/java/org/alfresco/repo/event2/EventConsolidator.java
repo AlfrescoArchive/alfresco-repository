@@ -387,11 +387,8 @@ public class EventConsolidator implements EventSupportedPolicies
 
     private boolean hasChangedAspect()
     {
-        if (aspectsRemoved.isEmpty() && aspectsAdded.isEmpty())
-        {
-            return false;
-        }
-        else if (aspectsRemoved.size() == aspectsAdded.size() && aspectsRemoved.containsAll(aspectsAdded))
+        if ((aspectsRemoved.isEmpty() && aspectsAdded.isEmpty()) ||
+                org.apache.commons.collections.CollectionUtils.isEqualCollection(aspectsAdded, aspectsRemoved))
         {
             return false;
         }

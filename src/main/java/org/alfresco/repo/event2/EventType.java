@@ -32,9 +32,9 @@ package org.alfresco.repo.event2;
  */
 public enum EventType
 {
-    NODE_CREATED("Created", ContextType.NODE), NODE_UPDATED("Updated", ContextType.NODE), NODE_DELETED("Deleted", ContextType.NODE), NODE_DOWNLOADED("Downloaded", ContextType.NODE),
-    CHILD_ASSOC_CREATED("Created", ContextType.CHILD_ASSOC), CHILD_ASSOC_DELETED("Deleted", ContextType.CHILD_ASSOC),
-    PEER_ASSOC_CREATED("Created", ContextType.PEER_ASSOC), PEER_ASSOC_DELETED("Deleted", ContextType.PEER_ASSOC);
+    NODE_CREATED(EventTypeConst.CREATED, ContextType.NODE), NODE_UPDATED(EventTypeConst.UPDATED, ContextType.NODE), NODE_DELETED(EventTypeConst.DELETED, ContextType.NODE), NODE_DOWNLOADED("Downloaded", ContextType.NODE),
+    CHILD_ASSOC_CREATED(EventTypeConst.CREATED, ContextType.CHILD_ASSOC), CHILD_ASSOC_DELETED(EventTypeConst.DELETED, ContextType.CHILD_ASSOC),
+    PEER_ASSOC_CREATED(EventTypeConst.CREATED, ContextType.PEER_ASSOC), PEER_ASSOC_DELETED(EventTypeConst.DELETED, ContextType.PEER_ASSOC);
 
     private static final String PREFIX = "org.alfresco.event.";
     private String type;
@@ -67,7 +67,7 @@ public enum EventType
         return toString();
     }
 
-    enum ContextType
+    private enum ContextType
     {
         NODE("node."), CHILD_ASSOC("assoc.child."), PEER_ASSOC("assoc.peer.");
         private String context;
@@ -80,6 +80,13 @@ public enum EventType
         {
             return context;
         }
+    }
+    
+    private static class EventTypeConst
+    {
+        private static final String CREATED = "Created";
+        private static final String UPDATED = "Updated";
+        private static final String DELETED = "Deleted";
     }
 }
 

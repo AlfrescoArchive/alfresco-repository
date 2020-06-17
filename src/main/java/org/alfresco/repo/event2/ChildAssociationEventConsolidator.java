@@ -44,16 +44,16 @@ public class ChildAssociationEventConsolidator implements ChildAssociationEventS
 {
     private final Deque<EventType> eventTypes;
 
-    private ChildAssociationRef childAssociationRef;
+    private final ChildAssociationRef childAssociationRef;
     private ChildAssociationResource resource;
-    QNameHelper helper;
+    private final QNameHelper helper;
 
     public ChildAssociationEventConsolidator(ChildAssociationRef childAssociationRef, QNameHelper helper)
     {
         this.eventTypes = new ArrayDeque<>();
         this.childAssociationRef = childAssociationRef;
         this.helper = helper;
-        resource = buildChildAssociationResource(this.childAssociationRef);
+        this.resource = buildChildAssociationResource(this.childAssociationRef);
     }
 
     /**

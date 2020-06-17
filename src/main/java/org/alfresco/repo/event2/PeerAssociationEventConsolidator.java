@@ -43,9 +43,9 @@ public class PeerAssociationEventConsolidator implements PeerAssociationEventSup
 {
     private final Deque<EventType> eventTypes;
 
-    private AssociationRef associationRef;
-    PeerAssociationResource resource;
-    QNameHelper helper;
+    private final AssociationRef associationRef;
+    private PeerAssociationResource resource;
+    private final QNameHelper helper;
 
     public PeerAssociationEventConsolidator(AssociationRef associationRef, QNameHelper helper)
     {

@@ -366,107 +366,6 @@ public class EventGenerator extends AbstractLifecycleBean implements Initializin
                               .setSource(URI.create("/" + descriptorService.getCurrentRepositoryDescriptor().getId()));
     }
 
-    private void sendEvent(NodeRef nodeRef, EventConsolidator consolidator)
-    {
-        if (consolidator.isTemporaryNode())
-        {
-            if (LOGGER.isTraceEnabled())
-            {
-                LOGGER.trace("Ignoring temporary node: " + nodeRef);
-            }
-            return;
-        }
-
-        final String user = AuthenticationUtil.getFullyAuthenticatedUser();
-        // Get the repo event before the filtering,
-        // so we can take the latest node info into account
-        final RepoEvent<?> event = consolidator.getRepoEvent(getEventInfo(user));
-
-        
-        final QName nodeType = consolidator.getNodeType();
-        if (isFiltered(nodeType, user))
-        {
-            if (LOGGER.isTraceEnabled())
-            {
-                LOGGER.trace("EventFilter - Excluding node: '" + nodeRef + "' of type: '"
-                                         + ((nodeType == null) ? "Unknown' " : nodeType.toPrefixString())
-                                         + "' created by: " + user);
-            }
-            return;
-        }
-        
-        if (event.getType().equals(EventType.NODE_UPDATED.getType()) && consolidator.isResourceBeforeAllFieldsNull())
-        {
-            if (LOGGER.isTraceEnabled())
-            {
-                LOGGER.trace("Ignoring node updated event as no fields have been updated: " + nodeRef);
-            }
-            return;
-        }
-
-        logAndSendEvent(event, consolidator.getEventTypes());
-    }
-
-    private void sendEvent(ChildAssociationRef childAssociationRef, ChildAssociationEventConsolidator consolidator)
-    {
-        if (consolidator.isTemporaryChildAssociation())
-        {
-            if (LOGGER.isTraceEnabled())
-            {
-                LOGGER.trace("Ignoring temporary child association: " + childAssociationRef);
-            }
-            return;
-        }
-
-        final String user = AuthenticationUtil.getFullyAuthenticatedUser();
-        // Get the repo event before the filtering,
-        // so we can take the latest association info into account
-        final RepoEvent<?> event = consolidator.getRepoEvent(getEventInfo(user));
-
-        final QName childAssocType = consolidator.getChildAssocType();
-        if (isFilteredChildAssociation(childAssocType, user))
-        {
-            if (LOGGER.isTraceEnabled())
-            {
-                LOGGER.trace("EventFilter - Excluding child association: '" + childAssociationRef + "' of type: '"
-                        + ((childAssocType == null) ? "Unknown' " : childAssocType.toPrefixString())
-                        + "' created by: " + user);
-            }
-            return;
-        }
-        else if (childAssociationRef.isPrimary())
-        {
-            if (LOGGER.isTraceEnabled())
-            {
-                LOGGER.trace("EventFilter - Excluding primary child association: '" + childAssociationRef + "' of type: '"
-                        + ((childAssocType == null) ? "Unknown' " : childAssocType.toPrefixString())
-                        + "' created by: " + user);
-            }
-            return;
-        }
-
-        logAndSendEvent(event, consolidator.getEventTypes());
-    }
-
-    private void sendEvent(AssociationRef peerAssociationRef, PeerAssociationEventConsolidator consolidator)
-    {
-        if (consolidator.isTemporaryPeerAssociation())
-        {
-            if (LOGGER.isTraceEnabled())
-            {
-                LOGGER.trace("Ignoring temporary peer association: " + peerAssociationRef);
-            }
-            return;
-        }
-
-        final String user = AuthenticationUtil.getFullyAuthenticatedUser();
-        // Get the repo event before the filtering,
-        // so we can take the latest association info into account
-        final RepoEvent<?> event = consolidator.getRepoEvent(getEventInfo(user));
-
-        logAndSendEvent(event, consolidator.getEventTypes());
-    }
-
     @Override
     protected void onBootstrap(ApplicationEvent applicationEvent)
     {
@@ -477,21 +376,6 @@ public class EventGenerator extends AbstractLifecycleBean implements Initializin
     protected void onShutdown(ApplicationEvent applicationEvent)
     {
         //NOOP
-    }
-
-    private void logAndSendEvent(RepoEvent<?> event, Deque<EventType> listOfEvents)
-    {
-        if (LOGGER.isTraceEnabled())
-        {
-            LOGGER.trace("List of Events:" + listOfEvents);
-            LOGGER.trace("Sending event:" + event);
-        }
-        // Need to execute this in another read txn because Camel expects it
-        transactionService.getRetryingTransactionHelper().doInTransaction((RetryingTransactionCallback<Void>) () -> {
-            event2MessageProducer.send(event);
-
-            return null;
-        }, true, false);
     }
 
     private class EventTransactionListener extends TransactionListenerAdapter
@@ -530,14 +414,129 @@ public class EventGenerator extends AbstractLifecycleBean implements Initializin
                 LOGGER.error("Unexpected error while sending repository events", e);
             }
         }
+
+        private void sendEvent(NodeRef nodeRef, EventConsolidator consolidator)
+        {
+            if (consolidator.isTemporaryNode())
+            {
+                if (LOGGER.isTraceEnabled())
+                {
+                    LOGGER.trace("Ignoring temporary node: " + nodeRef);
+                }
+                return;
+            }
+
+            final String user = AuthenticationUtil.getFullyAuthenticatedUser();
+            // Get the repo event before the filtering,
+            // so we can take the latest node info into account
+            final RepoEvent<?> event = consolidator.getRepoEvent(getEventInfo(user));
+
+
+            final QName nodeType = consolidator.getNodeType();
+            if (isFiltered(nodeType, user))
+            {
+                if (LOGGER.isTraceEnabled())
+                {
+                    LOGGER.trace("EventFilter - Excluding node: '" + nodeRef + "' of type: '"
+                            + ((nodeType == null) ? "Unknown' " : nodeType.toPrefixString())
+                            + "' created by: " + user);
+                }
+                return;
+            }
+
+            if (event.getType().equals(EventType.NODE_UPDATED.getType()) && consolidator.isResourceBeforeAllFieldsNull())
+            {
+                if (LOGGER.isTraceEnabled())
+                {
+                    LOGGER.trace("Ignoring node updated event as no fields have been updated: " + nodeRef);
+                }
+                return;
+            }
+
+            logAndSendEvent(event, consolidator.getEventTypes());
+        }
+
+        private void sendEvent(ChildAssociationRef childAssociationRef, ChildAssociationEventConsolidator consolidator)
+        {
+            if (consolidator.isTemporaryChildAssociation())
+            {
+                if (LOGGER.isTraceEnabled())
+                {
+                    LOGGER.trace("Ignoring temporary child association: " + childAssociationRef);
+                }
+                return;
+            }
+
+            final String user = AuthenticationUtil.getFullyAuthenticatedUser();
+            // Get the repo event before the filtering,
+            // so we can take the latest association info into account
+            final RepoEvent<?> event = consolidator.getRepoEvent(getEventInfo(user));
+
+            final QName childAssocType = consolidator.getChildAssocType();
+            if (isFilteredChildAssociation(childAssocType, user))
+            {
+                if (LOGGER.isTraceEnabled())
+                {
+                    LOGGER.trace("EventFilter - Excluding child association: '" + childAssociationRef + "' of type: '"
+                            + ((childAssocType == null) ? "Unknown' " : childAssocType.toPrefixString())
+                            + "' created by: " + user);
+                }
+                return;
+            } else if (childAssociationRef.isPrimary())
+            {
+                if (LOGGER.isTraceEnabled())
+                {
+                    LOGGER.trace("EventFilter - Excluding primary child association: '" + childAssociationRef + "' of type: '"
+                            + ((childAssocType == null) ? "Unknown' " : childAssocType.toPrefixString())
+                            + "' created by: " + user);
+                }
+                return;
+            }
+
+            logAndSendEvent(event, consolidator.getEventTypes());
+        }
+
+        private void sendEvent(AssociationRef peerAssociationRef, PeerAssociationEventConsolidator consolidator)
+        {
+            if (consolidator.isTemporaryPeerAssociation())
+            {
+                if (LOGGER.isTraceEnabled())
+                {
+                    LOGGER.trace("Ignoring temporary peer association: " + peerAssociationRef);
+                }
+                return;
+            }
+
+            final String user = AuthenticationUtil.getFullyAuthenticatedUser();
+            // Get the repo event before the filtering,
+            // so we can take the latest association info into account
+            final RepoEvent<?> event = consolidator.getRepoEvent(getEventInfo(user));
+
+            logAndSendEvent(event, consolidator.getEventTypes());
+        }
+
+        private void logAndSendEvent(RepoEvent<?> event, Deque<EventType> listOfEvents)
+        {
+            if (LOGGER.isTraceEnabled())
+            {
+                LOGGER.trace("List of Events:" + listOfEvents);
+                LOGGER.trace("Sending event:" + event);
+            }
+            // Need to execute this in another read txn because Camel expects it
+            transactionService.getRetryingTransactionHelper().doInTransaction((RetryingTransactionCallback<Void>) () -> {
+                event2MessageProducer.send(event);
+
+                return null;
+            }, true, false);
+        }
     }
 
 
-    private class Consolidators
+    private static class Consolidators
     {
-        Map<NodeRef, EventConsolidator> nodes;
-        Map<ChildAssociationRef, ChildAssociationEventConsolidator> childAssocs;
-        Map<AssociationRef, PeerAssociationEventConsolidator> peerAssocs;
+        private Map<NodeRef, EventConsolidator> nodes;
+        private Map<ChildAssociationRef, ChildAssociationEventConsolidator> childAssocs;
+        private Map<AssociationRef, PeerAssociationEventConsolidator> peerAssocs;
 
         public Map<NodeRef, EventConsolidator> getNodes()
         {
