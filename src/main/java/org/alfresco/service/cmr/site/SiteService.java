@@ -62,8 +62,8 @@ public interface SiteService
     public interface SiteMembersCallback
     {
 
-        /*
-         * deprecated from 7.0.0 use default method instead
+        /**
+         * @deprecated from 7.0.0 use default method instead
          * A site member along with his/her Site permission
          */
         public void siteMember(String authority, String permission);
@@ -322,7 +322,7 @@ public interface SiteService
     void deleteSite(String shortName);
 
     /**
-     * deprecated from 7.0.0
+     * @deprecated from 7.0.0
      * List the members of the site.  This includes both users and groups.
      * <p>
      * Name and role filters are optional and if not specified all the members of the site are returned.
@@ -380,7 +380,7 @@ public interface SiteService
     List<SiteMemberInfo> listMembersInfo(String shortName, String nameFilter, String roleFilter, int size, boolean collapseGroups);
     
     /**
-     * deprecated from 7.0.0 use listUsersPaged or ListGroupsPaged
+     * @deprecated from 7.0.0 use listUsersPaged or ListGroupsPaged
      * Gets the role of the specified user.
      * Returns a paged list of the members of the site.  This includes both users and groups if collapseGroups is set to false, otherwise all
      * groups that are members are collapsed into their component users and listed.

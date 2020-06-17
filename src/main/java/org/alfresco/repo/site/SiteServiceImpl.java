@@ -1770,8 +1770,10 @@ public class SiteServiceImpl extends AbstractLifecycleBean implements SiteServic
                     switch (AuthorityType.getAuthorityType(authority)) {
 
                     case USER:
-                        if(includeUsers) {
-                            if (hasValidName(nameFilter, nameFilters, authority)) {
+                        if(includeUsers)
+                        {
+                            if (hasValidName(nameFilter, nameFilters, authority))
+                            {
                                 // Add the user and their permission to the returned map
                                 callback.siteMember(authority, permission, false);
                             }
@@ -1782,15 +1784,17 @@ public class SiteServiceImpl extends AbstractLifecycleBean implements SiteServic
                         }
                         break;
                     case GROUP:
-                        if (expandGroups) {
+                        if (expandGroups)
+                        {
                             if (!groupsToExpand.containsKey(authority))
                             {
                                 groupsToExpand.put(authority, permission);
                             }
                         }
-                        else if (includeGroups) {
-
-                            if (nameFilter != null && nameFilter.length() != 0) {
+                        else if (includeGroups)
+                        {
+                            if (nameFilter != null && nameFilter.length() != 0)
+                            {
                                 // found a filter - does it match Group name part?
                                 if (authority.substring(GROUP_PREFIX_LENGTH).toLowerCase().contains(nameFilterLower))
                                 {

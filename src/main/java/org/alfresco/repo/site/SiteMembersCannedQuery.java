@@ -104,8 +104,8 @@ public class SiteMembersCannedQuery<T extends SiteMembership> extends AbstractCa
 					: new HashSet<SiteUserMembership>();
     	}
 
-		/*
-		 * deprecated from 7.0.0
+		/**
+		 * @deprecated from 7.0.0
 		 */
 		@Override
 		public void siteMember(String authority, String permission) {}

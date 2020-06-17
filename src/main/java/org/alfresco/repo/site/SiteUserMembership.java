@@ -25,6 +25,7 @@
  */
 package org.alfresco.repo.site;
 
+import org.alfresco.api.AlfrescoPublicApi;
 import org.alfresco.query.CannedQuerySortDetails;
 import org.alfresco.service.cmr.site.SiteInfo;
 import org.alfresco.util.Pair;
@@ -33,6 +34,7 @@ import java.util.Comparator;
 import java.util.List;
 
 
+@AlfrescoPublicApi
 public class SiteUserMembership extends SiteMembership
 {
     private final String firstName;

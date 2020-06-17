@@ -25,6 +25,7 @@
  */
 package org.alfresco.repo.site;
 
+import org.alfresco.api.AlfrescoPublicApi;
 import org.alfresco.service.cmr.site.SiteInfo;
 
 /**
@@ -33,6 +34,7 @@ import org.alfresco.service.cmr.site.SiteInfo;
  * @author steveglover
  *
  */
+@AlfrescoPublicApi
 public class SiteMembership
 {
     private SiteInfo siteInfo;
@@ -43,8 +45,8 @@ public class SiteMembership
     private String firstName;
     private String lastName;
 
-    /*
-     * deprecated from 7.0.0
+    /**
+     * @deprecated from 7.0.0
      */
     public SiteMembership(SiteInfo siteInfo, String id, String firstName, String lastName,
             String role)
@@ -109,7 +111,7 @@ public class SiteMembership
         return siteInfo;
     }
 
-    /** deprecated from 7.0.0 use getId instead */
+    /** @deprecated from 7.0.0 use getId instead */
     public String getPersonId() {
         return id;
     }
@@ -118,13 +120,13 @@ public class SiteMembership
         return id;
     }
 
-    /** deprecated from 7.0.0 use SiteUserMembership instead */
+    /** @deprecated from 7.0.0 use SiteUserMembership instead */
     public String getFirstName()
     {
         return firstName;
     }
 
-    /** deprecated from 7.0.0 use SiteUserMembership instead */
+    /** @deprecated from 7.0.0 use SiteUserMembership instead */
     public String getLastName()
     {
         return lastName;

@@ -863,20 +863,18 @@ public class SiteServiceImplMoreTest
         final String siteShortName = testName.getMethodName();
         log.debug("Creating test site called: " + siteShortName);
 
-        TRANSACTION_HELPER.doInTransaction(new RetryingTransactionCallback<Void>() {
-            public Void execute() throws Throwable {
-                perMethodTestSites.createTestSiteWithGroups(siteShortName, "sitePreset", SiteVisibility.PUBLIC, AuthenticationUtil.getAdminUserName(), 10);
-                List<Pair<SiteService.SortFields, Boolean>> sortProps = new ArrayList<Pair<SiteService.SortFields, Boolean>>(1);
-                sortProps.add(new Pair<SiteService.SortFields, Boolean>(SiteService.SortFields.DisplayName, true));
-                PagingResults<SiteGroupMembership> pagedMembers = SITE_SERVICE.listGroupsPaged(siteShortName, sortProps, new PagingRequest(5));
-                assertNotNull(pagedMembers);
-                assertNotNull(pagedMembers.getQueryExecutionId());
-                assertTrue(pagedMembers.hasMoreItems());
-                assertEquals(pagedMembers.getPage().size(), 5);
-                log.debug("About to delete site completely.");
-                SITE_SERVICE.deleteSite(siteShortName);
-                return null;
-            }
+        TRANSACTION_HELPER.doInTransaction(() -> {
+            perMethodTestSites.createTestSiteWithGroups(siteShortName, "sitePreset", SiteVisibility.PUBLIC, AuthenticationUtil.getAdminUserName(), 10);
+            List<Pair<SiteService.SortFields, Boolean>> sortProps = new ArrayList<Pair<SiteService.SortFields, Boolean>>(1);
+            sortProps.add(new Pair<SiteService.SortFields, Boolean>(SiteService.SortFields.DisplayName, true));
+            PagingResults<SiteGroupMembership> pagedMembers = SITE_SERVICE.listGroupsPaged(siteShortName, sortProps, new PagingRequest(5));
+            assertNotNull(pagedMembers);
+            assertNotNull(pagedMembers.getQueryExecutionId());
+            assertTrue(pagedMembers.hasMoreItems());
+            assertEquals(pagedMembers.getPage().size(), 5);
+            log.debug("About to delete site completely.");
+            SITE_SERVICE.deleteSite(siteShortName);
+            return null;
         });
     }
 
@@ -885,37 +883,35 @@ public class SiteServiceImplMoreTest
         final String siteShortName = testName.getMethodName();
         log.debug("Creating test site called: " + siteShortName);
 
-        TRANSACTION_HELPER.doInTransaction(new RetryingTransactionCallback<Void>() {
-            public Void execute() throws Throwable {
-                perMethodTestSites.createTestSiteWithGroups(siteShortName, "sitePreset", SiteVisibility.PUBLIC, AuthenticationUtil.getAdminUserName(), 10);
-                List<Pair<SiteService.SortFields, Boolean>> sortProps = new ArrayList<Pair<SiteService.SortFields, Boolean>>(1);
-                sortProps.add(new Pair<SiteService.SortFields, Boolean>(SiteService.SortFields.FirstName, true));
-                PagingResults<SiteUserMembership> pagedMembers = SITE_SERVICE.listMembersPaged(siteShortName, sortProps, new PagingRequest(100), true);
-                assertNotNull(pagedMembers);
-                assertNotNull(pagedMembers.getQueryExecutionId());
-                assertFalse(pagedMembers.hasMoreItems());
-                assertEquals(pagedMembers.getPage().size(), 11);
+        TRANSACTION_HELPER.doInTransaction(() -> {
+            perMethodTestSites.createTestSiteWithGroups(siteShortName, "sitePreset", SiteVisibility.PUBLIC, AuthenticationUtil.getAdminUserName(), 10);
+            List<Pair<SiteService.SortFields, Boolean>> sortProps = new ArrayList<Pair<SiteService.SortFields, Boolean>>(1);
+            sortProps.add(new Pair<SiteService.SortFields, Boolean>(SiteService.SortFields.FirstName, true));
+            PagingResults<SiteUserMembership> pagedMembers = SITE_SERVICE.listMembersPaged(siteShortName, sortProps, new PagingRequest(100), true);
+            assertNotNull(pagedMembers);
+            assertNotNull(pagedMembers.getQueryExecutionId());
+            assertFalse(pagedMembers.hasMoreItems());
+            assertEquals(pagedMembers.getPage().size(), 11);
 
-                List<SiteUserMembership> users = pagedMembers.getPage().stream().filter((member) -> !member.isMemberOfGroup()).collect(Collectors.toList());
-                List<SiteUserMembership> groupsUsers = pagedMembers.getPage().stream().filter(SiteUserMembership::isMemberOfGroup).collect(Collectors.toList());
-                assertEquals(users.size(), 1);
-                assertEquals(groupsUsers.size(), 10);
+            List<SiteUserMembership> users = pagedMembers.getPage().stream().filter((member) -> !member.isMemberOfGroup()).collect(Collectors.toList());
+            List<SiteUserMembership> groupsUsers = pagedMembers.getPage().stream().filter(SiteUserMembership::isMemberOfGroup).collect(Collectors.toList());
+            assertEquals(users.size(), 1);
+            assertEquals(groupsUsers.size(), 10);
 
-                pagedMembers = SITE_SERVICE.listMembersPaged(siteShortName, sortProps, new PagingRequest(100), false);
-                assertNotNull(pagedMembers);
-                assertNotNull(pagedMembers.getQueryExecutionId());
-                assertFalse(pagedMembers.hasMoreItems());
-                assertEquals(pagedMembers.getPage().size(), 1);
+            pagedMembers = SITE_SERVICE.listMembersPaged(siteShortName, sortProps, new PagingRequest(100), false);
+            assertNotNull(pagedMembers);
+            assertNotNull(pagedMembers.getQueryExecutionId());
+            assertFalse(pagedMembers.hasMoreItems());
+            assertEquals(pagedMembers.getPage().size(), 1);
 
-                users = pagedMembers.getPage().stream().filter((member) -> !member.isMemberOfGroup()).collect(Collectors.toList());
-                groupsUsers = pagedMembers.getPage().stream().filter(SiteUserMembership::isMemberOfGroup).collect(Collectors.toList());
-                assertEquals(users.size(), 1);
-                assertEquals(groupsUsers.size(), 0);
+            users = pagedMembers.getPage().stream().filter((member) -> !member.isMemberOfGroup()).collect(Collectors.toList());
+            groupsUsers = pagedMembers.getPage().stream().filter(SiteUserMembership::isMemberOfGroup).collect(Collectors.toList());
+            assertEquals(users.size(), 1);
+            assertEquals(groupsUsers.size(), 0);
 
-                log.debug("About to delete site completely.");
-                SITE_SERVICE.deleteSite(siteShortName);
-                return null;
-            }
+            log.debug("About to delete site completely.");
+            SITE_SERVICE.deleteSite(siteShortName);
+            return null;
         });
     }
 
