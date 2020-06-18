@@ -29,16 +29,11 @@ package org.alfresco.repo.event2;
 import org.alfresco.repo.node.NodeServicePolicies;
 
 /**
- * Event generator supported policies.
+ * Event generator supported policies for peer associations.
  *
- * @author Jamal Kaabi-Mofrad
+ * @author Sara Aspery
  */
-public interface EventSupportedPolicies extends NodeServicePolicies.OnCreateNodePolicy,
-                                                NodeServicePolicies.OnUpdatePropertiesPolicy,
-                                                NodeServicePolicies.OnSetNodeTypePolicy,
-                                                NodeServicePolicies.BeforeDeleteNodePolicy,
-                                                NodeServicePolicies.OnAddAspectPolicy,
-                                                NodeServicePolicies.OnRemoveAspectPolicy,
-                                                NodeServicePolicies.OnMoveNodePolicy
+public interface PeerAssociationEventSupportedPolicies extends NodeServicePolicies.OnCreateAssociationPolicy,
+                                                               NodeServicePolicies.BeforeDeleteAssociationPolicy
 {
 }

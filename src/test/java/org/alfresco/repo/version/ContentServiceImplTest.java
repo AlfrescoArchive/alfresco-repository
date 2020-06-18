@@ -46,6 +46,8 @@ import org.junit.experimental.categories.Category;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Date;
+
 /**
  * Tests for retrieving frozen content from a verioned node
  * 
@@ -189,7 +191,15 @@ public class ContentServiceImplTest extends BaseVersionStoreTest
     @Test
     public void testWhenGetDirectAccessUrlIsNotSupported()
     {
-        assertEquals("", contentService.getDirectAccessUrl("s3v2://1234421"));
+        NodeRef versionableNode = createNewVersionableNode();
+
+        // Set the presigned URL to expire after one minute.
+        Date expiresAt = new Date();
+        long expTimeMillis = expiresAt.getTime();
+        expTimeMillis += 1000 * 60;
+        expiresAt.setTime(expTimeMillis);
+
+        assertEquals("", contentService.getDirectAccessUrl(versionableNode, expiresAt));
         assertFalse(contentStore.isDirectAccessSupported());
     }
     
