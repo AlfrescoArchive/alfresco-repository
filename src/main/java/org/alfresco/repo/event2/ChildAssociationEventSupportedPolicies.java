@@ -31,14 +31,11 @@ import org.alfresco.repo.node.NodeServicePolicies;
 /**
  * Event generator supported policies.
  *
- * @author Jamal Kaabi-Mofrad
+ * @author Chris Shields
+ * @author Sara Aspery
  */
-public interface EventSupportedPolicies extends NodeServicePolicies.OnCreateNodePolicy,
-                                                NodeServicePolicies.OnUpdatePropertiesPolicy,
-                                                NodeServicePolicies.OnSetNodeTypePolicy,
-                                                NodeServicePolicies.BeforeDeleteNodePolicy,
-                                                NodeServicePolicies.OnAddAspectPolicy,
-                                                NodeServicePolicies.OnRemoveAspectPolicy,
-                                                NodeServicePolicies.OnMoveNodePolicy
+public interface ChildAssociationEventSupportedPolicies extends NodeServicePolicies.OnCreateChildAssociationPolicy,
+                                                                NodeServicePolicies.BeforeDeleteChildAssociationPolicy
 {
 }
+
