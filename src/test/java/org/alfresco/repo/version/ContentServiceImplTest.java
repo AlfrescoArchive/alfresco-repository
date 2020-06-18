@@ -27,6 +27,7 @@ package org.alfresco.repo.version;
 
 import org.alfresco.error.AlfrescoRuntimeException;
 import org.alfresco.model.ContentModel;
+import org.alfresco.repo.content.ContentStore;
 import org.alfresco.repo.content.EmptyContentReader;
 import org.alfresco.repo.content.MimetypeMap;
 import org.alfresco.repo.content.MimetypeMapTest;
@@ -42,7 +43,10 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 
+import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Date;
 
 /**
  * Tests for retrieving frozen content from a verioned node
@@ -62,6 +66,7 @@ public class ContentServiceImplTest extends BaseVersionStoreTest
      * The version content store
      */
     private ContentService contentService;
+    private ContentStore contentStore;
 
     @Before
     public void before() throws Exception
@@ -70,6 +75,7 @@ public class ContentServiceImplTest extends BaseVersionStoreTest
         
         // Get the instance of the required content service
         this.contentService = (ContentService)this.applicationContext.getBean("contentService");
+        this.contentStore = (ContentStore) ReflectionTestUtils.getField(contentService, "store");
     }
     
     /**
@@ -180,6 +186,21 @@ public class ContentServiceImplTest extends BaseVersionStoreTest
         {
             // An exception should be raised
         }
+    }
+
+    @Test
+    public void testWhenGetDirectAccessUrlIsNotSupported()
+    {
+        NodeRef versionableNode = createNewVersionableNode();
+
+        // Set the presigned URL to expire after one minute.
+        Date expiresAt = new Date();
+        long expTimeMillis = expiresAt.getTime();
+        expTimeMillis += 1000 * 60;
+        expiresAt.setTime(expTimeMillis);
+
+        assertEquals("", contentService.getDirectAccessUrl(versionableNode, expiresAt));
+        assertFalse(contentStore.isDirectAccessSupported());
     }
     
 //  Commented out as OpenOffice is not on the build machines.

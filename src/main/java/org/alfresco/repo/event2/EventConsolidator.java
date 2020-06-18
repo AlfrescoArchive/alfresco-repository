@@ -28,6 +28,7 @@ package org.alfresco.repo.event2;
 import java.io.Serializable;
 import java.time.ZonedDateTime;
 import java.util.ArrayDeque;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.Deque;
@@ -58,8 +59,8 @@ public class EventConsolidator implements EventSupportedPolicies
 {
     private final NodeResourceHelper helper;
     private final Deque<EventType> eventTypes;
-    private final Set<QName> aspectsAdded;
-    private final Set<QName> aspectsRemoved;
+    private final List<QName> aspectsAdded;
+    private final List<QName> aspectsRemoved;
 
     protected NodeRef nodeRef;
 
@@ -69,13 +70,14 @@ public class EventConsolidator implements EventSupportedPolicies
     private QName nodeType;
     private QName nodeTypeBefore;
     private List<String> primaryHierarchyBefore;
+    private boolean resourceBeforeAllFieldsNull = true;
 
     public EventConsolidator(NodeResourceHelper nodeResourceHelper)
     {
         this.helper = nodeResourceHelper;
         this.eventTypes = new ArrayDeque<>();
-        this.aspectsAdded = new HashSet<>();
-        this.aspectsRemoved = new HashSet<>();
+        this.aspectsAdded = new ArrayList<>();
+        this.aspectsRemoved = new ArrayList<>();
     }
 
     /**
@@ -175,18 +177,6 @@ public class EventConsolidator implements EventSupportedPolicies
     }
 
     @Override
-    public void onDownloadNode(NodeRef nodeRef)
-    {
-        eventTypes.add(EventType.NODE_DOWNLOADED);
-
-        createBuilderIfAbsent(nodeRef);
-
-        this.propertiesBefore = null;
-        setBeforeProperties(Collections.emptyMap());
-        setAfterProperties(helper.getProperties(nodeRef));
-    }
-    
-    @Override
     public void onUpdateProperties(NodeRef nodeRef, Map<QName, Serializable> before, Map<QName, Serializable> after)
     {
         eventTypes.add(EventType.NODE_UPDATED);
@@ -212,16 +202,40 @@ public class EventConsolidator implements EventSupportedPolicies
     public void onAddAspect(NodeRef nodeRef, QName aspectTypeQName)
     {
         eventTypes.add(EventType.NODE_UPDATED);
-        aspectsAdded.add(aspectTypeQName);
+        addAspect(aspectTypeQName);
         createBuilderIfAbsent(nodeRef);
+    }
+
+    void addAspect(QName aspectTypeQName)
+    {
+        if (aspectsRemoved.contains(aspectTypeQName))
+        {
+            aspectsRemoved.remove(aspectTypeQName);
+        }
+        else
+        {
+            aspectsAdded.add(aspectTypeQName);
+        }
     }
 
     @Override
     public void onRemoveAspect(NodeRef nodeRef, QName aspectTypeQName)
     {
         eventTypes.add(EventType.NODE_UPDATED);
-        aspectsRemoved.add(aspectTypeQName);
+        removeAspect(aspectTypeQName);
         createBuilderIfAbsent(nodeRef);
+    }
+
+    void removeAspect(QName aspectTypeQName)
+    {
+        if (aspectsAdded.contains(aspectTypeQName))
+        {
+            aspectsAdded.remove(aspectTypeQName);
+        }
+        else
+        {
+            aspectsRemoved.add(aspectTypeQName);
+        }
     }
 
     private void setAfterProperties(Map<QName, Serializable> after)
@@ -286,27 +300,33 @@ public class EventConsolidator implements EventSupportedPolicies
             if (!mappedProps.isEmpty())
             {
                 builder.setProperties(mappedProps);
+                resourceBeforeAllFieldsNull = false;
             }
             String name = (String) changedPropsBefore.get(ContentModel.PROP_NAME);
             if (name != null)
             {
                 builder.setName(name);
+                resourceBeforeAllFieldsNull = false;
             }
             ContentInfo contentInfo = helper.getContentInfo(changedPropsBefore);
             if (contentInfo != null)
             {
                 builder.setContent(contentInfo);
+                resourceBeforeAllFieldsNull = false;
             }
+
             UserInfo modifier = helper.getUserInfo((String) changedPropsBefore.get(ContentModel.PROP_MODIFIER));
             if (modifier != null)
             {
                 builder.setModifiedByUser(modifier);
+                resourceBeforeAllFieldsNull = false;
             }
             ZonedDateTime modifiedAt =
                         helper.getZonedDateTime((Date) changedPropsBefore.get(ContentModel.PROP_MODIFIED));
             if (modifiedAt != null)
             {
                 builder.setModifiedAt(modifiedAt);
+                resourceBeforeAllFieldsNull = false;
             }
         }
 
@@ -314,22 +334,25 @@ public class EventConsolidator implements EventSupportedPolicies
         if (!aspectsBefore.isEmpty())
         {
             builder.setAspectNames(aspectsBefore);
+            resourceBeforeAllFieldsNull = false;
         }
 
         if (primaryHierarchyBefore != null && !primaryHierarchyBefore.isEmpty())
         {
             builder.setPrimaryHierarchy(primaryHierarchyBefore);
+            resourceBeforeAllFieldsNull = false;
         }
 
         if (nodeTypeBefore != null)
         {
             builder.setNodeType(helper.getQNamePrefixString(nodeTypeBefore));
+            resourceBeforeAllFieldsNull = false;
         }
 
         return builder.build();
     }
 
-    private Set<String> getMappedAspectsBefore(Set<String> currentAspects)
+    Set<String> getMappedAspectsBefore(Set<String> currentAspects)
     {
         if (currentAspects == null)
         {
@@ -340,16 +363,20 @@ public class EventConsolidator implements EventSupportedPolicies
             Set<String> removed = helper.mapToNodeAspects(aspectsRemoved);
             Set<String> added = helper.mapToNodeAspects(aspectsAdded);
 
-            Set<String> before = new HashSet<>(currentAspects);
-            if (!removed.isEmpty())
+            Set<String> before = new HashSet<>();
+            if (!removed.isEmpty() || !added.isEmpty())
             {
-                // Add all the removed aspects from the current list
-                before.addAll(removed);
-            }
-            if (!added.isEmpty())
-            {
-                // Remove all the added aspects from the current list
-                before.removeAll(added);
+                before = new HashSet<>(currentAspects);
+                if (!removed.isEmpty())
+                {
+                    // Add all the removed aspects from the current list
+                    before.addAll(removed);
+                }
+                if (!added.isEmpty())
+                {
+                    // Remove all the added aspects from the current list
+                    before.removeAll(added);
+                }
             }
             return before;
         }
@@ -358,7 +385,12 @@ public class EventConsolidator implements EventSupportedPolicies
 
     private boolean hasChangedAspect()
     {
-        return !(aspectsRemoved.isEmpty() && aspectsAdded.isEmpty());
+        if ((aspectsRemoved.isEmpty() && aspectsAdded.isEmpty()) ||
+                org.apache.commons.collections.CollectionUtils.isEqualCollection(aspectsAdded, aspectsRemoved))
+        {
+            return false;
+        }
+        return true;
     }
 
     private <K, V> Map<K, V> getBeforeMapChanges(Map<K, V> before, Map<K, V> after)
@@ -422,5 +454,21 @@ public class EventConsolidator implements EventSupportedPolicies
     public Deque<EventType> getEventTypes()
     {
         return eventTypes;
+    }
+
+
+    public List<QName> getAspectsAdded()
+    {
+        return aspectsAdded;
+    }
+
+    public List<QName> getAspectsRemoved()
+    {
+        return aspectsRemoved;
+    }
+
+    public boolean isResourceBeforeAllFieldsNull()
+    {
+        return resourceBeforeAllFieldsNull;
     }
 }

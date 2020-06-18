@@ -63,6 +63,7 @@ import org.springframework.extensions.surf.util.I18NUtil;
 
 import java.io.Serializable;
 import java.util.Collection;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -370,39 +371,8 @@ public class ContentServiceImpl extends ContentTransformServiceAdaptor implement
         
     @SuppressWarnings("unchecked")
     private ContentReader getReader(NodeRef nodeRef, QName propertyQName, boolean fireContentReadPolicy)
-    {   
-        ContentData contentData = null;
-        Serializable propValue = nodeService.getProperty(nodeRef, propertyQName);
-        if (propValue instanceof Collection)
-        {
-            Collection<Serializable> colPropValue = (Collection<Serializable>)propValue;
-            if (colPropValue.size() > 0)
-            {
-                propValue = colPropValue.iterator().next();
-            }
-        }
-
-        if (propValue instanceof ContentData)
-        {
-            contentData = (ContentData)propValue;
-        }
-
-        if (contentData == null)
-        {
-            PropertyDefinition contentPropDef = dictionaryService.getProperty(propertyQName);
-            
-            // if no value or a value other content, and a property definition has been provided, ensure that it's CONTENT or ANY            
-            if (contentPropDef != null && 
-                (!(contentPropDef.getDataType().getName().equals(DataTypeDefinition.CONTENT) ||
-                   contentPropDef.getDataType().getName().equals(DataTypeDefinition.ANY))))
-            {
-                throw new InvalidTypeException("The node property must be of type content: \n" +
-                        "   node: " + nodeRef + "\n" +
-                        "   property name: " + propertyQName + "\n" +
-                        "   property type: " + ((contentPropDef == null) ? "unknown" : contentPropDef.getDataType()),
-                        propertyQName);
-            }
-        }
+    {
+        ContentData contentData = getContentData(nodeRef, propertyQName);
 
         // check that the URL is available
         if (contentData == null || contentData.getContentUrl() == null)
@@ -437,6 +407,43 @@ public class ContentServiceImpl extends ContentTransformServiceAdaptor implement
         // we don't listen for anything
         // result may be null - but interface contract says we may return null
         return reader;
+    }
+
+    private ContentData getContentData(NodeRef nodeRef, QName propertyQName)
+    {
+        ContentData contentData = null;
+        Serializable propValue = nodeService.getProperty(nodeRef, propertyQName);
+        if (propValue instanceof Collection)
+        {
+            Collection<Serializable> colPropValue = (Collection<Serializable>)propValue;
+            if (colPropValue.size() > 0)
+            {
+                propValue = colPropValue.iterator().next();
+            }
+        }
+
+        if (propValue instanceof ContentData)
+        {
+            contentData = (ContentData)propValue;
+        }
+
+        if (contentData == null)
+        {
+            PropertyDefinition contentPropDef = dictionaryService.getProperty(propertyQName);
+            
+            // if no value or a value other content, and a property definition has been provided, ensure that it's CONTENT or ANY            
+            if (contentPropDef != null && 
+                (!(contentPropDef.getDataType().getName().equals(DataTypeDefinition.CONTENT) ||
+                   contentPropDef.getDataType().getName().equals(DataTypeDefinition.ANY))))
+            {
+                throw new InvalidTypeException("The node property must be of type content: \n" +
+                        "   node: " + nodeRef + "\n" +
+                        "   property name: " + propertyQName + "\n" +
+                        "   property type: " + ((contentPropDef == null) ? "unknown" : contentPropDef.getDataType()),
+                        propertyQName);
+            }
+        }
+        return contentData;
     }
 
     public ContentWriter getWriter(NodeRef nodeRef, QName propertyQName, boolean update)
@@ -500,6 +507,25 @@ public class ContentServiceImpl extends ContentTransformServiceAdaptor implement
     {
         // there is no existing content and we don't specify the location of the new content
         return tempStore.getWriter(ContentContext.NULL_CONTEXT);
+    }
+
+    @Override
+    public String getDirectAccessUrl(NodeRef nodeRef, Date expiresAt)
+    {
+        ContentData contentData = getContentData(nodeRef, ContentModel.PROP_CONTENT);
+
+        // check that the URL is available
+        if (contentData == null || contentData.getContentUrl() == null)
+        {
+            // there is no URL - the interface specifies that this is not an error condition
+            return null;
+        }
+
+        if (store.isDirectAccessSupported())
+        {
+            return store.getDirectAccessUrl(contentData.getContentUrl(), expiresAt);
+        }
+        return "";
     }
 
     /**

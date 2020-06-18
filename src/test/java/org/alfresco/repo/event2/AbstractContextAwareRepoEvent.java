@@ -35,10 +35,12 @@ import java.util.List;
 import javax.jms.ConnectionFactory;
 
 import org.alfresco.model.ContentModel;
-import org.alfresco.opencmis.CMISConnector;
+import org.alfresco.repo.event.databind.ObjectMapperFactory;
+import org.alfresco.repo.event.v1.model.ChildAssociationResource;
 import org.alfresco.repo.event.v1.model.DataAttributes;
 import org.alfresco.repo.event.v1.model.EventData;
 import org.alfresco.repo.event.v1.model.NodeResource;
+import org.alfresco.repo.event.v1.model.PeerAssociationResource;
 import org.alfresco.repo.event.v1.model.RepoEvent;
 import org.alfresco.repo.event.v1.model.Resource;
 import org.alfresco.repo.security.authentication.AuthenticationUtil;
@@ -86,9 +88,6 @@ public abstract class AbstractContextAwareRepoEvent extends BaseSpringTest
 
     private static boolean isCamelConfigured;
     private static DataFormat dataFormat;
-
-    @Autowired
-    protected CMISConnector cmisConnector;
 
     @Autowired
     protected RetryingTransactionHelper retryingTransactionHelper;
@@ -207,9 +206,28 @@ public abstract class AbstractContextAwareRepoEvent extends BaseSpringTest
         return event;
     }
 
+    protected <D extends DataAttributes<? extends Resource>> RepoEvent<D> getRepoEventWithoutWait(int eventSequenceNumber)
+    {
+        RepoEventContainer eventContainer = getRepoEventsContainer();
+        @SuppressWarnings("unchecked")
+        RepoEvent<D> event = (RepoEvent<D>) eventContainer.getEvent(eventSequenceNumber);
+        assertNotNull(event);
+
+        return event;
+    }
+
     protected <D extends DataAttributes<? extends Resource>> D getEventData(int eventSequenceNumber)
     {
         RepoEvent<D> event = getRepoEvent(eventSequenceNumber);
+        D eventData = event.getData();
+        assertNotNull(eventData);
+
+        return eventData;
+    }
+
+    protected <D extends DataAttributes<? extends Resource>> D getEventDataWithoutWait(int eventSequenceNumber)
+    {
+        RepoEvent<D> event = getRepoEventWithoutWait(eventSequenceNumber);
         D eventData = event.getData();
         assertNotNull(eventData);
 
@@ -227,19 +245,52 @@ public abstract class AbstractContextAwareRepoEvent extends BaseSpringTest
 
     protected NodeResource getNodeResource(int eventSequenceNumber)
     {
-        EventData<?> eventData = getEventData(eventSequenceNumber);
-        NodeResource resource = (NodeResource) eventData.getResource();
+        DataAttributes<NodeResource> eventData = getEventData(eventSequenceNumber);
+        NodeResource resource = eventData.getResource();
         assertNotNull(resource);
 
         return resource;
     }
 
-    protected NodeResource getNodeResource(RepoEvent<?> repoEvent)
+    protected NodeResource getNodeResourceWithoutWait(int eventSequenceNumber)
+    {
+        DataAttributes<NodeResource> eventData = getEventDataWithoutWait(eventSequenceNumber);
+        NodeResource resource = eventData.getResource();
+        assertNotNull(resource);
+
+        return resource;
+    }
+
+    protected <D extends DataAttributes<NodeResource>> NodeResource getNodeResource(RepoEvent<D> repoEvent)
     {
         assertNotNull(repoEvent);
-        DataAttributes<?> eventData = repoEvent.getData();
+        D eventData = getEventData(repoEvent);
         assertNotNull(eventData);
-        NodeResource resource = (NodeResource) eventData.getResource();
+        NodeResource resource = eventData.getResource();
+        assertNotNull(resource);
+
+        return resource;
+    }
+
+    protected <D extends DataAttributes<ChildAssociationResource>> ChildAssociationResource getChildAssocResource(
+                RepoEvent<D> repoEvent)
+    {
+        assertNotNull(repoEvent);
+        D eventData = repoEvent.getData();
+        assertNotNull(eventData);
+        ChildAssociationResource resource = eventData.getResource();
+        assertNotNull(resource);
+
+        return resource;
+    }
+
+    protected <D extends DataAttributes<PeerAssociationResource>> PeerAssociationResource getPeerAssocResource(
+                RepoEvent<D> repoEvent)
+    {
+        assertNotNull(repoEvent);
+        D eventData = repoEvent.getData();
+        assertNotNull(eventData);
+        PeerAssociationResource resource = eventData.getResource();
         assertNotNull(resource);
 
         return resource;
@@ -254,12 +305,12 @@ public abstract class AbstractContextAwareRepoEvent extends BaseSpringTest
         return resourceBefore;
     }
 
-    protected NodeResource getNodeResourceBefore(RepoEvent<?> repoEvent)
+    protected <D extends DataAttributes<NodeResource>> NodeResource getNodeResourceBefore(RepoEvent<D> repoEvent)
     {
         assertNotNull(repoEvent);
-        DataAttributes<?> eventData = repoEvent.getData();
+        D eventData = repoEvent.getData();
         assertNotNull(eventData);
-        NodeResource resourceBefore = (NodeResource) eventData.getResourceBefore();
+        NodeResource resourceBefore = eventData.getResourceBefore();
         assertNotNull(resourceBefore);
 
         return resourceBefore;
@@ -277,18 +328,28 @@ public abstract class AbstractContextAwareRepoEvent extends BaseSpringTest
      * Await at most 5 seconds for the condition (ie. {@code numOfEvents})
      * to be met before throwing a timeout exception.
      *
-     * @param numOfEvents the await condition
+     * @param eventSequenceNumber the await condition
      */
-    protected void waitUntilNumOfEvents(int numOfEvents)
+    protected void waitUntilNumOfEvents(int eventSequenceNumber)
     {
-        await().atMost(10, SECONDS).until(() -> EVENT_CONTAINER.getEvents().size() == numOfEvents);
+        try
+        {
+            await().atMost(10, SECONDS).until(() -> EVENT_CONTAINER.getEvents().size() >= eventSequenceNumber);
+        }
+        catch (Exception ex)
+        {
+            fail("Requested event #" + eventSequenceNumber
+                             + " but, after waiting 10s, total events in the container are: "
+                             + EVENT_CONTAINER.getEvents().size());
+        }
+
     }
 
     protected void checkNumOfEvents(int expected)
     {
         try
         {
-            waitUntilNumOfEvents(expected);
+            await().atMost(10, SECONDS).until(() -> EVENT_CONTAINER.getEvents().size() == expected);
         }
         catch (Exception ex)
         {
@@ -345,6 +406,36 @@ public abstract class AbstractContextAwareRepoEvent extends BaseSpringTest
         {
             events.clear();
         }
+    }
+
+    @SuppressWarnings("unchecked")
+    public <D extends DataAttributes<? extends Resource>> List<RepoEvent<D>> getFilteredEvents(EventType eventType)
+    {
+        List<RepoEvent<D>> assocChildCreatedEvents = new ArrayList<>();
+        for (RepoEvent<?> event : EVENT_CONTAINER.getEvents())
+        {
+            if (event.getType().equals(eventType.getType()))
+            {
+                assocChildCreatedEvents.add((RepoEvent<D>) event);
+            }
+        }
+        return assocChildCreatedEvents;
+    }
+
+    @SuppressWarnings("unchecked")
+    public <D extends DataAttributes<? extends Resource>> RepoEvent<D> getFilteredEvent(EventType eventType, int index)
+    {
+        List<RepoEvent<D>> events = new ArrayList<>();
+        for (RepoEvent<?> event : EVENT_CONTAINER.getEvents())
+        {
+            if (event.getType().equals(eventType.getType()))
+            {
+                events.add((RepoEvent<D>) event);
+            }
+        }
+        assertTrue(events.size() > index);
+
+        return events.get(index);
     }
 }
 

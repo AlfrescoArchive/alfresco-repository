@@ -23,21 +23,44 @@
  * along with Alfresco. If not, see <http://www.gnu.org/licenses/>.
  * #L%
  */
-package org.alfresco.repo.node;
+package org.alfresco.repo.event2;
 
-import org.alfresco.service.cmr.repository.NodeRef;
+import org.alfresco.service.namespace.NamespaceException;
+import org.alfresco.service.namespace.NamespaceService;
+import org.alfresco.service.namespace.QName;
 
 /**
- * Download Notifier Service.
- * @author Chris Shields
+ * Helper for {@link QName} objects.
+ *
  * @author Sara Aspery
  */
-public interface DownloadNotifierService
+public class QNameHelper
 {
+    private final NamespaceService namespaceService;
+
+    public QNameHelper(NamespaceService namespaceService)
+    {
+        this.namespaceService = namespaceService;
+    }
+
     /**
-     * Notification of a node download.
+     * Returns the QName in the format prefix:local, but in the exceptional case where there is no registered prefix
+     * returns it in the form {uri}local.
      *
-     * @param nodeRef   The reference to the downloaded node. This can be a reference to a zip download node.
+     * @param   k QName
+     * @return  a String representing the QName in the format prefix:local or {uri}local.
      */
-    void downloadNotify(NodeRef nodeRef);
+    public String getQNamePrefixString(QName k)
+    {
+        String key;
+        try
+        {
+            key = k.toPrefixString(namespaceService);
+        }
+        catch (NamespaceException e)
+        {
+            key = k.toString();
+        }
+        return key;
+    }
 }

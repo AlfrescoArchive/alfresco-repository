@@ -28,6 +28,7 @@ package org.alfresco.repo.event2;
 import java.io.Serializable;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
+import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -52,8 +53,6 @@ import org.alfresco.service.cmr.repository.NodeService;
 import org.alfresco.service.cmr.repository.Path;
 import org.alfresco.service.cmr.security.NoSuchPersonException;
 import org.alfresco.service.cmr.security.PersonService;
-import org.alfresco.service.namespace.NamespaceException;
-import org.alfresco.service.namespace.NamespaceService;
 import org.alfresco.service.namespace.QName;
 import org.alfresco.util.PathUtil;
 import org.alfresco.util.PropertyCheck;
@@ -71,10 +70,10 @@ public class NodeResourceHelper implements InitializingBean
     private static final Log LOGGER = LogFactory.getLog(NodeResourceHelper.class);
 
     protected NodeService         nodeService;
-    protected NamespaceService    namespaceService;
     protected DictionaryService   dictionaryService;
     protected PersonService       personService;
     protected EventFilterRegistry eventFilterRegistry;
+    protected QNameHelper         qnameHelper;
 
     private NodeAspectFilter   nodeAspectFilter;
     private NodePropertyFilter nodePropertyFilter;
@@ -83,10 +82,10 @@ public class NodeResourceHelper implements InitializingBean
     public void afterPropertiesSet() throws Exception
     {
         PropertyCheck.mandatory(this, "nodeService", nodeService);
-        PropertyCheck.mandatory(this, "namespaceService", namespaceService);
         PropertyCheck.mandatory(this, "dictionaryService", dictionaryService);
         PropertyCheck.mandatory(this, "personService", personService);
         PropertyCheck.mandatory(this, "eventFilterRegistry", eventFilterRegistry);
+        PropertyCheck.mandatory(this, "qnameHelper", qnameHelper);
 
         this.nodeAspectFilter = eventFilterRegistry.getNodeAspectFilter();
         this.nodePropertyFilter = eventFilterRegistry.getNodePropertyFilter();
@@ -95,11 +94,6 @@ public class NodeResourceHelper implements InitializingBean
     public void setNodeService(NodeService nodeService)
     {
         this.nodeService = nodeService;
-    }
-
-    public void setNamespaceService(NamespaceService namespaceService)
-    {
-        this.namespaceService = namespaceService;
     }
 
     public void setDictionaryService(DictionaryService dictionaryService)
@@ -117,6 +111,12 @@ public class NodeResourceHelper implements InitializingBean
     public void setEventFilterRegistry(EventFilterRegistry eventFilterRegistry)
     {
         this.eventFilterRegistry = eventFilterRegistry;
+    }
+
+    @SuppressWarnings("unused")
+    public void setQnameHelper(QNameHelper qnameHelper)
+    {
+        this.qnameHelper = qnameHelper;
     }
 
     public NodeResource.Builder createNodeResourceBuilder(NodeRef nodeRef)
@@ -257,19 +257,10 @@ public class NodeResourceHelper implements InitializingBean
     // returns it in the form {uri}local.
     public String getQNamePrefixString(QName k)
     {
-        String key;
-        try
-        {
-            key = k.toPrefixString(namespaceService);
-        }
-        catch (NamespaceException e)
-        {
-            key = k.toString();
-        }
-        return key;
+        return qnameHelper.getQNamePrefixString(k);
     }
 
-    public Set<String> mapToNodeAspects(Set<QName> aspects)
+    public Set<String> mapToNodeAspects(Collection<QName> aspects)
     {
         Set<String> filteredAspects = new HashSet<>(aspects.size());
 

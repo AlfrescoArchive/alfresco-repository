@@ -40,7 +40,10 @@ public enum EventJSONSchema
     NODE_CREATED_V1("nodeCreated", 1, EventType.NODE_CREATED),
     NODE_UPDATED_V1("nodeUpdated", 1, EventType.NODE_UPDATED),
     NODE_DELETED_V1("nodeDeleted", 1, EventType.NODE_DELETED),
-    NODE_DOWNLOADED_V1("nodeDownloaded", 1, EventType.NODE_DOWNLOADED);
+    CHILD_ASSOC_CREATED_V1("childAssocCreated", 1, EventType.CHILD_ASSOC_CREATED),
+    CHILD_ASSOC_DELETED_V1("childAssocDeleted", 1, EventType.CHILD_ASSOC_DELETED),
+    PEER_ASSOC_CREATED_V1("peerAssocCreated", 1 , EventType.PEER_ASSOC_CREATED),
+    PEER_ASSOC_DELETED_V1("peerAssocDeleted", 1 , EventType.PEER_ASSOC_DELETED);
 
     private static final String PREFIX = "https://api.alfresco.com/schema/event/repo/v";
 
