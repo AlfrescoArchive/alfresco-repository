@@ -28,8 +28,6 @@ package org.alfresco.repo.event2;
 import java.io.Serializable;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -58,35 +56,67 @@ import org.alfresco.service.namespace.NamespaceException;
 import org.alfresco.service.namespace.NamespaceService;
 import org.alfresco.service.namespace.QName;
 import org.alfresco.util.PathUtil;
+import org.alfresco.util.PropertyCheck;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.beans.factory.InitializingBean;
 
 /**
  * Helper for {@link NodeResource} objects.
  *
  * @author Jamal Kaabi-Mofrad
  */
-public class NodeResourceHelper
+public class NodeResourceHelper implements InitializingBean
 {
     private static final Log LOGGER = LogFactory.getLog(NodeResourceHelper.class);
 
-    private final NodeService nodeService;
-    private final NamespaceService namespaceService;
-    private final DictionaryService dictionaryService;
-    private final PersonService personService;
-    private final NodeAspectFilter nodeAspectFilter;
-    private final NodePropertyFilter nodePropertyFilter;
+    protected NodeService         nodeService;
+    protected NamespaceService    namespaceService;
+    protected DictionaryService   dictionaryService;
+    protected PersonService       personService;
+    protected EventFilterRegistry eventFilterRegistry;
 
-    public NodeResourceHelper(NodeService nodeService, NamespaceService namespaceService,
-                              DictionaryService dictionaryService, PersonService personService,
-                              EventFilterRegistry eventFilterRegistry)
+    private NodeAspectFilter   nodeAspectFilter;
+    private NodePropertyFilter nodePropertyFilter;
+
+    @Override
+    public void afterPropertiesSet() throws Exception
     {
-        this.nodeService = nodeService;
-        this.namespaceService = namespaceService;
-        this.dictionaryService = dictionaryService;
-        this.personService = personService;
+        PropertyCheck.mandatory(this, "nodeService", nodeService);
+        PropertyCheck.mandatory(this, "namespaceService", namespaceService);
+        PropertyCheck.mandatory(this, "dictionaryService", dictionaryService);
+        PropertyCheck.mandatory(this, "personService", personService);
+        PropertyCheck.mandatory(this, "eventFilterRegistry", eventFilterRegistry);
+
         this.nodeAspectFilter = eventFilterRegistry.getNodeAspectFilter();
         this.nodePropertyFilter = eventFilterRegistry.getNodePropertyFilter();
+    }
+
+    public void setNodeService(NodeService nodeService)
+    {
+        this.nodeService = nodeService;
+    }
+
+    public void setNamespaceService(NamespaceService namespaceService)
+    {
+        this.namespaceService = namespaceService;
+    }
+
+    public void setDictionaryService(DictionaryService dictionaryService)
+    {
+        this.dictionaryService = dictionaryService;
+    }
+
+    public void setPersonService(PersonService personService)
+    {
+        this.personService = personService;
+    }
+
+    // To make IntelliJ stop complaining about unused method!
+    @SuppressWarnings("unused")
+    public void setEventFilterRegistry(EventFilterRegistry eventFilterRegistry)
+    {
+        this.eventFilterRegistry = eventFilterRegistry;
     }
 
     public NodeResource.Builder createNodeResourceBuilder(NodeRef nodeRef)

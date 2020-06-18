@@ -36,10 +36,11 @@ import javax.jms.ConnectionFactory;
 
 import org.alfresco.model.ContentModel;
 import org.alfresco.opencmis.CMISConnector;
-import org.alfresco.repo.event.databind.ObjectMapperFactory;
+import org.alfresco.repo.event.v1.model.DataAttributes;
 import org.alfresco.repo.event.v1.model.EventData;
 import org.alfresco.repo.event.v1.model.NodeResource;
 import org.alfresco.repo.event.v1.model.RepoEvent;
+import org.alfresco.repo.event.v1.model.Resource;
 import org.alfresco.repo.security.authentication.AuthenticationUtil;
 import org.alfresco.repo.transaction.RetryingTransactionHelper;
 import org.alfresco.service.cmr.dictionary.CustomModelService;
@@ -67,23 +68,24 @@ import org.junit.BeforeClass;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 /**
  * @author Iulian Aftene
  */
 
 public abstract class AbstractContextAwareRepoEvent extends BaseSpringTest
 {
-    protected static final String     TEST_NAMESPACE = "http://www.alfresco" +
-                                                ".org/test/ContextAwareRepoEvent";
-    private static final String     BROKER_URL     = "tcp://localhost:61616";
-    private static final String     TOPIC_NAME     = "alfresco.repo.event2";
-    private static final String     CAMEL_ROUTE    = "jms:topic:" + TOPIC_NAME;
-    private static final DataFormat DATA_FORMAT    =
-                new JacksonDataFormat(ObjectMapperFactory.createInstance(), RepoEvent.class);
-    private static final RepoEventContainer EVENT_CONTAINER = new RepoEventContainer();
-    private static final CamelContext       CAMEL_CONTEXT   = new DefaultCamelContext();
+    protected static final String             TEST_NAMESPACE  = "http://www.alfresco.org/test/ContextAwareRepoEvent";
+
+    private static final   String             BROKER_URL      = "tcp://localhost:61616";
+    private static final   String             TOPIC_NAME      = "alfresco.repo.event2";
+    private static final   String             CAMEL_ROUTE     = "jms:topic:" + TOPIC_NAME;
+    private static final   RepoEventContainer EVENT_CONTAINER = new RepoEventContainer();
+    private static final   CamelContext       CAMEL_CONTEXT   = new DefaultCamelContext();
 
     private static boolean isCamelConfigured;
+    private static DataFormat dataFormat;
 
     @Autowired
     protected CMISConnector cmisConnector;
@@ -100,6 +102,9 @@ public abstract class AbstractContextAwareRepoEvent extends BaseSpringTest
     @Qualifier("descriptorComponent")
     @Autowired
     protected DescriptorService descriptorService;
+
+    @Autowired
+    protected ObjectMapper event2ObjectMapper;
 
     protected NodeRef rootNodeRef;
 
@@ -120,6 +125,7 @@ public abstract class AbstractContextAwareRepoEvent extends BaseSpringTest
     {
         if (!isCamelConfigured)
         {
+            dataFormat = new JacksonDataFormat(event2ObjectMapper, RepoEvent.class);
             configRoute();
             isCamelConfigured = true;
         }
@@ -144,6 +150,7 @@ public abstract class AbstractContextAwareRepoEvent extends BaseSpringTest
     public void tearDown()
     {
         EVENT_CONTAINER.reset();
+        AuthenticationUtil.clearCurrentSecurityContext();
     }
 
 
@@ -188,30 +195,31 @@ public abstract class AbstractContextAwareRepoEvent extends BaseSpringTest
         return EVENT_CONTAINER;
     }
 
-    protected RepoEvent<NodeResource> getRepoEvent(int eventSequenceNumber)
+    protected <D extends DataAttributes<? extends Resource>> RepoEvent<D> getRepoEvent(int eventSequenceNumber)
     {
         waitUntilNumOfEvents(eventSequenceNumber);
 
         RepoEventContainer eventContainer = getRepoEventsContainer();
-        RepoEvent<NodeResource> event = eventContainer.getEvent(eventSequenceNumber);
+        @SuppressWarnings("unchecked")
+        RepoEvent<D> event = (RepoEvent<D>) eventContainer.getEvent(eventSequenceNumber);
         assertNotNull(event);
 
         return event;
     }
 
-    protected EventData<NodeResource> getEventData(int eventSequenceNumber)
+    protected <D extends DataAttributes<? extends Resource>> D getEventData(int eventSequenceNumber)
     {
-        RepoEvent<NodeResource> event = getRepoEvent(eventSequenceNumber);
-        EventData<NodeResource> eventData = event.getData();
+        RepoEvent<D> event = getRepoEvent(eventSequenceNumber);
+        D eventData = event.getData();
         assertNotNull(eventData);
 
         return eventData;
     }
 
-    protected EventData<NodeResource> getEventData(RepoEvent<NodeResource> repoEvent)
+    protected <D extends DataAttributes<? extends Resource>> D getEventData(RepoEvent<D> repoEvent)
     {
         assertNotNull(repoEvent);
-        EventData<NodeResource> eventData = repoEvent.getData();
+        D eventData = repoEvent.getData();
         assertNotNull(eventData);
 
         return eventData;
@@ -219,19 +227,19 @@ public abstract class AbstractContextAwareRepoEvent extends BaseSpringTest
 
     protected NodeResource getNodeResource(int eventSequenceNumber)
     {
-        EventData<NodeResource> eventData = getEventData(eventSequenceNumber);
-        NodeResource resource = eventData.getResource();
+        EventData<?> eventData = getEventData(eventSequenceNumber);
+        NodeResource resource = (NodeResource) eventData.getResource();
         assertNotNull(resource);
 
         return resource;
     }
 
-    protected NodeResource getNodeResource(RepoEvent<NodeResource> repoEvent)
+    protected NodeResource getNodeResource(RepoEvent<?> repoEvent)
     {
         assertNotNull(repoEvent);
-        EventData<NodeResource> eventData = repoEvent.getData();
+        DataAttributes<?> eventData = repoEvent.getData();
         assertNotNull(eventData);
-        NodeResource resource = eventData.getResource();
+        NodeResource resource = (NodeResource) eventData.getResource();
         assertNotNull(resource);
 
         return resource;
@@ -239,19 +247,19 @@ public abstract class AbstractContextAwareRepoEvent extends BaseSpringTest
 
     protected NodeResource getNodeResourceBefore(int eventSequenceNumber)
     {
-        EventData<NodeResource> eventData = getEventData(eventSequenceNumber);
+        DataAttributes<NodeResource> eventData = getEventData(eventSequenceNumber);
         NodeResource resourceBefore = eventData.getResourceBefore();
         assertNotNull(resourceBefore);
 
         return resourceBefore;
     }
 
-    protected NodeResource getNodeResourceBefore(RepoEvent<NodeResource> repoEvent)
+    protected NodeResource getNodeResourceBefore(RepoEvent<?> repoEvent)
     {
         assertNotNull(repoEvent);
-        EventData<NodeResource> eventData = repoEvent.getData();
+        DataAttributes<?> eventData = repoEvent.getData();
         assertNotNull(eventData);
-        NodeResource resourceBefore = eventData.getResourceBefore();
+        NodeResource resourceBefore = (NodeResource) eventData.getResourceBefore();
         assertNotNull(resourceBefore);
 
         return resourceBefore;
@@ -273,7 +281,7 @@ public abstract class AbstractContextAwareRepoEvent extends BaseSpringTest
      */
     protected void waitUntilNumOfEvents(int numOfEvents)
     {
-        await().atMost(5, SECONDS).until(() -> EVENT_CONTAINER.getEvents().size() == numOfEvents);
+        await().atMost(10, SECONDS).until(() -> EVENT_CONTAINER.getEvents().size() == numOfEvents);
     }
 
     protected void checkNumOfEvents(int expected)
@@ -299,7 +307,7 @@ public abstract class AbstractContextAwareRepoEvent extends BaseSpringTest
             public void configure()
             {
                 from(CAMEL_ROUTE).id("RepoEvent2Test")
-                                 .unmarshal(DATA_FORMAT)
+                                 .unmarshal(dataFormat)
                                  .process(EVENT_CONTAINER);
             }
         });
@@ -309,22 +317,21 @@ public abstract class AbstractContextAwareRepoEvent extends BaseSpringTest
 
     public static class RepoEventContainer implements Processor
     {
-        private final List<RepoEvent<NodeResource>> events = new ArrayList<>();
+        private final List<RepoEvent<?>> events = new ArrayList<>();
 
-        @SuppressWarnings("unchecked")
         @Override
         public void process(Exchange exchange)
         {
             Object object = exchange.getIn().getBody();
-            events.add((RepoEvent<NodeResource>) object);
+            events.add((RepoEvent<?>) object);
         }
 
-        public List<RepoEvent<NodeResource>> getEvents()
+        public List<RepoEvent<?>> getEvents()
         {
             return events;
         }
 
-        public RepoEvent<NodeResource> getEvent(int eventSequenceNumber)
+        public RepoEvent<?> getEvent(int eventSequenceNumber)
         {
             int index = eventSequenceNumber - 1;
             if (index < events.size())

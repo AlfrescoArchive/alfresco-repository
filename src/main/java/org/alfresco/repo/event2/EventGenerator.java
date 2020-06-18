@@ -84,10 +84,10 @@ public class EventGenerator extends AbstractLifecycleBean implements Initializin
     private Event2MessageProducer event2MessageProducer;
     private TransactionService transactionService;
     private PersonService personService;
+    private NodeResourceHelper nodeResourceHelper;
 
     private NodeTypeFilter nodeTypeFilter;
     private EventUserFilter userFilter;
-    private NodeResourceHelper nodeResourceHelper;
     private final EventTransactionListener transactionListener = new EventTransactionListener();
 
     @Override
@@ -102,12 +102,11 @@ public class EventGenerator extends AbstractLifecycleBean implements Initializin
         PropertyCheck.mandatory(this, "event2MessageProducer", event2MessageProducer);
         PropertyCheck.mandatory(this, "transactionService", transactionService);
         PropertyCheck.mandatory(this, "personService", personService);
+        PropertyCheck.mandatory(this, "nodeResourceHelper", nodeResourceHelper);
 
         this.nodeTypeFilter = eventFilterRegistry.getNodeTypeFilter();
         this.userFilter = eventFilterRegistry.getEventUserFilter();
-        this.nodeResourceHelper = new NodeResourceHelper(nodeService, namespaceService, dictionaryService,
-                                                         personService,
-                                                         eventFilterRegistry);
+
     }
 
     private void bindBehaviours()
@@ -155,11 +154,14 @@ public class EventGenerator extends AbstractLifecycleBean implements Initializin
         this.descriptorService = descriptorService;
     }
 
+    // To make IntelliJ stop complaining about unused method!
+    @SuppressWarnings("unused")
     public void setEventFilterRegistry(EventFilterRegistry eventFilterRegistry)
     {
         this.eventFilterRegistry = eventFilterRegistry;
     }
 
+    @SuppressWarnings("unused")
     public void setEvent2MessageProducer(Event2MessageProducer event2MessageProducer)
     {
         this.event2MessageProducer = event2MessageProducer;
@@ -173,6 +175,11 @@ public class EventGenerator extends AbstractLifecycleBean implements Initializin
     public void setPersonService(PersonService personService)
     {
         this.personService = personService;
+    }
+
+    public void setNodeResourceHelper(NodeResourceHelper nodeResourceHelper)
+    {
+        this.nodeResourceHelper = nodeResourceHelper;
     }
 
     @Override
@@ -223,6 +230,11 @@ public class EventGenerator extends AbstractLifecycleBean implements Initializin
         getEventConsolidator(nodeRef).onRemoveAspect(nodeRef, aspectTypeQName);
     }
 
+    protected EventConsolidator createEventConsolidator()
+    {
+        return new EventConsolidator(nodeResourceHelper);
+    }
+
     /**
      * @return the {@link EventConsolidator} for the supplied {@code nodeRef} from
      * the current transaction context.
@@ -238,7 +250,7 @@ public class EventGenerator extends AbstractLifecycleBean implements Initializin
         EventConsolidator eventConsolidator = nodeEvents.get(nodeRef);
         if (eventConsolidator == null)
         {
-            eventConsolidator = new EventConsolidator(nodeResourceHelper);
+            eventConsolidator = createEventConsolidator();
             nodeEvents.put(nodeRef, eventConsolidator);
         }
         return eventConsolidator;

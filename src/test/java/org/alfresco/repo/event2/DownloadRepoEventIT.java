@@ -57,7 +57,7 @@ public class DownloadRepoEventIT extends AbstractContextAwareRepoEvent
         final NodeRef nodeRef = createNode(ContentModel.TYPE_CONTENT);
 
         // node.Created event should be generated
-        RepoEvent<NodeResource> resultRepoEvent = getRepoEvent(1);
+        RepoEvent<EventData<NodeResource>> resultRepoEvent = getRepoEvent(1);
         assertEquals("Wrong repo event type.", EventType.NODE_CREATED.getType(), resultRepoEvent.getType());
 
         retryingTransactionHelper.doInTransaction(() -> {
@@ -83,9 +83,9 @@ public class DownloadRepoEventIT extends AbstractContextAwareRepoEvent
         checkNumOfEvents(3);
 
         // node.Downloaded event should be generated
-        RepoEvent<NodeResource> downloadedRepoEvent = getRepoEvent(3);
+        RepoEvent<EventData<NodeResource>> downloadedRepoEvent = getRepoEvent(3);
         assertEquals("Wrong repo event type.", EventType.NODE_DOWNLOADED.getType(), downloadedRepoEvent.getType());
-        assertEquals(EventData.JSON_SCHEMA, downloadedRepoEvent.getDataschema());
+        assertEquals(EventJSONSchema.NODE_DOWNLOADED_V1.getSchema(), downloadedRepoEvent.getDataschema());
         assertNotNull("The event should not have null id", downloadedRepoEvent.getId());
         assertNotNull("The event should not have null time", downloadedRepoEvent.getTime());
 
@@ -108,7 +108,7 @@ public class DownloadRepoEventIT extends AbstractContextAwareRepoEvent
         final NodeRef nodeRef = createNode(ContentModel.TYPE_CONTENT);
 
         // node.Created event should be generated
-        RepoEvent<NodeResource> resultRepoEvent = getRepoEvent(1);
+        RepoEvent<EventData<NodeResource>> resultRepoEvent = getRepoEvent(1);
         assertEquals("Wrong repo event type.", EventType.NODE_CREATED.getType(), resultRepoEvent.getType());
 
         retryingTransactionHelper.doInTransaction(() -> {
@@ -134,7 +134,7 @@ public class DownloadRepoEventIT extends AbstractContextAwareRepoEvent
         // we should have 3 events: node.Created, node.Updated, node.Downloaded
         checkNumOfEvents(3);
 
-        RepoEvent<NodeResource> downloadedRepoEvent = getRepoEvent(3);
+        RepoEvent<EventData<NodeResource>> downloadedRepoEvent = getRepoEvent(3);
         assertEquals("Wrong repo event type.", EventType.NODE_DOWNLOADED.getType(), downloadedRepoEvent.getType());
         assertEquals("Downloaded event does not have the correct id",
                     getNodeResource(resultRepoEvent).getId(),
@@ -148,7 +148,7 @@ public class DownloadRepoEventIT extends AbstractContextAwareRepoEvent
         final NodeRef nodeRef = createNode(ContentModel.TYPE_CONTENT);
 
         // node.Created event should be generated
-        RepoEvent<NodeResource> resultRepoEvent = getRepoEvent(1);
+        RepoEvent<EventData<NodeResource>> resultRepoEvent = getRepoEvent(1);
         assertEquals("Wrong repo event type.", EventType.NODE_CREATED.getType(), resultRepoEvent.getType());
 
         retryingTransactionHelper.doInTransaction(() -> {
@@ -170,7 +170,7 @@ public class DownloadRepoEventIT extends AbstractContextAwareRepoEvent
             return null;
         });
 
-        RepoEvent<NodeResource> downloadedRepoEvent = getRepoEvent(3);
+        RepoEvent<EventData<NodeResource>> downloadedRepoEvent = getRepoEvent(3);
         assertEquals("Wrong repo event type.", EventType.NODE_DOWNLOADED.getType(), downloadedRepoEvent.getType());
         assertEquals("Downloaded event does not have the correct id",
                     getNodeResource(resultRepoEvent).getId(),
