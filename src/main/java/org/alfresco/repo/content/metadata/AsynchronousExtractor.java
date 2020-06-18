@@ -67,7 +67,7 @@ import java.util.concurrent.ExecutorService;
 import static org.alfresco.repo.rendition2.RenditionDefinition2.TIMEOUT;
 import static org.alfresco.repo.rendition2.TransformDefinition.getTransformName;
 
-/** 
+/**
  * Requests an extract of metadata via a remote async transform using
  * {@link RenditionService2#transform(NodeRef, TransformDefinition)}. The properties that will extracted are defined
  * by the transform. This allows out of process metadata extracts to be defined without the need to apply an AMP.
