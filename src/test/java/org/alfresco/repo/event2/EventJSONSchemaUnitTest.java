@@ -26,7 +26,7 @@
 
 package org.alfresco.repo.event2;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.fail;
 
 import org.alfresco.error.AlfrescoRuntimeException;
 import org.junit.Test;
