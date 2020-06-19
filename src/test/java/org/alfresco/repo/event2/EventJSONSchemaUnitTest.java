@@ -36,7 +36,7 @@ import org.junit.Test;
  *
  * @author Jamal Kaabi-Mofrad
  */
-public class EventJSONSchemaTest
+public class EventJSONSchemaUnitTest
 {
 
     @Test

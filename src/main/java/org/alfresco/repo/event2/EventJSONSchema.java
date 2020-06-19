@@ -62,9 +62,9 @@ public enum EventJSONSchema
     private final int       version;
     private final EventType eventType;
 
-    EventJSONSchema(String name, int version, EventType eventType)
+    EventJSONSchema(String fileName, int version, EventType eventType)
     {
-        this.schema = URI.create(PREFIX + version + "/" + name);
+        this.schema = URI.create(PREFIX + version + "/" + fileName);
         this.version = version;
         this.eventType = eventType;
     }

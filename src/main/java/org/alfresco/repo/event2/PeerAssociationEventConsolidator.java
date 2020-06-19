@@ -44,11 +44,12 @@ public class PeerAssociationEventConsolidator implements PeerAssociationEventSup
 {
     private final Deque<EventType> eventTypes;
 
-    private final AssociationRef associationRef;
-    private PeerAssociationResource resource;
-    private final QNameHelper helper;
+    protected final AssociationRef associationRef;
 
-    public PeerAssociationEventConsolidator(AssociationRef associationRef, QNameHelper helper)
+    private PeerAssociationResource resource;
+    private final NodeResourceHelper helper;
+
+    public PeerAssociationEventConsolidator(AssociationRef associationRef, NodeResourceHelper helper)
     {
         this.eventTypes = new ArrayDeque<>();
         this.associationRef = associationRef;
@@ -65,18 +66,24 @@ public class PeerAssociationEventConsolidator implements PeerAssociationEventSup
     {
         EventType eventType = getDerivedEvent();
 
-        EventData.Builder<PeerAssociationResource> eventDataBuilder = EventData.<PeerAssociationResource>builder()
-                .setEventGroupId(eventInfo.getTxnId())
-                .setResource(resource);
+        DataAttributes<PeerAssociationResource> eventData = buildEventData(eventInfo, resource);
 
-        EventData<PeerAssociationResource> eventData = eventDataBuilder.build();
         return RepoEvent.<DataAttributes<PeerAssociationResource>>builder()
-                .setId(eventInfo.getId())
-                .setSource(eventInfo.getSource())
-                .setTime(eventInfo.getTimestamp())
-                .setType(eventType.getType())
-                .setData(eventData)
-                .build();
+                    .setId(eventInfo.getId())
+                    .setSource(eventInfo.getSource())
+                    .setTime(eventInfo.getTimestamp())
+                    .setType(eventType.getType())
+                    .setData(eventData)
+                    .setDataschema(EventJSONSchema.getSchemaV1(eventType))
+                    .build();
+    }
+
+    protected DataAttributes<PeerAssociationResource> buildEventData(EventInfo eventInfo, PeerAssociationResource resource)
+    {
+        return EventData.<PeerAssociationResource>builder()
+                    .setEventGroupId(eventInfo.getTxnId())
+                    .setResource(resource)
+                    .build();
     }
 
     /**

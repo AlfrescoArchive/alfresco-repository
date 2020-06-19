@@ -31,10 +31,6 @@
     </bean>
     <!-- End of Event2 Filters -->
 
-    <bean id="qnameHelper" class="org.alfresco.repo.event2.QNameHelper">
-        <constructor-arg index="0" ref="namespaceService"/>
-    </bean>
-
     <bean id="baseEventGeneratorV2" abstract="true">
         <property name="policyComponent" ref="policyComponent"/>
         <property name="nodeService" ref="nodeService"/>
@@ -45,7 +41,6 @@
         <property name="event2MessageProducer" ref="event2MessageProducer"/>
         <property name="transactionService" ref="transactionService"/>
         <property name="personService" ref="personService"/>
-        <property name="qnameHelper" ref="qnameHelper"/>
     </bean>
 
     <bean id="baseNodeResourceHelper" abstract="true">
@@ -53,7 +48,7 @@
         <property name="dictionaryService" ref="dictionaryService"/>
         <property name="personService" ref="personService"/>
         <property name="eventFilterRegistry" ref="event2FilterRegistry"/>
-        <property name="qnameHelper" ref="qnameHelper"/>
+        <property name="namespaceService" ref="namespaceService"/>
     </bean>
 
     <bean id="nodeResourceHelper" class="org.alfresco.repo.event2.NodeResourceHelper" parent="baseNodeResourceHelper"/>

@@ -83,7 +83,8 @@ public class PeerAssociationRepoEventIT extends AbstractContextAwareRepoEvent
         assertNotNull("Repo event creation time is not available. ", peerAssocRepoEvent.getTime());
         assertEquals("Repo event datacontenttype", "application/json",
                 peerAssocRepoEvent.getDatacontenttype());
-       // assertEquals(EventData.JSON_SCHEMA, peerAssocRepoEvent.getDataschema());
+        assertNotNull(peerAssocRepoEvent.getDataschema());
+        assertEquals(EventJSONSchema.PEER_ASSOC_CREATED_V1.getSchema(), peerAssocRepoEvent.getDataschema());
 
         final EventData<PeerAssociationResource> nodeResourceEventData = getEventData(peerAssocRepoEvent);
         // EventData attributes
@@ -268,7 +269,8 @@ public class PeerAssociationRepoEventIT extends AbstractContextAwareRepoEvent
         assertNotNull("Repo event creation time is not available. ", peerAssocRepoEvent.getTime());
         assertEquals("Repo event datacontenttype", "application/json",
                 peerAssocRepoEvent.getDatacontenttype());
-       // assertEquals(EventData.JSON_SCHEMA, peerAssocRepoEvent.getDataschema());
+        assertNotNull(peerAssocRepoEvent.getDataschema());
+        assertEquals(EventJSONSchema.PEER_ASSOC_CREATED_V1.getSchema(), peerAssocRepoEvent.getDataschema());
 
         final EventData<PeerAssociationResource> nodeResourceEventData = getEventData(peerAssocRepoEvent);
         // EventData attributes
@@ -300,7 +302,8 @@ public class PeerAssociationRepoEventIT extends AbstractContextAwareRepoEvent
         assertNotNull("Repo event creation time is not available. ", peerAssocRepoEvent2.getTime());
         assertEquals("Repo event datacontenttype", "application/json",
                 peerAssocRepoEvent2.getDatacontenttype());
-       // assertEquals(EventData.JSON_SCHEMA, peerAssocRepoEvent2.getDataschema());
+        assertNotNull(peerAssocRepoEvent2.getDataschema());
+        assertEquals(EventJSONSchema.PEER_ASSOC_DELETED_V1.getSchema(), peerAssocRepoEvent2.getDataschema());
 
         final EventData<PeerAssociationResource> nodeResourceEventData2 = getEventData(peerAssocRepoEvent2);
         // EventData attributes

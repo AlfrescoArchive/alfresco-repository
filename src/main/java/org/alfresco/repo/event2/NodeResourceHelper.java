@@ -53,6 +53,8 @@ import org.alfresco.service.cmr.repository.NodeService;
 import org.alfresco.service.cmr.repository.Path;
 import org.alfresco.service.cmr.security.NoSuchPersonException;
 import org.alfresco.service.cmr.security.PersonService;
+import org.alfresco.service.namespace.NamespaceException;
+import org.alfresco.service.namespace.NamespaceService;
 import org.alfresco.service.namespace.QName;
 import org.alfresco.util.PathUtil;
 import org.alfresco.util.PropertyCheck;
@@ -73,7 +75,7 @@ public class NodeResourceHelper implements InitializingBean
     protected DictionaryService   dictionaryService;
     protected PersonService       personService;
     protected EventFilterRegistry eventFilterRegistry;
-    protected QNameHelper         qnameHelper;
+    protected NamespaceService    namespaceService;
 
     private NodeAspectFilter   nodeAspectFilter;
     private NodePropertyFilter nodePropertyFilter;
@@ -85,7 +87,7 @@ public class NodeResourceHelper implements InitializingBean
         PropertyCheck.mandatory(this, "dictionaryService", dictionaryService);
         PropertyCheck.mandatory(this, "personService", personService);
         PropertyCheck.mandatory(this, "eventFilterRegistry", eventFilterRegistry);
-        PropertyCheck.mandatory(this, "qnameHelper", qnameHelper);
+        PropertyCheck.mandatory(this, "namespaceService", namespaceService);
 
         this.nodeAspectFilter = eventFilterRegistry.getNodeAspectFilter();
         this.nodePropertyFilter = eventFilterRegistry.getNodePropertyFilter();
@@ -113,10 +115,9 @@ public class NodeResourceHelper implements InitializingBean
         this.eventFilterRegistry = eventFilterRegistry;
     }
 
-    @SuppressWarnings("unused")
-    public void setQnameHelper(QNameHelper qnameHelper)
+    public void setNamespaceService(NamespaceService namespaceService)
     {
-        this.qnameHelper = qnameHelper;
+        this.namespaceService = namespaceService;
     }
 
     public NodeResource.Builder createNodeResourceBuilder(NodeRef nodeRef)
@@ -253,11 +254,25 @@ public class NodeResourceHelper implements InitializingBean
         return ZonedDateTime.ofInstant(date.toInstant(), ZoneId.systemDefault());
     }
 
-    // Returns the QName in the format prefix:local, but in the exceptional case were there is no registered prefix
-    // returns it in the form {uri}local.
+    /**
+     * Returns the QName in the format prefix:local, but in the exceptional case where there is no registered prefix
+     * returns it in the form {uri}local.
+     *
+     * @param   k QName
+     * @return  a String representing the QName in the format prefix:local or {uri}local.
+     */
     public String getQNamePrefixString(QName k)
     {
-        return qnameHelper.getQNamePrefixString(k);
+        String key;
+        try
+        {
+            key = k.toPrefixString(namespaceService);
+        }
+        catch (NamespaceException e)
+        {
+            key = k.toString();
+        }
+        return key;
     }
 
     public Set<String> mapToNodeAspects(Collection<QName> aspects)

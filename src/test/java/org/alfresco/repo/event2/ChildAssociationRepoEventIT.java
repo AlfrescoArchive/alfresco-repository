@@ -88,7 +88,8 @@ public class ChildAssociationRepoEventIT extends AbstractContextAwareRepoEvent
         assertNotNull("Repo event creation time is not available.", childAssocRepoEvent.getTime());
         assertEquals("Invalid repo event datacontenttype", "application/json",
             childAssocRepoEvent.getDatacontenttype());
-        //assertEquals(EventData.JSON_SCHEMA, childAssocRepoEvent.getDataschema());
+        assertNotNull(childAssocRepoEvent.getDataschema());
+        assertEquals(EventJSONSchema.CHILD_ASSOC_CREATED_V1.getSchema(), childAssocRepoEvent.getDataschema());
 
         final EventData<ChildAssociationResource> nodeResourceEventData = getEventData(childAssocRepoEvent);
         // EventData attributes
@@ -149,7 +150,8 @@ public class ChildAssociationRepoEventIT extends AbstractContextAwareRepoEvent
             childAssocRepoEvent.getSource().toString());
         assertNotNull("Repo event creation time is not available. ", childAssocRepoEvent.getTime());
         assertEquals("Repo event datacontenttype", "application/json", childAssocRepoEvent.getDatacontenttype());
-        //assertEquals(EventData.JSON_SCHEMA, childAssocRepoEvent.getDataschema());
+        assertNotNull(childAssocRepoEvent.getDataschema());
+        assertEquals(EventJSONSchema.CHILD_ASSOC_DELETED_V1.getSchema(), childAssocRepoEvent.getDataschema());
 
         final EventData<ChildAssociationResource> nodeResourceEventData = getEventData(childAssocRepoEvent);
         // EventData attributes

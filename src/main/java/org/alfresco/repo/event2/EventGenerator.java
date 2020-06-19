@@ -93,7 +93,6 @@ public class EventGenerator extends AbstractLifecycleBean implements Initializin
     private TransactionService transactionService;
     private PersonService personService;
     private NodeResourceHelper nodeResourceHelper;
-    private QNameHelper qnameHelper;
 
     private NodeTypeFilter nodeTypeFilter;
     private ChildAssociationTypeFilter childAssociationTypeFilter;
@@ -113,7 +112,6 @@ public class EventGenerator extends AbstractLifecycleBean implements Initializin
         PropertyCheck.mandatory(this, "transactionService", transactionService);
         PropertyCheck.mandatory(this, "personService", personService);
         PropertyCheck.mandatory(this, "nodeResourceHelper", nodeResourceHelper);
-        PropertyCheck.mandatory(this, "qnameHelper", qnameHelper);
 
         this.nodeTypeFilter = eventFilterRegistry.getNodeTypeFilter();
         this.childAssociationTypeFilter = eventFilterRegistry.getChildAssociationTypeFilter();
@@ -199,15 +197,6 @@ public class EventGenerator extends AbstractLifecycleBean implements Initializin
         this.nodeResourceHelper = nodeResourceHelper;
     }
 
-    @SuppressWarnings("unused")
-    public void setQnameHelper(QNameHelper qnameHelper)
-    {
-        this.qnameHelper = qnameHelper;
-    }
-
-    @SuppressWarnings("unused")
-
-
     @Override
     public void onCreateNode(ChildAssociationRef childAssocRef)
     {
@@ -279,6 +268,17 @@ public class EventGenerator extends AbstractLifecycleBean implements Initializin
         return new EventConsolidator(nodeResourceHelper);
     }
 
+    protected ChildAssociationEventConsolidator createChildAssociationEventConsolidator(
+                ChildAssociationRef childAssociationRef)
+    {
+        return new ChildAssociationEventConsolidator(childAssociationRef, nodeResourceHelper);
+    }
+
+    protected PeerAssociationEventConsolidator createPeerAssociationEventConsolidator(AssociationRef peerAssociationRef)
+    {
+        return new PeerAssociationEventConsolidator(peerAssociationRef, nodeResourceHelper);
+    }
+
     /**
      * @return the {@link EventConsolidator} for the supplied {@code nodeRef} from
      * the current transaction context.
@@ -329,7 +329,7 @@ public class EventGenerator extends AbstractLifecycleBean implements Initializin
         ChildAssociationEventConsolidator eventConsolidator = assocEvents.get(childAssociationRef);
         if (eventConsolidator == null)
         {
-            eventConsolidator = new ChildAssociationEventConsolidator(childAssociationRef, qnameHelper);
+            eventConsolidator = createChildAssociationEventConsolidator(childAssociationRef);
             assocEvents.put(childAssociationRef, eventConsolidator);
         }
         return eventConsolidator;
@@ -351,7 +351,7 @@ public class EventGenerator extends AbstractLifecycleBean implements Initializin
         PeerAssociationEventConsolidator eventConsolidator = assocEvents.get(peerAssociationRef);
         if (eventConsolidator == null)
         {
-            eventConsolidator = new PeerAssociationEventConsolidator(peerAssociationRef, qnameHelper);
+            eventConsolidator = createPeerAssociationEventConsolidator(peerAssociationRef);
             assocEvents.put(peerAssociationRef, eventConsolidator);
         }
         return eventConsolidator;
