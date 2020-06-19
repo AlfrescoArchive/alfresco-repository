@@ -2,7 +2,7 @@
  * #%L
  * Alfresco Repository
  * %%
- * Copyright (C) 2005 - 2019 Alfresco Software Limited
+ * Copyright (C) 2005 - 2020 Alfresco Software Limited
  * %%
  * This file is part of the Alfresco software. 
  * If the software was purchased under a paid Alfresco license, the terms of 
@@ -390,7 +390,7 @@ public class ThumbnailServiceImplTest extends BaseAlfrescoSpringTest
                     ThumbnailDefinition thumbnailDef = thumbnailService.getThumbnailRegistry().getThumbnailDefinition("doclib");
                     
                     Action createThumbnailAction = ThumbnailHelper.createCreateThumbnailAction(thumbnailDef, services);
-                    actionService.executeAction(createThumbnailAction, corruptNode, true, true);
+                    actionService.executeAction(createThumbnailAction, corruptNode, true, false);
                     return null;
                 }
             });
@@ -576,7 +576,7 @@ public class ThumbnailServiceImplTest extends BaseAlfrescoSpringTest
                 ThumbnailDefinition thumbnailDef = thumbnailService.getThumbnailRegistry().getThumbnailDefinition("doclib");
                 
                 Action createThumbnailAction = ThumbnailHelper.createCreateThumbnailAction(thumbnailDef, services);
-                actionService.executeAction(createThumbnailAction, testNode, true, true);
+                actionService.executeAction(createThumbnailAction, testNode, true, false);
                 return null;
             }
         });
@@ -1318,7 +1318,7 @@ public class ThumbnailServiceImplTest extends BaseAlfrescoSpringTest
                 Action createThumbnailAction = ThumbnailHelper.createCreateThumbnailAction(thumbnailDef, services);
 
                 logger.debug("Creating thumbnail " + expectedThumbnail.getThumbnailName() + " for " + source);
-                actionService.executeAction(createThumbnailAction, source, true, true);
+                actionService.executeAction(createThumbnailAction, source, true, false);
             }
 
             TestTransaction.flagForCommit();
