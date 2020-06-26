@@ -2,7 +2,7 @@
     <modelVersion>4.0.0</modelVersion>
     <artifactId>alfresco-repository</artifactId>
     <name>Alfresco Repository</name>
-    <version>8.224-SNAPSHOT</version>
+    <version>8.225-SNAPSHOT</version>
     <packaging>jar</packaging>
     <parent>
         <groupId>org.alfresco</groupId>
@@ -67,7 +67,7 @@
         <dependency.activemq.version>5.15.12</dependency.activemq.version>
         <dependency.pdfbox.version>2.0.20</dependency.pdfbox.version>
         <dependency.cxf.version>3.3.6</dependency.cxf.version>
-        <dependency.jackson.version>2.11.0</dependency.jackson.version>
+        <dependency.jackson.version>2.11.1</dependency.jackson.version>
         <dependency.jackson-databind.version>2.10.2</dependency.jackson-databind.version>
         <dependency.apache.taglibs.version>1.2.5</dependency.apache.taglibs.version>
         <dependency.acs-event-model.version>0.0.8</dependency.acs-event-model.version>
