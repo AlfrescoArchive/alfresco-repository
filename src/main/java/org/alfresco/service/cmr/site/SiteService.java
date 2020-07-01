@@ -36,7 +36,6 @@ import org.alfresco.query.PagingResults;
 import org.alfresco.repo.node.getchildren.FilterProp;
 import org.alfresco.repo.security.authority.UnknownAuthorityException;
 import org.alfresco.repo.site.SiteGroupMembership;
-import org.alfresco.repo.site.SiteUserMembership;
 import org.alfresco.repo.site.SiteMembership;
 import org.alfresco.service.Auditable;
 import org.alfresco.service.NotAuditable;
@@ -63,7 +62,7 @@ public interface SiteService
     {
 
         /**
-         * @deprecated from 7.0.0 use default method instead
+         * @deprecated from 7.0.0 onwards, use #siteMember(String, String, boolean) instead
          * A site member along with his/her Site permission
          */
         public void siteMember(String authority, String permission);
@@ -73,7 +72,6 @@ public interface SiteService
          */
         public default void siteMember(String authority, String permission, boolean isMemberOfGroup)
         {
-            // Todo: remove the proxy
             siteMember(authority, permission);
         }
     	
@@ -322,7 +320,7 @@ public interface SiteService
     void deleteSite(String shortName);
 
     /**
-     * @deprecated from 7.0.0
+     * @deprecated from 7.0.0, use #listMembers(String, String, String, boolean, boolean, boolean, SiteMembersCallback) instead
      * List the members of the site.  This includes both users and groups.
      * <p>
      * Name and role filters are optional and if not specified all the members of the site are returned.
@@ -335,7 +333,24 @@ public interface SiteService
      */
     @NotAuditable
     void listMembers(String shortName, final String nameFilter, final String roleFilter, boolean collapseGroups, SiteMembersCallback callback);
-    
+
+    /**
+     * List the members of the site.  This includes both users and groups.
+     * Users and groups can be controlled by passing params
+     * <p>
+     * Name and role filters are optional and if not specified all the members of the site are returned.
+     *
+     * @param shortName         site short name
+     * @param nameFilter        name filter
+     * @param roleFilter        role filter
+     * @param includeUsers      includes the users
+     * @param includeGroups     include the groups
+     * @param expandGroups      true if expand group member into user list, false otherwise
+     * @param callback          callback
+     */
+    @NotAuditable
+    void listMembers(String shortName, final String nameFilter, final String roleFilter, final boolean includeUsers, final boolean includeGroups, final boolean expandGroups, SiteMembersCallback callback);
+
     /**
      * List the members of the site.  This includes both users and groups.
      * <p>
@@ -380,7 +395,6 @@ public interface SiteService
     List<SiteMemberInfo> listMembersInfo(String shortName, String nameFilter, String roleFilter, int size, boolean collapseGroups);
     
     /**
-     * @deprecated from 7.0.0 use listUsersPaged or ListGroupsPaged
      * Gets the role of the specified user.
      * Returns a paged list of the members of the site.  This includes both users and groups if collapseGroups is set to false, otherwise all
      * groups that are members are collapsed into their component users and listed.
@@ -571,23 +585,6 @@ public interface SiteService
     boolean isSiteAdmin(String userName);
 
     /**
-     * List the members of the site.  This includes both users and groups.
-     * Users and groups can be controlled by passing params
-     * <p>
-     * Name and role filters are optional and if not specified all the members of the site are returned.
-     *
-     * @param shortName         site short name
-     * @param nameFilter        name filter
-     * @param roleFilter        role filter
-     * @param includeUsers      includes the users
-     * @param includeGroups     include the groups
-     * @param expandGroups      true if expand group member into user list, false otherwise
-     * @param callback          callback
-     */
-    @NotAuditable
-    void listMembers(String shortName, final String nameFilter, final String roleFilter, boolean includeUsers, boolean includeGroups, boolean expandGroups, SiteMembersCallback callback);
-
-    /**
      * Returns a paged list of the groups of the site.
      *
      * @param shortName         site short name
@@ -598,16 +595,4 @@ public interface SiteService
      */
     @NotAuditable
     PagingResults<SiteGroupMembership> listGroupsPaged(String shortName, List<Pair<SortFields, Boolean>> sortProps, PagingRequest pagingRequest);
-
-    /**
-     * Returns a paged list of the members of the site.
-     * <p>
-     *
-     * @param shortName         site short name
-     * @param sortProps         sorting options
-     * @param pagingRequest     the paging request
-     * @param expandGroups      true if expand group member into user list, false otherwise (where class)
-     */
-    @NotAuditable
-    PagingResults<SiteUserMembership> listMembersPaged(String shortName, List<Pair<SortFields, Boolean>> sortProps, PagingRequest pagingRequest, boolean expandGroups);
 }

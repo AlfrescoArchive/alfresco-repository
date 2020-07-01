@@ -51,7 +51,7 @@ import org.alfresco.util.Pair;
  *
  */
 //TODO currently have to read all sites into memory for sorting purposes. Find a way that doesn't involve doing this.
-public class SiteMembersCannedQuery<T extends SiteMembership> extends AbstractCannedQuery<T>
+public class SiteMembersCannedQuery extends AbstractCannedQuery<SiteMembership>
 {
 	private NodeService nodeService;
 	private PersonService personService;
@@ -66,7 +66,7 @@ public class SiteMembersCannedQuery<T extends SiteMembership> extends AbstractCa
     }
     
     @Override
-    protected List<T> queryAndFilter(CannedQueryParameters parameters)
+    protected List<SiteMembership> queryAndFilter(CannedQueryParameters parameters)
     {
         SiteMembersCannedQueryParams paramBean = (SiteMembersCannedQueryParams)parameters.getParameterBean();
         
@@ -79,7 +79,7 @@ public class SiteMembersCannedQuery<T extends SiteMembership> extends AbstractCa
     	siteService.listMembers(siteShortName, null, null, true, false, paramBean.isExpandGroups(), callback);
     	callback.done();
 
-        return (List<T>) callback.getSiteMembers();
+        return callback.getSiteMembers();
     }
     
     @Override
@@ -91,17 +91,15 @@ public class SiteMembersCannedQuery<T extends SiteMembership> extends AbstractCa
 
     private class CQSiteMembersCallback implements SiteMembersCallback
     {
-    	private String siteShortName;
     	private SiteInfo siteInfo;
-    	private Set<SiteUserMembership> siteMembers;
+    	private Set<SiteMembership> siteMembers;
 
     	CQSiteMembersCallback(String siteShortName, List<Pair<? extends Object, SortOrder>> sortPairs)
     	{
-    		this.siteShortName = siteShortName;
 			this.siteInfo = siteService.getSite(siteShortName);
     		this.siteMembers = sortPairs != null && sortPairs.size() > 0
-					? new TreeSet<SiteUserMembership>(SiteUserMembership.getComparator(sortPairs))
-					: new HashSet<SiteUserMembership>();
+					? new TreeSet<SiteMembership>(SiteMembership.getComparator(sortPairs))
+					: new HashSet<SiteMembership>();
     	}
 
 		/**
@@ -123,8 +121,7 @@ public class SiteMembersCannedQuery<T extends SiteMembership> extends AbstractCa
 				lastName = (String) nodeService.getProperty(nodeRef, ContentModel.PROP_LASTNAME);
 			}
 
-			SiteUserMembership siteMember = new SiteUserMembership(siteInfo, authority, firstName, lastName, permission, isMemberOfGroup);
-    		siteMembers.add(siteMember);
+    		siteMembers.add(new SiteMembership(siteInfo, authority, firstName, lastName, permission, isMemberOfGroup));
 		}
 
 		@Override
@@ -133,7 +130,7 @@ public class SiteMembersCannedQuery<T extends SiteMembership> extends AbstractCa
 			return false; // need to read in all site members for sort
 		}
 		
-		List<SiteUserMembership> getSiteMembers()
+		List<SiteMembership> getSiteMembers()
 		{
     		return new ArrayList<>(siteMembers);
 		}

@@ -35,7 +35,11 @@ import org.alfresco.service.cmr.site.SiteService;
 import org.alfresco.service.cmr.site.SiteService.SiteMembersCallback;
 import org.alfresco.util.Pair;
 
-import java.util.*;
+import java.util.Set;
+import java.util.List;
+import java.util.TreeSet;
+import java.util.HashSet;
+import java.util.ArrayList;
 
 // TODO currently have to read all sites into memory for sorting purposes. Find a way that doesn't
 public class SiteGroupCannedQuery extends AbstractCannedQuery<SiteGroupMembership>

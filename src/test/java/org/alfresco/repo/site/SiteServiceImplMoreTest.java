@@ -891,25 +891,25 @@ public class SiteServiceImplMoreTest
             perMethodTestSites.createTestSiteWithGroups(siteShortName, "sitePreset", SiteVisibility.PUBLIC, AuthenticationUtil.getAdminUserName(), 10);
             List<Pair<SiteService.SortFields, Boolean>> sortProps = new ArrayList<Pair<SiteService.SortFields, Boolean>>(1);
             sortProps.add(new Pair<SiteService.SortFields, Boolean>(SiteService.SortFields.FirstName, true));
-            PagingResults<SiteUserMembership> pagedMembers = SITE_SERVICE.listMembersPaged(siteShortName, sortProps, new PagingRequest(100), true);
+            PagingResults<SiteMembership> pagedMembers = SITE_SERVICE.listMembersPaged(siteShortName, true, sortProps, new PagingRequest(100));
             assertNotNull(pagedMembers);
             assertNotNull(pagedMembers.getQueryExecutionId());
             assertFalse(pagedMembers.hasMoreItems());
             assertEquals(pagedMembers.getPage().size(), 11);
 
-            List<SiteUserMembership> users = pagedMembers.getPage().stream().filter((member) -> !member.isMemberOfGroup()).collect(Collectors.toList());
-            List<SiteUserMembership> groupsUsers = pagedMembers.getPage().stream().filter(SiteUserMembership::isMemberOfGroup).collect(Collectors.toList());
+            List<SiteMembership> users = pagedMembers.getPage().stream().filter((member) -> !member.isMemberOfGroup()).collect(Collectors.toList());
+            List<SiteMembership> groupsUsers = pagedMembers.getPage().stream().filter(SiteMembership::isMemberOfGroup).collect(Collectors.toList());
             assertEquals(users.size(), 1);
             assertEquals(groupsUsers.size(), 10);
 
-            pagedMembers = SITE_SERVICE.listMembersPaged(siteShortName, sortProps, new PagingRequest(100), false);
+            pagedMembers = SITE_SERVICE.listMembersPaged(siteShortName, false, sortProps, new PagingRequest(100));
             assertNotNull(pagedMembers);
             assertNotNull(pagedMembers.getQueryExecutionId());
             assertFalse(pagedMembers.hasMoreItems());
             assertEquals(pagedMembers.getPage().size(), 1);
 
             users = pagedMembers.getPage().stream().filter((member) -> !member.isMemberOfGroup()).collect(Collectors.toList());
-            groupsUsers = pagedMembers.getPage().stream().filter(SiteUserMembership::isMemberOfGroup).collect(Collectors.toList());
+            groupsUsers = pagedMembers.getPage().stream().filter(SiteMembership::isMemberOfGroup).collect(Collectors.toList());
             assertEquals(users.size(), 1);
             assertEquals(groupsUsers.size(), 0);
 

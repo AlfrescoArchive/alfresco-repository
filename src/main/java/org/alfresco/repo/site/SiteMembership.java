@@ -26,24 +26,25 @@
 package org.alfresco.repo.site;
 
 import org.alfresco.api.AlfrescoPublicApi;
+import org.alfresco.query.CannedQuerySortDetails;
 import org.alfresco.service.cmr.site.SiteInfo;
+import org.alfresco.util.Pair;
+
+import java.util.Comparator;
+import java.util.List;
 
 /**
  * Conveys information for a member of a site.
- * 
+ *
  * @author steveglover
  *
  */
 @AlfrescoPublicApi
-public class SiteMembership
+public class SiteMembership extends AbstractSiteMembership
 {
-    private SiteInfo siteInfo;
-    private String id;          // contains both userId and authority Id
-    private String role;
-
-    // backward compatibility
     private String firstName;
     private String lastName;
+    private boolean isMemberOfGroup;
 
     /**
      * @deprecated from 7.0.0
@@ -51,16 +52,7 @@ public class SiteMembership
     public SiteMembership(SiteInfo siteInfo, String id, String firstName, String lastName,
             String role)
     {
-        super();
-        if (siteInfo == null)
-        {
-            throw new java.lang.IllegalArgumentException();
-        }
-        if (id == null)
-        {
-            throw new java.lang.IllegalArgumentException(
-                    "Id required building site membership of " + siteInfo.getShortName());
-        }
+        super(siteInfo,id, role);
         if (firstName == null)
         {
             throw new java.lang.IllegalArgumentException(
@@ -71,70 +63,53 @@ public class SiteMembership
             throw new java.lang.IllegalArgumentException(
                     "LastName required building site membership of " + siteInfo.getShortName());
         }
-        if (role == null)
-        {
-            throw new java.lang.IllegalArgumentException(
-                    "Role required building site membership of " + siteInfo.getShortName());
-        }
-        this.siteInfo = siteInfo;
-        this.id = id;
         this.firstName = firstName;
         this.lastName = lastName;
-        this.role = role;
+    }
+
+    public SiteMembership(SiteInfo siteInfo, String id, String firstName, String lastName,
+            String role, boolean isMemberOfGroup)
+    {
+        super(siteInfo, id, role);
+        if (firstName == null)
+        {
+            throw new java.lang.IllegalArgumentException(
+                    "FirstName required building site membership of " + siteInfo.getShortName());
+        }
+        if (lastName == null)
+        {
+            throw new java.lang.IllegalArgumentException(
+                    "LastName required building site membership of " + siteInfo.getShortName());
+        }
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.isMemberOfGroup = isMemberOfGroup;
     }
 
     public SiteMembership(SiteInfo siteInfo, String id, String role)
     {
-        super();
-        if (siteInfo == null)
-        {
-            throw new java.lang.IllegalArgumentException();
-        }
-        if (id == null)
-        {
-            throw new java.lang.IllegalArgumentException(
-                    "Id required building site membership of " + siteInfo.getShortName());
-        }
-        if (role == null)
-        {
-            throw new java.lang.IllegalArgumentException(
-                    "Role required building site membership of " + siteInfo.getShortName());
-        }
-
-        this.siteInfo = siteInfo;
-        this.id = id;
-        this.role = role;
-    }
-
-    public SiteInfo getSiteInfo()
-    {
-        return siteInfo;
+        super(siteInfo, id, role);
     }
 
     /** @deprecated from 7.0.0 use getId instead */
-    public String getPersonId() {
+    public String getPersonId()
+    {
         return id;
     }
 
-    public String getId() {
-        return id;
-    }
-
-    /** @deprecated from 7.0.0 use SiteUserMembership instead */
     public String getFirstName()
     {
         return firstName;
     }
 
-    /** @deprecated from 7.0.0 use SiteUserMembership instead */
     public String getLastName()
     {
         return lastName;
     }
 
-    public String getRole()
+    public boolean isMemberOfGroup()
     {
-        return role;
+        return isMemberOfGroup;
     }
 
     @Override
@@ -167,6 +142,10 @@ public class SiteMembership
             return false;
         if (role != other.role)
             return false;
+
+        if (isMemberOfGroup != other.isMemberOfGroup)
+            return false;
+
         if (getSiteInfo() == null)
         {
             if (other.getSiteInfo() != null)
@@ -181,7 +160,41 @@ public class SiteMembership
     public String toString()
     {
         return "SiteMembership [siteInfo=" + getSiteInfo() + ", id=" + id
-                + ", firstName=" + firstName + ", lastName=" + lastName + ", role=" + role + "]";
+                + ", firstName=" + firstName + ", lastName=" + lastName + ", role=" + role +
+                ", isMemberOfGroup = " + isMemberOfGroup + "]";
     }
 
+
+    static int compareTo(List<Pair<? extends Object, CannedQuerySortDetails.SortOrder>> sortPairs, SiteMembership o1, SiteMembership o2)
+    {
+        String personId1 = o1.getPersonId();
+        String personId2 = o2.getPersonId();
+        String firstName1 = o1.getFirstName();
+        String firstName2 = o2.getFirstName();
+        String lastName1 = o1.getLastName();
+        String lastName2 = o2.getLastName();
+        String siteRole1 = o1.getRole();
+        String siteRole2 = o2.getRole();
+        String shortName1 = o1.getSiteInfo().getShortName();
+        String shortName2 = o2.getSiteInfo().getShortName();
+
+        int personId = SiteMembershipComparator.safeCompare(personId1, personId2);
+        int firstName = SiteMembershipComparator.safeCompare(firstName1, firstName2);
+        int siteShortName = SiteMembershipComparator.safeCompare(shortName1, shortName2);
+        int lastName = SiteMembershipComparator.safeCompare(lastName1, lastName2);
+        int siteRole = SiteMembershipComparator.safeCompare(siteRole1, siteRole2);
+
+        if (siteRole == 0 && siteShortName == 0 && personId == 0)
+        {
+            // equals contract
+            return 0;
+        }
+
+        return SiteMembershipComparator.compareSiteMembersBody(sortPairs, personId1, personId2, lastName1, lastName2, siteRole1, siteRole2, personId, firstName, lastName, siteRole, 0);
+    }
+
+    static Comparator<SiteMembership> getComparator(List<Pair<?, CannedQuerySortDetails.SortOrder>> sortPairs)
+    {
+        return (SiteMembership o1, SiteMembership o2) -> compareTo(sortPairs, o1, o2);
+    }
 }

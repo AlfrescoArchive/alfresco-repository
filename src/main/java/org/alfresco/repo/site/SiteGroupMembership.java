@@ -34,7 +34,7 @@ import java.util.Comparator;
 import java.util.List;
 
 @AlfrescoPublicApi
-public class SiteGroupMembership extends SiteMembership
+public class SiteGroupMembership extends AbstractSiteMembership
 {
     private String displayName;
 

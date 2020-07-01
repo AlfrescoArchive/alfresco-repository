@@ -1721,7 +1721,7 @@ public class SiteServiceImpl extends AbstractLifecycleBean implements SiteServic
     
     }
 
-    public void listMembers(String shortName, final String nameFilter, final String roleFilter, final boolean expandGroups, final SiteMembersCallback callback)
+    public void listMembers(String shortName, final String nameFilter, final String roleFilter, final boolean collapseGroups, final SiteMembersCallback callback)
     {
         // MT share - for activity service system callback
         if (tenantService.isEnabled() && (AuthenticationUtil.SYSTEM_USER_NAME.equals(AuthenticationUtil.getRunAsUser())) && tenantService.isTenantName(shortName))
@@ -1733,14 +1733,14 @@ public class SiteServiceImpl extends AbstractLifecycleBean implements SiteServic
             {
                 public Void doWork() throws Exception
                 {
-                    listMembersImpl(sName, nameFilter, roleFilter, expandGroups, callback, true, true);
+                    listMembersImpl(sName, nameFilter, roleFilter, collapseGroups, callback, true, true);
                     return null;
                 }
             }, tenantDomain);
         }
         else
         {
-            listMembersImpl(shortName, nameFilter, roleFilter, expandGroups, callback, true, true);
+            listMembersImpl(shortName, nameFilter, roleFilter, collapseGroups, callback, true, true);
         }
     }
 
@@ -1774,7 +1774,7 @@ public class SiteServiceImpl extends AbstractLifecycleBean implements SiteServic
                     case USER:
                         if(includeUsers)
                         {
-                            if (hasValidName(nameFilter, nameFilters, authority))
+                            if (isAcceptedName(nameFilter, authority))
                             {
                                 // Add the user and their permission to the returned map
                                 callback.siteMember(authority, permission, false);
@@ -1832,14 +1832,14 @@ public class SiteServiceImpl extends AbstractLifecycleBean implements SiteServic
             }
         }
         
-        if (expandGroups)
+        if (expandGroups && includeUsers)
         {
             for (Map.Entry<String,String> entry : groupsToExpand.entrySet())
             {                
                 Set<String> subUsers = this.authorityService.getContainedAuthorities(AuthorityType.USER, entry.getKey(), false);
                 for (String subUser : subUsers)
                 {
-                    if (hasValidName(nameFilter, nameFilters, subUser))
+                    if (isAcceptedName(nameFilter, subUser))
                     {
                         // Add the collapsed user into the members list if they do not already appear in the list 
                         callback.siteMember(subUser, entry.getValue(), true);
@@ -1878,7 +1878,7 @@ public class SiteServiceImpl extends AbstractLifecycleBean implements SiteServic
     {
         CannedQueryParameters params = getCannedQueryParameters(shortName, collapseGroups, sortProps, pagingRequest);
 
-		CannedQuery<SiteMembership> query = new SiteMembersCannedQuery<SiteMembership>(this, personService, nodeService, params);
+		CannedQuery<SiteMembership> query = new SiteMembersCannedQuery(this, personService, nodeService, params);
 
         CannedQueryResults<SiteMembership> results = query.execute();
 
@@ -2094,7 +2094,7 @@ public class SiteServiceImpl extends AbstractLifecycleBean implements SiteServic
                 Set<String> subUsers = this.authorityService.getContainedAuthorities(AuthorityType.USER, entry.getKey(), false);
                 for (String subUser : subUsers)
                 {
-                    if (hasValidName(nameFilter, nameFilters, subUser))
+                    if (isAcceptedName(nameFilter, subUser))
                     {
                         SiteMemberInfo memberInfo = new SiteMemberInfoImpl(subUser,entry.getValue(), true);
                         // Add the collapsed user into the members list if they do not already appear in the list
@@ -2124,13 +2124,13 @@ public class SiteServiceImpl extends AbstractLifecycleBean implements SiteServic
         return members;
     }
 
-    private boolean hasValidName(String nameFilter, String[] nameFilters, String name)
+    private boolean isAcceptedName(String nameFilter, String name)
     {
         boolean addUser = true;
         if (nameFilter != null && nameFilter.length() != 0 && !nameFilter.equals(name))
         {
             // found a filter - does it match person first/last name?
-            addUser = matchPerson(nameFilters, name);
+            addUser = matchPerson(tokenizeFilterLowercase(nameFilter), name);
         }
         return addUser;
     }
@@ -3411,17 +3411,6 @@ public class SiteServiceImpl extends AbstractLifecycleBean implements SiteServic
         CannedQuery<SiteGroupMembership> query = new SiteGroupCannedQuery(this, authorityService, params);
 
         CannedQueryResults<SiteGroupMembership> results = query.execute();
-
-        return getPagingResults(pagingRequest, results);
-    }
-
-    @Override
-    public PagingResults<SiteUserMembership> listMembersPaged(String shortName, List<Pair<SortFields, Boolean>> sortProps, PagingRequest pagingRequest, boolean expandGroups)
-    {
-        CannedQueryParameters params = getCannedQueryParameters(shortName, expandGroups, sortProps, pagingRequest);
-        CannedQuery<SiteUserMembership> query = new SiteMembersCannedQuery<SiteUserMembership>(this, personService, nodeService, params);
-
-        CannedQueryResults<SiteUserMembership> results = query.execute();
 
         return getPagingResults(pagingRequest, results);
     }

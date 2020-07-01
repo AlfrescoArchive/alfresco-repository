@@ -161,7 +161,7 @@ public class SiteMembershipComparator implements Comparator<SiteMembership>
         return ret;
     }
 
-    static int compareSiteGroupsBody(List<Pair<? extends Object, SortOrder>> sortPairs, String id1, String id2, String siteRole1, String siteRole2, int displayName, int siteRole, int ret)
+    static int compareSiteGroupsBody(List<Pair<? extends Object, SortOrder>> sortPairs, String displayName1, String displayName2, String siteRole1, String siteRole2, int displayName, int siteRole, int ret)
     {
         for (Pair<? extends Object, SortOrder> pair : sortPairs)
         {
@@ -171,7 +171,7 @@ public class SiteMembershipComparator implements Comparator<SiteMembership>
             int multiplier = sortOrder.equals(SortOrder.ASCENDING) ? 1 : -1;
             if (name.equals(SiteService.SortFields.DisplayName))
             {
-                if (id1 == null || id2 == null)
+                if (displayName1 == null || displayName2 == null)
                 {
                     continue;
                 }
