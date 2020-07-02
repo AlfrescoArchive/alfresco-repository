@@ -869,7 +869,7 @@ public class SiteServiceImplMoreTest
             perMethodTestSites.createTestSiteWithGroups(siteShortName, "sitePreset", SiteVisibility.PUBLIC, AuthenticationUtil.getAdminUserName(), 10);
             List<Pair<SiteService.SortFields, Boolean>> sortProps = new ArrayList<Pair<SiteService.SortFields, Boolean>>(1);
             sortProps.add(new Pair<SiteService.SortFields, Boolean>(SiteService.SortFields.DisplayName, true));
-            PagingResults<SiteGroupMembership> pagedMembers = SITE_SERVICE.listGroupsPaged(siteShortName, sortProps, new PagingRequest(5));
+            PagingResults<SiteGroupMembership> pagedMembers = SITE_SERVICE.listGroupMembersPaged(siteShortName, sortProps, new PagingRequest(5));
             assertNotNull(pagedMembers);
             assertNotNull(pagedMembers.getQueryExecutionId());
             assertTrue(pagedMembers.hasMoreItems());
@@ -891,7 +891,7 @@ public class SiteServiceImplMoreTest
             perMethodTestSites.createTestSiteWithGroups(siteShortName, "sitePreset", SiteVisibility.PUBLIC, AuthenticationUtil.getAdminUserName(), 10);
             List<Pair<SiteService.SortFields, Boolean>> sortProps = new ArrayList<Pair<SiteService.SortFields, Boolean>>(1);
             sortProps.add(new Pair<SiteService.SortFields, Boolean>(SiteService.SortFields.FirstName, true));
-            PagingResults<SiteMembership> pagedMembers = SITE_SERVICE.listMembersPaged(siteShortName, true, sortProps, new PagingRequest(100));
+            PagingResults<SiteMembership> pagedMembers = SITE_SERVICE.listMembersPaged(siteShortName, true, sortProps, new PagingRequest(25));
             assertNotNull(pagedMembers);
             assertNotNull(pagedMembers.getQueryExecutionId());
             assertFalse(pagedMembers.hasMoreItems());

@@ -585,7 +585,7 @@ public interface SiteService
     boolean isSiteAdmin(String userName);
 
     /**
-     * Returns a paged list of the groups of the site.
+     * Returns a paged list of the groups for the site.
      *
      * @param shortName         site short name
      * @param sortProps         sorting options
@@ -594,5 +594,5 @@ public interface SiteService
      * @return the authority name and their role
      */
     @NotAuditable
-    PagingResults<SiteGroupMembership> listGroupsPaged(String shortName, List<Pair<SortFields, Boolean>> sortProps, PagingRequest pagingRequest);
+    PagingResults<SiteGroupMembership> listGroupMembersPaged(String shortName, List<Pair<SortFields, Boolean>> sortProps, PagingRequest pagingRequest);
 }
