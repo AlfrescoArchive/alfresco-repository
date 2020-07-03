@@ -732,6 +732,64 @@ public class AsynchronousExtractorTest extends BaseSpringTest
         });
     }
 
+    @Test
+    public void testExtractTagging() throws Exception
+    {
+        QName taggable = QName.createQName("cm:taggable", namespacePrefixResolver);
+
+        contentMetadataExtracter.setStringTaggingSeparators(Arrays.asList(",", ";"));
+        contentMetadataExtracter.setEnableStringTagging(true);
+        transactionService.getRetryingTransactionHelper().doInTransaction(() -> {
+            Map<QName, Serializable> properties = nodeService.getProperties(nodeRef);
+            assertFalse(properties.containsKey(ContentModel.PROP_TAGS));
+            nodeService.addAspect(nodeRef, taggable, Collections.emptyMap());
+            return null;});
+
+        expectedProperties.put(QName.createQName("cm:author", namespacePrefixResolver), "Nevin Nollop");
+        expectedProperties.put(QName.createQName("cm:description", namespacePrefixResolver), "Gym class featuring a brown fox and lazy dog");
+        expectedProperties.put(QName.createQName("cm:title", namespacePrefixResolver), "The quick brown fox jumps over the lazy dog");
+
+        List<String> expectedTags = Arrays.asList("tag1", "tag2", "tag3");
+        assertAsyncMetadataExecute(contentMetadataExtracter, "quick/quick.tagging_metadata.json",
+                UNCHANGED_HASHCODE, origSize, expectedProperties, OverwritePolicy.PRAGMATIC, taggable);
+
+        List<String> actualTags = transactionService.getRetryingTransactionHelper().doInTransaction(() -> {
+                Map<QName, Serializable> properties = nodeService.getProperties(nodeRef);
+                assertTrue(properties.containsKey(ContentModel.PROP_TAGS));
+                return taggingService.getTags(nodeRef);
+            });
+
+        for (String expectedTag : expectedTags)
+        {
+            assertTrue(actualTags.contains(expectedTag));
+        }
+    }
+
+    @Test
+    public void testExtractTaggingWhenDisabled() throws Exception
+    {
+        contentMetadataExtracter.setEnableStringTagging(false);
+        transactionService.getRetryingTransactionHelper().doInTransaction(() -> {
+                Map<QName, Serializable> properties = nodeService.getProperties(nodeRef);
+                assertFalse(properties.containsKey(ContentModel.PROP_TAGS));
+                return null;
+            });
+
+        expectedProperties.put(QName.createQName("cm:author", namespacePrefixResolver), "Nevin Nollop");
+        expectedProperties.put(QName.createQName("cm:description", namespacePrefixResolver), "Gym class featuring a brown fox and lazy dog");
+        expectedProperties.put(QName.createQName("cm:title", namespacePrefixResolver), "The quick brown fox jumps over the lazy dog");
+
+        assertAsyncMetadataExecute(contentMetadataExtracter, "quick/quick.tagging_metadata_enable_false.json",
+                UNCHANGED_HASHCODE, origSize, expectedProperties, OverwritePolicy.PRAGMATIC);
+
+        List<String> tags = transactionService.getRetryingTransactionHelper().doInTransaction(() -> {
+                Map<QName, Serializable> properties = nodeService.getProperties(nodeRef);
+                assertFalse(properties.containsKey(ContentModel.PROP_TAGS));
+                return taggingService.getTags(nodeRef);
+            });
+        assertEquals("Unexpected tags", 0, tags.size());
+    }
+
     // TODO Write tests for: overwritePolicy, enableStringTagging and carryAspectProperties.
     //      Values are set in AsynchronousExtractor.setMetadata(...) but make use of original code within
     //      MetadataExtracter and AbstractMappingMetadataExtracter.
