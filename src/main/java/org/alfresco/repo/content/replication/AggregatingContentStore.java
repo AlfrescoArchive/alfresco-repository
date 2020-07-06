@@ -25,6 +25,7 @@
  */
 package org.alfresco.repo.content.replication;
 
+import java.util.Date;
 import java.util.List;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
@@ -39,6 +40,7 @@ import org.alfresco.repo.content.caching.CachingContentStore;
 import org.alfresco.service.cmr.repository.ContentIOException;
 import org.alfresco.service.cmr.repository.ContentReader;
 import org.alfresco.service.cmr.repository.ContentWriter;
+import org.alfresco.service.cmr.repository.DirectAccessUrl;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -261,5 +263,82 @@ public class AggregatingContentStore extends AbstractContentStore
             logger.debug("Deleted content for URL: " + contentUrl);
         }
         return deleted;
+    }
+
+    /**
+     * @return Returns <tt>true</tt> if the primary store supports direct access
+     */
+    public boolean isDirectAccessSupported()
+    {
+        return primaryStore.isDirectAccessSupported();
+    }
+
+    public DirectAccessUrl getDirectAccessUrl(String contentUrl, Date expiresAt)
+    {
+        if (primaryStore == null)
+        {
+            throw new AlfrescoRuntimeException("ReplicatingContentStore not initialised");
+        }
+
+        // get a read lock so that we are sure that no replication is underway
+        readLock.lock();
+        try
+        {
+            // Keep track of the unsupported state of the content URL - it might be a rubbish URL
+            boolean contentUrlSupported = false;
+
+            DirectAccessUrl directAccessUrl = null;
+
+            // Check the primary store
+            try
+            {
+                directAccessUrl = primaryStore.getDirectAccessUrl(contentUrl, expiresAt);
+
+                // At least the content URL was supported
+                contentUrlSupported = true;
+            }
+            catch (UnsupportedContentUrlException | UnsupportedOperationException e)
+            {
+                // The store can't handle the content URL
+            }
+
+            if (directAccessUrl != null)
+            {
+                return directAccessUrl;
+            }
+
+            // the content is not in the primary store so we have to go looking for it
+            for (ContentStore store : secondaryStores)
+            {
+                try
+                {
+                    directAccessUrl = store.getDirectAccessUrl(contentUrl, expiresAt);
+
+                    // At least the content URL was supported
+                    contentUrlSupported = true;
+                }
+                catch (UnsupportedContentUrlException | UnsupportedOperationException e)
+                {
+                    // The store can't handle the content URL
+                }
+
+                if (directAccessUrl != null)
+                {
+                    break;
+                }
+            }
+
+            // Check if the content URL was supported
+            if (!contentUrlSupported)
+            {
+                throw new UnsupportedContentUrlException(this, contentUrl);
+            }
+
+            return directAccessUrl;
+        }
+        finally
+        {
+            readLock.unlock();
+        }
     }
 }
