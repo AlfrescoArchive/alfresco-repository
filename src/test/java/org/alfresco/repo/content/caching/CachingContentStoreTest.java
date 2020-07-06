@@ -504,7 +504,7 @@ public class CachingContentStoreTest
     {
         try
         {
-            backingStore.getDirectAccessUrl("url", null);
+            cachingStore.getDirectAccessUrl("url", null);
             fail();
         }
         catch (UnsupportedOperationException e)
@@ -513,6 +513,6 @@ public class CachingContentStoreTest
         }
 
         when(backingStore.getDirectAccessUrl(anyString(), any())).thenReturn(new DirectAccessUrl());
-        backingStore.getDirectAccessUrl("url", null);
+        cachingStore.getDirectAccessUrl("url", null);
     }
 }
