@@ -224,13 +224,13 @@ public class AggregatingContentStoreTest extends AbstractWritableContentStoreTes
         UnsupportedOperationException unsupportedEx = new UnsupportedOperationException("Retrieving direct access URLs is not supported by this content store.");
 
         when(primaryStoreMock.getDirectAccessUrl(anyString(), any())).thenThrow(unsupportedEx);
-        when(primaryStoreMock.getDirectAccessUrl(anyString(), any())).thenReturn(new DirectAccessUrl());
+        when(secondaryStoreMock.getDirectAccessUrl(anyString(), any())).thenReturn(new DirectAccessUrl());
         aggStore.getDirectAccessUrl("url", null);
 
         try
         {
             when(primaryStoreMock.getDirectAccessUrl(anyString(), any())).thenThrow(unsupportedEx);
-            when(primaryStoreMock.getDirectAccessUrl(anyString(), any())).thenThrow(unsupportedEx);
+            when(secondaryStoreMock.getDirectAccessUrl(anyString(), any())).thenThrow(unsupportedEx);
             aggStore.getDirectAccessUrl("url", null);
             fail();
         }

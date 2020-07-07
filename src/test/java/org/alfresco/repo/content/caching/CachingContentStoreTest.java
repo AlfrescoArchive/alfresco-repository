@@ -500,10 +500,11 @@ public class CachingContentStoreTest
     }
 
     @Test
-    public void getDirectAccessUrl()
+    public void getDirectAccessUrlUnsupported()
     {
         try
         {
+            when(backingStore.getDirectAccessUrl(anyString(), any())).thenThrow(new UnsupportedOperationException());
             cachingStore.getDirectAccessUrl("url", null);
             fail();
         }
@@ -511,7 +512,11 @@ public class CachingContentStoreTest
         {
             // expected
         }
+    }
 
+    @Test
+    public void getDirectAccessUrl()
+    {
         when(backingStore.getDirectAccessUrl(anyString(), any())).thenReturn(new DirectAccessUrl());
         cachingStore.getDirectAccessUrl("url", null);
     }
