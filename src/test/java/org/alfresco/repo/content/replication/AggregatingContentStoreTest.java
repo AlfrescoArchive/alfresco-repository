@@ -246,7 +246,7 @@ public class AggregatingContentStoreTest extends AbstractWritableContentStoreTes
 
         try
         {
-            when(primaryStoreMock.getDirectAccessUrl(eq("urlNotSupported"), any())).thenThrow(unsupportedContentUrlExc);
+            when(primaryStoreMock.getDirectAccessUrl(eq("urlDANotSupported"), any())).thenThrow(unsupportedContentUrlExc);
             when(secondaryStoreMock.getDirectAccessUrl(eq("urlDANotSupported"), any())).thenThrow(unsupportedExc);
             aggStore.getDirectAccessUrl("urlDANotSupported", null);
             fail();
@@ -259,7 +259,7 @@ public class AggregatingContentStoreTest extends AbstractWritableContentStoreTes
         try
         {
             when(primaryStoreMock.getDirectAccessUrl(eq("urlDANotSupported"), any())).thenThrow(unsupportedExc);
-            when(secondaryStoreMock.getDirectAccessUrl(eq("urlNotSupported"), any())).thenThrow(unsupportedContentUrlExc);
+            when(secondaryStoreMock.getDirectAccessUrl(eq("urlDANotSupported"), any())).thenThrow(unsupportedContentUrlExc);
             aggStore.getDirectAccessUrl("urlDANotSupported", null);
             fail();
         }
@@ -282,21 +282,21 @@ public class AggregatingContentStoreTest extends AbstractWritableContentStoreTes
         }
 
         when(primaryStoreMock.getDirectAccessUrl(eq("urlPriSupported"), any())).thenReturn(new DirectAccessUrl());
-        when(secondaryStoreMock.getDirectAccessUrl(eq("urlDANotSupported"), any())).thenThrow(unsupportedExc);
+        when(secondaryStoreMock.getDirectAccessUrl(eq("urlPriSupported"), any())).thenThrow(unsupportedExc);
         directAccessUrl = aggStore.getDirectAccessUrl("urlPriSupported", null);
         assertNotNull(directAccessUrl);
 
         when(primaryStoreMock.getDirectAccessUrl(eq("urlPriSupported"), any())).thenReturn(new DirectAccessUrl());
-        when(secondaryStoreMock.getDirectAccessUrl(eq("urlNotSupported"), any())).thenThrow(unsupportedContentUrlExc);
+        when(secondaryStoreMock.getDirectAccessUrl(eq("urlPriSupported"), any())).thenThrow(unsupportedContentUrlExc);
         directAccessUrl = aggStore.getDirectAccessUrl("urlPriSupported", null);
         assertNotNull(directAccessUrl);
 
-        when(primaryStoreMock.getDirectAccessUrl(eq("urlDANotSupported"), any())).thenThrow(unsupportedExc);
+        when(primaryStoreMock.getDirectAccessUrl(eq("urlSecSupported"), any())).thenThrow(unsupportedExc);
         when(secondaryStoreMock.getDirectAccessUrl(eq("urlSecSupported"), any())).thenReturn(new DirectAccessUrl());
         directAccessUrl = aggStore.getDirectAccessUrl("urlSecSupported", null);
         assertNotNull(directAccessUrl);
 
-        when(primaryStoreMock.getDirectAccessUrl(eq("urlNotSupported"), any())).thenThrow(unsupportedContentUrlExc);
+        when(primaryStoreMock.getDirectAccessUrl(eq("urlSecSupported"), any())).thenThrow(unsupportedContentUrlExc);
         when(secondaryStoreMock.getDirectAccessUrl(eq("urlSecSupported"), any())).thenReturn(new DirectAccessUrl());
         directAccessUrl = aggStore.getDirectAccessUrl("urlSecSupported", null);
         assertNotNull(directAccessUrl);
