@@ -266,11 +266,30 @@ public class AggregatingContentStore extends AbstractContentStore
     }
 
     /**
-     * @return Returns <tt>true</tt> if the primary store supports direct access
+     * @return Returns <tt>true</tt> if at least one store supports direct access
      */
     public boolean isDirectAccessSupported()
     {
-        return primaryStore.isDirectAccessSupported();
+        // Check the primary store
+        boolean isDirectAccessSupported = primaryStore.isDirectAccessSupported();
+
+        if (!isDirectAccessSupported)
+        {
+            // Direct access is not supported by the primary store so we have to check the
+            // other stores
+            for (ContentStore store : secondaryStores)
+            {
+
+                isDirectAccessSupported = store.isDirectAccessSupported();
+
+                if (isDirectAccessSupported)
+                {
+                    break;
+                }
+            }
+        }
+
+        return isDirectAccessSupported;
     }
 
     public DirectAccessUrl getDirectAccessUrl(String contentUrl, Date expiresAt)
@@ -285,7 +304,8 @@ public class AggregatingContentStore extends AbstractContentStore
         try
         {
             // Keep track of the unsupported state of the content URL - it might be a rubbish URL
-            boolean contentUrlSupported = false;
+            boolean contentUrlSupported = true;
+            boolean directAccessUrlSupported = true;
 
             DirectAccessUrl directAccessUrl = null;
 
@@ -293,13 +313,16 @@ public class AggregatingContentStore extends AbstractContentStore
             try
             {
                 directAccessUrl = primaryStore.getDirectAccessUrl(contentUrl, expiresAt);
-
-                // At least the content URL was supported
-                contentUrlSupported = true;
             }
-            catch (UnsupportedContentUrlException | UnsupportedOperationException e)
+            catch (UnsupportedOperationException e)
+            {
+                // The store does not support direct access URL
+                directAccessUrlSupported = false;
+            } 
+            catch (UnsupportedContentUrlException e)
             {
                 // The store can't handle the content URL
+                contentUrlSupported = false;
             }
 
             if (directAccessUrl != null)
@@ -313,13 +336,16 @@ public class AggregatingContentStore extends AbstractContentStore
                 try
                 {
                     directAccessUrl = store.getDirectAccessUrl(contentUrl, expiresAt);
-
-                    // At least the content URL was supported
-                    contentUrlSupported = true;
                 }
-                catch (UnsupportedContentUrlException | UnsupportedOperationException e)
+                catch (UnsupportedOperationException e)
+                {
+                    // The store does not support direct access URL
+                    directAccessUrlSupported = false;
+                }
+                catch (UnsupportedContentUrlException e)
                 {
                     // The store can't handle the content URL
+                    contentUrlSupported = false;
                 }
 
                 if (directAccessUrl != null)
@@ -328,10 +354,18 @@ public class AggregatingContentStore extends AbstractContentStore
                 }
             }
 
-            // Check if the content URL was supported
-            if (!contentUrlSupported)
+            if (directAccessUrl == null)
             {
-                throw new UnsupportedContentUrlException(this, contentUrl);
+                if (!directAccessUrlSupported)
+                {
+                    // The direct access URL was not supported
+                    throw new UnsupportedOperationException("Retrieving direct access URLs is not supported by this content store.");
+                }
+                else if (!contentUrlSupported)
+                {
+                    // The content URL was not supported
+                    throw new UnsupportedContentUrlException(this, contentUrl);
+                }
             }
 
             return directAccessUrl;
