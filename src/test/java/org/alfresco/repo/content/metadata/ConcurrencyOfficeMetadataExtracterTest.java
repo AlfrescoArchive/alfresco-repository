@@ -39,7 +39,7 @@ import org.joda.time.format.DateTimeFormat;
 import org.junit.Test;
 
 /**
- * @deprecated extractor has been moved to a T-Engine.
+ * @deprecated OOTB extractors are being moved to T-Engines.
  *
  * MNT-8978
  */

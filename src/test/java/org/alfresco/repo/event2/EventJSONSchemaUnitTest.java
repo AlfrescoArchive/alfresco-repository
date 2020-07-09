@@ -26,19 +26,58 @@
 
 package org.alfresco.repo.event2;
 
-import org.alfresco.repo.node.NodeServicePolicies;
+import static org.junit.Assert.fail;
+
+import org.alfresco.error.AlfrescoRuntimeException;
+import org.junit.Test;
 
 /**
- * Event generator supported policies.
+ * Test event JSON schema mapping.
  *
  * @author Jamal Kaabi-Mofrad
  */
-public interface EventSupportedPolicies extends NodeServicePolicies.OnCreateNodePolicy,
-                                                NodeServicePolicies.OnUpdatePropertiesPolicy,
-                                                NodeServicePolicies.OnSetNodeTypePolicy,
-                                                NodeServicePolicies.BeforeDeleteNodePolicy,
-                                                NodeServicePolicies.OnAddAspectPolicy,
-                                                NodeServicePolicies.OnRemoveAspectPolicy,
-                                                NodeServicePolicies.OnMoveNodePolicy
+public class EventJSONSchemaUnitTest
 {
+
+    @Test
+    public void testEventJsonSchema()
+    {
+        for (EventType type : EventType.values())
+        {
+            try
+            {
+                EventJSONSchema.getSchema(type, 1);
+            }
+            catch (Exception ex)
+            {
+                fail(ex.getMessage());
+            }
+        }
+    }
+
+    @Test(expected = AlfrescoRuntimeException.class)
+    public void testEventJsonSchemaInvalid()
+    {
+        // Invalid version
+        for (EventType type : EventType.values())
+        {
+            EventJSONSchema.getSchema(type, 5);
+        }
+    }
+
+    @Test
+    public void testEventJsonSchemaV1()
+    {
+        for (EventType type : EventType.values())
+        {
+            try
+            {
+                EventJSONSchema.getSchemaV1(type);
+            }
+            catch (Exception ex)
+            {
+                fail(ex.getMessage());
+            }
+        }
+    }
 }

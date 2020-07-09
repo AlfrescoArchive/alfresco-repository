@@ -42,7 +42,7 @@ import org.gagravarr.tika.FlacParser;
 import org.gagravarr.tika.VorbisParser;
 
 /**
- * @deprecated extractor has been moved to a T-Engine.
+ * @deprecated OOTB extractors are being moved to T-Engines.
  *
  * A Metadata Extractor which makes use of the Apache
  *  Tika Audio Parsers to extract metadata from your

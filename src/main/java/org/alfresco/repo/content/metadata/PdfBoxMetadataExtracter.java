@@ -52,7 +52,7 @@ import org.apache.tika.parser.Parser;
 import org.apache.tika.parser.pdf.PDFParser;
 
 /**
- * @deprecated extractor has been moved to a T-Engine.
+ * @deprecated OOTB extractors are being moved to T-Engines.
  *
  * Metadata extractor for the PDF documents.
  * <pre>

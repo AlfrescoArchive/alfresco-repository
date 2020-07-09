@@ -47,6 +47,8 @@ import org.alfresco.service.cmr.repository.ContentReader;
 import org.alfresco.service.namespace.QName;
 
 /**
+ * @deprecated OOTB extractors are being moved to T-Engines.
+ *
  * Metadata extractor for RFC822 mime emails.
  * 
  * Default configuration:   (see RFC822MetadataExtractor.properties)

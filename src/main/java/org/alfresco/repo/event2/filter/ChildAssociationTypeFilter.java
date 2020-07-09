@@ -23,22 +23,41 @@
  * along with Alfresco. If not, see <http://www.gnu.org/licenses/>.
  * #L%
  */
+package org.alfresco.repo.event2.filter;
 
-package org.alfresco.repo.event2;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
-import org.alfresco.repo.node.NodeServicePolicies;
+import org.alfresco.service.namespace.QName;
 
 /**
- * Event generator supported policies.
+ * Implementation of the child association types filter.
  *
- * @author Jamal Kaabi-Mofrad
+ * @author Sara Aspery
  */
-public interface EventSupportedPolicies extends NodeServicePolicies.OnCreateNodePolicy,
-                                                NodeServicePolicies.OnUpdatePropertiesPolicy,
-                                                NodeServicePolicies.OnSetNodeTypePolicy,
-                                                NodeServicePolicies.BeforeDeleteNodePolicy,
-                                                NodeServicePolicies.OnAddAspectPolicy,
-                                                NodeServicePolicies.OnRemoveAspectPolicy,
-                                                NodeServicePolicies.OnMoveNodePolicy
+public class ChildAssociationTypeFilter extends AbstractNodeEventFilter
 {
+    private final List<String> assocTypesBlackList;
+
+    public ChildAssociationTypeFilter(String filteredChildAssocTypes)
+    {
+        this.assocTypesBlackList = parseFilterList(filteredChildAssocTypes);
+    }
+
+    /**
+     *
+     * @see org.alfresco.repo.event2.filter.AbstractNodeEventFilter#getExcludedTypes()
+     */
+    @Override
+    public Set<QName> getExcludedTypes()
+    {
+        Set<QName> result = new HashSet<>();
+
+        // add child association types defined in repository.properties/alfresco-global.properties
+        assocTypesBlackList.forEach(childAssocType -> result.addAll(expandTypeDef(childAssocType)));
+
+        return result;
+    }
+
 }

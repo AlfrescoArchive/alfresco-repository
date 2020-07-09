@@ -36,7 +36,7 @@ import org.apache.tika.parser.Parser;
 import org.apache.tika.parser.mp3.Mp3Parser;
 
 /**
- * @deprecated extractor has been moved to a T-Engine.
+ * @deprecated OOTB extractors are being moved to T-Engines.
  *
  * Extracts the following values from MP3 files:
  * <pre>

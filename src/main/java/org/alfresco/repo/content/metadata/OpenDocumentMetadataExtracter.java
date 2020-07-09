@@ -2,7 +2,7 @@
  * #%L
  * Alfresco Repository
  * %%
- * Copyright (C) 2005 - 2020 Alfresco Software Limited
+ * Copyright (C) 2005 - 2016 Alfresco Software Limited
  * %%
  * This file is part of the Alfresco software. 
  * If the software was purchased under a paid Alfresco license, the terms of 
@@ -59,7 +59,7 @@ import org.joda.time.format.DateTimeFormatter;
 
 
 /**
- * @deprecated extractor has been moved to a T-Engine.
+ * @deprecated OOTB extractors are being moved to T-Engines.
  *
  * Metadata extractor for the
  * {@link org.alfresco.repo.content.MimetypeMap#MIMETYPE_OPENDOCUMENT_TEXT MIMETYPE_OPENDOCUMENT_XXX}

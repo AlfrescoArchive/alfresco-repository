@@ -50,7 +50,7 @@ import org.junit.Ignore;
 import org.junit.Test;
 
 /**
- * @deprecated The JodConverterMetadataExtracter has not been in use since 6.0.1
+ * @deprecated OOTB extractors are being moved to T-Engines.
  *
  * @author Neil McErlean
  * @since 3.2 SP1

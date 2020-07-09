@@ -30,10 +30,12 @@ import org.junit.runners.Suite;
 import org.junit.runners.Suite.SuiteClasses;
 
 @RunWith(Suite.class)
-@SuiteClasses({ org.alfresco.repo.event2.CreateRepoEventIT.class,
-                org.alfresco.repo.event2.UpdateRepoEventIT.class,
-                org.alfresco.repo.event2.DeleteRepoEventIT.class,
-                org.alfresco.repo.event2.DownloadRepoEventIT.class })
+@SuiteClasses({ CreateRepoEventIT.class,
+                UpdateRepoEventIT.class,
+                DeleteRepoEventIT.class,
+                ChildAssociationRepoEventIT.class,
+                PeerAssociationRepoEventIT.class
+})
 public class RepoEvent2ITSuite
 {
 }

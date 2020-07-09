@@ -23,21 +23,19 @@
  * along with Alfresco. If not, see <http://www.gnu.org/licenses/>.
  * #L%
  */
-package org.alfresco.repo.node;
 
-import org.alfresco.service.cmr.repository.NodeRef;
+package org.alfresco.repo.event2;
+
+import org.alfresco.repo.node.NodeServicePolicies;
 
 /**
- * Download Notifier Service.
+ * Event generator supported policies.
+ *
  * @author Chris Shields
  * @author Sara Aspery
  */
-public interface DownloadNotifierService
+public interface ChildAssociationEventSupportedPolicies extends NodeServicePolicies.OnCreateChildAssociationPolicy,
+                                                                NodeServicePolicies.BeforeDeleteChildAssociationPolicy
 {
-    /**
-     * Notification of a node download.
-     *
-     * @param nodeRef   The reference to the downloaded node. This can be a reference to a zip download node.
-     */
-    void downloadNotify(NodeRef nodeRef);
 }
+

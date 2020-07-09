@@ -40,7 +40,7 @@ import org.apache.tika.parser.AutoDetectParser;
 import org.apache.tika.parser.Parser;
 
 /**
- * @deprecated extractor has been moved to a T-Engine.
+ * @deprecated OOTB extractors are being moved to T-Engines.
  *
  * A Metadata Extractor which makes use of the Apache
  *  Tika auto-detection to select the best parser

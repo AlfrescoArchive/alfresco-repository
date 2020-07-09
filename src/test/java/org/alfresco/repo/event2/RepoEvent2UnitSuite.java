@@ -26,19 +26,15 @@
 
 package org.alfresco.repo.event2;
 
-import org.alfresco.repo.node.NodeServicePolicies;
+import org.junit.runner.RunWith;
+import org.junit.runners.Suite;
+import org.junit.runners.Suite.SuiteClasses;
 
-/**
- * Event generator supported policies.
- *
- * @author Jamal Kaabi-Mofrad
- */
-public interface EventSupportedPolicies extends NodeServicePolicies.OnCreateNodePolicy,
-                                                NodeServicePolicies.OnUpdatePropertiesPolicy,
-                                                NodeServicePolicies.OnSetNodeTypePolicy,
-                                                NodeServicePolicies.BeforeDeleteNodePolicy,
-                                                NodeServicePolicies.OnAddAspectPolicy,
-                                                NodeServicePolicies.OnRemoveAspectPolicy,
-                                                NodeServicePolicies.OnMoveNodePolicy
+@RunWith(Suite.class)
+@SuiteClasses({ EventFilterUnitTest.class,
+                EventConsolidatorUnitTest.class,
+                EventJSONSchemaUnitTest.class
+})
+public class RepoEvent2UnitSuite
 {
 }
