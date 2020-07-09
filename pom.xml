@@ -2,7 +2,7 @@
     <modelVersion>4.0.0</modelVersion>
     <artifactId>alfresco-repository</artifactId>
     <name>Alfresco Repository</name>
-    <version>8.231-SNAPSHOT</version>
+    <version>8.236-SNAPSHOT</version>
     <packaging>jar</packaging>
     <parent>
         <groupId>org.alfresco</groupId>
@@ -463,7 +463,7 @@
         <dependency>
             <groupId>org.bouncycastle</groupId>
             <artifactId>bcprov-jdk15on</artifactId>
-            <version>1.64</version>
+            <version>1.66</version>
         </dependency>
         <dependency>
             <groupId>net.sf</groupId>
