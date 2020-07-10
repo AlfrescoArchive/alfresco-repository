@@ -68,10 +68,8 @@ public class TikaAutoMetadataExtracter extends TikaPoweredMetadataExtracter
     protected static Log logger = LogFactory.getLog(TikaAutoMetadataExtracter.class);
     private static AutoDetectParser parser;
     private static TikaConfig config;
-    private static String EXIF_IMAGE_HEIGHT_TAG = "Exif Image Height";
-    private static String EXIF_IMAGE_WIDTH_TAG = "Exif Image Width";
-    private static String NEW_EXIF_IMAGE_HEIGHT_TAG = "Exif SubIFD:Exif Image Height";
-    private static String NEW_EXIF_IMAGE_WIDTH_TAG = "Exif SubIFD:Exif Image Width";
+    private static String EXIF_IMAGE_HEIGHT_TAG = "Exif SubIFD:Exif Image Height";
+    private static String EXIF_IMAGE_WIDTH_TAG = "Exif SubIFD:Exif Image Width";
     private static String JPEG_IMAGE_HEIGHT_TAG = "Image Height";
     private static String JPEG_IMAGE_WIDTH_TAG = "Image Width";
     private static String COMPRESSION_TAG = "Compression";
@@ -124,12 +122,12 @@ public class TikaAutoMetadataExtracter extends TikaPoweredMetadataExtracter
      */
     @Override
     protected Map<String, Serializable> extractSpecific(Metadata metadata,
-                                                        Map<String, Serializable> properties, Map<String, String> headers)
+         Map<String, Serializable> properties, Map<String, String> headers)
     {
         if (MimetypeMap.MIMETYPE_IMAGE_JPEG.equals(metadata.get(Metadata.CONTENT_TYPE)))
         {
             //check if the image has exif information
-            if (metadata.get(NEW_EXIF_IMAGE_WIDTH_TAG) != null && metadata.get(NEW_EXIF_IMAGE_HEIGHT_TAG) != null)
+            if (metadata.get(EXIF_IMAGE_WIDTH_TAG) != null && metadata.get(EXIF_IMAGE_HEIGHT_TAG) != null)
             {
                 //replace the exif size properties that will be embedded in the node with
                 //the guessed dimensions from Tika
