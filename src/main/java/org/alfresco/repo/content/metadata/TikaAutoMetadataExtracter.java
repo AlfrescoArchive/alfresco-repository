@@ -72,7 +72,6 @@ public class TikaAutoMetadataExtracter extends TikaPoweredMetadataExtracter
     private static String EXIF_IMAGE_WIDTH_TAG = "Exif SubIFD:Exif Image Width";
     private static String JPEG_IMAGE_HEIGHT_TAG = "Image Height";
     private static String JPEG_IMAGE_WIDTH_TAG = "Image Width";
-    private static String COMPRESSION_TAG = "Compression";
 
     public static ArrayList<String> SUPPORTED_MIMETYPES;
     private static ArrayList<String> buildMimeTypes(TikaConfig tikaConfig)
