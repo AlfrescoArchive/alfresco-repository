@@ -65,7 +65,7 @@ public class CryptodocSwitchableApplicationContextFactory extends SwitchableAppl
         {
             if (!isUpdateable(name))
             {
-                throw new IllegalStateException("Switching to an unknown content store is not possible.");
+                throw new IllegalStateException("Switching to the unknown content store \"" + value + "\" is not possible.");
             }
 
             if (name.equals(SOURCE_BEAN_PROPERTY))
@@ -77,7 +77,7 @@ public class CryptodocSwitchableApplicationContextFactory extends SwitchableAppl
                 }
                 catch (BeansException e)
                 {
-                    throw new IllegalStateException("Switching to an unknown content store is not possible.");
+                    throw new IllegalStateException("Switching to the unknown content store \"" + value + "\" is not possible.");
                 }
 
                 if (canSwitchSubsystemTo(newSourceBean, value))
@@ -85,12 +85,12 @@ public class CryptodocSwitchableApplicationContextFactory extends SwitchableAppl
                     boolean isNewEncrypted = isEncryptedContentStoreSubsystem(newSourceBean, value);
                     if (isNewEncrypted && !isEncryptionSupported())
                     {
-                        throw new IllegalStateException("Switching to an encrypted content store is not licensed.");
+                        throw new IllegalStateException("Switching to the encrypted content store \"" + value + "\" is not licensed.");
                     }
                 } 
                 else
                 {
-                    throw new IllegalStateException("Switching to an unencrypted content store is not possible.");
+                    throw new IllegalStateException("Switching to the unencrypted content store \"" + value + "\" is not possible.");
                 }
             }
             super.setProperty(name, value);
@@ -100,8 +100,7 @@ public class CryptodocSwitchableApplicationContextFactory extends SwitchableAppl
     private boolean canSwitchSubsystemTo(Object newSourceBean, String beanName)
     {
         Object currentSourceBean = getParent().getBean(getCurrentSourceBeanName());
-        boolean isCurrentEncrypted = isCryptoDocEnabled() || 
-                                     isEncryptedContentStoreSubsystem(currentSourceBean, getCurrentSourceBeanName());
+        boolean isCurrentEncrypted = isEncryptedContentStoreSubsystem(currentSourceBean, getCurrentSourceBeanName());
         // Can switch from an unencrypted content store to any kind of content store
         if (!isCurrentEncrypted)
         {
@@ -125,13 +124,6 @@ public class CryptodocSwitchableApplicationContextFactory extends SwitchableAppl
             isEncrypted = beanName.equals("encryptedContentStore");
         }
         return isEncrypted;
-    }
-
-    private boolean isCryptoDocEnabled()
-    {
-        Object bean = getParent().getBean("fileContentStore");
-        return bean != null &&
-                bean.getClass().getSimpleName().equals("CryptoContentStore");
     }
 
     private boolean isEncryptionSupported()
