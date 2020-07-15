@@ -136,7 +136,7 @@ public class CryptodocSwitchableApplicationContextFactory extends SwitchableAppl
 
     private boolean isEncryptionSupported()
     {
-        boolean isSupported = false;
+        boolean isSupported = true;
         if (descriptorService != null)
         {
             LicenseDescriptor license = descriptorService.getLicenseDescriptor();
