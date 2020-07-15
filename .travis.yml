@@ -18,6 +18,7 @@ branches:
   only:
     - master
     - /support\/.*/
+    - fix/MNT-21317_folder_rule_trigger
 
 stages:
   - test
