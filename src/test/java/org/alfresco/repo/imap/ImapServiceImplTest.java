@@ -25,10 +25,9 @@
  */
 package org.alfresco.repo.imap;
 
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.Serializable;
+import java.io.*;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -37,6 +36,7 @@ import java.util.GregorianCalendar;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.NavigableMap;
 import java.util.Properties;
@@ -56,6 +56,13 @@ import javax.mail.search.SentDateTerm;
 import javax.mail.search.SubjectTerm;
 import javax.transaction.UserTransaction;
 
+import com.icegreen.greenmail.imap.ImapRequestLineReader;
+import com.icegreen.greenmail.imap.ProtocolException;
+import com.sun.mail.iap.Response;
+import com.sun.mail.imap.IMAPFolder;
+import com.sun.mail.imap.protocol.*;
+import com.icegreen.greenmail.imap.commands.SearchKey;
+import com.icegreen.greenmail.imap.commands.SearchTermBuilder;
 import junit.framework.TestCase;
 
 import org.alfresco.error.AlfrescoRuntimeException;
@@ -63,6 +70,7 @@ import org.alfresco.model.ContentModel;
 import org.alfresco.model.ImapModel;
 import org.alfresco.repo.imap.AlfrescoImapConst.ImapViewMode;
 import org.alfresco.repo.importer.ACPImportPackageHandler;
+import org.alfresco.repo.jscript.Search;
 import org.alfresco.repo.management.subsystems.ChildApplicationContextFactory;
 import org.alfresco.repo.node.integrity.IntegrityChecker;
 import org.alfresco.repo.security.authentication.AuthenticationUtil;
@@ -1151,7 +1159,7 @@ public class ImapServiceImplTest extends TestCase
      * MNT-12773
      * @throws AddressException
      */
-    public void testSearchTerms() throws AddressException 
+    public void testSearchTerms() throws AddressException
     {
         List<AlfrescoImapFolder> mf = imapService.listMailboxes(user, IMAP_ROOT+"/"+TEST_IMAP_FOLDER_NAME+"/_*", false);
         ArrayList<Long> res = new ArrayList<Long>();
