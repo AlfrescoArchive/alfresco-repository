@@ -63,11 +63,6 @@ public class CryptodocSwitchableApplicationContextFactory extends SwitchableAppl
         @Override
         public void setProperty(String name, String value)
         {
-            if (!isUpdateable(name))
-            {
-                throw new IllegalStateException("Switching to the unknown content store \"" + value + "\" is not possible.");
-            }
-
             if (name.equals(SOURCE_BEAN_PROPERTY))
             {
                 ChildApplicationContextFactory newSourceBean;
