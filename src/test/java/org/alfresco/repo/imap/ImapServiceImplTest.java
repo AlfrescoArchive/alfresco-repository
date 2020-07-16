@@ -25,7 +25,10 @@
  */
 package org.alfresco.repo.imap;
 
-import java.io.*;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.Serializable;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -56,13 +59,6 @@ import javax.mail.search.SentDateTerm;
 import javax.mail.search.SubjectTerm;
 import javax.transaction.UserTransaction;
 
-import com.icegreen.greenmail.imap.ImapRequestLineReader;
-import com.icegreen.greenmail.imap.ProtocolException;
-import com.sun.mail.iap.Response;
-import com.sun.mail.imap.IMAPFolder;
-import com.sun.mail.imap.protocol.*;
-import com.icegreen.greenmail.imap.commands.SearchKey;
-import com.icegreen.greenmail.imap.commands.SearchTermBuilder;
 import junit.framework.TestCase;
 
 import org.alfresco.error.AlfrescoRuntimeException;
@@ -70,7 +66,6 @@ import org.alfresco.model.ContentModel;
 import org.alfresco.model.ImapModel;
 import org.alfresco.repo.imap.AlfrescoImapConst.ImapViewMode;
 import org.alfresco.repo.importer.ACPImportPackageHandler;
-import org.alfresco.repo.jscript.Search;
 import org.alfresco.repo.management.subsystems.ChildApplicationContextFactory;
 import org.alfresco.repo.node.integrity.IntegrityChecker;
 import org.alfresco.repo.security.authentication.AuthenticationUtil;
