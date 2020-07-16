@@ -398,10 +398,6 @@ public class ImapMessageTest extends TestCase
         }
     }
 
-    /**
-     * MNT-21481
-     * @throws Exception
-     */
     @Test
     public void testSearchTermWithNonEnglishLocale() throws Exception
     {
@@ -423,9 +419,8 @@ public class ImapMessageTest extends TestCase
             Response[] ret = (Response[]) folder.doCommand(uid_search_since);
             IMAPResponse response = (IMAPResponse) ret[0];
             assertEquals("* SEARCH ", response.toString());
-
         }
-        catch (IllegalArgumentException e)
+        catch (MessagingException e)
         {
             fail("Date cannot be parsed");
         }
@@ -435,10 +430,6 @@ public class ImapMessageTest extends TestCase
         }
     }
 
-    /**
-     * MNT-21481
-     * @throws Exception
-     */
     @Test
     public void testSearchTermWithNonEnglishLocaleFalsePositive() throws Exception
     {
