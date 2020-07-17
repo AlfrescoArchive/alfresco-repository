@@ -409,9 +409,11 @@ public class ImapMessageTest extends TestCase
         {
             Locale.setDefault(Locale.FRENCH);
             String dateStr = "12-Jul-2020";
-            final IMAPFolder.ProtocolCommand uid_search_since = new IMAPFolder.ProtocolCommand() {
+            final IMAPFolder.ProtocolCommand uid_search_since = new IMAPFolder.ProtocolCommand()
+            {
                 @Override
-                public Object doCommand(IMAPProtocol protocol) {
+                public Object doCommand(IMAPProtocol protocol)
+                {
                     return protocol.command("UID SEARCH SINCE " + dateStr, null);
                 }
             };
@@ -441,9 +443,11 @@ public class ImapMessageTest extends TestCase
 
             Locale.setDefault(Locale.FRENCH);
             String dateStr = "12-juil.-2020";
-            final IMAPFolder.ProtocolCommand uid_search_since = new IMAPFolder.ProtocolCommand() {
+            final IMAPFolder.ProtocolCommand uid_search_since = new IMAPFolder.ProtocolCommand()
+            {
                 @Override
-                public Object doCommand(IMAPProtocol protocol) {
+                public Object doCommand(IMAPProtocol protocol)
+                {
                     return protocol.command("UID SEARCH SINCE " + dateStr, null);
                 }
             };
