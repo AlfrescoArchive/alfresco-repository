@@ -35,14 +35,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.alfresco.error.AlfrescoRuntimeException;
 import org.alfresco.model.ContentModel;
 import org.alfresco.repo.dictionary.DictionaryDAO;
 import org.alfresco.repo.dictionary.M2Model;
 import org.alfresco.repo.dictionary.M2Property;
 import org.alfresco.repo.dictionary.M2Type;
+import org.alfresco.repo.domain.node.ChildAssocEntity;
 import org.alfresco.repo.domain.node.Node;
 import org.alfresco.repo.domain.node.NodeDAO;
-import org.alfresco.repo.domain.node.NodeEntity;
 import org.alfresco.repo.domain.qname.QNameDAO;
 import org.alfresco.repo.node.db.DbNodeServiceImpl;
 import org.alfresco.repo.security.authentication.AuthenticationComponent;
@@ -368,31 +369,6 @@ public class SOLRTrackingComponentTest extends BaseSpringTest
 
     }
 
-    @Test
-    public void testGetNodeMetaDataWithNoType()
-    {
-        long startTime = System.currentTimeMillis();
-
-        SOLRTest st = new SOLRTestWithNoType(txnHelper, fileFolderService, nodeDAO, qnameDAO, nodeService, dictionaryService, rootNodeRef, "testGetNodeMetaDataWithNoType", true, true);
-        List<Long> createdTransactions = st.buildTransactions();
-
-        List<Transaction> txns = getTransactions(null, startTime-1000, null, null, 100);
-
-        int[] updates = new int[] {1};
-        int[] deletes = new int[] {0};
-        List<Transaction> checkedTransactions = checkTransactions(txns, createdTransactions, updates, deletes);
-
-        NodeParameters nodeParameters = new NodeParameters();
-        nodeParameters.setTransactionIds(getTransactionIds(checkedTransactions));
-        getNodes(nodeParameters, st);
-
-
-        NodeMetaDataParameters nodeMetaDataParams = new NodeMetaDataParameters();
-        nodeMetaDataParams.setNodeIds(st.getNodeIds());
-        getNodeMetaData(nodeMetaDataParams, null, st);
-
-    }
-    
     @Test
     public void testGetNodeMetaData100Nodes()
     {
@@ -1518,9 +1494,46 @@ public class SOLRTrackingComponentTest extends BaseSpringTest
             return txs;
         }
     }
-
-    private static class SOLRTestWithNoType extends SOLRTest
+    
+    @Test
+    public void testGetNodeMetaDataWithNoType()
     {
+        long startTime = System.currentTimeMillis();
+
+        SOLRTest st = new SOLRTestWithNoType(txnHelper, fileFolderService, nodeDAO, qnameDAO, nodeService, dictionaryService, rootNodeRef, "testNodeMetaDataNullPropertyValue", true, true);
+        List<Long> createdTransactions = st.buildTransactions();
+
+        List<Transaction> txns = getTransactions(null, startTime-1000, null, null, 100);
+
+        int[] updates = new int[] {2};
+        int[] deletes = new int[] {0};
+        List<Transaction> checkedTransactions = checkTransactions(txns, createdTransactions, updates, deletes);
+
+        NodeParameters nodeParameters = new NodeParameters();
+        nodeParameters.setTransactionIds(getTransactionIds(checkedTransactions));
+        getNodes(nodeParameters, st);
+
+
+        NodeMetaDataParameters nodeMetaDataParams = new NodeMetaDataParameters();
+        nodeMetaDataParams.setNodeIds(st.getNodeIds());
+        try
+        {
+            getNodeMetaData(nodeMetaDataParams, null, st);
+        }
+        catch (AlfrescoRuntimeException are)
+        {
+            if (!are.getMessage().contains("It will be ignored by SOLR"))
+            {
+                throw are;
+            }
+        }
+
+    }
+    
+   private static class SOLRTestWithNoType extends SOLRTest
+    {
+        private NodeRef container;
+        private NodeRef content;
 
         SOLRTestWithNoType(
                 RetryingTransactionHelper txnHelper, FileFolderService fileFolderService,
@@ -1532,35 +1545,45 @@ public class SOLRTrackingComponentTest extends BaseSpringTest
 
         public int getExpectedNumNodes()
         {
-            return 1;
+            return 2;
         }
 
         protected List<Long> buildTransactionsInternal()
         {
-            ArrayList<Long> txs = new ArrayList<Long>(1);
+            ArrayList<Long> txs = new ArrayList<Long>(2);
 
             txs.add(txnHelper.doInTransaction(new RetryingTransactionCallback<Long>()
             {
                 public Long execute() throws Throwable
                 {
+                    PropertyMap props = new PropertyMap();
+                    props.put(ContentModel.PROP_NAME, "ContainerWithNoType");
+                    container = nodeService.createNode(
+                            rootNodeRef,
+                            ContentModel.ASSOC_CHILDREN,
+                            ContentModel.ASSOC_CHILDREN,
+                            ContentModel.TYPE_FOLDER,
+                            props).getChildRef();
                     
-                    StoreRef storeRef = new StoreRef(StoreRef.PROTOCOL_WORKSPACE, "SpacesStore");
-                    Long rootNodeId = nodeDAO.getRootNode(storeRef).getFirst();
+                    Long containerId = nodeDAO.getNodePair(container).getFirst();
                     
-                    NodeEntity content = nodeDAO.newNode(
-                            rootNodeId,
+                    content = nodeDAO.newNode(
+                            containerId,
                             ContentModel.ASSOC_CHILDREN,
                             ContentModel.ASSOC_CHILDREN,
                             new StoreRef(StoreRef.PROTOCOL_WORKSPACE, "SpacesStore"),
                             null,
-                            QName.createQName("{rubbish}rubbish"),
+                            QName.createQName("{nonExisting}nonExisting"),
                             I18NUtil.getLocale(),
                             null,
-                            null).getChildNode();                    
+                            null).getChildNode().getNodeRef();
                     
-                    return content.getId();
+                    return nodeDAO.getNodeRefStatus(container).getDbTxnId();
                 }
             }));
+
+            setExpectedNodeStatus(container, NodeStatus.UPDATED);
+            setExpectedNodeStatus(content, NodeStatus.UPDATED);
 
             return txs;
         }
