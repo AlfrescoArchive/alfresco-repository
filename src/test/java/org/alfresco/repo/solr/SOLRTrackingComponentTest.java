@@ -42,6 +42,7 @@ import org.alfresco.repo.dictionary.M2Property;
 import org.alfresco.repo.dictionary.M2Type;
 import org.alfresco.repo.domain.node.Node;
 import org.alfresco.repo.domain.node.NodeDAO;
+import org.alfresco.repo.domain.node.NodeEntity;
 import org.alfresco.repo.domain.qname.QNameDAO;
 import org.alfresco.repo.node.db.DbNodeServiceImpl;
 import org.alfresco.repo.security.authentication.AuthenticationComponent;
@@ -68,6 +69,7 @@ import org.apache.commons.logging.LogFactory;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
+import org.springframework.extensions.surf.util.I18NUtil;
 
 /**
  * Tests tracking component
@@ -1519,8 +1521,6 @@ public class SOLRTrackingComponentTest extends BaseSpringTest
 
     private static class SOLRTestWithNoType extends SOLRTest
     {
-        private NodeRef container;
-        private NodeRef content;
 
         SOLRTestWithNoType(
                 RetryingTransactionHelper txnHelper, FileFolderService fileFolderService,
@@ -1532,7 +1532,7 @@ public class SOLRTrackingComponentTest extends BaseSpringTest
 
         public int getExpectedNumNodes()
         {
-            return 2;
+            return 1;
         }
 
         protected List<Long> buildTransactionsInternal()
@@ -1543,26 +1543,24 @@ public class SOLRTrackingComponentTest extends BaseSpringTest
             {
                 public Long execute() throws Throwable
                 {
-                    PropertyMap props = new PropertyMap();
-                    props.put(ContentModel.PROP_NAME, "ContainerWithNoType");
-                    container = nodeService.createNode(
-                            rootNodeRef,
+                    
+                    StoreRef storeRef = new StoreRef(StoreRef.PROTOCOL_WORKSPACE, "SpacesStore");
+                    Long rootNodeId = nodeDAO.newStore(storeRef).getFirst();
+                    
+                    NodeEntity content = nodeDAO.newNode(
+                            rootNodeId,
                             ContentModel.ASSOC_CHILDREN,
                             ContentModel.ASSOC_CHILDREN,
-                            ContentModel.TYPE_FOLDER,
-                            props).getChildRef();
-
-                    FileInfo contentInfo = fileFolderService.create(container, "ContentWithNoType", QName.createQName("{rubbish}rubbish"));
-                    content = contentInfo.getNodeRef();
-
-                    nodeService.setProperty(content, QName.createQName("{rubbish}rubbish"), "Rubbish");
-
-                    return nodeDAO.getNodeRefStatus(container).getDbTxnId();
+                            new StoreRef(StoreRef.PROTOCOL_WORKSPACE, "SpacesStore"),
+                            null,
+                            QName.createQName("{rubbish}rubbish"),
+                            I18NUtil.getLocale(),
+                            null,
+                            null).getChildNode();                    
+                    
+                    return content.getId();
                 }
             }));
-
-            setExpectedNodeStatus(container, NodeStatus.UPDATED);
-            setExpectedNodeStatus(content, NodeStatus.UPDATED);
 
             return txs;
         }
