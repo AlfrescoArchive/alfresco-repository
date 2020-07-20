@@ -371,7 +371,7 @@ public class SOLRTrackingComponentTest extends BaseSpringTest
     {
         long startTime = System.currentTimeMillis();
 
-        SOLRTest st = new SOLRTestWithNoType(txnHelper, fileFolderService, nodeDAO, qnameDAO, nodeService, dictionaryService, rootNodeRef, "testNodeMetaDataNullPropertyValue", true, true);
+        SOLRTest st = new SOLRTestWithNoType(txnHelper, fileFolderService, nodeDAO, qnameDAO, nodeService, dictionaryService, rootNodeRef, "testGetNodeMetaDataWithNoType", true, true);
         List<Long> createdTransactions = st.buildTransactions();
 
         List<Transaction> txns = getTransactions(null, startTime-1000, null, null, 100);
@@ -1552,7 +1552,7 @@ public class SOLRTrackingComponentTest extends BaseSpringTest
                             ContentModel.TYPE_FOLDER,
                             props).getChildRef();
 
-                    FileInfo contentInfo = fileFolderService.create(container, "ContentWithNoType", null);
+                    FileInfo contentInfo = fileFolderService.create(container, "ContentWithNoType", QName.createQName("{rubbish}rubbish"));
                     content = contentInfo.getNodeRef();
 
                     nodeService.setProperty(content, QName.createQName("{rubbish}rubbish"), "Rubbish");
