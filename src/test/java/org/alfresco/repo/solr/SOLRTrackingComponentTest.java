@@ -1537,7 +1537,7 @@ public class SOLRTrackingComponentTest extends BaseSpringTest
 
         protected List<Long> buildTransactionsInternal()
         {
-            ArrayList<Long> txs = new ArrayList<Long>(2);
+            ArrayList<Long> txs = new ArrayList<Long>(1);
 
             txs.add(txnHelper.doInTransaction(new RetryingTransactionCallback<Long>()
             {
@@ -1545,7 +1545,7 @@ public class SOLRTrackingComponentTest extends BaseSpringTest
                 {
                     
                     StoreRef storeRef = new StoreRef(StoreRef.PROTOCOL_WORKSPACE, "SpacesStore");
-                    Long rootNodeId = nodeDAO.newStore(storeRef).getFirst();
+                    Long rootNodeId = nodeDAO.getRootNode(storeRef).getFirst();
                     
                     NodeEntity content = nodeDAO.newNode(
                             rootNodeId,
