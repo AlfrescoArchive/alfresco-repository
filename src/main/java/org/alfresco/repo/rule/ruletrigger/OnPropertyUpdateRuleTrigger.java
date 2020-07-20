@@ -141,7 +141,7 @@ public class OnPropertyUpdateRuleTrigger extends RuleTriggerAbstractBase
         for (QName name : keys)
         {
             // Skip rule firing on this content property for performance reasons
-            if (name.equals(ContentModel.PROP_PREFERENCE_VALUES))
+            if (name.equals(ContentModel.PROP_PREFERENCE_VALUES) || name.equals(ContentModel.PROP_CASCADE_CRC))
             {
                 continue;
             }
@@ -243,7 +243,7 @@ public class OnPropertyUpdateRuleTrigger extends RuleTriggerAbstractBase
     /**
      * Triggers rules if properties have been updated
      */
-    public void onUpdateProperties(NodeRef nodeRef, Map<QName, Serializable> before, Map<QName, Serializable> after)
+        public void onUpdateProperties(NodeRef nodeRef, Map<QName, Serializable> before, Map<QName, Serializable> after)
     {
         // Break out early if rules are not enabled
         if (!areRulesEnabled())
