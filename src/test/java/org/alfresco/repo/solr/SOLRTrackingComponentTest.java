@@ -378,7 +378,7 @@ public class SOLRTrackingComponentTest extends BaseSpringTest
 
         List<Transaction> txns = getTransactions(null, startTime-1000, null, null, 100);
 
-        int[] updates = new int[] {2};
+        int[] updates = new int[] {1};
         int[] deletes = new int[] {0};
         List<Transaction> checkedTransactions = checkTransactions(txns, createdTransactions, updates, deletes);
 
