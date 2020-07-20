@@ -367,6 +367,31 @@ public class SOLRTrackingComponentTest extends BaseSpringTest
     }
 
     @Test
+    public void testGetNodeMetaDataWithNoType()
+    {
+        long startTime = System.currentTimeMillis();
+
+        SOLRTest st = new SOLRTestWithNoType(txnHelper, fileFolderService, nodeDAO, qnameDAO, nodeService, dictionaryService, rootNodeRef, "testNodeMetaDataNullPropertyValue", true, true);
+        List<Long> createdTransactions = st.buildTransactions();
+
+        List<Transaction> txns = getTransactions(null, startTime-1000, null, null, 100);
+
+        int[] updates = new int[] {2};
+        int[] deletes = new int[] {0};
+        List<Transaction> checkedTransactions = checkTransactions(txns, createdTransactions, updates, deletes);
+
+        NodeParameters nodeParameters = new NodeParameters();
+        nodeParameters.setTransactionIds(getTransactionIds(checkedTransactions));
+        getNodes(nodeParameters, st);
+
+
+        NodeMetaDataParameters nodeMetaDataParams = new NodeMetaDataParameters();
+        nodeMetaDataParams.setNodeIds(st.getNodeIds());
+        getNodeMetaData(nodeMetaDataParams, null, st);
+
+    }
+    
+    @Test
     public void testGetNodeMetaData100Nodes()
     {
         long startTime = System.currentTimeMillis();
@@ -1491,4 +1516,56 @@ public class SOLRTrackingComponentTest extends BaseSpringTest
             return txs;
         }
     }
+
+    private static class SOLRTestWithNoType extends SOLRTest
+    {
+        private NodeRef container;
+        private NodeRef content;
+
+        SOLRTestWithNoType(
+                RetryingTransactionHelper txnHelper, FileFolderService fileFolderService,
+                NodeDAO nodeDAO, QNameDAO qnameDAO, NodeService nodeService, DictionaryService dictionaryService,
+                NodeRef rootNodeRef, String containerName, boolean doNodeChecks, boolean doMetaDataChecks)
+        {
+            super(txnHelper, fileFolderService, nodeDAO, qnameDAO, nodeService, dictionaryService,rootNodeRef, containerName, doNodeChecks, doMetaDataChecks);
+        }
+
+        public int getExpectedNumNodes()
+        {
+            return 2;
+        }
+
+        protected List<Long> buildTransactionsInternal()
+        {
+            ArrayList<Long> txs = new ArrayList<Long>(2);
+
+            txs.add(txnHelper.doInTransaction(new RetryingTransactionCallback<Long>()
+            {
+                public Long execute() throws Throwable
+                {
+                    PropertyMap props = new PropertyMap();
+                    props.put(ContentModel.PROP_NAME, "ContainerWithNoType");
+                    container = nodeService.createNode(
+                            rootNodeRef,
+                            ContentModel.ASSOC_CHILDREN,
+                            ContentModel.ASSOC_CHILDREN,
+                            ContentModel.TYPE_FOLDER,
+                            props).getChildRef();
+
+                    FileInfo contentInfo = fileFolderService.create(container, "ContentWithNoType", null);
+                    content = contentInfo.getNodeRef();
+
+                    nodeService.setProperty(content, QName.createQName("{rubbish}rubbish"), "Rubbish");
+
+                    return nodeDAO.getNodeRefStatus(container).getDbTxnId();
+                }
+            }));
+
+            setExpectedNodeStatus(container, NodeStatus.UPDATED);
+            setExpectedNodeStatus(content, NodeStatus.UPDATED);
+
+            return txs;
+        }
+    }
+    
 }

@@ -865,7 +865,26 @@ public class SOLRTrackingComponentImpl implements SOLRTrackingComponent
                 }
                 else
                 {
-                   throw new AlfrescoRuntimeException("Nodes with no type are ignored by SOLR");
+                    QName typeQName = null;
+                    TypeDefinition typeDefinition = null;
+                    
+                    String errorMessage = "NodeId " + nodeId + " with nodeRef " + nodeRef;
+
+                    typeQName = nodeDAO.getNodeType(nodeId);
+                    if (typeQName != null)
+                    {
+                        typeDefinition = dictionaryService.getType(typeQName);
+                        if (typeDefinition == null)
+                        {
+                            errorMessage += " has type " + typeQName + ", but this type is not registered in DictionaryService.";
+                        }
+                    }
+                    else
+                    {
+                        errorMessage += " has no type.";
+                    }
+                    
+                    throw new AlfrescoRuntimeException(errorMessage + " It will be ignored by SOLR.");
                 }
             }
 
