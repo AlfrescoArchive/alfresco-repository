@@ -873,11 +873,7 @@ public class SOLRTrackingComponentImpl implements SOLRTrackingComponent
                     typeQName = nodeDAO.getNodeType(nodeId);
                     if (typeQName != null)
                     {
-                        typeDefinition = dictionaryService.getType(typeQName);
-                        if (typeDefinition == null)
-                        {
-                            errorMessage += " has type " + typeQName + ", but this type is not registered in DictionaryService.";
-                        }
+                        errorMessage += " has type " + typeQName + ", but this type is not registered in DictionaryService.";
                     }
                     else
                     {
