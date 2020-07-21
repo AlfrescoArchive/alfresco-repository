@@ -426,7 +426,36 @@ public class RuleTriggerTest extends BaseSpringTest
         // Check to see if the rule type has been triggered
         assertTrue(ruleType.rulesTriggered);
         assertEquals(3, ruleType.triggerCount);
-    }        
+    }
+    @Test
+    public void testOnPropertyUpdateRuleTrigger()
+    {
+        NodeRef nodeRef1 = this.nodeService.createNode(this.rootNodeRef,
+                    ContentModel.ASSOC_CHILDREN, ContentModel.ASSOC_CHILDREN,
+                    ContentModel.TYPE_CONTAINER).getChildRef();
+
+        NodeRef nodeRef2 = this.nodeService.createNode(this.rootNodeRef,
+                    ContentModel.ASSOC_CHILDREN, ContentModel.ASSOC_CHILDREN,
+                    ContentModel.TYPE_CONTAINER).getChildRef();
+
+        ContentWriter contentWriter = this.contentService.getWriter(nodeRef1, ContentModel.PROP_CONTENT, true);
+        contentWriter.setMimetype(MimetypeMap.MIMETYPE_TEXT_PLAIN);
+        contentWriter.setEncoding("UTF-8");
+        contentWriter.putContent("some content");
+        // Terminate the transaction
+        TestTransaction.flagForCommit();
+        TestTransaction.end();
+        TestTransaction.start();
+        TestRuleType contentUpdate = createTestRuleType(ON_PROPERTY_UPDATE_TRIGGER);
+        TestRuleType contendMoved = createTestRuleType(ON_MOVE_NODE_TRIGGER);
+        assertFalse(contentUpdate.rulesTriggered);
+        assertFalse(contendMoved.rulesTriggered);
+        this.nodeService.moveNode(nodeRef2, nodeRef1, ContentModel.ASSOC_CHILDREN, ContentModel.ASSOC_CHILDREN);
+        assertTrue(contentUpdate.rulesTriggered);
+        assertTrue(contendMoved.rulesTriggered);
+        assertEquals("trigger count not matching",1,contentUpdate.triggerCount);
+
+    }
 
     private TestRuleType createTestRuleType(String ruleTriggerName)
     {
