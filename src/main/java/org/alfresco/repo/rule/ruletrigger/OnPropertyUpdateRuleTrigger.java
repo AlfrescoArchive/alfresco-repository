@@ -243,7 +243,7 @@ public class OnPropertyUpdateRuleTrigger extends RuleTriggerAbstractBase
     /**
      * Triggers rules if properties have been updated
      */
-        public void onUpdateProperties(NodeRef nodeRef, Map<QName, Serializable> before, Map<QName, Serializable> after)
+    public void onUpdateProperties(NodeRef nodeRef, Map<QName, Serializable> before, Map<QName, Serializable> after)
     {
         // Break out early if rules are not enabled
         if (!areRulesEnabled())
