@@ -25,6 +25,7 @@
  */
 package org.alfresco.repo.rule.ruletrigger;
 
+import java.util.Random;
 import org.alfresco.model.ContentModel;
 import org.alfresco.model.ForumModel;
 import org.alfresco.repo.content.MimetypeMap;
@@ -434,26 +435,23 @@ public class RuleTriggerTest extends BaseSpringTest
                     ContentModel.ASSOC_CHILDREN, ContentModel.ASSOC_CHILDREN,
                     ContentModel.TYPE_CONTAINER).getChildRef();
 
-        NodeRef nodeRef2 = this.nodeService.createNode(this.rootNodeRef,
-                    ContentModel.ASSOC_CHILDREN, ContentModel.ASSOC_CHILDREN,
-                    ContentModel.TYPE_CONTAINER).getChildRef();
-
         ContentWriter contentWriter = this.contentService.getWriter(nodeRef1, ContentModel.PROP_CONTENT, true);
         contentWriter.setMimetype(MimetypeMap.MIMETYPE_TEXT_PLAIN);
         contentWriter.setEncoding("UTF-8");
         contentWriter.putContent("some content");
+
+        Random rand=new Random();
+        this.nodeService.setProperty(nodeRef1, ContentModel.PROP_CASCADE_CRC, rand.nextLong());
         // Terminate the transaction
         TestTransaction.flagForCommit();
         TestTransaction.end();
         TestTransaction.start();
+
         TestRuleType contentUpdate = createTestRuleType(ON_PROPERTY_UPDATE_TRIGGER);
-        TestRuleType contendMoved = createTestRuleType(ON_MOVE_NODE_TRIGGER);
+        this.nodeService.setProperty(nodeRef1, ContentModel.PROP_CASCADE_CRC, rand.nextLong());
+
         assertFalse(contentUpdate.rulesTriggered);
-        assertFalse(contendMoved.rulesTriggered);
-        this.nodeService.moveNode(nodeRef2, nodeRef1, ContentModel.ASSOC_CHILDREN, ContentModel.ASSOC_CHILDREN);
-        assertTrue(contentUpdate.rulesTriggered);
-        assertTrue(contendMoved.rulesTriggered);
-        assertEquals("trigger count not matching",1,contentUpdate.triggerCount);
+        assertEquals("trigger count not matching",0,contentUpdate.triggerCount);
 
     }
 
