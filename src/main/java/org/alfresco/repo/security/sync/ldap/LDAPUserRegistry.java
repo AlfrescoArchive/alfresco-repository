@@ -883,19 +883,9 @@ public class LDAPUserRegistry implements UserRegistry, LDAPNameResolver, Initial
                                             continue;
                                         }
                                     }
-                                    catch (ServiceUnavailableException e)
+                                    catch (ServiceUnavailableException | CommunicationException e)
                                     {
-                                        // MNT-21614: Check & fail if communication breaks due to javax.naming.ServiceUnavailableException
-                                        if (e.getMessage() != null)
-                                        {
-                                            Object[] params = {e.getLocalizedMessage() };
-                                            throw new AlfrescoRuntimeException("synchronization.err.ldap.search", params, e);
-                                        }
-                                        continue;
-                                    }
-                                    catch (CommunicationException e)
-                                    {
-                                        // MNT-21614: Check & fail if communication breaks due to javax.naming.CommunicationException
+                                        // MNT-21614: Check & fail if communication breaks due to ServiceUnavailableException or CommunicationException
                                         if (e.getMessage() != null)
                                         {
                                             Object[] params = {e.getLocalizedMessage() };

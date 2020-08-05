@@ -149,7 +149,7 @@ public class LDAPUserRegistryTest
      * Test for MNT-21614: Check & fail if communication breaks due to javax.naming.ServiceUnavailableException
      */
     @Test
-    public void testTimeoutDuringSyncNew() throws Exception
+    public void testTimeoutDuringSyncForServiceUnavailableException() throws Exception
     {
         LDAPUserRegistry userRegistry = createRegistry();
 
@@ -173,7 +173,7 @@ public class LDAPUserRegistryTest
      * Test for MNT-21614: Check & fail if communication breaks due to javax.naming.CommunicationException
      */
     @Test
-    public void testTimeoutDuringSyncTwo() throws Exception
+    public void testTimeoutDuringSyncForCommunicationException() throws Exception
     {
         LDAPUserRegistry userRegistry = createRegistry();
 
