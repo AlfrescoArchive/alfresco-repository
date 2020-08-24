@@ -44,6 +44,7 @@ import org.alfresco.service.cmr.repository.datatype.DefaultTypeConverter;
 import org.alfresco.service.namespace.NamespaceService;
 import org.alfresco.service.namespace.QName;
 import org.alfresco.util.Pair;
+import org.apache.commons.lang3.StringUtils;
 
 public class PropertySupport implements DBQueryBuilderComponent
 {
@@ -241,7 +242,8 @@ public class PropertySupport implements DBQueryBuilderComponent
                 predicatePartCommands.add(command);
                 break;
             }
-   
+            
+            command.setPropertyName(getLocalName());
         }
         else
         {
@@ -351,10 +353,19 @@ public class PropertySupport implements DBQueryBuilderComponent
             
             command.setFieldName(fieldName);
             command.setFunction(luceneFunction);
+            command.setPropertyName(getLocalName());
             predicatePartCommands.add(command);
         }       
         
     }
+
+	private String getLocalName() {
+		String fieldName = DBQuery.getFieldNameIfAudit(propertyQName);
+		if(fieldName != null)
+			return fieldName;
+		else
+			return this.propertyQName.getLocalName();
+	}
  
 
     /**

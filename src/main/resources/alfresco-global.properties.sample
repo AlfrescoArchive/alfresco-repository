@@ -192,3 +192,8 @@ smart.folders.model.labels=alfresco/messages/smartfolder-model
 #smart.folders.config.type.templates.path=${spaces.dictionary.childname}/${spaces.smartfolders.childname}
 #Type and aspect qname regular expression filter. 
 #smart.folders.config.type.templates.qname.filter=none
+
+
+# Force TMDQs
+solr.query.fts.queryConsistency=TRANSACTIONAL
+solr.query.cmis.queryConsistency=TRANSACTIONAL

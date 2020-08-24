@@ -25,7 +25,10 @@
  */
 package org.alfresco.repo.search.impl.querymodel.impl.db;
 
+import static org.alfresco.repo.search.impl.querymodel.impl.db.DBQueryBuilderPredicatePartCommand.computeDenormalizedColumnName;
+
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -73,7 +76,7 @@ public class DBQuery extends BaseQuery implements DBQueryBuilderComponent
     private Long sinceTxId;
     
     Set<String> selectorGroup;
-
+    
     /**
      * @param source Source
      * @param constraint Constraint
@@ -160,6 +163,7 @@ public class DBQuery extends BaseQuery implements DBQueryBuilderComponent
     {
         ArrayList<DBQueryBuilderPredicatePartCommand> predicatePartCommands = new ArrayList<DBQueryBuilderPredicatePartCommand>();
         buildPredicateCommands(predicatePartCommands);
+        
         return predicatePartCommands;
     }
 
@@ -751,22 +755,10 @@ public class DBQuery extends BaseQuery implements DBQueryBuilderComponent
      */
     public static String getFieldName(DictionaryService dictionaryService, QName propertyQName, boolean supportBooleanFloatAndDouble)
     {
-        if (propertyQName.equals(ContentModel.PROP_CREATED))
-        {
-            return "audit_created";
-        }
-        else if (propertyQName.equals(ContentModel.PROP_CREATOR))
-        {
-            return "audit_creator";
-        }
-        else if (propertyQName.equals(ContentModel.PROP_MODIFIED))
-        {
-            return "audit_modified";
-        }
-        else if (propertyQName.equals(ContentModel.PROP_MODIFIER))
-        {
-            return "audit_modifier";
-        }
+    	String fieldName = getFieldNameIfAudit(propertyQName);
+        
+        if(fieldName != null) 
+        	return fieldName;
         else
         {
             PropertyDefinition propDef = dictionaryService.getProperty(propertyQName);
@@ -842,6 +834,27 @@ public class DBQuery extends BaseQuery implements DBQueryBuilderComponent
         }
     }
 
+	public static String getFieldNameIfAudit(QName propertyQName) {
+		String fieldName = null;
+        if (propertyQName.equals(ContentModel.PROP_CREATED))
+        {
+            fieldName = "audit_created";
+        }
+        else if (propertyQName.equals(ContentModel.PROP_CREATOR))
+        {
+        	fieldName =  "audit_creator";
+        }
+        else if (propertyQName.equals(ContentModel.PROP_MODIFIED))
+        {
+        	fieldName = "audit_modified";
+        }
+        else if (propertyQName.equals(ContentModel.PROP_MODIFIER))
+        {
+        	fieldName = "audit_modifier";
+        }
+		return fieldName;
+	}
+
     public static DataTypeDefinition getDataTypeDefinition(DictionaryService dictionaryService, QName propertyQname)
     {
         if(propertyQname == null)
@@ -870,5 +883,51 @@ public class DBQuery extends BaseQuery implements DBQueryBuilderComponent
             dbids[i] = getDbid(stringValues[i], nodeDAO, tenantService);
         }
         return dbids;
+    }
+    
+    public boolean isForDenormalizedTable(Set<String> denormalisedColumnNames) {
+    	Set<String> columnNames = getWhereColumnNames(getConstraint());
+    	for(String columnName: columnNames) {
+    		if(denormalisedColumnNames.contains(columnName))
+    			return false;
+    	}
+    	
+    	return true;
+    }
+    
+    private Set<String> getWhereColumnNames(Constraint theConstraint) {
+    	Set<String> columnNames = new HashSet<String>();
+    	
+    	for(DBFunctionalConstraint funcConstraint: getFunctionalConstraints(theConstraint)) {
+    		for(Argument arg: funcConstraint.getFunctionArguments().values()) {
+    			if(arg instanceof DBPropertyArgument) {
+    				String propertyName = ((DBPropertyArgument) arg).getPropertyName();
+					columnNames.add(computeDenormalizedColumnName(propertyName));
+    			}
+    		}
+    	}
+    	
+    	return columnNames;
+    }
+    
+    private List<DBFunctionalConstraint> getFunctionalConstraints(Constraint theConstraint) {
+    	List<DBFunctionalConstraint> result = new ArrayList<DBFunctionalConstraint>();
+    	
+    	if(theConstraint instanceof DBFunctionalConstraint) {
+    		DBFunctionalConstraint funcConstraint = (DBFunctionalConstraint)theConstraint;
+    		result.add(funcConstraint);
+    	}
+    	if(theConstraint instanceof DBConjunction) {
+    		DBConjunction conjunction = (DBConjunction) theConstraint;
+    		for(Constraint constraint: conjunction.getConstraints())
+    			result.addAll(getFunctionalConstraints(constraint));
+    	}
+    	if(theConstraint instanceof DBDisjunction) {
+    		DBDisjunction conjunction = (DBDisjunction) theConstraint;
+    		for(Constraint constraint: conjunction.getConstraints())
+    			result.addAll(getFunctionalConstraints(constraint));
+    	}
+    	
+    	return result;
     }
 }

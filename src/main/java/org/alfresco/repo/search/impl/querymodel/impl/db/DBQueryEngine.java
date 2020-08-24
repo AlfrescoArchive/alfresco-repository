@@ -26,6 +26,7 @@
 package org.alfresco.repo.search.impl.querymodel.impl.db;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -39,6 +40,9 @@ import org.alfresco.repo.domain.node.Node;
 import org.alfresco.repo.domain.node.NodeDAO;
 import org.alfresco.repo.domain.qname.QNameDAO;
 import org.alfresco.repo.search.impl.lucene.PagingLuceneResultSet;
+import org.alfresco.repo.search.impl.querymodel.Argument;
+import org.alfresco.repo.search.impl.querymodel.Constraint;
+import org.alfresco.repo.search.impl.querymodel.Function;
 import org.alfresco.repo.search.impl.querymodel.FunctionEvaluationContext;
 import org.alfresco.repo.search.impl.querymodel.Query;
 import org.alfresco.repo.search.impl.querymodel.QueryEngine;
@@ -46,6 +50,7 @@ import org.alfresco.repo.search.impl.querymodel.QueryEngineResults;
 import org.alfresco.repo.search.impl.querymodel.QueryModelException;
 import org.alfresco.repo.search.impl.querymodel.QueryModelFactory;
 import org.alfresco.repo.search.impl.querymodel.QueryOptions;
+import org.alfresco.repo.search.impl.querymodel.impl.BaseConjunction;
 import org.alfresco.repo.tenant.TenantService;
 import org.alfresco.service.cmr.dictionary.DictionaryService;
 import org.alfresco.service.cmr.repository.NodeService;
@@ -54,14 +59,20 @@ import org.alfresco.service.cmr.search.ResultSet;
 import org.alfresco.service.namespace.NamespaceService;
 import org.alfresco.service.namespace.QName;
 import org.alfresco.util.Pair;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.mybatis.spring.SqlSessionTemplate;
+import org.springframework.util.StopWatch;
 
 /**
  * @author Andy
  */
 public class DBQueryEngine implements QueryEngine
 {
+	private static final Log logger = LogFactory.getLog(DBQueryEngine.class);
+	
     private static final String SELECT_BY_DYNAMIC_QUERY = "alfresco.metadata.query.select_byDynamicQuery";
+    private static final String SELECT_BY_DYNAMIC_QUERY_FAST = "alfresco.metadata.query.select_byDynamicQueryFast";
     
     private SqlSessionTemplate template;
 
@@ -78,7 +89,9 @@ public class DBQueryEngine implements QueryEngine
     private TenantService tenantService;
     
     private OptionalPatchApplicationCheckBootstrapBean metadataIndexCheck2;
-
+    
+    private DBTableInfo denormTable = new DBTableInfo("alf_node_props_denorm");
+    
     public void setMetadataIndexCheck2(OptionalPatchApplicationCheckBootstrapBean metadataIndexCheck2)
     {
         this.metadataIndexCheck2 = metadataIndexCheck2;
@@ -136,7 +149,7 @@ public class DBQueryEngine implements QueryEngine
     {
         this.nodeDAO = nodeDAO;
     }
-
+    
     /*
      * (non-Javadoc)
      * @see
@@ -147,7 +160,17 @@ public class DBQueryEngine implements QueryEngine
     @Override
     public QueryEngineResults executeQuery(Query query, QueryOptions options, FunctionEvaluationContext functionContext)
     {
-        Set<String> selectorGroup = null;
+    	try {
+    		return doExecuteQuery(query, options, functionContext);
+    	} catch (Throwable ex) {
+        	ex.printStackTrace();
+        	throw new RuntimeException(ex);
+        }
+    }
+
+	private QueryEngineResults doExecuteQuery(Query query, QueryOptions options,
+			FunctionEvaluationContext functionContext) {
+		Set<String> selectorGroup = null;
         if (query.getSource() != null)
         {
             List<Set<String>> selectorGroups = query.getSource().getSelectorGroups(functionContext);
@@ -164,11 +187,7 @@ public class DBQueryEngine implements QueryEngine
 
             selectorGroup = selectorGroups.get(0);
         }
-
         
-        HashSet<String> key = new HashSet<String>();
-        key.add("");
-        Map<Set<String>, ResultSet> answer = new HashMap<Set<String>, ResultSet>();
         DBQuery dbQuery = (DBQuery)query;
         
         if(options.getStores().size() > 1)
@@ -205,8 +224,24 @@ public class DBQueryEngine implements QueryEngine
         dbQuery.setSinceTxId(sinceTxId);
         
         dbQuery.prepare(namespaceService, dictionaryService, qnameDAO, nodeDAO, tenantService, selectorGroup, null, functionContext, metadataIndexCheck2.getPatchApplied());
-        List<Node> nodes = template.selectList(SELECT_BY_DYNAMIC_QUERY, dbQuery);
-        LinkedHashSet<Long> set = new LinkedHashSet<Long>(nodes.size());
+        
+        StopWatch stopWatch = new StopWatch("db query");
+        
+        stopWatch.start();
+        List<Node> nodes = selectNodes(options, dbQuery);
+        stopWatch.stop();
+        logger.error("Selected " + nodes.size() + " nodes in " + stopWatch.getLastTaskTimeMillis() + "ms");
+        
+        stopWatch.start();
+        QueryEngineResults queryResults = createQueryResults(nodes, options);
+        stopWatch.stop();
+        logger.error("Selected query results in " + stopWatch.getLastTaskTimeMillis() + "ms");
+        
+		return queryResults;
+	}
+
+	private QueryEngineResults createQueryResults(List<Node> nodes, QueryOptions options) {
+		LinkedHashSet<Long> set = new LinkedHashSet<Long>(nodes.size());
         for(Node node : nodes)
         {
             set.add(node.getId());
@@ -215,9 +250,30 @@ public class DBQueryEngine implements QueryEngine
         ResultSet rs =  new DBResultSet(options.getAsSearchParmeters(), nodeIds, nodeDAO, nodeService, tenantService, Integer.MAX_VALUE);
         ResultSet paged = new PagingLuceneResultSet(rs, options.getAsSearchParmeters(), nodeService);
         
+        Map<Set<String>, ResultSet> answer = new HashMap<Set<String>, ResultSet>();
+        HashSet<String> key = new HashSet<String>();
+        key.add("");
         answer.put(key, paged);
         return new QueryEngineResults(answer);
-    }
+	}
+
+	private List<Node> selectNodes(QueryOptions options, DBQuery dbQuery) 
+	{
+		List<Node> nodes = new ArrayList<Node>();
+        boolean forDenormalizedTable = dbQuery.isForDenormalizedTable(denormTable.getFieldNames(template));
+        
+		if(forDenormalizedTable) 
+		{
+			logger.info("Using the denormalized table");
+        	nodes = template.selectList(SELECT_BY_DYNAMIC_QUERY_FAST, dbQuery);
+        }
+        else 
+        {
+        	logger.info("Using the standard table");
+        	nodes = template.selectList(SELECT_BY_DYNAMIC_QUERY, dbQuery);
+        }
+		return nodes;
+	}
 
     /*
      * (non-Javadoc)
