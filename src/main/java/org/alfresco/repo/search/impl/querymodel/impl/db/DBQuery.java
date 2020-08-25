@@ -25,10 +25,7 @@
  */
 package org.alfresco.repo.search.impl.querymodel.impl.db;
 
-import static org.alfresco.repo.search.impl.querymodel.impl.db.DBQueryBuilderPredicatePartCommand.computeDenormalizedColumnName;
-
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -885,49 +882,29 @@ public class DBQuery extends BaseQuery implements DBQueryBuilderComponent
         return dbids;
     }
     
-    public boolean isForDenormalizedTable(Set<String> denormalisedColumnNames) {
+    public boolean isForDenormalizedTable(Set<String> denormalisedColumnNames) 
+    {
     	Set<String> columnNames = getWhereColumnNames(getConstraint());
     	for(String columnName: columnNames) {
-    		if(denormalisedColumnNames.contains(columnName))
+    		if(!denormalisedColumnNames.contains(columnName))
     			return false;
     	}
     	
     	return true;
     }
     
-    private Set<String> getWhereColumnNames(Constraint theConstraint) {
+    private Set<String> getWhereColumnNames(Constraint theConstraint) 
+    {
     	Set<String> columnNames = new HashSet<String>();
     	
-    	for(DBFunctionalConstraint funcConstraint: getFunctionalConstraints(theConstraint)) {
-    		for(Argument arg: funcConstraint.getFunctionArguments().values()) {
-    			if(arg instanceof DBPropertyArgument) {
-    				String propertyName = ((DBPropertyArgument) arg).getPropertyName();
-					columnNames.add(computeDenormalizedColumnName(propertyName));
-    			}
+    	for(DBQueryBuilderPredicatePartCommand predicatePart: getPredicateParts())
+    	{
+    		if(predicatePart.getPropertyName() != null) {
+    			columnNames.add(predicatePart.getPropertyName());
     		}
     	}
     	
     	return columnNames;
     }
     
-    private List<DBFunctionalConstraint> getFunctionalConstraints(Constraint theConstraint) {
-    	List<DBFunctionalConstraint> result = new ArrayList<DBFunctionalConstraint>();
-    	
-    	if(theConstraint instanceof DBFunctionalConstraint) {
-    		DBFunctionalConstraint funcConstraint = (DBFunctionalConstraint)theConstraint;
-    		result.add(funcConstraint);
-    	}
-    	if(theConstraint instanceof DBConjunction) {
-    		DBConjunction conjunction = (DBConjunction) theConstraint;
-    		for(Constraint constraint: conjunction.getConstraints())
-    			result.addAll(getFunctionalConstraints(constraint));
-    	}
-    	if(theConstraint instanceof DBDisjunction) {
-    		DBDisjunction conjunction = (DBDisjunction) theConstraint;
-    		for(Constraint constraint: conjunction.getConstraints())
-    			result.addAll(getFunctionalConstraints(constraint));
-    	}
-    	
-    	return result;
-    }
 }
