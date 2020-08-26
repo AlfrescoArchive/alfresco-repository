@@ -31,6 +31,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
@@ -73,6 +74,8 @@ public class DBQueryEngine implements QueryEngine
 	
     private static final String SELECT_BY_DYNAMIC_QUERY = "alfresco.metadata.query.select_byDynamicQuery";
     private static final String SELECT_BY_DYNAMIC_QUERY_FAST = "alfresco.metadata.query.select_byDynamicQueryFast";
+    private static final String FAST_QUERY_IDENTIFIER = "x-fa";
+    private static final String SLOW_QUERY_IDENTIFIER = "x-sl";
     
     private SqlSessionTemplate template;
 
@@ -230,12 +233,12 @@ public class DBQueryEngine implements QueryEngine
         stopWatch.start();
         List<Node> nodes = selectNodes(options, dbQuery);
         stopWatch.stop();
-        logger.error("Selected " + nodes.size() + " nodes in " + stopWatch.getLastTaskTimeMillis() + "ms");
+        logger.debug("Selected " + nodes.size() + " nodes in " + stopWatch.getLastTaskTimeMillis() + "ms");
         
         stopWatch.start();
         QueryEngineResults queryResults = createQueryResults(nodes, options);
         stopWatch.stop();
-        logger.error("Selected query results in " + stopWatch.getLastTaskTimeMillis() + "ms");
+        logger.debug("Selected query results in " + stopWatch.getLastTaskTimeMillis() + "ms");
         
 		return queryResults;
 	}
@@ -260,19 +263,34 @@ public class DBQueryEngine implements QueryEngine
 	private List<Node> selectNodes(QueryOptions options, DBQuery dbQuery) 
 	{
 		List<Node> nodes = new ArrayList<Node>();
-        boolean forDenormalizedTable = dbQuery.isForDenormalizedTable(denormTable.getFieldNames(template));
-        
-		if(forDenormalizedTable) 
+		if(isForDenormalizedTable(dbQuery, options)) 
 		{
-			logger.info("Using the denormalized table");
+			logger.debug("Using the denormalized table");
         	nodes = template.selectList(SELECT_BY_DYNAMIC_QUERY_FAST, dbQuery);
         }
         else 
         {
-        	logger.info("Using the standard table");
+        	logger.debug("Using the standard table");
         	nodes = template.selectList(SELECT_BY_DYNAMIC_QUERY, dbQuery);
         }
 		return nodes;
+	}
+
+	private boolean isForDenormalizedTable(DBQuery dbQuery, QueryOptions options) {
+		boolean forDenormalizedTable = dbQuery.isForDenormalizedTable(denormTable.getFieldNames(template));
+		List<Locale> locales = options.getLocales();
+		if (locales.size() == 1) 
+		{
+        	if(locales.get(0).getLanguage().equals(FAST_QUERY_IDENTIFIER)) 
+        	{
+        		forDenormalizedTable = true;
+        	}
+        	if(locales.get(0).getLanguage().equals(SLOW_QUERY_IDENTIFIER)) 
+        	{
+        		forDenormalizedTable = false;
+        	}
+        }
+		return forDenormalizedTable;
 	}
 
     /*
