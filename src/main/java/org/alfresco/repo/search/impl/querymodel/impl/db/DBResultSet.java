@@ -63,6 +63,8 @@ public class DBResultSet extends AbstractResultSet
     private SimpleResultSetMetaData resultSetMetaData;
     
     private BitSet prefetch;
+
+	private int numberFound;
     
     public DBResultSet(SearchParameters searchParameters, List<Long> dbids, NodeDAO nodeDao,  NodeService nodeService, TenantService tenantService, int maximumResultsFromUnlimitedQuery)
     {
@@ -72,6 +74,7 @@ public class DBResultSet extends AbstractResultSet
         this.tenantService = tenantService;
         this.prefetch = new BitSet(dbids.size());
         nodeRefs= new NodeRef[(dbids.size())];
+        this.numberFound = dbids.size();
         
         final LimitBy limitBy;
         int maxResults = -1;
@@ -115,7 +118,7 @@ public class DBResultSet extends AbstractResultSet
     @Override
     public long getNumberFound()
     {
-        return dbids.size();
+    	return numberFound;
     }
 
     /* (non-Javadoc)
@@ -188,6 +191,11 @@ public class DBResultSet extends AbstractResultSet
     public Iterator<ResultSetRow> iterator()
     {
         return new DBResultSetRowIterator(this);
+    }
+    
+    public void setNumberFound(int newNumberFound) 
+    {
+    	this.numberFound = newNumberFound;
     }
     
     private void prefetch(int n)
