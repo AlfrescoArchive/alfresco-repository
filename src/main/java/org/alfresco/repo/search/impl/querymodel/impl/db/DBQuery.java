@@ -74,6 +74,10 @@ public class DBQuery extends BaseQuery implements DBQueryBuilderComponent
     
     Set<String> selectorGroup;
 
+    private int maxItems;
+    
+    private int skipCount;
+    
     /**
      * @param source Source
      * @param constraint Constraint
@@ -871,4 +875,25 @@ public class DBQuery extends BaseQuery implements DBQueryBuilderComponent
         }
         return dbids;
     }
+
+    public int getMaxItems()
+    {
+        return maxItems;
+    }
+
+    public int getSkipCount()
+    {
+        return skipCount;
+    }
+
+    public void setMaxItems(int maxItems)
+    {
+        this.maxItems = maxItems;
+    }
+
+    public void setSkipCount(int skipCount)
+    {
+        this.skipCount = skipCount;
+    }
+    
 }
