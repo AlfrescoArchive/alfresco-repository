@@ -205,6 +205,8 @@ public class DBQueryEngine implements QueryEngine
         dbQuery.setSinceTxId(sinceTxId);
         
         dbQuery.prepare(namespaceService, dictionaryService, qnameDAO, nodeDAO, tenantService, selectorGroup, null, functionContext, metadataIndexCheck2.getPatchApplied());
+        dbQuery.setMaxItems(options.getMaxItems());
+        dbQuery.setSkipCount(options.getSkipCount());
         List<Node> nodes = template.selectList(SELECT_BY_DYNAMIC_QUERY, dbQuery);
         LinkedHashSet<Long> set = new LinkedHashSet<Long>(nodes.size());
         for(Node node : nodes)
