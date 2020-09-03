@@ -220,7 +220,7 @@ public class DBQueryEngine implements QueryEngine
         params.setSkipCount(0);
         
         DBResultSet rs =  new DBResultSet(params, nodeIds, nodeDAO, nodeService, tenantService, Integer.MAX_VALUE);
-        rs.setNumberFound(computeNumberFound(options, nodeIds.size()));
+        rs.setNumberFound(computeNumberFound(options, nodeIds.size(), dbQuery.getQueryLimit()));
         
         PagingLuceneResultSet paged = new PagingLuceneResultSet(rs, params, nodeService);
         
@@ -228,17 +228,15 @@ public class DBQueryEngine implements QueryEngine
         return new QueryEngineResults(answer);
     }
 
-	private int computeNumberFound(QueryOptions options, int numberOfIds) 
-	{
-	    if(numberOfIds > 0) 
-	    {
-    		if(numberOfIds <= options.getMaxItems())
-        		return numberOfIds + options.getSkipCount();
-        	else
-        		return options.getMaxItems() + options.getSkipCount() + 1;
-	    }
-	    return 0;
-	}
+    private int computeNumberFound(QueryOptions options, int numberOfIds, int queryLimit) 
+    {
+        int res;
+        
+        if (numberOfIds > 0)
+            res = options.getSkipCount() + numberOfIds;
+        else
+            res = 0;        return res;
+    }
 
     /*
      * (non-Javadoc)
