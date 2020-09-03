@@ -880,7 +880,7 @@ public class DBQuery extends BaseQuery implements DBQueryBuilderComponent
     {
         return maxItems;
     }
-
+    
     public int getSkipCount()
     {
         return skipCount;
@@ -894,6 +894,11 @@ public class DBQuery extends BaseQuery implements DBQueryBuilderComponent
     public void setSkipCount(int skipCount)
     {
         this.skipCount = skipCount;
+    }
+    
+    public int getQueryLimit() 
+    {
+        return Math.max(101, maxItems);
     }
     
 }

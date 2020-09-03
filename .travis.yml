@@ -18,6 +18,7 @@ branches:
   only:
     - master
     - /support\/.*/
+    - feature/REPO-5335_Pagination_Optimisation
 
 stages:
   - test
