@@ -46,6 +46,9 @@ import org.springframework.context.ApplicationContext;
     // Minimum context [classpath:alfresco/minimal-context.xml]
     // ----------------------------------------------------------------------
 
+    // DbQuery
+    org.alfresco.repo.search.impl.querymodel.impl.db.DBQueryTest.class,
+    
     // Limits
     org.alfresco.repo.content.transform.AbstractContentTransformerLimitsTest.class,
 

@@ -31,7 +31,6 @@ import junit.framework.TestSuite;
 import org.alfresco.repo.search.impl.parsers.CMISTest;
 import org.alfresco.repo.search.impl.parsers.CMIS_FTSTest;
 import org.alfresco.repo.search.impl.parsers.FTSTest;
-import org.alfresco.repo.search.impl.querymodel.impl.db.DBQueryTest;
 import org.alfresco.util.NumericEncodingTest;
 
 /**
@@ -58,7 +57,6 @@ public class SearchTestSuite extends TestSuite
         suite.addTestSuite(CMIS_FTSTest.class);
         suite.addTestSuite(CMISTest.class);
         suite.addTestSuite(FTSTest.class);
-        suite.addTestSuite(DBQueryTest.class);
 
         return suite;
     }
