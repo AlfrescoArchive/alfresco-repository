@@ -25,7 +25,7 @@
  */
 package org.alfresco.repo.security.permissions.impl;
 
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.HashMap;
 
 import org.alfresco.service.namespace.QName;
 import org.alfresco.util.Pair;
@@ -39,7 +39,7 @@ public final class SimplePermissionReference extends AbstractPermissionReference
 {   
     private static final long serialVersionUID = 637302438293417818L;
 
-    private static ConcurrentHashMap<Pair<QName, String>, SimplePermissionReference> instances = new ConcurrentHashMap<>();
+    private static HashMap<Pair<QName, String>, SimplePermissionReference> instances = new HashMap<>();
 
     /**
      * Factory method to create simple permission references
@@ -52,9 +52,15 @@ public final class SimplePermissionReference extends AbstractPermissionReference
         SimplePermissionReference instance = instances.get(key);
         if (instance == null)
         {
-            // TODO This may result in duplicate objects, but it is most likely does not matter
-            instance = new SimplePermissionReference(qName, name);
-            instances.put(key, instance);
+            synchronized (SimplePermissionReference.class)
+            {
+                instance = instances.get(key);
+                if (instance == null)
+                {
+                    instance = new SimplePermissionReference(qName, name);
+                    instances.put(key, instance);
+                }
+            }
         }
         return instance;
     }
