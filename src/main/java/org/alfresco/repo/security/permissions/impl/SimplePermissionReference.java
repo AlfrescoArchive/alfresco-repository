@@ -2,7 +2,7 @@
  * #%L
  * Alfresco Repository
  * %%
- * Copyright (C) 2005 - 2016 Alfresco Software Limited
+ * Copyright (C) 2005 - 2020 Alfresco Software Limited
  * %%
  * This file is part of the Alfresco software. 
  * If the software was purchased under a paid Alfresco license, the terms of 
@@ -25,11 +25,10 @@
  */
 package org.alfresco.repo.security.permissions.impl;
 
-import java.util.HashMap;
-import java.util.concurrent.locks.ReadWriteLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.alfresco.service.namespace.QName;
+import org.alfresco.util.Pair;
 
 /**
  * A simple permission reference.
@@ -40,58 +39,25 @@ public final class SimplePermissionReference extends AbstractPermissionReference
 {   
     private static final long serialVersionUID = 637302438293417818L;
 
-    private static ReadWriteLock lock = new ReentrantReadWriteLock();
-
-    private static HashMap<QName, HashMap<String, SimplePermissionReference>> instances = new HashMap<QName, HashMap<String, SimplePermissionReference>>();
+    private static ConcurrentHashMap<Pair<QName, String>, SimplePermissionReference> instances = new ConcurrentHashMap<>();
 
     /**
-     * Factory method to create simple permission refrences
+     * Factory method to create simple permission references
      * 
      * @return a simple permission reference
      */
     public static SimplePermissionReference getPermissionReference(QName qName, String name)
     {
-        lock.readLock().lock();
-        try
+        Pair<QName, String> key = new Pair<>(qName, name);
+        SimplePermissionReference instance = instances.get(key);
+        if (instance == null)
         {
-            HashMap<String, SimplePermissionReference> typed = instances.get(qName);
-            if(typed != null)
-            {
-                SimplePermissionReference instance = typed.get(name);
-                if(instance != null)
-                {
-                    return instance;
-                }
-            }
+            // TODO This may result in duplicate objects, but it is most likely does not matter
+            instance = new SimplePermissionReference(qName, name);
+            instances.put(key, instance);
         }
-        finally
-        {
-            lock.readLock().unlock();
-        }
-        
-        lock.writeLock().lock();
-        try
-        {
-            HashMap<String, SimplePermissionReference> typed = instances.get(qName);
-            if(typed == null)
-            {
-                typed = new HashMap<String, SimplePermissionReference>();
-                instances.put(qName, typed);
-            }
-            SimplePermissionReference instance = typed.get(name);
-            if(instance == null)
-            {
-                instance = new SimplePermissionReference(qName, name);
-                typed.put(name, instance);
-            }
-            return instance;
-        }
-        finally
-        {
-            lock.writeLock().unlock();
-        }
+        return instance;
     }
-    
     
     /*
      * The type
