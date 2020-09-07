@@ -26,13 +26,8 @@ public class DBTableInfo
         this.fieldNames = Collections.emptySet();
     }
 
-    public Set<String> getFieldNames(SqlSession session)
+    public Set<String> getFieldNames()
     {
-        if (session != null && isTimeToCollect())
-        {
-            collectDenormFieldNames(session);
-        }
-
         return fieldNames;
     }
 
@@ -70,5 +65,11 @@ public class DBTableInfo
         {
             logger.error("Unexpected", ex);
         }
+    }
+
+    public void refresh(SqlSession session)
+    {
+        if (isTimeToCollect())
+            collectDenormFieldNames(session);
     }
 }

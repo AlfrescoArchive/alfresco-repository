@@ -26,6 +26,7 @@
 package org.alfresco.repo.search.impl.querymodel.impl.db;
 
 import org.alfresco.repo.search.adaptor.lucene.LuceneFunction;
+import org.alfresco.service.namespace.QName;
 
 /**
  * @author Andy
@@ -42,7 +43,9 @@ public class DBQueryBuilderPredicatePartCommand
 
     String alias;
     
-    String propertyName;
+    QName propertyQName;
+    
+    String denormalizedFieldName;
     
     private DBQueryBuilderJoinCommandType joinCommandType;
 
@@ -201,23 +204,24 @@ public class DBQueryBuilderPredicatePartCommand
         }
     }
 
-	public void setPropertyName(String propertyName) 
+	public void setPropertyQName(QName propertyQName) 
 	{
-		this.propertyName = propertyName;
+		this.propertyQName = propertyQName;
 	}
 	
-	public String getPropertyName() 
+	public QName getPropertyQName() 
 	{
-		return this.propertyName;
+		return this.propertyQName;
+	}
+	
+	public void setDenormalizedFieldName(String fieldName) 
+	{
+	    this.denormalizedFieldName = fieldName;
 	}
 	
 	public String getDenormalizedFieldName() 
-    {
-    	return computeDenormalizedColumnName(propertyName);
-	}
-
-	public static String computeDenormalizedColumnName(String name) {
-		return name.substring(name.indexOf(":")+1);
+	{
+	    return denormalizedFieldName;
 	}
     
 }

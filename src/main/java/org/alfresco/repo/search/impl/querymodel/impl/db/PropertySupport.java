@@ -243,7 +243,7 @@ public class PropertySupport implements DBQueryBuilderComponent
                 break;
             }
             
-            command.setPropertyName(getLocalName());
+            command.setPropertyQName(propertyQName);
         }
         else
         {
@@ -353,20 +353,11 @@ public class PropertySupport implements DBQueryBuilderComponent
             
             command.setFieldName(fieldName);
             command.setFunction(luceneFunction);
-            command.setPropertyName(getLocalName());
+            command.setPropertyQName(propertyQName);
             predicatePartCommands.add(command);
         }       
         
     }
-
-	private String getLocalName() {
-		String fieldName = DBQuery.getFieldNameIfAudit(propertyQName);
-		if(fieldName != null)
-			return fieldName;
-		else
-			return this.propertyQName.getLocalName();
-	}
- 
 
     /**
      * @param luceneFunction LuceneFunction

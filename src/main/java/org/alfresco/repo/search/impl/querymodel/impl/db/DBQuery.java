@@ -46,6 +46,7 @@ import org.alfresco.repo.search.impl.querymodel.QueryModelException;
 import org.alfresco.repo.search.impl.querymodel.Selector;
 import org.alfresco.repo.search.impl.querymodel.Source;
 import org.alfresco.repo.search.impl.querymodel.impl.BaseQuery;
+import org.alfresco.repo.search.impl.querymodel.impl.db.queryset.QuerySet;
 import org.alfresco.repo.tenant.TenantService;
 import org.alfresco.service.cmr.dictionary.AspectDefinition;
 import org.alfresco.service.cmr.dictionary.DataTypeDefinition;
@@ -58,7 +59,6 @@ import org.alfresco.service.namespace.NamespacePrefixResolver;
 import org.alfresco.service.namespace.NamespaceService;
 import org.alfresco.service.namespace.QName;
 import org.alfresco.util.Pair;
-import org.stringtemplate.v4.compiler.CodeGenerator.subtemplate_return;
 
 /**
  * @author Andy
@@ -73,6 +73,8 @@ public class DBQuery extends BaseQuery implements DBQueryBuilderComponent
     private Long sinceTxId;
     
     Set<String> selectorGroup;
+    
+    private QuerySet querySet;
     
     /**
      * @param source Source
@@ -133,6 +135,10 @@ public class DBQuery extends BaseQuery implements DBQueryBuilderComponent
         this.sinceTxId = sinceTxId;
     }
 
+    public void setQuerySet(QuerySet querySet) {
+        this.querySet = querySet;
+    }
+    
     public List<DBQueryBuilderJoinCommand> getJoins()
     {
         HashMap<QName, DBQueryBuilderJoinCommand> singleJoins = new HashMap<QName, DBQueryBuilderJoinCommand>();
@@ -362,6 +368,11 @@ public class DBQuery extends BaseQuery implements DBQueryBuilderComponent
                     throw new UnsupportedOperationException();
                 }
             }
+        }
+        
+        if (querySet != null) 
+        {
+            setDenormalizedFieldNames(predicatePartCommands);
         }
     }
 
@@ -882,29 +893,11 @@ public class DBQuery extends BaseQuery implements DBQueryBuilderComponent
         return dbids;
     }
     
-    public boolean isForDenormalizedTable(Set<String> denormalisedColumnNames) 
+    private void setDenormalizedFieldNames(List<DBQueryBuilderPredicatePartCommand> predicateParts)
     {
-    	Set<String> columnNames = getWhereColumnNames(getConstraint());
-    	for(String columnName: columnNames) {
-    		if(!denormalisedColumnNames.contains(columnName))
-    			return false;
-    	}
-    	
-    	return true;
-    }
-    
-    private Set<String> getWhereColumnNames(Constraint theConstraint) 
-    {
-    	Set<String> columnNames = new HashSet<String>();
-    	
-    	for(DBQueryBuilderPredicatePartCommand predicatePart: getPredicateParts())
-    	{
-    		if(predicatePart.getPropertyName() != null) {
-    			columnNames.add(predicatePart.getPropertyName());
-    		}
-    	}
-    	
-    	return columnNames;
+       predicateParts.stream()
+                .filter(p -> p.propertyQName != null)
+                .forEach(p -> p.setDenormalizedFieldName(querySet.getColumnName(p.getPropertyQName())));
     }
     
 }
