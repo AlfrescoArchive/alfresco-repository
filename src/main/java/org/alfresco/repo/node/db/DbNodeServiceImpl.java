@@ -121,7 +121,8 @@ public class DbNodeServiceImpl extends AbstractNodeServiceImpl implements Extens
     private BehaviourFilter policyBehaviourFilter;
     private boolean enableTimestampPropagation;
     private final ExtendedTrait<NodeServiceTrait> nodeServiceTrait;
-    
+    private RqaService rqaService;
+
     public DbNodeServiceImpl()
     {
         nodeServiceTrait = new ExtendedTrait<NodeServiceTrait>(AJProxyTrait.create(this, NodeServiceTrait.class));
@@ -141,6 +142,11 @@ public class DbNodeServiceImpl extends AbstractNodeServiceImpl implements Extens
     public void setPermissionService(PermissionService permissionService)
     {
         this.permissionService = permissionService;
+    }
+    
+    public void setRqaService(RqaService rqaService)
+    {
+        this.rqaService = rqaService;
     }
 
     public void setStoreArchiveMap(StoreArchiveMap storeArchiveMap)
@@ -429,6 +435,8 @@ public class DbNodeServiceImpl extends AbstractNodeServiceImpl implements Extens
         
         // Ensure that the parent node has the required aspects
         addAspectsAndPropertiesAssoc(parentNodePair, assocTypeQName, null, null, null, null, false);
+        
+        rqaService.processNodeCreated(childAssocRef);
         
         // done
         return childAssocRef;

@@ -260,6 +260,14 @@
       </property>   
    </bean>
 
+   <bean id="rqaDAO" class="org.alfresco.repo.domain.rqa.RqaDAO">
+   </bean>
+
+   <bean id="dbRqaService" class="org.alfresco.repo.node.rqa.RqaServiceImpl" init-method="init" >
+      <property name="nodeService" ref="nodeService" />
+      <property name="rqaDAO" ref="rqaDAO" />
+   </bean>
+
    <alias name="dbNodeService" alias="dbNodeServiceImpl" />
    <bean id="dbNodeService" class="org.alfresco.repo.node.db.DbNodeServiceImpl" init-method="init" >
       <property name="dictionaryService" ref="dictionaryService" />
@@ -275,6 +283,7 @@
          <ref bean="storesToIgnorePolicies"/>
       </property>
       <property name="enableTimestampPropagation" value="${system.enableTimestampPropagation}" />
+      <property name="rqaService" ref="dbRqaService" />
    </bean>
    
    <bean id="nodeAuditor" class="org.alfresco.repo.node.NodeAuditor">
