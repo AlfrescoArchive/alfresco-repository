@@ -260,7 +260,7 @@
       </property>   
    </bean>
 
-   <bean id="rqaDAO" class="org.alfresco.repo.domain.rqa.RqaDAO">
+   <bean id="rqaDAO" class="org.alfresco.repo.domain.rqa.RqaDAOImpl">
    </bean>
 
    <bean id="dbRqaService" class="org.alfresco.repo.node.rqa.RqaServiceImpl" init-method="init" >
