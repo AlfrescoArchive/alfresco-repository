@@ -53,6 +53,7 @@ import org.alfresco.repo.node.archive.NodeArchiveService;
 import org.alfresco.repo.node.db.NodeHierarchyWalker.VisitedNode;
 import org.alfresco.repo.node.db.traitextender.NodeServiceExtension;
 import org.alfresco.repo.node.db.traitextender.NodeServiceTrait;
+import org.alfresco.repo.node.rqa.RqaService;
 import org.alfresco.repo.policy.BehaviourFilter;
 import org.alfresco.repo.security.authentication.AuthenticationUtil;
 import org.alfresco.repo.transaction.AlfrescoTransactionSupport;
