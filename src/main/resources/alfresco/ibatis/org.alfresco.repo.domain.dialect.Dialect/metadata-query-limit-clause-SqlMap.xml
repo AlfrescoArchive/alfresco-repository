@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="alfresco.metadata.query">
+
+  <sql id="sql_limitClause">
+  	  <choose>
+	  	  <when test="hasOrderBy">
+	  	  		LIMIT #{queryLimit} OFFSET #{skipCount}
+	  	  </when>
+	  	  <otherwise>
+	  	  		ORDER BY id LIMIT #{queryLimit} OFFSET #{skipCount}
+	  	  </otherwise>
+  	  </choose>
+  </sql>
+
+</mapper>

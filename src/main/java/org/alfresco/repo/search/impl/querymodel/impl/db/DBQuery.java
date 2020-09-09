@@ -898,7 +898,7 @@ public class DBQuery extends BaseQuery implements DBQueryBuilderComponent
     
     public int getQueryLimit() 
     {
-        return Math.max(101, maxItems);
+        return Math.max(1001, maxItems);
     }
     
 }
