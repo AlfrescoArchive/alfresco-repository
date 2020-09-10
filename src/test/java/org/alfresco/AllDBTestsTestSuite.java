@@ -82,7 +82,10 @@ import org.junit.runners.Suite;
     org.alfresco.repo.node.db.DbNodeServiceImplTest.class,
 
     org.alfresco.repo.node.cleanup.TransactionCleanupTest.class,
-    org.alfresco.repo.security.person.GetPeopleCannedQueryTest.class
+    org.alfresco.repo.security.person.GetPeopleCannedQueryTest.class,
+    
+    // DbQuery
+    org.alfresco.repo.search.impl.querymodel.impl.db.DBQueryTest.class
 })
 public class AllDBTestsTestSuite
 {
