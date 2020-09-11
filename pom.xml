@@ -2,11 +2,7 @@
     <modelVersion>4.0.0</modelVersion>
     <artifactId>alfresco-repository</artifactId>
     <name>Alfresco Repository</name>
-<<<<<<< HEAD
     <version>8.279-SNAPSHOT</version>
-=======
-    <version>repo-5335-pagination_optimisation_1</version>
->>>>>>> [maven-release-plugin][skip ci] prepare release alfresco-repository-repo-5335-pagination_optimisation_1
     <packaging>jar</packaging>
     <parent>
         <groupId>org.alfresco</groupId>
