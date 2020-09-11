@@ -36,6 +36,7 @@ import java.util.HashSet;
 import java.util.Locale;
 import java.util.Map;
 
+import javax.sql.DataSource;
 import javax.transaction.Status;
 import javax.transaction.UserTransaction;
 
@@ -76,6 +77,10 @@ import org.alfresco.util.testing.category.LuceneTests;
 import org.junit.experimental.categories.Category;
 import org.springframework.context.ApplicationContext;
 import org.springframework.extensions.surf.util.I18NUtil;
+import org.springframework.jdbc.datasource.DataSourceTransactionManager;
+import org.springframework.transaction.TransactionManager;
+import org.alfresco.util.transaction.SpringAwareUserTransaction;
+import org.apache.commons.dbcp.BasicDataSource;
 
 import junit.framework.TestCase;
 
@@ -188,7 +193,7 @@ public class DBQueryTest extends TestCase implements DictionaryListener
     private String midOrderDate;
 
     private ContentService contentService;
-
+    
     protected void startContext()
     {
         ctx = ApplicationContextHelper.getApplicationContext();
@@ -256,7 +261,7 @@ public class DBQueryTest extends TestCase implements DictionaryListener
         nodeService.setProperty(n1,  ContentModel.PROP_NAME, "Folder_1");
     
         n2 = nodeService.createNode(rootNodeRef, ContentModel.ASSOC_CHILDREN, QName.createQName("{namespace}two"), TEST_FOLDER_TYPE, getOrderProperties()).getChildRef();
-        nodeService.setProperty(n2,  ContentModel.PROP_NAME, "Folder 2");
+        nodeService.setProperty(n2,  ContentModel.PROP_NAME, "Folder_2");
 
         n3 = nodeService.createNode(rootNodeRef, ContentModel.ASSOC_CHILDREN, QName.createQName("{namespace}three"), TEST_SUPER_CONTENT_TYPE, getOrderProperties()).getChildRef();
         nodeService.setProperty(n3,  ContentModel.PROP_NAME, "Content 3");
@@ -344,9 +349,9 @@ public class DBQueryTest extends TestCase implements DictionaryListener
         nodeService.setProperty(n4,  ContentModel.PROP_NAME, "Content 4");
 
         n5 = nodeService.createNode(n1, ASSOC_TYPE_QNAME, QName.createQName("{namespace}five"), TEST_SUPER_FOLDER_TYPE, getOrderProperties()).getChildRef();
-        nodeService.setProperty(n5,  ContentModel.PROP_NAME, "Folder 5");
+        nodeService.setProperty(n5,  ContentModel.PROP_NAME, "Folder_5");
         n6 = nodeService.createNode(n1, ASSOC_TYPE_QNAME, QName.createQName("{namespace}six"), TEST_SUPER_FOLDER_TYPE, getOrderProperties()).getChildRef();
-        nodeService.setProperty(n6,  ContentModel.PROP_NAME, "Folder 6");
+        nodeService.setProperty(n6,  ContentModel.PROP_NAME, "Folder_6");
         
         synchronized (this)
         {
@@ -375,9 +380,9 @@ public class DBQueryTest extends TestCase implements DictionaryListener
         n11 = nodeService.createNode(n5, ASSOC_TYPE_QNAME, QName.createQName("{namespace}eleven"), TEST_SUPER_CONTENT_TYPE, getOrderProperties()).getChildRef();
         nodeService.setProperty(n11,  ContentModel.PROP_NAME, "Content 11");
         n12 = nodeService.createNode(n5, ASSOC_TYPE_QNAME, QName.createQName("{namespace}twelve"), TEST_SUPER_FOLDER_TYPE, getOrderProperties()).getChildRef();
-        nodeService.setProperty(n12,  ContentModel.PROP_NAME, "Folder 12");
+        nodeService.setProperty(n12,  ContentModel.PROP_NAME, "Folder_12");
         n13 = nodeService.createNode(n12, ASSOC_TYPE_QNAME, QName.createQName("{namespace}thirteen"), TEST_SUPER_FOLDER_TYPE, getOrderProperties()).getChildRef();
-        nodeService.setProperty(n13,  ContentModel.PROP_NAME, "Folder 13");
+        nodeService.setProperty(n13,  ContentModel.PROP_NAME, "Folder_13");
 
         Map<QName, Serializable> properties = new HashMap<QName, Serializable>();
 
@@ -477,18 +482,18 @@ public class DBQueryTest extends TestCase implements DictionaryListener
         sqlQueryWithCount("SELECT * FROM test:testAspect", 2);
         
         sqlQueryWithCount("SELECT * FROM cmis:folder where cmis:name = 'Folder_1'", 1);
-        sqlQueryWithCount("SELECT * FROM cmis:folder where cmis:name = 'Folder 2'", 1);
+        sqlQueryWithCount("SELECT * FROM cmis:folder where cmis:name = 'Folder_2'", 1);
         sqlQueryWithCount("SELECT * FROM cmis:document where cmis:name = 'Content 3'", 1);
         sqlQueryWithCount("SELECT * FROM cmis:document where cmis:name = 'Content 4'", 1);
-        sqlQueryWithCount("SELECT * FROM cmis:folder where cmis:name = 'Folder 5'", 1);
-        sqlQueryWithCount("SELECT * FROM cmis:folder where cmis:name = 'Folder 6'", 1);
+        sqlQueryWithCount("SELECT * FROM cmis:folder where cmis:name = 'Folder_5'", 1);
+        sqlQueryWithCount("SELECT * FROM cmis:folder where cmis:name = 'Folder_6'", 1);
         sqlQueryWithCount("SELECT * FROM cmis:document where cmis:name = 'Content 7'", 1);
         sqlQueryWithCount("SELECT * FROM cmis:document where cmis:name = 'Content 8'", 1);
         sqlQueryWithCount("SELECT * FROM cmis:document where cmis:name = 'Content 9'", 1);
         sqlQueryWithCount("SELECT * FROM cmis:document where cmis:name = 'Content 10'", 1);
         sqlQueryWithCount("SELECT * FROM cmis:document where cmis:name = 'Content 11'", 1);
-        sqlQueryWithCount("SELECT * FROM cmis:folder where cmis:name = 'Folder 12'", 1);
-        sqlQueryWithCount("SELECT * FROM cmis:folder where cmis:name = 'Folder 13'", 1);
+        sqlQueryWithCount("SELECT * FROM cmis:folder where cmis:name = 'Folder_12'", 1);
+        sqlQueryWithCount("SELECT * FROM cmis:folder where cmis:name = 'Folder_13'", 1);
         sqlQueryWithCount("SELECT * FROM cmis:document where cmis:name = 'Content 14'", 1);
         sqlQueryWithCount("SELECT * FROM cmis:document where cmis:name = 'Content 15'", 0);
         sqlQueryWithCount("SELECT * FROM cm:thumbnail where cmis:name = 'Content 15'", 1);
@@ -517,11 +522,11 @@ public class DBQueryTest extends TestCase implements DictionaryListener
         sqlQueryWithCount("SELECT * FROM cmis:folder where UPPER(cmis:name) = 'FOLDER_1'", 1);
         
         sqlQueryWithCount("SELECT * FROM cmis:folder where cmis:name like 'Folder 1'", 0);
-        sqlQueryWithCount("SELECT * FROM cmis:folder where cmis:name like 'Folder 2'", 1);
+        sqlQueryWithCount("SELECT * FROM cmis:folder where cmis:name like 'Folder 2'", 0);
         sqlQueryWithCount("SELECT * FROM cmis:folder where cmis:name like 'Folder_1'", 1);
         sqlQueryWithCount("SELECT * FROM cmis:folder where cmis:name like 'Folder_2'", 1);
         sqlQueryWithCount("SELECT * FROM cmis:folder where cmis:name like 'Folder\\_1'", 1);
-        sqlQueryWithCount("SELECT * FROM cmis:folder where cmis:name like 'Folder\\_2'", 0);
+        sqlQueryWithCount("SELECT * FROM cmis:folder where cmis:name like 'Folder\\_14'", 0);
         
         sqlQueryWithCount("SELECT * FROM cmis:document where IN_FOLDER('"+n2+"') and cmis:name = 'Content 7'", 1);
         sqlQueryWithCount("SELECT * FROM cmis:document where IN_FOLDER('"+n2+"') and cmis:name = 'Content 8'", 1);
@@ -634,20 +639,22 @@ public class DBQueryTest extends TestCase implements DictionaryListener
         sqlQueryWithCount("SELECT * FROM test:testSuperAspect a where a.test:orderMLText is null", 1);
         sqlQueryWithCount("SELECT * FROM test:testSuperAspect a where a.test:orderMLText is not null", 13);
         
-        stringValue = new String(new char[] { (char) ('香' + 6) }) + " 香蕉";
-        
-        sqlQueryWithCount("SELECT * FROM cmis:folder d join test:testSuperAspect a on d.cmis:objectId = a.cmis:objectId where a.test:orderMLText = '香 香蕉'", 1);
-        sqlQueryWithCount("SELECT * FROM test:testSuperAspect a where a.test:orderMLText = '"+stringValue+"'", 1);
-//        sqlQueryWithCount("SELECT * FROM test:testSuperAspect a where a.test:orderMLText <>  '"+stringValue+"'", 12);
-//        sqlQueryWithCount("SELECT * FROM test:testSuperAspect a where a.test:orderMLText <  '"+stringValue+"'", 6);
-//        sqlQueryWithCount("SELECT * FROM test:testSuperAspect a where a.test:orderMLText <=  '"+stringValue+"'", 7);
-//        sqlQueryWithCount("SELECT * FROM test:testSuperAspect a where a.test:orderMLText >  '"+stringValue+"'", 6);
-//        sqlQueryWithCount("SELECT * FROM test:testSuperAspect a where a.test:orderMLText >=  '"+stringValue+"'", 7);
-        sqlQueryWithCount("SELECT * FROM test:testSuperAspect a where a.test:orderMLText IN ( '"+stringValue+"')", 1);
-//        sqlQueryWithCount("SELECT * FROM test:testSuperAspect a where a.test:orderMLText NOT IN  ('"+stringValue+"')", 12);
-        sqlQueryWithCount("SELECT * FROM test:testSuperAspect a where a.test:orderMLText is null", 1);
-        sqlQueryWithCount("SELECT * FROM test:testSuperAspect a where a.test:orderMLText is not null", 13);
-        
+        if (databaseSupportsChinese()) 
+        {
+            stringValue = new String(new char[] { (char) ('香' + 6) }) + " 香蕉";
+            
+            sqlQueryWithCount("SELECT * FROM cmis:folder d join test:testSuperAspect a on d.cmis:objectId = a.cmis:objectId where a.test:orderMLText = '香 香蕉'", 1);
+            sqlQueryWithCount("SELECT * FROM test:testSuperAspect a where a.test:orderMLText = '"+stringValue+"'", 1);
+//            sqlQueryWithCount("SELECT * FROM test:testSuperAspect a where a.test:orderMLText <>  '"+stringValue+"'", 12);
+//            sqlQueryWithCount("SELECT * FROM test:testSuperAspect a where a.test:orderMLText <  '"+stringValue+"'", 6);
+//            sqlQueryWithCount("SELECT * FROM test:testSuperAspect a where a.test:orderMLText <=  '"+stringValue+"'", 7);
+//            sqlQueryWithCount("SELECT * FROM test:testSuperAspect a where a.test:orderMLText >  '"+stringValue+"'", 6);
+//            sqlQueryWithCount("SELECT * FROM test:testSuperAspect a where a.test:orderMLText >=  '"+stringValue+"'", 7);
+            sqlQueryWithCount("SELECT * FROM test:testSuperAspect a where a.test:orderMLText IN ( '"+stringValue+"')", 1);
+//            sqlQueryWithCount("SELECT * FROM test:testSuperAspect a where a.test:orderMLText NOT IN  ('"+stringValue+"')", 12);
+            sqlQueryWithCount("SELECT * FROM test:testSuperAspect a where a.test:orderMLText is null", 1);
+            sqlQueryWithCount("SELECT * FROM test:testSuperAspect a where a.test:orderMLText is not null", 13);
+        }
     }
 
     public void testOrdering()
@@ -804,18 +811,18 @@ public class DBQueryTest extends TestCase implements DictionaryListener
         aftsQueryWithCount("=ASPECT:\"test:testAspect\"", 2);
         
         aftsQueryWithCount("=TYPE:\"cm:folder\" AND =name:\"Folder_1\"", 1);
-        aftsQueryWithCount("=TYPE:\"cm:folder\" AND =name:\"Folder 2\"", 1);
+        aftsQueryWithCount("=TYPE:\"cm:folder\" AND =name:\"Folder_2\"", 1);
         aftsQueryWithCount("=TYPE:\"cm:content\" AND =name:\"Content 3\"", 1);
         aftsQueryWithCount("=TYPE:\"cm:content\" AND =name:\"Content 4\"", 1);
-        aftsQueryWithCount("=TYPE:\"cm:folder\" AND =name:\"Folder 5\"", 1);
-        aftsQueryWithCount("=TYPE:\"cm:folder\" AND =name:\"Folder 6\"", 1);
+        aftsQueryWithCount("=TYPE:\"cm:folder\" AND =name:\"Folder_5\"", 1);
+        aftsQueryWithCount("=TYPE:\"cm:folder\" AND =name:\"Folder_6\"", 1);
         aftsQueryWithCount("=TYPE:\"cm:content\" AND =name:\"Content 7\"", 1);
         aftsQueryWithCount("=TYPE:\"cm:content\" AND =name:\"Content 8\"", 1);
         aftsQueryWithCount("=TYPE:\"cm:content\" AND =name:\"Content 9\"", 1);
         aftsQueryWithCount("=TYPE:\"cm:content\" AND =name:\"Content 10\"", 1);
         aftsQueryWithCount("=TYPE:\"cm:content\" AND =name:\"Content 11\"", 1);
-        aftsQueryWithCount("=TYPE:\"cm:folder\" AND =name:\"Folder 12\"", 1);
-        aftsQueryWithCount("=TYPE:\"cm:folder\" AND =name:\"Folder 13\"", 1);
+        aftsQueryWithCount("=TYPE:\"cm:folder\" AND =name:\"Folder_12\"", 1);
+        aftsQueryWithCount("=TYPE:\"cm:folder\" AND =name:\"Folder_13\"", 1);
         aftsQueryWithCount("=TYPE:\"cm:content\" AND =name:\"Content 14\"", 1);
         aftsQueryWithCount("=TYPE:\"cm:content\" AND =name:\"Content 15\"", 0);
         aftsQueryWithCount("=TYPE:\"cm:thumbnail\" AND =name:\"Content 15\"", 1);
@@ -867,11 +874,13 @@ public class DBQueryTest extends TestCase implements DictionaryListener
         aftsQueryWithCount("=TYPE:\"cm:folder\" AND =ASPECT:\"test:testSuperAspect\" AND =test:orderMLText:\"Z banane\"", 1);
         aftsQueryWithCount("=ASPECT:\"test:testSuperAspect\" AND =test:orderMLText:\""+stringValue+"\"", 1);
         
-        stringValue = new String(new char[] { (char) ('香' + 6) }) + " 香蕉";
-        
-        aftsQueryWithCount("=TYPE:\"cm:folder\" AND =ASPECT:\"test:testSuperAspect\" AND =test:orderMLText:\"香 香蕉\"", 1);
-        aftsQueryWithCount("=ASPECT:\"test:testSuperAspect\" AND =test:orderMLText:\""+stringValue+"\"", 1);
-        
+        if (databaseSupportsChinese())
+        {
+            stringValue = new String(new char[] { (char) ('香' + 6) }) + " 香蕉";
+            
+            aftsQueryWithCount("=TYPE:\"cm:folder\" AND =ASPECT:\"test:testSuperAspect\" AND =test:orderMLText:\"香 香蕉\"", 1);
+            aftsQueryWithCount("=ASPECT:\"test:testSuperAspect\" AND =test:orderMLText:\""+stringValue+"\"", 1);
+        }
     }
 
     /**
@@ -1005,6 +1014,30 @@ public class DBQueryTest extends TestCase implements DictionaryListener
     private static class UnknownDataType implements Serializable
     {
         private static final long serialVersionUID = -6729690518573349055L;
+    }
+    
+    private boolean databaseSupportsChinese() 
+    {
+        UserTransaction userTransaction = this.transactionService.getUserTransaction();
+        if (userTransaction != null && userTransaction instanceof SpringAwareUserTransaction) 
+        {
+            SpringAwareUserTransaction saut = (SpringAwareUserTransaction) userTransaction;
+            TransactionManager transactionManager = saut.getTransactionManager();
+            if (transactionManager != null  && transactionManager instanceof DataSourceTransactionManager) 
+            {
+                DataSource dataSource = ((DataSourceTransactionManager) transactionManager).getDataSource();
+                if (dataSource != null && dataSource instanceof BasicDataSource)
+                {
+                    String dbDriverName = ((BasicDataSource)dataSource).getDriverClassName();
+                    if (dbDriverName.toLowerCase().contains("mysql")) 
+                    {
+                        return false;
+                    }
+                }
+            }
+        }
+        
+        return true;
     }
     
     @Override
