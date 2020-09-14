@@ -233,9 +233,13 @@ public class DBQueryEngine implements QueryEngine
         int res;
 
         if (numberOfIds > 0)
+        {
             res = options.getSkipCount() + numberOfIds;
+        }
         else
+        {
             res = 0;
+        }
         
         return res;
     }

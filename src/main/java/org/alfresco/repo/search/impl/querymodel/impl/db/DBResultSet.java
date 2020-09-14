@@ -83,12 +83,15 @@ public class DBResultSet extends AbstractResultSet
         {
             maxResults = searchParameters.getMaxItems();
             limitBy = LimitBy.FINAL_SIZE;
-        } else
+        } 
+        else
+        {
             if (searchParameters.getLimitBy() == LimitBy.FINAL_SIZE && searchParameters.getLimit() >= 0)
             {
                 maxResults = searchParameters.getLimit();
                 limitBy = LimitBy.FINAL_SIZE;
-            } else
+            } 
+            else
             {
                 maxResults = searchParameters.getMaxPermissionChecks();
                 if (maxResults < 0)
@@ -97,6 +100,7 @@ public class DBResultSet extends AbstractResultSet
                 }
                 limitBy = LimitBy.NUMBER_OF_PERMISSION_EVALUATIONS;
             }
+        }
 
         this.resultSetMetaData = new SimpleResultSetMetaData(
                 maxResults > 0 && dbids.size() < maxResults ? LimitBy.UNLIMITED : limitBy,
