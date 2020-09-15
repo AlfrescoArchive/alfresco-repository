@@ -67,10 +67,14 @@ public class DbQuerySetConfigurationService implements QuerySetConfigurationServ
         {
             String fieldName = DBQuery.getFieldNameIfAudit(qname);
             if (fieldName == null)
+            {
                 fieldName = qname.getLocalName();
+            }
             
             if(denormTable.getFieldNames().contains(fieldName))
+            {
                 return fieldName;
+            }
             
             return null;
         }

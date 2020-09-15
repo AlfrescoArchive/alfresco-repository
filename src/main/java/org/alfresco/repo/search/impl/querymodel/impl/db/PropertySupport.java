@@ -44,7 +44,6 @@ import org.alfresco.service.cmr.repository.datatype.DefaultTypeConverter;
 import org.alfresco.service.namespace.NamespaceService;
 import org.alfresco.service.namespace.QName;
 import org.alfresco.util.Pair;
-import org.apache.commons.lang3.StringUtils;
 
 public class PropertySupport implements DBQueryBuilderComponent
 {

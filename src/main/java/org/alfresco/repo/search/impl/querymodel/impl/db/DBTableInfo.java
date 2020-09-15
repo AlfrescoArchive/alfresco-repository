@@ -39,14 +39,19 @@ public class DBTableInfo
         {
             lastCollectedTime = now;
             return true;
-        } else
+        } 
+        else
+        {
             return false;
+        }
     }
 
     private void collectDenormFieldNames(SqlSession template)
     {
         if (logger.isDebugEnabled())
+        {
             logger.debug("Collecting field names for table " + tableName);
+        }
 
         Set<String> names = new HashSet<>();
         try
@@ -61,7 +66,8 @@ public class DBTableInfo
             }
             
             fieldNames = names;
-        } catch (Exception ex)
+        } 
+        catch (Exception ex)
         {
             logger.error("Unexpected", ex);
         }
@@ -70,6 +76,8 @@ public class DBTableInfo
     public void refresh(SqlSession session)
     {
         if (isTimeToCollect())
+        {
             collectDenormFieldNames(session);
+        }
     }
 }

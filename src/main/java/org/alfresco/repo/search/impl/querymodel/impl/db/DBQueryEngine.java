@@ -200,7 +200,8 @@ public class DBQueryEngine implements QueryEngine
         if (sysDeletedType == null)
         {
             dbQuery.setSysDeletedType(-1L);
-        } else
+        } 
+        else
         {
             dbQuery.setSysDeletedType(sysDeletedType.getFirst());
         }
@@ -268,7 +269,8 @@ public class DBQueryEngine implements QueryEngine
             logger.debug("Using the denormalized table");
             dbQuery.setQuerySet(querySet);
             nodes = template.selectList(SELECT_BY_DYNAMIC_QUERY_FAST, dbQuery);
-        } else
+        } 
+        else
         {
             logger.debug("Using the standard table");
             nodes = template.selectList(SELECT_BY_DYNAMIC_QUERY, dbQuery);
@@ -316,7 +318,9 @@ public class DBQueryEngine implements QueryEngine
                 }
             }
             if (found)
+            {
                 return querySet;
+            }
         }
 
         return null;
