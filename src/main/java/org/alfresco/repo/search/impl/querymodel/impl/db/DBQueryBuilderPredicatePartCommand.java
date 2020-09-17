@@ -45,13 +45,11 @@ public class DBQueryBuilderPredicatePartCommand
     
     QName propertyQName;
     
-    String denormalizedFieldName;
-    
-    private DBQueryBuilderJoinCommandType joinCommandType;
+    DBQueryBuilderJoinCommandType joinCommandType;
 
-    private LuceneFunction function;
+    LuceneFunction function;
     
-    private Long qnameId;
+    Long qnameId;
 
     /**
      * @return the qnameId
@@ -212,16 +210,6 @@ public class DBQueryBuilderPredicatePartCommand
 	public QName getPropertyQName() 
 	{
 		return this.propertyQName;
-	}
-	
-	public void setDenormalizedFieldName(String fieldName) 
-	{
-	    this.denormalizedFieldName = fieldName;
-	}
-	
-	public String getDenormalizedFieldName() 
-	{
-	    return denormalizedFieldName;
 	}
     
 }
