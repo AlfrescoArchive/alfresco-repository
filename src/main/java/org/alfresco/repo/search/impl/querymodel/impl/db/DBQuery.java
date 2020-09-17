@@ -46,7 +46,6 @@ import org.alfresco.repo.search.impl.querymodel.QueryModelException;
 import org.alfresco.repo.search.impl.querymodel.Selector;
 import org.alfresco.repo.search.impl.querymodel.Source;
 import org.alfresco.repo.search.impl.querymodel.impl.BaseQuery;
-import org.alfresco.repo.search.impl.querymodel.impl.db.queryset.QuerySet;
 import org.alfresco.repo.tenant.TenantService;
 import org.alfresco.service.cmr.dictionary.AspectDefinition;
 import org.alfresco.service.cmr.dictionary.DataTypeDefinition;
@@ -59,6 +58,7 @@ import org.alfresco.service.namespace.NamespacePrefixResolver;
 import org.alfresco.service.namespace.NamespaceService;
 import org.alfresco.service.namespace.QName;
 import org.alfresco.util.Pair;
+import org.stringtemplate.v4.compiler.CodeGenerator.subtemplate_return;
 
 /**
  * @author Andy
@@ -73,9 +73,7 @@ public class DBQuery extends BaseQuery implements DBQueryBuilderComponent
     private Long sinceTxId;
     
     Set<String> selectorGroup;
-    
-    private QuerySet querySet;
-    
+
     /**
      * @param source Source
      * @param constraint Constraint
@@ -135,10 +133,6 @@ public class DBQuery extends BaseQuery implements DBQueryBuilderComponent
         this.sinceTxId = sinceTxId;
     }
 
-    public void setQuerySet(QuerySet querySet) {
-        this.querySet = querySet;
-    }
-    
     public List<DBQueryBuilderJoinCommand> getJoins()
     {
         HashMap<QName, DBQueryBuilderJoinCommand> singleJoins = new HashMap<QName, DBQueryBuilderJoinCommand>();
@@ -166,7 +160,6 @@ public class DBQuery extends BaseQuery implements DBQueryBuilderComponent
     {
         ArrayList<DBQueryBuilderPredicatePartCommand> predicatePartCommands = new ArrayList<DBQueryBuilderPredicatePartCommand>();
         buildPredicateCommands(predicatePartCommands);
-        
         return predicatePartCommands;
     }
 
@@ -368,11 +361,6 @@ public class DBQuery extends BaseQuery implements DBQueryBuilderComponent
                     throw new UnsupportedOperationException();
                 }
             }
-        }
-        
-        if (querySet != null) 
-        {
-            setDenormalizedFieldNames(predicatePartCommands);
         }
     }
 
@@ -763,10 +751,22 @@ public class DBQuery extends BaseQuery implements DBQueryBuilderComponent
      */
     public static String getFieldName(DictionaryService dictionaryService, QName propertyQName, boolean supportBooleanFloatAndDouble)
     {
-    	String fieldName = getFieldNameIfAudit(propertyQName);
-        
-        if(fieldName != null) 
-        	return fieldName;
+        if (propertyQName.equals(ContentModel.PROP_CREATED))
+        {
+            return "audit_created";
+        }
+        else if (propertyQName.equals(ContentModel.PROP_CREATOR))
+        {
+            return "audit_creator";
+        }
+        else if (propertyQName.equals(ContentModel.PROP_MODIFIED))
+        {
+            return "audit_modified";
+        }
+        else if (propertyQName.equals(ContentModel.PROP_MODIFIER))
+        {
+            return "audit_modifier";
+        }
         else
         {
             PropertyDefinition propDef = dictionaryService.getProperty(propertyQName);
@@ -842,27 +842,6 @@ public class DBQuery extends BaseQuery implements DBQueryBuilderComponent
         }
     }
 
-	public static String getFieldNameIfAudit(QName propertyQName) {
-		String fieldName = null;
-        if (propertyQName.equals(ContentModel.PROP_CREATED))
-        {
-            fieldName = "audit_created";
-        }
-        else if (propertyQName.equals(ContentModel.PROP_CREATOR))
-        {
-        	fieldName =  "audit_creator";
-        }
-        else if (propertyQName.equals(ContentModel.PROP_MODIFIED))
-        {
-        	fieldName = "audit_modified";
-        }
-        else if (propertyQName.equals(ContentModel.PROP_MODIFIER))
-        {
-        	fieldName = "audit_modifier";
-        }
-		return fieldName;
-	}
-
     public static DataTypeDefinition getDataTypeDefinition(DictionaryService dictionaryService, QName propertyQname)
     {
         if(propertyQname == null)
@@ -892,12 +871,4 @@ public class DBQuery extends BaseQuery implements DBQueryBuilderComponent
         }
         return dbids;
     }
-    
-    private void setDenormalizedFieldNames(List<DBQueryBuilderPredicatePartCommand> predicateParts)
-    {
-       predicateParts.stream()
-                .filter(p -> p.propertyQName != null)
-                .forEach(p -> p.setDenormalizedFieldName(querySet.getColumnName(p.getPropertyQName())));
-    }
-    
 }
