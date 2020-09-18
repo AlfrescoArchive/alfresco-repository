@@ -207,18 +207,21 @@ public class DBQueryEngine implements QueryEngine
         
         dbQuery.prepare(namespaceService, dictionaryService, qnameDAO, nodeDAO, tenantService, selectorGroup, null, functionContext, metadataIndexCheck2.getPatchApplied());
         
-        StopWatch stopWatch = new StopWatch("db query");
+        List<Node> nodes;
+        if (logger.isDebugEnabled()) 
+        {
+            StopWatch stopWatch = new StopWatch("db query");
+            stopWatch.start();
+            nodes = selectNodes(options, dbQuery);
+            stopWatch.stop();
+            logger.debug("Selected " + nodes.size() + " nodes in " + stopWatch.getLastTaskTimeMillis() + "ms");
+        }
+        else
+        {
+            nodes = selectNodes(options, dbQuery);
+        }
         
-        stopWatch.start();
-        List<Node> nodes = selectNodes(options, dbQuery);
-        stopWatch.stop();
-        logger.debug("Selected " + nodes.size() + " nodes in " + stopWatch.getLastTaskTimeMillis() + "ms");
-
-        stopWatch.start();
         QueryEngineResults queryResults = createQueryResults(nodes, options);
-        stopWatch.stop();
-        logger.debug("Selected query results in " + stopWatch.getLastTaskTimeMillis() + "ms");
-
         return queryResults;
     }
 
