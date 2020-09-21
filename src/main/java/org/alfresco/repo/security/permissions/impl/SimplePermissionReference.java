@@ -41,7 +41,7 @@ public final class SimplePermissionReference extends AbstractPermissionReference
     private static final long serialVersionUID = 637302438293417818L;
 
     //Use thread-safe map initiallized with a slightly larger capacity to reduce the posibility of two or more threads attempting to resize at the same time
-    private static ConcurrentMap<Pair<QName, String>, SimplePermissionReference> instances = new ConcurrentHashMap<>(100);
+    private static ConcurrentMap<Pair<QName, String>, SimplePermissionReference> instances = new ConcurrentHashMap<>(100, 0.9f, 2);
 
     /**
      * Factory method to create simple permission references
