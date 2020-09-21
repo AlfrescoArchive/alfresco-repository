@@ -25,15 +25,9 @@
  */
 package org.alfresco.repo.security.permissions.impl;
 
-import java.util.concurrent.Callable;
-import java.util.concurrent.CancellationException;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
-import java.util.concurrent.FutureTask;
 
-import org.alfresco.error.AlfrescoRuntimeException;
 import org.alfresco.service.namespace.QName;
 import org.alfresco.util.Pair;
 
@@ -42,56 +36,29 @@ import org.alfresco.util.Pair;
  * 
  * @author andyh
  */
-public final class SimplePermissionReference extends AbstractPermissionReference {
+public final class SimplePermissionReference extends AbstractPermissionReference
+{
     private static final long serialVersionUID = 637302438293417818L;
 
     //Use thread-safe map initiallized with a slightly larger capacity to reduce the posibility of two or more threads attempting to resize at the same time
-    private static ConcurrentMap<Pair<QName, String>, Future<SimplePermissionReference>> instances = new ConcurrentHashMap<>(100);
+    private static ConcurrentMap<Pair<QName, String>, SimplePermissionReference> instances = new ConcurrentHashMap<>(100);
 
     /**
      * Factory method to create simple permission references
      * 
      * @return a simple permission reference
      */
-    public static SimplePermissionReference getPermissionReference(QName qName, String name) {
-        //loop if thread is interrupted and should be run again
-        while (true)
-        {
+    public static SimplePermissionReference getPermissionReference(QName qName, String name)
+    {
             Pair<QName, String> key = new Pair<>(qName, name);
-            Future<SimplePermissionReference> instance = instances.get(key);
-            if (instance == null) {
-                //Set up task to be completed if the thread is waiting
-                Callable<SimplePermissionReference> callableReference = new Callable<SimplePermissionReference>() {
-                    public SimplePermissionReference call() throws InterruptedException {
-                        return new SimplePermissionReference(qName, name);
-                    }
-                };
-
-                FutureTask<SimplePermissionReference> instanceTask = new FutureTask<>(callableReference);
-                instance = instances.putIfAbsent(key, instanceTask);
-                if (instance == null) {
-                    instance = instanceTask;
-                    instanceTask.run();
-                }
-
-                try
-                {
-                    return instance.get();
-                } 
-                catch (CancellationException e)
-                {
-                    instances.remove(key, instance);
-                }
-                catch (InterruptedException e)
-                {
-                    Thread.currentThread().interrupt();
-                } 
-                catch (ExecutionException e)
-                {
-                    throw new AlfrescoRuntimeException(e.getMessage());
-                }
+            SimplePermissionReference instance = instances.get(key);
+            if (instance == null) 
+            {
+                instance =  new SimplePermissionReference(qName, name);
+                instances.putIfAbsent(key, instance);
             }
-        }
+
+            return instance;
     }
     
     /*
