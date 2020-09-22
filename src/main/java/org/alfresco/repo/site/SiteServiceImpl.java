@@ -77,7 +77,7 @@ import org.alfresco.repo.node.getchildren.GetChildrenCannedQueryFactory;
 import org.alfresco.repo.policy.BehaviourFilter;
 import org.alfresco.repo.policy.JavaBehaviour;
 import org.alfresco.repo.policy.PolicyComponent;
-import org.alfresco.repo.search.impl.lucene.LuceneQueryParserException;
+import org.alfresco.repo.search.QueryParserException;
 import org.alfresco.repo.security.authentication.AuthenticationContext;
 import org.alfresco.repo.security.authentication.AuthenticationUtil;
 import org.alfresco.repo.security.authentication.AuthenticationUtil.RunAsWork;
@@ -962,10 +962,10 @@ public class SiteServiceImpl extends AbstractLifecycleBean implements SiteServic
                   result.add(createSiteInfo(site));
                 }
             }
-            catch (LuceneQueryParserException lqpe)
+            catch (QueryParserException lqpe)
             {
                //Log the error but suppress is from the user
-               logger.error("LuceneQueryParserException with findSites()", lqpe);
+               logger.error("QueryParserException with findSites()", lqpe);
                result = Collections.emptyList();
             }
             finally
