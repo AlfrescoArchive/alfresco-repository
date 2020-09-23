@@ -52,6 +52,7 @@ import org.alfresco.repo.security.permissions.PermissionCheckCollection;
 import org.alfresco.repo.security.permissions.PermissionCheckValue;
 import org.alfresco.repo.security.permissions.PermissionCheckedCollection.PermissionCheckedCollectionMixin;
 import org.alfresco.repo.security.permissions.PermissionCheckedValue;
+import org.alfresco.repo.security.permissions.impl.PermissionServiceImpl;
 import org.alfresco.repo.security.permissions.impl.SimplePermissionReference;
 import org.alfresco.service.cmr.repository.AssociationRef;
 import org.alfresco.service.cmr.repository.ChildAssociationRef;
@@ -558,130 +559,181 @@ public class ACLEntryAfterInvocationProvider implements AfterInvocationProvider,
      * decidePermissions filters all the results that are not allowed to be returned because permission issues.
      * If supportedDefinitions is not null, they are used to determined the permissions. Otherwise, permissionsService is used.
      *
-     * @param returnedObject
+     * @param resultSet
      * @param supportedDefinitions
      * @return
      */
-    private ResultSet decidePermissions(ResultSet returnedObject, List<ConfigAttributeDefintion> supportedDefinitions)
+    ResultSet decidePermissions(ResultSet resultSet, List<ConfigAttributeDefintion> supportedDefinitions)
     {
-        if (returnedObject == null)
+        if (resultSet == null)
         {
             return null;
         }
 
+        killPermissionServiceCache(resultSet.getResultSetMetaData().getSearchParameters());
+        
         int maxChecks = maxPermissionChecks;
-        if (returnedObject.getResultSetMetaData().getSearchParameters().getMaxPermissionChecks() >= 0)
+        if (resultSet.getResultSetMetaData().getSearchParameters().getMaxPermissionChecks() >= 0)
         {
-            maxChecks = returnedObject.getResultSetMetaData().getSearchParameters().getMaxPermissionChecks();
+            maxChecks = resultSet.getResultSetMetaData().getSearchParameters().getMaxPermissionChecks();
         }
 
         long maxCheckTime = maxPermissionCheckTimeMillis;
-        if (returnedObject.getResultSetMetaData().getSearchParameters().getMaxPermissionCheckTimeMillis() >= 0)
+        if (resultSet.getResultSetMetaData().getSearchParameters().getMaxPermissionCheckTimeMillis() >= 0)
         {
-            maxCheckTime = returnedObject.getResultSetMetaData().getSearchParameters().getMaxPermissionCheckTimeMillis();
+            maxCheckTime = resultSet.getResultSetMetaData().getSearchParameters().getMaxPermissionCheckTimeMillis();
         }
 
-        FilteringResultSet filteringResultSet = new FilteringResultSet(returnedObject);
+        FilteringResultSet filteringResultSet = new FilteringResultSet(resultSet);
 
         // record the start time
         long startTimeMillis = System.currentTimeMillis();
-        filteringResultSet.setResultSetMetaData(new SimpleResultSetMetaData(LimitBy.UNLIMITED, PermissionEvaluationMode.EAGER, returnedObject.getResultSetMetaData()
+        filteringResultSet.setResultSetMetaData(new SimpleResultSetMetaData(LimitBy.UNLIMITED, PermissionEvaluationMode.EAGER, resultSet.getResultSetMetaData()
                 .getSearchParameters()));
 
         // use the result set to do bulk loading
-        boolean oldBulkFetch = returnedObject.setBulkFetch(true);
-        int oldFetchSize = returnedObject.setBulkFetchSize(optimisePermissionsBulkFetchSize);
+        boolean oldBulkFetch = resultSet.setBulkFetch(true);
+        int oldFetchSize = resultSet.setBulkFetchSize(optimisePermissionsBulkFetchSize);
 
-        if (returnedObject.length() > 0)
+        if (resultSet.length() > 0)
         {
             //force prefetch before starting record time
-            boolean builkFetch = returnedObject.getBulkFetch();
-            returnedObject.setBulkFetch(false);
-            returnedObject.getNodeRef(returnedObject.length() - 1);
-            returnedObject.setBulkFetch(builkFetch);
+            boolean builkFetch = resultSet.getBulkFetch();
+            resultSet.setBulkFetch(false);
+            resultSet.getNodeRef(resultSet.length() - 1);
+            resultSet.setBulkFetch(builkFetch);
         }
 
+        int includedCount = 0;
+        int discardedNodes = 0;
+        int numberOfRequiredItems = computeNumberOfRequiredItems(resultSet);
         try
         {
-            // Iterate over all the elements checking permissions on as many elements as the number of MaxItems
-            for (int i = 0, excludedObjsCount = 0; i < returnedObject.length(); i++)
+            // Iterate over all the elements checking permissions on as many
+            // elements as the number of MaxItems
+            for (int index = 0; index < resultSet.length() && includedCount < numberOfRequiredItems; index++)
             {
-                if ((i - excludedObjsCount) < getMaxSize(returnedObject.getResultSetMetaData().getSearchParameters()) + 1) 
+                long currentTimeMillis = System.currentTimeMillis();
+
+                if (index >= maxChecks)
                 {
-                    long currentTimeMillis = System.currentTimeMillis();
-    
-                    NodeRef nodeRef = returnedObject.getNodeRef(i);
-    
-                    // All permission checks must pass
-                    filteringResultSet.setIncluded(i, true);
-    
-                    if (i >= maxChecks)
-                    {
-                        log.warn("maxChecks exceeded (" + maxChecks + ")", new Exception("Back Trace"));
-                        filteringResultSet.setResultSetMetaData(new SimpleResultSetMetaData(LimitBy.NUMBER_OF_PERMISSION_EVALUATIONS, PermissionEvaluationMode.EAGER, returnedObject
-                                .getResultSetMetaData().getSearchParameters()));
-                        break;
-                    }
-                    else if ((currentTimeMillis - startTimeMillis) > maxCheckTime)
-                    {
-                        log.warn("maxCheckTime exceeded (" + (currentTimeMillis - startTimeMillis) + " milliseconds)", new Exception("Back Trace"));
-                        filteringResultSet.setResultSetMetaData(new SimpleResultSetMetaData(LimitBy.NUMBER_OF_PERMISSION_EVALUATIONS, PermissionEvaluationMode.EAGER, returnedObject
-                                .getResultSetMetaData().getSearchParameters()));
-                        break;
-                    }
-    
-                    // if supportedDefinitions is different from null, it is used to define the permission filter in results set.
-                    if (supportedDefinitions != null)
-                    {
-                        for (ConfigAttributeDefintion cad : supportedDefinitions)
-                        {
-                            NodeRef testNodeRef = null;
-                            if (cad.typeString.equals(AFTER_ACL_NODE))
-                            {
-                                testNodeRef = returnedObject.getNodeRef(i);
-                            }
-                            else if (cad.typeString.equals(AFTER_ACL_PARENT))
-                            {
-                                testNodeRef = returnedObject.getChildAssocRef(i).getParentRef();
-                            }
-    
-                            if(isUnfiltered(testNodeRef))
-                            {
-                                continue;
-                            }
-    
-                            if (filteringResultSet.getIncluded(i) && (testNodeRef != null)
-                                    && (permissionService.hasPermission(
-                                            testNodeRef, cad.required.toString()) == AccessStatus.DENIED))
-                            {
-                                filteringResultSet.setIncluded(i, false);
-                                excludedObjsCount++;
-                            }
-                        }
-                    }
-                    else  if (permissionService.hasReadPermission(nodeRef) == AccessStatus.DENIED)
-                        // If supportedDefinitions is not passed as parameter, permissionService is used to check permission on results.
-                    {
-                        filteringResultSet.setIncluded(i, false);
-                        excludedObjsCount++;
-                    }
+                    log.warn("maxChecks exceeded (" + maxChecks + ")", new Exception("Back Trace"));
+                    filteringResultSet.setResultSetMetaData(new SimpleResultSetMetaData(LimitBy.NUMBER_OF_PERMISSION_EVALUATIONS,
+                            PermissionEvaluationMode.EAGER, resultSet.getResultSetMetaData().getSearchParameters()));
+                    break;
+                }
+                else if ((currentTimeMillis - startTimeMillis) > maxCheckTime)
+                {
+                    log.warn("maxCheckTime exceeded (" + (currentTimeMillis - startTimeMillis) + " milliseconds)", new Exception("Back Trace"));
+                    filteringResultSet.setResultSetMetaData(new SimpleResultSetMetaData(LimitBy.NUMBER_OF_PERMISSION_EVALUATIONS,
+                            PermissionEvaluationMode.EAGER, resultSet.getResultSetMetaData().getSearchParameters()));
+                    break;
+                }
+
+                boolean isIncluded = computeIncluded(resultSet, index, supportedDefinitions);
+                filteringResultSet.setIncluded(index, isIncluded);
+                if (isIncluded)
+                {
+                    includedCount++;
                 }
                 else
                 {
-                    break;
+                    discardedNodes++;
                 }
             }
         }
         finally
         {
             // put them back to how they were
-            returnedObject.setBulkFetch(oldBulkFetch);
-            returnedObject.setBulkFetchSize(oldFetchSize);
+            resultSet.setBulkFetch(oldBulkFetch);
+            resultSet.setBulkFetchSize(oldFetchSize);
+            
+            if (log.isInfoEnabled()) 
+            {
+                long elapsedTime = System.currentTimeMillis() - startTimeMillis;
+                log.info("Processed=" + (includedCount + discardedNodes) +", discarded=" + discardedNodes + ", required=" + numberOfRequiredItems +", elapsed=" + elapsedTime + "ms");
+            }
         }
 
         return filteringResultSet;
     }
 
+    private void killPermissionServiceCache(SearchParameters searchParameters)
+    {
+        if (!searchParameters.getLocales().isEmpty())
+        {
+            if (searchParameters.getLocales().get(0).getLanguage().startsWith("x"))
+            {
+                try
+                {
+                    PermissionServiceImpl impl = (PermissionServiceImpl) this.permissionService ;
+                    boolean current = impl.getAnyDenyDenies();
+                    impl.setAnyDenyDenies(current);
+                    log.debug("Permission service cache cleared");
+                }
+                catch (Exception ex) {
+                    log.warn("Unable to clean permisssion service caches");
+                }
+            }
+        }
+    }
+
+    private int computeNumberOfRequiredItems(ResultSet resultSet)
+    {
+        int numberOfRequiredItems = computeNumberOfReuiredItems(resultSet.getResultSetMetaData().getSearchParameters()) + 1;
+        if (!resultSet.getResultSetMetaData().getSearchParameters().getLocales().isEmpty())
+        {
+            if (resultSet.getResultSetMetaData().getSearchParameters().getLocales().get(0).getLanguage().equals("xsl"))
+            {
+                numberOfRequiredItems = Integer.MAX_VALUE;
+            }
+        }
+        return numberOfRequiredItems;
+    }
+
+    private boolean computeIncluded(ResultSet resultSet, int index, List<ConfigAttributeDefintion> supportedDefinitions)
+    {
+        boolean included = true;
+        NodeRef nodeRef = resultSet.getNodeRef(index);
+        // if supportedDefinitions is different from null, it is used to define
+        // the permission filter in results set.
+        if (supportedDefinitions != null)
+        {
+            for (ConfigAttributeDefintion cad : supportedDefinitions)
+            {
+                NodeRef testNodeRef = null;
+                if (cad.typeString.equals(AFTER_ACL_NODE))
+                {
+                    testNodeRef = resultSet.getNodeRef(index);
+                }
+                else if (cad.typeString.equals(AFTER_ACL_PARENT))
+                {
+                    testNodeRef = resultSet.getChildAssocRef(index).getParentRef();
+                }
+
+                if (isUnfiltered(testNodeRef))
+                {
+                    continue;
+                }
+
+                if ((testNodeRef != null) && (permissionService
+                        .hasPermission(testNodeRef, cad.required.toString()) == AccessStatus.DENIED))
+                {
+                    included = false;
+                    break;
+                }
+            }
+        }
+        else if (permissionService.hasReadPermission(nodeRef) == AccessStatus.DENIED)
+        // If supportedDefinitions is not passed as parameter, permissionService
+        // is used to check permission on results.
+        {
+            included = false;
+        }
+        return included;
+    }
+
+    //TODO fix method name
     /**
      * Get the max size from the search parameters.
      * The max size is the maximum number of elements to be returned, It is computed considering various
@@ -690,9 +742,9 @@ public class ACLEntryAfterInvocationProvider implements AfterInvocationProvider,
      * @param searchParameters
      * @return
      */
-    private Integer getMaxSize(SearchParameters searchParameters)
+    private Integer computeNumberOfReuiredItems(SearchParameters searchParameters)
     {
-        Integer maxSize = null;
+        Integer maxSize = Integer.MAX_VALUE;
         if (searchParameters.getMaxItems() >= 0)
         {
             maxSize = searchParameters.getMaxItems() + searchParameters.getSkipCount();

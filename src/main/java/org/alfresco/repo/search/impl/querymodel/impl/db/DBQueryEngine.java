@@ -54,13 +54,18 @@ import org.alfresco.service.cmr.search.ResultSet;
 import org.alfresco.service.namespace.NamespaceService;
 import org.alfresco.service.namespace.QName;
 import org.alfresco.util.Pair;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.mybatis.spring.SqlSessionTemplate;
+import org.springframework.util.StopWatch;
 
 /**
  * @author Andy
  */
 public class DBQueryEngine implements QueryEngine
 {
+    protected static final Log logger = LogFactory.getLog(DBQueryEngine.class);
+    
     private static final String SELECT_BY_DYNAMIC_QUERY = "alfresco.metadata.query.select_byDynamicQuery";
     
     private SqlSessionTemplate template;
@@ -205,6 +210,9 @@ public class DBQueryEngine implements QueryEngine
         dbQuery.setSinceTxId(sinceTxId);
         
         dbQuery.prepare(namespaceService, dictionaryService, qnameDAO, nodeDAO, tenantService, selectorGroup, null, functionContext, metadataIndexCheck2.getPatchApplied());
+        
+//        StopWatch stopWatch = new StopWatch("db query");
+//        stopWatch.start();
         List<Node> nodes = template.selectList(SELECT_BY_DYNAMIC_QUERY, dbQuery);
         LinkedHashSet<Long> set = new LinkedHashSet<Long>(nodes.size());
         for(Node node : nodes)
@@ -216,7 +224,31 @@ public class DBQueryEngine implements QueryEngine
         ResultSet paged = new PagingLuceneResultSet(rs, options.getAsSearchParmeters(), nodeService);
         
         answer.put(key, paged);
+//        stopWatch.stop();
+        
+//        if (isAccessPermissionCheckedOnAllNodes(options))
+//        {
+//            logger.debug("Selected query results in (access permission checked on all nodes) " + stopWatch.getLastTaskTimeMillis() + "ms");
+//        }
+//        else
+//        {
+//            logger.debug("Selected query results in (access permission checked on required nodes) " + stopWatch.getLastTaskTimeMillis() + "ms");
+//        }
+        logger.debug("Printing results");
         return new QueryEngineResults(answer);
+    }
+
+    private boolean isAccessPermissionCheckedOnAllNodes(QueryOptions options)
+    {
+        if (!options.getLocales().isEmpty())
+        {
+           if (options.getLocales().get(0).getLanguage().equals("xsl"))
+           {
+               return true;
+           }
+        }
+        
+        return false;
     }
 
     /*
