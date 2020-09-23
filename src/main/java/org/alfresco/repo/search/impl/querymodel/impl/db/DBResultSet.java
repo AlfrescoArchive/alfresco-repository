@@ -51,65 +51,59 @@ import org.alfresco.util.Pair;
 public class DBResultSet extends AbstractResultSet
 {
     private List<Long> dbids;
-
+    
     private NodeRef[] nodeRefs;
-
+    
     private NodeDAO nodeDao;
-
+    
     private NodeService nodeService;
-
+    
     private TenantService tenantService;
-
+    
     private SimpleResultSetMetaData resultSetMetaData;
-
+    
     private BitSet prefetch;
-
+    
     private int numberFound;
-
-    public DBResultSet(SearchParameters searchParameters, List<Long> dbids, NodeDAO nodeDao, NodeService nodeService,
-            TenantService tenantService, int maximumResultsFromUnlimitedQuery)
+    
+    public DBResultSet(SearchParameters searchParameters, List<Long> dbids, NodeDAO nodeDao,  NodeService nodeService, TenantService tenantService, int maximumResultsFromUnlimitedQuery)
     {
         this.nodeDao = nodeDao;
         this.dbids = dbids;
         this.nodeService = nodeService;
         this.tenantService = tenantService;
         this.prefetch = new BitSet(dbids.size());
-        nodeRefs = new NodeRef[(dbids.size())];
+        nodeRefs= new NodeRef[(dbids.size())];
         this.numberFound = dbids.size();
-
+        
         final LimitBy limitBy;
         int maxResults = -1;
         if (searchParameters.getMaxItems() >= 0)
         {
             maxResults = searchParameters.getMaxItems();
             limitBy = LimitBy.FINAL_SIZE;
-        } 
+        }
+        else if(searchParameters.getLimitBy() == LimitBy.FINAL_SIZE && searchParameters.getLimit() >= 0)
+        {
+            maxResults = searchParameters.getLimit();
+            limitBy = LimitBy.FINAL_SIZE;
+        }
         else
         {
-            if (searchParameters.getLimitBy() == LimitBy.FINAL_SIZE && searchParameters.getLimit() >= 0)
+            maxResults = searchParameters.getMaxPermissionChecks();
+            if (maxResults < 0)
             {
-                maxResults = searchParameters.getLimit();
-                limitBy = LimitBy.FINAL_SIZE;
-            } 
-            else
-            {
-                maxResults = searchParameters.getMaxPermissionChecks();
-                if (maxResults < 0)
-                {
-                    maxResults = maximumResultsFromUnlimitedQuery;
-                }
-                limitBy = LimitBy.NUMBER_OF_PERMISSION_EVALUATIONS;
+                maxResults = maximumResultsFromUnlimitedQuery;
             }
+            limitBy = LimitBy.NUMBER_OF_PERMISSION_EVALUATIONS;
         }
-
+        
         this.resultSetMetaData = new SimpleResultSetMetaData(
                 maxResults > 0 && dbids.size() < maxResults ? LimitBy.UNLIMITED : limitBy,
                 PermissionEvaluationMode.EAGER, searchParameters);
     }
 
-    /*
-     * (non-Javadoc)
-     * 
+    /* (non-Javadoc)
      * @see org.alfresco.service.cmr.search.ResultSetSPI#length()
      */
     @Override
@@ -118,9 +112,7 @@ public class DBResultSet extends AbstractResultSet
         return dbids.size();
     }
 
-    /*
-     * (non-Javadoc)
-     * 
+    /* (non-Javadoc)
      * @see org.alfresco.service.cmr.search.ResultSetSPI#getNumberFound()
      */
     @Override
@@ -129,9 +121,7 @@ public class DBResultSet extends AbstractResultSet
         return numberFound;
     }
 
-    /*
-     * (non-Javadoc)
-     * 
+    /* (non-Javadoc)
      * @see org.alfresco.service.cmr.search.ResultSetSPI#getNodeRef(int)
      */
     @Override
@@ -141,9 +131,7 @@ public class DBResultSet extends AbstractResultSet
         return nodeRefs[n];
     }
 
-    /*
-     * (non-Javadoc)
-     * 
+    /* (non-Javadoc)
      * @see org.alfresco.service.cmr.search.ResultSetSPI#getRow(int)
      */
     @Override
@@ -152,27 +140,24 @@ public class DBResultSet extends AbstractResultSet
         return new DBResultSetRow(this, i);
     }
 
-    /*
-     * (non-Javadoc)
-     * 
+    /* (non-Javadoc)
      * @see org.alfresco.service.cmr.search.ResultSetSPI#getChildAssocRef(int)
      */
     @Override
     public ChildAssociationRef getChildAssocRef(int n)
     {
         ChildAssociationRef primaryParentAssoc = nodeService.getPrimaryParent(getNodeRef(n));
-        if (primaryParentAssoc != null)
+        if(primaryParentAssoc != null)
         {
             return primaryParentAssoc;
-        } else
+        }
+        else
         {
             return null;
         }
     }
 
-    /*
-     * (non-Javadoc)
-     * 
+    /* (non-Javadoc)
      * @see org.alfresco.service.cmr.search.ResultSetSPI#getResultSetMetaData()
      */
     @Override
@@ -181,9 +166,7 @@ public class DBResultSet extends AbstractResultSet
         return resultSetMetaData;
     }
 
-    /*
-     * (non-Javadoc)
-     * 
+    /* (non-Javadoc)
      * @see org.alfresco.service.cmr.search.ResultSetSPI#getStart()
      */
     @Override
@@ -192,20 +175,16 @@ public class DBResultSet extends AbstractResultSet
         return 0;
     }
 
-    /*
-     * (non-Javadoc)
-     * 
+    /* (non-Javadoc)
      * @see org.alfresco.service.cmr.search.ResultSetSPI#hasMore()
      */
     @Override
     public boolean hasMore()
     {
-        return false;
+        return false; 
     }
 
-    /*
-     * (non-Javadoc)
-     * 
+    /* (non-Javadoc)
      * @see java.lang.Iterable#iterator()
      */
     @Override
@@ -213,15 +192,15 @@ public class DBResultSet extends AbstractResultSet
     {
         return new DBResultSetRowIterator(this);
     }
-
+    
     public void setNumberFound(int newNumberFound)
     {
         this.numberFound = newNumberFound;
     }
-
+    
     private void prefetch(int n)
     {
-
+       
         if (prefetch.get(n))
         {
             // The document was already processed
@@ -236,7 +215,7 @@ public class DBResultSet extends AbstractResultSet
             nodeRefs[n] = nodeRef == null ? null : tenantService.getBaseName(nodeRef);
             return;
         }
-
+        
         List<Long> fetchList = new ArrayList<Long>(bulkFetchSize);
         BitSet done = new BitSet(bulkFetchSize);
         int totalHits = dbids.size();
@@ -255,7 +234,7 @@ public class DBResultSet extends AbstractResultSet
             }
             // We store the node and mark it as prefetched
             prefetch.set(next);
-
+            
             fetchList.add(dbids.get(next));
             done.set(next);
         }
@@ -263,14 +242,14 @@ public class DBResultSet extends AbstractResultSet
         if (fetchList.size() > 1)
         {
             nodeDao.cacheNodesById(fetchList);
-            for (int i = done.nextSetBit(0); i >= 0; i = done.nextSetBit(i + 1))
+            for (int i = done.nextSetBit(0); i >= 0; i = done.nextSetBit(i+1)) 
             {
                 NodeRef nodeRef = nodeDao.getNodePair(fetchList.get(i)).getSecond();
-                nodeRefs[n + 1] = nodeRef == null ? null : tenantService.getBaseName(nodeRef);
+                nodeRefs[n+1] = nodeRef == null ? null : tenantService.getBaseName(nodeRef);
             }
         }
     }
-
+    
     public NodeService getNodeService()
     {
         return nodeService;
