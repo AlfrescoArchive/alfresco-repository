@@ -36,7 +36,7 @@
 
         <maven.build.sourceVersion>11</maven.build.sourceVersion>
 
-        <dependency.alfresco-data-model.version>search-2434-1</dependency.alfresco-data-model.version>
+        <dependency.alfresco-data-model.version>search-2434-2</dependency.alfresco-data-model.version>
         <dependency.alfresco-core.version>8.49</dependency.alfresco-core.version>
 
         <dependency.alfresco-greenmail.version>6.2</dependency.alfresco-greenmail.version>
