@@ -74,7 +74,6 @@ import org.alfresco.opencmis.search.CMISQueryOptions.CMISQueryMode;
 import org.alfresco.repo.dictionary.M2Model;
 import org.alfresco.repo.node.BaseNodeServiceTest;
 import org.alfresco.repo.search.MLAnalysisMode;
-import org.alfresco.repo.search.impl.lucene.analysis.DateTimeAnalyser;
 import org.alfresco.repo.search.impl.parsers.CMISLexer;
 import org.alfresco.repo.search.impl.parsers.CMISParser;
 import org.alfresco.repo.search.impl.parsers.FTSQueryException;
@@ -259,7 +258,6 @@ public class OpenCmisQueryTest extends BaseCMISTest
 
         DataTypeDefinition dataType = dictionaryService.getDataType(DataTypeDefinition.DATETIME);
         String analyserClassName = dataType.resolveAnalyserClassName();
-        usesDateTimeAnalyser = analyserClassName.equals(DateTimeAnalyser.class.getCanonicalName());
 
         base = nodeService.createNode(rootNodeRef, ContentModel.ASSOC_CHILDREN, QName.createQName("cm", "Base Folder", namespaceService), ContentModel.TYPE_FOLDER).getChildRef();
         nodeService.setProperty(base, ContentModel.PROP_NAME, "Base Folder");
