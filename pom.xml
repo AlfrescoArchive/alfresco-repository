@@ -54,7 +54,7 @@
         <dependency.ooxml-schemas.version>1.4</dependency.ooxml-schemas.version>
         <dependency.webscripts.version>8.8</dependency.webscripts.version>
         <dependency.opencmis.version>1.1.0</dependency.opencmis.version>
-        <dependency.activiti-engine.version>5.23.0</dependency.activiti-engine.version>
+        <dependency.activiti-engine.version>7.1.272</dependency.activiti-engine.version>
         <dependency.activiti.version>5.23.0</dependency.activiti.version>
         <dependency.postgresql.version>42.2.16</dependency.postgresql.version>
         <dependency.mysql.version>8.0.21</dependency.mysql.version>
