@@ -181,7 +181,7 @@ CREATE TABLE alf_transaction
     PRIMARY KEY (id),
     KEY idx_alf_txn_ctms (commit_time_ms, id),
     KEY idx_alf_txn_ctms_sc (commit_time_ms),
-    KEY idx_alf_txn_id_ctms (id, commit_time_ms)
+    KEY idx_alf_txn_id_ctms (id, commit_time_ms),
     KEY fk_alf_txn_svr (server_id),
     CONSTRAINT fk_alf_txn_svr FOREIGN KEY (server_id) REFERENCES alf_server (id)
 ) ENGINE=InnoDB;
