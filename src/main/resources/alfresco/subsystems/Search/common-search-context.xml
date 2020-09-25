@@ -117,6 +117,9 @@
         <property name="metadataIndexCheck2">
             <ref bean="metadataQueryIndexesCheck2" />
         </property>
+        <property name="maxPermissionChecks">
+        	<value>${system.acl.maxPermissionChecks}</value>
+        </property>
     </bean>
    
    <bean id="search.dbQueryEngine" class="org.springframework.aop.framework.ProxyFactoryBean">

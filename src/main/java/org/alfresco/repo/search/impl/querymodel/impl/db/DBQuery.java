@@ -78,6 +78,8 @@ public class DBQuery extends BaseQuery implements DBQueryBuilderComponent
     
     private int skipCount;
     
+    private int queryLimit;
+    
     /**
      * @param source Source
      * @param constraint Constraint
@@ -880,15 +882,15 @@ public class DBQuery extends BaseQuery implements DBQueryBuilderComponent
     {
         return maxItems;
     }
-    
-    public int getSkipCount()
-    {
-        return skipCount;
-    }
 
     public void setMaxItems(int maxItems)
     {
         this.maxItems = maxItems;
+    }
+    
+    public int getSkipCount()
+    {
+        return skipCount;
     }
 
     public void setSkipCount(int skipCount)
@@ -898,7 +900,12 @@ public class DBQuery extends BaseQuery implements DBQueryBuilderComponent
     
     public int getQueryLimit() 
     {
-        return Math.max(1001, maxItems);
+        return Math.max(queryLimit, maxItems);
+    }
+
+    public void setQueryLimit(int queryLimit)
+    {
+        this.queryLimit = queryLimit;
     }
     
 }

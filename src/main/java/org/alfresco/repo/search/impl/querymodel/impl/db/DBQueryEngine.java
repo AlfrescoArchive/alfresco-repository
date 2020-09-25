@@ -79,6 +79,18 @@ public class DBQueryEngine implements QueryEngine
     private TenantService tenantService;
     
     private OptionalPatchApplicationCheckBootstrapBean metadataIndexCheck2;
+    
+    private int maxPermissionChecks;
+    
+    public void setMaxPermissionChecks(int maxPermissionChecks)
+    {
+        this.maxPermissionChecks = maxPermissionChecks;
+    }
+
+    public int getMaxPermissionChecks()
+    {
+        return maxPermissionChecks;
+    }
 
     public void setMetadataIndexCheck2(OptionalPatchApplicationCheckBootstrapBean metadataIndexCheck2)
     {
@@ -208,6 +220,7 @@ public class DBQueryEngine implements QueryEngine
         dbQuery.prepare(namespaceService, dictionaryService, qnameDAO, nodeDAO, tenantService, selectorGroup, null, functionContext, metadataIndexCheck2.getPatchApplied());
         dbQuery.setMaxItems(options.getMaxItems() + 1);
         dbQuery.setSkipCount(options.getSkipCount());
+        dbQuery.setQueryLimit(maxPermissionChecks);
         List<Node> nodes = template.selectList(SELECT_BY_DYNAMIC_QUERY, dbQuery);
         LinkedHashSet<Long> set = new LinkedHashSet<Long>(nodes.size());
         for(Node node : nodes)
