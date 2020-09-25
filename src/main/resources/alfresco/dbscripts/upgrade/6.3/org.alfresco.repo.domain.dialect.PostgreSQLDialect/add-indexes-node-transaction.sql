@@ -28,5 +28,5 @@ INSERT INTO alf_applied_patch
   VALUES
   (
     'patch.db-V6.3-add-indexes-node-transaction', 'Create aditional indexes on alf_node and alf_transaction',
-    0, 14001, -1, 14002, null, 'UNKNOWN', ${TRUE}, ${TRUE}, 'Script completed'
+    0, 13005, -1, 13006, null, 'UNKNOWN', ${TRUE}, ${TRUE}, 'Script completed'
   );
