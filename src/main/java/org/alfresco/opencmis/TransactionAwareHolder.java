@@ -81,7 +81,6 @@ public class TransactionAwareHolder<T> extends Holder<T>
     {
         this.internalHolder = internalHolder;
         this.value = internalHolder.getValue();
-        txListener = new TxAwareHolderListener();
     }
 
     @Override
