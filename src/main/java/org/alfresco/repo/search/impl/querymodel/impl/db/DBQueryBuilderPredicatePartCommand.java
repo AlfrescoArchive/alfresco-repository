@@ -202,14 +202,14 @@ public class DBQueryBuilderPredicatePartCommand
         }
     }
 
-	public void setPropertyQName(QName propertyQName) 
-	{
-		this.propertyQName = propertyQName;
-	}
-	
-	public QName getPropertyQName() 
-	{
-		return this.propertyQName;
-	}
+    public void setPropertyQName(QName propertyQName)
+    {
+        this.propertyQName = propertyQName;
+    }
+
+    public QName getPropertyQName()
+    {
+        return this.propertyQName;
+    }
     
 }

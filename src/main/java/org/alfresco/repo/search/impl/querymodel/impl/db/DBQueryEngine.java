@@ -245,9 +245,7 @@ public class DBQueryEngine implements QueryEngine
 
     protected List<Node> selectNodes(QueryOptions options, DBQuery dbQuery)
     {
-        List<Node> nodes = new ArrayList<Node>();
-        nodes = template.selectList(SELECT_BY_DYNAMIC_QUERY, dbQuery);
-        return nodes;
+        return template.selectList(SELECT_BY_DYNAMIC_QUERY, dbQuery);
     }
 
     /*
