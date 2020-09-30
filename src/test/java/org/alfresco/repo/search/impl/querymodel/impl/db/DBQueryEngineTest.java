@@ -128,7 +128,7 @@ public class DBQueryEngineTest
 
     private StoreRef createStoreRef()
     {
-        StoreRef storeRef = spy(new StoreRef("workspace://Test"));
+        StoreRef storeRef = new StoreRef("workspace://Test");
         when(nodeDAO.getStore(any(StoreRef.class))).thenReturn(new Pair<Long, StoreRef>(0L, storeRef));
         return storeRef;
     }
