@@ -1439,7 +1439,9 @@ public class PermissionServiceImpl extends AbstractLifecycleBean implements Perm
         return denied;
     }
 
-    protected AccessStatus canRead(Long aclId)
+    // HAPPY PATH
+    // NEED ACLID AND OWNER
+    public AccessStatus canRead(Long aclId)
     {
         Set<String> authorities = getAuthorisations();
 
