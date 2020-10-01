@@ -26,6 +26,7 @@
 package org.alfresco.repo.search.impl.querymodel.impl.db;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -69,6 +70,8 @@ import org.alfresco.util.EqualsHelper;
 import org.alfresco.util.Pair;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.ibatis.session.ResultContext;
+import org.apache.ibatis.session.ResultHandler;
 import org.mybatis.spring.SqlSessionTemplate;
 
 /**
@@ -79,6 +82,8 @@ public class DBQueryEngine implements QueryEngine
     protected static final Log logger = LogFactory.getLog(DBQueryEngine.class);
     
     private static final String SELECT_BY_DYNAMIC_QUERY = "alfresco.metadata.query.select_byDynamicQuery";
+    
+    private static final String STANDARD_NODE_SELECTION_ID = "xsl";
     
     private SqlSessionTemplate template;
 
@@ -191,6 +196,8 @@ public class DBQueryEngine implements QueryEngine
     @Override
     public QueryEngineResults executeQuery(Query query, QueryOptions options, FunctionEvaluationContext functionContext)
     {
+        nodesCache.clear();
+        
         Set<String> selectorGroup = null;
         if (query.getSource() != null)
         {
@@ -247,18 +254,59 @@ public class DBQueryEngine implements QueryEngine
         
         dbQuery.prepare(namespaceService, dictionaryService, qnameDAO, nodeDAO, tenantService, selectorGroup, null, functionContext, metadataIndexCheck2.getPatchApplied());
         
-        List<Node> nodes = template.selectList(SELECT_BY_DYNAMIC_QUERY, dbQuery);
-                
-        DBResultSet rs =  new DBResultSet(options.getAsSearchParmeters(), nodes, nodeDAO, nodeService, tenantService, Integer.MAX_VALUE);
-        
-        FilteringResultSet frs = decidePermissions(rs);
-
-//        FilteringResultSet frs = new FilteringResultSet(rs, BitSet.valueOf(new long[] {0xffffffffl}));
-//        frs.setResultSetMetaData(new SimpleResultSetMetaData(LimitBy.UNLIMITED, PermissionEvaluationMode.EAGER, rs.getResultSetMetaData().getSearchParameters()));
- 
-        ResultSet paged = new PagingLuceneResultSet(frs, options.getAsSearchParmeters(), nodeService);
+        ResultSet paged;
+        if(options.getLocales().size() == 1 && options.getLocales().get(0).getLanguage().equals(STANDARD_NODE_SELECTION_ID))
+        {
+            paged = standardNodeSelection(options, dbQuery);
+        }
+        else
+        {
+            paged = denormalisedNodeSelection(options, dbQuery);
+        }
 
         return asQueryEngineResults(paged);
+    }
+
+    private PagingLuceneResultSet standardNodeSelection(QueryOptions options, DBQuery dbQuery)
+    {
+        List<Node> nodes = template.selectList(SELECT_BY_DYNAMIC_QUERY, dbQuery);
+        DBResultSet rs =  new DBResultSet(options.getAsSearchParmeters(), nodes, nodeDAO, nodeService, tenantService, Integer.MAX_VALUE);
+        PagingLuceneResultSet paged = new PagingLuceneResultSet(rs, options.getAsSearchParmeters(), nodeService);
+        return paged;
+    }
+
+    private ResultSet denormalisedNodeSelection(QueryOptions options, DBQuery dbQuery)
+    {
+        List<Node> nodes = new ArrayList<>();
+        template.select(SELECT_BY_DYNAMIC_QUERY, dbQuery, new ResultHandler<Node>()
+        {
+            @Override
+            public void handleResult(ResultContext<? extends Node> context)
+            {
+                Node node = context.getResultObject();
+                if(isIncluded(node))
+                {
+                    nodes.add(node);
+                }
+            }
+        });
+        
+        DBResultSet rs =  new DBResultSet(options.getAsSearchParmeters(), nodes, nodeDAO, nodeService, tenantService, Integer.MAX_VALUE);
+        FilteringResultSet frs = new FilteringResultSet(rs, formInclusionMask(nodes));
+        frs.setResultSetMetaData(new SimpleResultSetMetaData(LimitBy.UNLIMITED, PermissionEvaluationMode.EAGER, rs.getResultSetMetaData().getSearchParameters()));
+ 
+        ResultSet paged = new PagingLuceneResultSet(frs, options.getAsSearchParmeters(), nodeService);
+        return paged;
+    }
+
+    private BitSet formInclusionMask(List<Node> nodes)
+    {
+        BitSet inclusionMask = new BitSet(nodes.size());
+        for(int i=0; i < nodes.size(); i++)
+        {
+            inclusionMask.set(i, true);
+        }
+        return inclusionMask;
     }
 
     private QueryEngineResults asQueryEngineResults(ResultSet paged)
@@ -425,8 +473,7 @@ public class DBQueryEngine implements QueryEngine
 
     private boolean isIncluded(Node node)
     { 
-        return  canRead(node.getAclId()) ||
-                adminRead() ||
+        return  adminRead() || canRead(node.getAclId()) ||
                 ownerRead(node.getNodeRef());
     }
     
