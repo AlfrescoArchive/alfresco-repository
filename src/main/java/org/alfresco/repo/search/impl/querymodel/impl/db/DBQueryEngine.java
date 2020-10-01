@@ -258,10 +258,12 @@ public class DBQueryEngine implements QueryEngine
         if(options.getLocales().size() == 1 && options.getLocales().get(0).getLanguage().equals(STANDARD_NODE_SELECTION_ID))
         {
             paged = standardNodeSelection(options, dbQuery);
+            logger.info("Selected " +paged.length()+ " nodes through standard query");
         }
         else
         {
             paged = denormalisedNodeSelection(options, dbQuery);
+            logger.info("Selected " +paged.length()+ " nodes through accelerated query");
         }
 
         return asQueryEngineResults(paged);
