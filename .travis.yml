@@ -102,4 +102,4 @@ jobs:
         # Add email to link commits to user
         - git config user.email "${GIT_EMAIL}"
         # Skip building of release commits
-        - mvn --batch-mode -q -DscmCommentPrefix="[maven-release-plugin][skip ci] " -Dusername="${GIT_USERNAME}" -Dpassword="${GIT_PASSWORD}" -DskipTests -Darguments=-DskipTests -DreleaseVersion=mnt-21871-6.0.n-1 -DdevelopmentVersion=6.56.74-SNAPSHOT release:clean release:prepare release:perform
+        - mvn --batch-mode -q -DscmCommentPrefix="[maven-release-plugin][skip ci] " -Dusername="${GIT_USERNAME}" -Dpassword="${GIT_PASSWORD}" -DskipTests -Darguments=-DskipTests -DreleaseVersion=mnt-21871-6.0.n-2 -DdevelopmentVersion=6.56.74-SNAPSHOT release:clean release:prepare release:perform
