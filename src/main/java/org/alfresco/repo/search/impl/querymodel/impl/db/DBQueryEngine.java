@@ -25,7 +25,6 @@
  */
 package org.alfresco.repo.search.impl.querymodel.impl.db;
 
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.HashMap;
@@ -34,11 +33,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import javax.annotation.concurrent.NotThreadSafe;
+
 import org.alfresco.model.ContentModel;
 import org.alfresco.repo.admin.patch.OptionalPatchApplicationCheckBootstrapBean;
-import org.alfresco.repo.cache.SimpleCache;
-import org.alfresco.repo.cache.lookup.EntityLookupCache;
-import org.alfresco.repo.cache.lookup.EntityLookupCache.EntityLookupCallbackDAOAdaptor;
 import org.alfresco.repo.domain.node.Node;
 import org.alfresco.repo.domain.node.NodeDAO;
 import org.alfresco.repo.domain.qname.QNameDAO;
@@ -61,7 +59,6 @@ import org.alfresco.service.cmr.repository.StoreRef;
 import org.alfresco.service.cmr.search.LimitBy;
 import org.alfresco.service.cmr.search.PermissionEvaluationMode;
 import org.alfresco.service.cmr.search.ResultSet;
-import org.alfresco.service.cmr.search.SearchParameters;
 import org.alfresco.service.cmr.security.OwnableService;
 import org.alfresco.service.cmr.security.PermissionService;
 import org.alfresco.service.namespace.NamespaceService;
@@ -77,6 +74,7 @@ import org.mybatis.spring.SqlSessionTemplate;
 /**
  * @author Andy
  */
+@NotThreadSafe
 public class DBQueryEngine implements QueryEngine
 {
     protected static final Log logger = LogFactory.getLog(DBQueryEngine.class);
@@ -101,13 +99,24 @@ public class DBQueryEngine implements QueryEngine
     
     private OptionalPatchApplicationCheckBootstrapBean metadataIndexCheck2;
     
-    private EntityLookupCache<Long, Node, NodeRef> nodesCache;
-
     private PermissionService permissionService;
 
     private OwnableService ownableService;
-
     
+    private int maxPermissionChecks;
+    
+    private long maxPermissionCheckTimeMillis;
+
+    public void setMaxPermissionChecks(int maxPermissionChecks)
+    {
+        this.maxPermissionChecks = maxPermissionChecks;
+    }
+    
+    public void setMaxPermissionCheckTimeMillis(long maxPermissionCheckTimeMillis)
+    {
+        this.maxPermissionCheckTimeMillis = maxPermissionCheckTimeMillis;
+    }
+
     public void setOwnableService(OwnableService ownableService)
     {
         this.ownableService = ownableService;
@@ -116,11 +125,6 @@ public class DBQueryEngine implements QueryEngine
     public void setTemplate(SqlSessionTemplate template)
     {
         this.template = template;
-    }
-
-    public void setNodesCache(EntityLookupCache<Long, Node, NodeRef> nodesCache)
-    {
-        this.nodesCache = nodesCache;
     }
 
     public void setPermissionService(PermissionService permissionService)
@@ -196,8 +200,6 @@ public class DBQueryEngine implements QueryEngine
     @Override
     public QueryEngineResults executeQuery(Query query, QueryOptions options, FunctionEvaluationContext functionContext)
     {
-        nodesCache.clear();
-        
         Set<String> selectorGroup = null;
         if (query.getSource() != null)
         {
@@ -254,42 +256,70 @@ public class DBQueryEngine implements QueryEngine
         
         dbQuery.prepare(namespaceService, dictionaryService, qnameDAO, nodeDAO, tenantService, selectorGroup, null, functionContext, metadataIndexCheck2.getPatchApplied());
         
-        ResultSet paged;
-        if(options.getLocales().size() == 1 && options.getLocales().get(0).getLanguage().equals(STANDARD_NODE_SELECTION_ID))
+        ResultSet resultSet;
+        if(useStandardQuery(options))
         {
-            paged = standardNodeSelection(options, dbQuery);
-            logger.info("Selected " +paged.length()+ " nodes through standard query");
+            resultSet = standardNodeSelection(options, dbQuery);
+            logger.info("Selected " +resultSet.length()+ " nodes through standard query");
         }
         else
         {
-            paged = denormalisedNodeSelection(options, dbQuery);
-            logger.info("Selected " +paged.length()+ " nodes through accelerated query");
+            resultSet = acceleratedNodeSelection(options, dbQuery);
+            logger.info("Selected " +resultSet.length()+ " nodes through accelerated query");
         }
 
-        return asQueryEngineResults(paged);
+        return asQueryEngineResults(new PagingLuceneResultSet(resultSet, options.getAsSearchParmeters(), nodeService));
     }
 
-    private PagingLuceneResultSet standardNodeSelection(QueryOptions options, DBQuery dbQuery)
+    private boolean useStandardQuery(QueryOptions options)
+    {
+        return options.getLocales().size() == 1 && options.getLocales().get(0).getLanguage().equals(STANDARD_NODE_SELECTION_ID);
+    }
+
+    private ResultSet standardNodeSelection(QueryOptions options, DBQuery dbQuery)
     {
         List<Node> nodes = template.selectList(SELECT_BY_DYNAMIC_QUERY, dbQuery);
-        DBResultSet rs =  new DBResultSet(options.getAsSearchParmeters(), nodes, nodeDAO, nodeService, tenantService, Integer.MAX_VALUE);
-        PagingLuceneResultSet paged = new PagingLuceneResultSet(rs, options.getAsSearchParmeters(), nodeService);
-        return paged;
+        DBResultSet rs = new DBResultSet(options.getAsSearchParmeters(), nodes, nodeDAO, nodeService, tenantService, Integer.MAX_VALUE);
+        return rs;
     }
 
-    private ResultSet denormalisedNodeSelection(QueryOptions options, DBQuery dbQuery)
+    private FilteringResultSet acceleratedNodeSelection(QueryOptions options, DBQuery dbQuery)
+    {
+        NodePermissionAssessor permissionAssessor = new NodePermissionAssessor();
+        permissionAssessor.setMaxPermissionChecks(maxPermissionChecks);
+        permissionAssessor.setMaxPermissionCheckTimeMillis(maxPermissionCheckTimeMillis);
+        
+        return acceleratedNodeSelection(options, dbQuery, permissionAssessor);
+    }
+
+    FilteringResultSet acceleratedNodeSelection(QueryOptions options, DBQuery dbQuery, NodePermissionAssessor permissionAssessor)
     {
         List<Node> nodes = new ArrayList<>();
+        int requiredNodes = computeRequiredNodesCount(options);
+        
         template.select(SELECT_BY_DYNAMIC_QUERY, dbQuery, new ResultHandler<Node>()
         {
             @Override
             public void handleResult(ResultContext<? extends Node> context)
             {
+                if (nodes.size() >= requiredNodes)
+                {
+                    context.stop();
+                    return;
+                }
+                
                 Node node = context.getResultObject();
-                if(isIncluded(node))
+                if (permissionAssessor.isIncluded(node))
                 {
                     nodes.add(node);
                 }
+                
+                if (permissionAssessor.shouldQuitChecks())
+                {
+                    context.stop();
+                    return;
+                }
+                
             }
         });
         
@@ -297,14 +327,18 @@ public class DBQueryEngine implements QueryEngine
         FilteringResultSet frs = new FilteringResultSet(rs, formInclusionMask(nodes));
         frs.setResultSetMetaData(new SimpleResultSetMetaData(LimitBy.UNLIMITED, PermissionEvaluationMode.EAGER, rs.getResultSetMetaData().getSearchParameters()));
  
-        ResultSet paged = new PagingLuceneResultSet(frs, options.getAsSearchParmeters(), nodeService);
-        return paged;
+        return frs;
+    }
+
+    private int computeRequiredNodesCount(QueryOptions options)
+    {
+        return options.getMaxItems() + options.getSkipCount() + 1;
     }
 
     private BitSet formInclusionMask(List<Node> nodes)
     {
         BitSet inclusionMask = new BitSet(nodes.size());
-        for(int i=0; i < nodes.size(); i++)
+        for (int i=0; i < nodes.size(); i++)
         {
             inclusionMask.set(i, true);
         }
@@ -331,152 +365,68 @@ public class DBQueryEngine implements QueryEngine
         return new DBQueryModelFactory();
     }
 
-    /* 
-     * Injection of nodes cache for pre-population 
-     */
-    private static final String CACHE_REGION_NODES = "N.N";
-    private class NodesCacheCallbackDAO extends EntityLookupCallbackDAOAdaptor<Long, Node, NodeRef>
-    {
-        /**
-         * @throws UnsupportedOperationException        Nodes are created externally
-         */
-        public Pair<Long, Node> createValue(Node value)
+    public class NodePermissionAssessor {
+        
+        private int maxPermissionChecks;
+        private int checksPerformed;
+        private long maxPermissionCheckTimeMillis;
+        private long timeCreated;
+        
+        public NodePermissionAssessor()
         {
-            throw new UnsupportedOperationException("Node creation is done externally: " + value);
+           this.checksPerformed = 0;
+           this.maxPermissionChecks = Integer.MAX_VALUE;
+           this.maxPermissionCheckTimeMillis = Long.MAX_VALUE;
         }
 
-        /**
-         * @param nodeId            the key node ID
-         */
-        public Pair<Long, Node> findByKey(Long nodeId)
-        {
-            return null;
-        }
-
-        /**
-         * @return                  Returns the Node's NodeRef
-         */
-        @Override
-        public NodeRef getValueKey(Node value)
-        {
-            return value.getNodeRef();
-        }
-
-        /**
-         * Looks the node up based on the NodeRef of the given node
-         */
-        @Override
-        public Pair<Long, Node> findByValue(Node node)
-        {
-                return null;
-        }
-    }
-    public void setNodesCache(SimpleCache<Serializable, Serializable> cache)
-    {
-        this.nodesCache = new EntityLookupCache<Long, Node, NodeRef>(
-                cache,
-                CACHE_REGION_NODES,
-                new NodesCacheCallbackDAO());
-    }
-
-    FilteringResultSet decidePermissions(DBResultSet resultSet)
-    {
-        if (resultSet == null)
-        {
-            return null;
-        }
-
-        int maxChecks = Integer.MAX_VALUE;
-        if (resultSet.getResultSetMetaData().getSearchParameters().getMaxPermissionChecks() >= 0)
-        {
-            maxChecks = resultSet.getResultSetMetaData().getSearchParameters().getMaxPermissionChecks();
-        }
-
-        long maxCheckTime = Long.MAX_VALUE;
-        if (resultSet.getResultSetMetaData().getSearchParameters().getMaxPermissionCheckTimeMillis() >= 0)
-        {
-            maxCheckTime = resultSet.getResultSetMetaData().getSearchParameters().getMaxPermissionCheckTimeMillis();
-        }
-
-        FilteringResultSet filteringResultSet = new FilteringResultSet(resultSet);
-
-        // record the start time
-        long startTimeMillis = System.currentTimeMillis();
-        filteringResultSet.setResultSetMetaData(new SimpleResultSetMetaData(LimitBy.UNLIMITED, PermissionEvaluationMode.EAGER, resultSet.getResultSetMetaData()
-                .getSearchParameters()));
-
-        int includedCount = 0;
-        int discardedNodes = 0;
-        int numberOfRequiredItems = computeNumberOfRequiredItems(resultSet);
-
-        for (int index = 0; index < resultSet.length() && includedCount < numberOfRequiredItems; index++)
-        {
-            long currentTimeMillis = System.currentTimeMillis();
-
-            if (index >= maxChecks)
+        public boolean isIncluded(Node node)
+        { 
+            if (checksPerformed == 0)
             {
-                logger.warn("maxChecks exceeded (" + maxChecks + ")", new Exception("Back Trace"));
-                filteringResultSet.setResultSetMetaData(new SimpleResultSetMetaData(LimitBy.NUMBER_OF_PERMISSION_EVALUATIONS,
-                        PermissionEvaluationMode.EAGER, resultSet.getResultSetMetaData().getSearchParameters()));
-                break;
+                this.timeCreated = System.currentTimeMillis();
             }
-            else if ((currentTimeMillis - startTimeMillis) > maxCheckTime)
+            
+            if (shouldQuitChecks())
             {
-                logger.warn("maxCheckTime exceeded (" + (currentTimeMillis - startTimeMillis) + " milliseconds)", new Exception("Back Trace"));
-                filteringResultSet.setResultSetMetaData(new SimpleResultSetMetaData(LimitBy.NUMBER_OF_PERMISSION_EVALUATIONS,
-                        PermissionEvaluationMode.EAGER, resultSet.getResultSetMetaData().getSearchParameters()));
-                break;
+                return false;
             }
+            
+            checksPerformed++;
+            return isReallyIncluded(node);
+        }
 
-            boolean isIncluded = isIncluded(resultSet.getNode(index));
-            filteringResultSet.setIncluded(index, isIncluded);
-            if (isIncluded)
-            {
-                includedCount++;
-            }
-            else
-            {
-                discardedNodes++;
-            }
+        boolean isReallyIncluded(Node node)
+        {
+            return adminRead() || canRead(node.getAclId()) ||
+                    ownerRead(node.getNodeRef());
+        }
+
+        public void setMaxPermissionChecks(int maxPermissionChecks)
+        {
+            this.maxPermissionChecks = maxPermissionChecks;
         }
         
-        if (logger.isDebugEnabled()) logger.debug("included="+includedCount+", excluded="+discardedNodes);
-
-        return filteringResultSet;
-    }
-
-    private int computeNumberOfRequiredItems(ResultSet resultSet)
-    {
-        int numberOfRequiredItems = computeNumberOfRequiredItems(resultSet.getResultSetMetaData().getSearchParameters()) + 1;
-        if (!resultSet.getResultSetMetaData().getSearchParameters().getLocales().isEmpty())
+        public boolean shouldQuitChecks()
         {
-            if (resultSet.getResultSetMetaData().getSearchParameters().getLocales().get(0).getLanguage().equals("xsl"))
+            boolean result = false;
+
+            if (checksPerformed >= maxPermissionChecks)
             {
-                numberOfRequiredItems = Integer.MAX_VALUE;
+                result = true;
             }
-        }
-        return numberOfRequiredItems;
-    }
-    
-    private Integer computeNumberOfRequiredItems(SearchParameters searchParameters)
-    {
-        Integer maxSize = Integer.MAX_VALUE;
-        if (searchParameters.getMaxItems() >= 0)
-        {
-            maxSize = searchParameters.getMaxItems() + searchParameters.getSkipCount();
-        }
-        else if (searchParameters.getLimitBy() == LimitBy.FINAL_SIZE)
-        {
-            maxSize = searchParameters.getLimit() + searchParameters.getSkipCount();
+
+            if ((System.currentTimeMillis() - timeCreated) >= maxPermissionCheckTimeMillis)
+            {
+                result = true;
+            }
+
+            return result;
         }
 
-        return maxSize;
-    }
-
-    private boolean isIncluded(Node node)
-    { 
-        return  adminRead() || canRead(node.getAclId()) ||
-                ownerRead(node.getNodeRef());
+        public void setMaxPermissionCheckTimeMillis(long maxPermissionCheckTimeMillis)
+        {
+            this.maxPermissionCheckTimeMillis = maxPermissionCheckTimeMillis;
+        }
     }
     
     private boolean ownerRead(NodeRef nodeRef)
@@ -484,7 +434,7 @@ public class DBQueryEngine implements QueryEngine
         String username = AuthenticationUtil.getRunAsUser();
 
         String owner = ownableService.getOwner(nodeRef);
-        if(EqualsHelper.nullSafeEquals(username, owner))
+        if (EqualsHelper.nullSafeEquals(username, owner))
         {
             return true;
         } 
@@ -505,18 +455,18 @@ public class DBQueryEngine implements QueryEngine
         Set<String> authorities = permissionService.getAuthorisations();
 
         Set<String> aclReadersDenied = permissionService.getReadersDenied(aclId);
-        for(String auth : aclReadersDenied)
+        for (String auth : aclReadersDenied)
         {
-            if(authorities.contains(auth))
+            if (authorities.contains(auth))
             {
                 return false;
             }
         }
 
         Set<String> aclReaders = permissionService.getReaders(aclId);
-        for(String auth : aclReaders)
+        for (String auth : aclReaders)
         {
-            if(authorities.contains(auth))
+            if (authorities.contains(auth))
             {
                 return true;
             }
@@ -524,9 +474,6 @@ public class DBQueryEngine implements QueryEngine
 
         return false;
     }
-    
-    
-
 }
 
 

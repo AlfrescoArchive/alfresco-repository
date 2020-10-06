@@ -116,9 +116,14 @@
         <property name="nodeService" ref="nodeService"/>
         <property name="nodeDAO" ref="nodeDAO"/>
         <property name="tenantService" ref="tenantService"/>
-        <property name="nodesCache" ref="node.nodesCache"/>
         <property name="metadataIndexCheck2">
             <ref bean="metadataQueryIndexesCheck2" />
+        </property>
+        <property name="maxPermissionChecks">
+        	<value>${system.acl.maxPermissionChecks}</value>
+        </property>
+        <property name="maxPermissionCheckTimeMillis">
+        	<value>${system.acl.maxPermissionCheckTimeMillis}</value>
         </property>
     </bean>
    
