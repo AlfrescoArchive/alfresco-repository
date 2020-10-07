@@ -18,6 +18,7 @@ branches:
   only:
     - master
     - /support\/.*/
+    - fix/MNT-21879
 
 stages:
   - test
@@ -32,7 +33,7 @@ jobs:
       script: mvn test -B -Dtest=AllUnitTestsSuite
     - name: "WhiteSource scan"
       # only on support branches or master and if it is not a PR
-      if: fork = false AND (branch = master OR branch =~ /support\/SP\/.*/) AND type != pull_request
+      if: fork = false AND (branch = fix/MNT-21879 OR branch =~ /support\/SP\/.*/) AND type != pull_request
       script:
         #  Download the latest version of WhiteSource Unified Agent
         - curl -LJO https://github.com/whitesource/unified-agent-distribution/releases/latest/download/wss-unified-agent.jar
@@ -110,7 +111,7 @@ jobs:
       script: travis_wait 20 mvn test -B -Dtest=AllDBTestsTestSuite -Ddb.name=alfresco -Ddb.url=jdbc:mariadb://localhost:3307/alfresco?useUnicode=yes\&characterEncoding=UTF-8 -Ddb.username=alfresco -Ddb.password=alfresco -Ddb.driver=org.mariadb.jdbc.Driver
     - stage: release
       name: "Push to Nexus"
-      if: fork = false AND (branch = master OR branch =~ /support\/.*/) AND type != pull_request AND commit_message !~ /\[no-release\]/
+      if: fork = false AND (branch = fix/MNT-21879 OR branch =~ /support\/.*/) AND type != pull_request AND commit_message !~ /\[no-release\]/
       before_install:
         - "cp .travis.settings.xml $HOME/.m2/settings.xml"
       script:
@@ -119,4 +120,4 @@ jobs:
         # Add email to link commits to user
         - git config user.email "${GIT_EMAIL}"
         # Skip building of release commits
-        - mvn --batch-mode -q -DscmCommentPrefix="[maven-release-plugin][skip ci] " -Dusername="${GIT_USERNAME}" -Dpassword="${GIT_PASSWORD}" -DskipTests -Darguments=-DskipTests release:clean release:prepare release:perform
+        - mvn --batch-mode -q -DscmCommentPrefix="[maven-release-plugin][skip ci] " -Dusername="${GIT_USERNAME}" -Dpassword="${GIT_PASSWORD}" -DskipTests -Darguments=-DskipTests release:clean release:prepare release:perform -DreleaseVersion=mnt-21879-1 -DdevelopmentVersion=8.282-SNAPSHOT
