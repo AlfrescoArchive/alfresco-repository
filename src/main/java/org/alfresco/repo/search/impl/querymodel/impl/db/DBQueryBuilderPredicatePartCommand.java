@@ -26,6 +26,7 @@
 package org.alfresco.repo.search.impl.querymodel.impl.db;
 
 import org.alfresco.repo.search.adaptor.lucene.LuceneFunction;
+import org.alfresco.service.namespace.QName;
 
 /**
  * @author Andy
@@ -42,11 +43,13 @@ public class DBQueryBuilderPredicatePartCommand
 
     String alias;
     
-    private DBQueryBuilderJoinCommandType joinCommandType;
-
-    private LuceneFunction function;
+    QName propertyQName;
     
-    private Long qnameId;
+    DBQueryBuilderJoinCommandType joinCommandType;
+
+    LuceneFunction function;
+    
+    Long qnameId;
 
     /**
      * @return the qnameId
@@ -197,6 +200,16 @@ public class DBQueryBuilderPredicatePartCommand
         {
             return alias +"." +fieldName;
         }
+    }
+
+    public void setPropertyQName(QName propertyQName)
+    {
+        this.propertyQName = propertyQName;
+    }
+
+    public QName getPropertyQName()
+    {
+        return this.propertyQName;
     }
     
 }

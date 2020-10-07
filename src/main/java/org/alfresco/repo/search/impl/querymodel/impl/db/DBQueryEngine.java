@@ -54,16 +54,21 @@ import org.alfresco.service.cmr.search.ResultSet;
 import org.alfresco.service.namespace.NamespaceService;
 import org.alfresco.service.namespace.QName;
 import org.alfresco.util.Pair;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.mybatis.spring.SqlSessionTemplate;
+import org.springframework.util.StopWatch;
 
 /**
  * @author Andy
  */
 public class DBQueryEngine implements QueryEngine
 {
-    private static final String SELECT_BY_DYNAMIC_QUERY = "alfresco.metadata.query.select_byDynamicQuery";
+    protected static final Log logger = LogFactory.getLog(DBQueryEngine.class);
     
-    private SqlSessionTemplate template;
+    protected static final String SELECT_BY_DYNAMIC_QUERY = "alfresco.metadata.query.select_byDynamicQuery";
+    
+    protected SqlSessionTemplate template;
 
     private QNameDAO qnameDAO;
     
@@ -165,13 +170,9 @@ public class DBQueryEngine implements QueryEngine
             selectorGroup = selectorGroups.get(0);
         }
 
-        
-        HashSet<String> key = new HashSet<String>();
-        key.add("");
-        Map<Set<String>, ResultSet> answer = new HashMap<Set<String>, ResultSet>();
         DBQuery dbQuery = (DBQuery)query;
         
-        if(options.getStores().size() > 1)
+        if (options.getStores().size() > 1)
         {
             throw new QueryModelException("Multi-store queries are not supported");
         }
@@ -181,13 +182,13 @@ public class DBQueryEngine implements QueryEngine
         storeRef = storeRef != null ? tenantService.getName(storeRef) : null;
 
         Pair<Long, StoreRef> store = nodeDAO.getStore(storeRef);
-        if(store == null)
+        if (store == null)
         {
         	  throw new QueryModelException("Unknown store: "+storeRef);
         }
         dbQuery.setStoreId(store.getFirst());
         Pair<Long, QName> sysDeletedType = qnameDAO.getQName(ContentModel.TYPE_DELETED);
-        if(sysDeletedType == null)
+        if (sysDeletedType == null)
         {
             dbQuery.setSysDeletedType(-1L);
         }
@@ -205,18 +206,46 @@ public class DBQueryEngine implements QueryEngine
         dbQuery.setSinceTxId(sinceTxId);
         
         dbQuery.prepare(namespaceService, dictionaryService, qnameDAO, nodeDAO, tenantService, selectorGroup, null, functionContext, metadataIndexCheck2.getPatchApplied());
-        List<Node> nodes = template.selectList(SELECT_BY_DYNAMIC_QUERY, dbQuery);
+        
+        List<Node> nodes;
+        if (logger.isDebugEnabled()) 
+        {
+            StopWatch stopWatch = new StopWatch("db query");
+            stopWatch.start();
+            nodes = selectNodes(options, dbQuery);
+            stopWatch.stop();
+            logger.debug("Selected " + nodes.size() + " nodes in " + stopWatch.getLastTaskTimeMillis() + "ms");
+        }
+        else
+        {
+            nodes = selectNodes(options, dbQuery);
+        }
+        
+        QueryEngineResults queryResults = createQueryResults(nodes, options);
+        return queryResults;
+    }
+
+    protected QueryEngineResults createQueryResults(List<Node> nodes, QueryOptions options)
+    {
         LinkedHashSet<Long> set = new LinkedHashSet<Long>(nodes.size());
-        for(Node node : nodes)
+        for (Node node : nodes)
         {
             set.add(node.getId());
         }
         List<Long> nodeIds = new ArrayList<Long>(set);
-        ResultSet rs =  new DBResultSet(options.getAsSearchParmeters(), nodeIds, nodeDAO, nodeService, tenantService, Integer.MAX_VALUE);
+        ResultSet rs = new DBResultSet(options.getAsSearchParmeters(), nodeIds, nodeDAO, nodeService, tenantService, Integer.MAX_VALUE);
         ResultSet paged = new PagingLuceneResultSet(rs, options.getAsSearchParmeters(), nodeService);
-        
+
+        Map<Set<String>, ResultSet> answer = new HashMap<Set<String>, ResultSet>();
+        HashSet<String> key = new HashSet<String>();
+        key.add("");
         answer.put(key, paged);
         return new QueryEngineResults(answer);
+    }
+
+    protected List<Node> selectNodes(QueryOptions options, DBQuery dbQuery)
+    {
+        return template.selectList(SELECT_BY_DYNAMIC_QUERY, dbQuery);
     }
 
     /*

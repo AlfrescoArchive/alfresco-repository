@@ -241,7 +241,8 @@ public class PropertySupport implements DBQueryBuilderComponent
                 predicatePartCommands.add(command);
                 break;
             }
-   
+            
+            command.setPropertyQName(propertyQName);
         }
         else
         {
@@ -351,11 +352,11 @@ public class PropertySupport implements DBQueryBuilderComponent
             
             command.setFieldName(fieldName);
             command.setFunction(luceneFunction);
+            command.setPropertyQName(propertyQName);
             predicatePartCommands.add(command);
         }       
         
     }
- 
 
     /**
      * @param luceneFunction LuceneFunction
