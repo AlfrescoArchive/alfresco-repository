@@ -116,10 +116,10 @@ import org.springframework.util.Assert;
  */
 public abstract class AbstractNodeDAOImpl implements NodeDAO, BatchingDAO
 {
-    private static final String CACHE_REGION_ROOT_NODES = "N.RN";
-    private static final String CACHE_REGION_NODES = "N.N";
-    private static final String CACHE_REGION_ASPECTS = "N.A";
-    private static final String CACHE_REGION_PROPERTIES = "N.P";
+    public static final String CACHE_REGION_ROOT_NODES = "N.RN";
+    public static final String CACHE_REGION_NODES = "N.N";
+    public static final String CACHE_REGION_ASPECTS = "N.A";
+    public static final String CACHE_REGION_PROPERTIES = "N.P";
     
     private static final String KEY_LOST_NODE_PAIRS = AbstractNodeDAOImpl.class.getName() + ".lostNodePairs";
     private static final String KEY_DELETED_ASSOCS = AbstractNodeDAOImpl.class.getName() + ".deletedAssocs";
@@ -895,7 +895,7 @@ public abstract class AbstractNodeDAOImpl implements NodeDAO, BatchingDAO
     }
     
     public boolean exists(NodeRef nodeRef)
-    {
+    { 
         NodeEntity node = new NodeEntity(nodeRef);
         Pair<Long, Node> pair = nodesCache.getByValue(node);
         return pair != null && !pair.getSecond().getDeleted(qnameDAO);

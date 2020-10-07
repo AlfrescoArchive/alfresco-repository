@@ -116,6 +116,8 @@
         <property name="nodeService" ref="nodeService"/>
         <property name="nodeDAO" ref="nodeDAO"/>
         <property name="tenantService" ref="tenantService"/>
+        <property name="nodesCache" ref="node.nodesCache"/>
+        <property name="propertiesCache" ref="node.propertiesCache"/>
         <property name="metadataIndexCheck2">
             <ref bean="metadataQueryIndexesCheck2" />
         </property>

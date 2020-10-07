@@ -25,8 +25,12 @@
  */
 package org.alfresco.repo.search.impl.querymodel.impl.db;
 
+import static org.alfresco.repo.domain.node.AbstractNodeDAOImpl.CACHE_REGION_NODES;
+
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.BitSet;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -37,8 +41,12 @@ import javax.annotation.concurrent.NotThreadSafe;
 
 import org.alfresco.model.ContentModel;
 import org.alfresco.repo.admin.patch.OptionalPatchApplicationCheckBootstrapBean;
+import org.alfresco.repo.cache.SimpleCache;
+import org.alfresco.repo.cache.lookup.EntityLookupCache;
+import org.alfresco.repo.cache.lookup.EntityLookupCache.EntityLookupCallbackDAOAdaptor;
 import org.alfresco.repo.domain.node.Node;
 import org.alfresco.repo.domain.node.NodeDAO;
+import org.alfresco.repo.domain.node.NodeVersionKey;
 import org.alfresco.repo.domain.qname.QNameDAO;
 import org.alfresco.repo.search.SimpleResultSetMetaData;
 import org.alfresco.repo.search.impl.lucene.PagingLuceneResultSet;
@@ -81,7 +89,8 @@ public class DBQueryEngine implements QueryEngine
     
     private static final String SELECT_BY_DYNAMIC_QUERY = "alfresco.metadata.query.select_byDynamicQuery";
     
-    private static final String STANDARD_NODE_SELECTION_ID = "xsl";
+    private static final String LOCALE_USE_STANDARD_SELECTION = "xsl";
+    private static final String LOCALE_CLEAR_NODES_CACHE = "xcl";
     
     private SqlSessionTemplate template;
 
@@ -99,6 +108,8 @@ public class DBQueryEngine implements QueryEngine
     
     private OptionalPatchApplicationCheckBootstrapBean metadataIndexCheck2;
     
+    private EntityLookupCache<Long, Node, NodeRef> nodesCache;
+
     private PermissionService permissionService;
 
     private OwnableService ownableService;
@@ -106,6 +117,8 @@ public class DBQueryEngine implements QueryEngine
     private int maxPermissionChecks;
     
     private long maxPermissionCheckTimeMillis;
+
+    private SimpleCache<NodeVersionKey, Map<QName, Serializable>> propertiesCache;
 
     public void setMaxPermissionChecks(int maxPermissionChecks)
     {
@@ -200,6 +213,8 @@ public class DBQueryEngine implements QueryEngine
     @Override
     public QueryEngineResults executeQuery(Query query, QueryOptions options, FunctionEvaluationContext functionContext)
     {
+        logger.debug("Query request received");
+
         Set<String> selectorGroup = null;
         if (query.getSource() != null)
         {
@@ -254,10 +269,17 @@ public class DBQueryEngine implements QueryEngine
         }
         dbQuery.setSinceTxId(sinceTxId);
         
+        logger.debug("- query is being prepared");
         dbQuery.prepare(namespaceService, dictionaryService, qnameDAO, nodeDAO, tenantService, selectorGroup, null, functionContext, metadataIndexCheck2.getPatchApplied());
         
         ResultSet resultSet;
-        if(useStandardQuery(options))
+        if (cleanCacheRequest(options)) {
+            nodesCache.clear();
+            propertiesCache.clear();
+            logger.info("Nodes cache cleared");
+            resultSet = new DBResultSet(options.getAsSearchParmeters(), Collections.emptyList(), nodeDAO, nodeService, tenantService, Integer.MAX_VALUE);
+        }
+        else if (useStandardQuery(options))
         {
             resultSet = standardNodeSelection(options, dbQuery);
             logger.info("Selected " +resultSet.length()+ " nodes through standard query");
@@ -273,7 +295,17 @@ public class DBQueryEngine implements QueryEngine
 
     private boolean useStandardQuery(QueryOptions options)
     {
-        return options.getLocales().size() == 1 && options.getLocales().get(0).getLanguage().equals(STANDARD_NODE_SELECTION_ID);
+        return getLocaleLanguage(options).equals(LOCALE_USE_STANDARD_SELECTION);
+    }
+
+    private boolean cleanCacheRequest(QueryOptions options)
+    {
+        return getLocaleLanguage(options).equals(LOCALE_CLEAR_NODES_CACHE);
+    }
+
+    private String getLocaleLanguage(QueryOptions options)
+    {
+        return options.getLocales().size() == 1 ? options.getLocales().get(0).getLanguage() : "";
     }
 
     private ResultSet standardNodeSelection(QueryOptions options, DBQuery dbQuery)
@@ -297,6 +329,7 @@ public class DBQueryEngine implements QueryEngine
         List<Node> nodes = new ArrayList<>();
         int requiredNodes = computeRequiredNodesCount(options);
         
+        logger.debug("- query sent to the database");
         template.select(SELECT_BY_DYNAMIC_QUERY, dbQuery, new ResultHandler<Node>()
         {
             @Override
@@ -309,6 +342,10 @@ public class DBQueryEngine implements QueryEngine
                 }
                 
                 Node node = context.getResultObject();
+                nodesCache.setValue(node.getId(), node);
+
+                logger.debug("- selected node "+nodes.size()+": "+node.getUuid()+" "+node.getId());
+                
                 if (permissionAssessor.isIncluded(node))
                 {
                     nodes.add(node);
@@ -327,6 +364,7 @@ public class DBQueryEngine implements QueryEngine
         FilteringResultSet frs = new FilteringResultSet(rs, formInclusionMask(nodes));
         frs.setResultSetMetaData(new SimpleResultSetMetaData(LimitBy.UNLIMITED, PermissionEvaluationMode.EAGER, rs.getResultSetMetaData().getSearchParameters()));
  
+        logger.debug("- query is completed, "+nodes.size()+" nodes loaded");
         return frs;
     }
 
@@ -473,6 +511,47 @@ public class DBQueryEngine implements QueryEngine
         }
 
         return false;
+    }
+
+
+    /* 
+     * Injection of nodes cache for clean-up when required
+     */
+    public void setNodesCache(SimpleCache<Serializable, Serializable> cache)
+    {
+        this.nodesCache = new EntityLookupCache<Long, Node, NodeRef>(
+                cache,
+                CACHE_REGION_NODES,
+                new ReadonlyLocalCallbackDAO());
+    }
+
+    private class ReadonlyLocalCallbackDAO extends EntityLookupCallbackDAOAdaptor<Long, Node, NodeRef>
+    {
+        @Override
+        public Pair<Long, Node> createValue(Node value)
+        {
+            throw new UnsupportedOperationException("Node creation is done externally: " + value);
+        }
+
+        @Override
+        public Pair<Long, Node> findByKey(Long nodeId)
+        {
+            return null;
+        }
+
+        @Override
+        public NodeRef getValueKey(Node value)
+        {
+            return value.getNodeRef();
+        }
+    }
+
+    /* 
+     * TEMPORARY - Injection of nodes cache for clean-up when required
+     */
+    public void setPropertiesCache(SimpleCache<NodeVersionKey, Map<QName, Serializable>> propertiesCache)
+    {
+        this.propertiesCache = propertiesCache;
     }
 }
 
