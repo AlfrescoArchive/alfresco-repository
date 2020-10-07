@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="alfresco.metadata.query">
+
+	<sql id="sql_select_byDynamicQueryOnDenormTable" >
+        select 
+            node.id                   as id,
+            alf_node.version          as version,
+            store.id                  as store_id,
+            store.protocol            as protocol,
+            store.identifier          as identifier,
+            alf_node.uuid             as uuid,
+            alf_node.type_qname_id    as type_qname_id,
+            alf_node.locale_id        as locale_id,
+            alf_node.acl_id           as acl_id,
+            txn.id                    as txn_id,
+            txn.change_txn_id         as txn_change_id,
+            alf_node.audit_creator    as audit_creator,
+            alf_node.audit_created    as audit_created,
+            alf_node.audit_modifier   as audit_modifier,
+            alf_node.audit_modified   as audit_modified,
+            alf_node.audit_accessed   as audit_accessed
+        from
+            alf_node_props_denorm node
+            join alf_node on (alf_node.id = node.id)
+            join alf_store store on (store.id = node.store_id)
+            join alf_transaction txn on (txn.id = alf_node.transaction_id)
+        where 
+            node.type_qname_id &lt;&gt; #{sysDeletedType}
+            AND node.store_id = #{storeId}
+            <if test="sinceTxId != null">
+                <if test="sinceTxId > -1">
+                    AND node.transaction_id &gt; #{sinceTxId}
+                </if>
+            </if>
+            AND
+                <foreach item="item" index="index" collection="predicateParts">
+                    <choose>
+                        <when test="item.type == 'AND'">
+                            AND
+                        </when>
+                        <when test="item.type == 'GTE'">
+                             node.${item.denormalizedFieldName} &gt;= #{item.value}
+                        </when>
+                        <when test="item.type == 'EQUALS'">
+                             node.${item.denormalizedFieldName} = #{item.value}
+                        </when>
+                        <when test="item.type == 'EXISTS'">
+                           	node.${item.denormalizedFieldName} IS NOT NULL
+                       	</when>
+                       	<when test="item.type == 'NOTEXISTS'">
+                           	node.${item.denormalizedFieldName} IS NOT NULL
+                       	</when>
+                       	<when test="item.type == 'GT'">
+                           	node.${item.denormalizedFieldName} &gt; #{item.value}
+                       	</when>
+                       	<when test="item.type == 'LT'">
+                          	node.${item.denormalizedFieldName} &lt; #{item.value}
+                      	</when>
+                      	<when test="item.type == 'LTE'">
+                          	node.${item.denormalizedFieldName} &lt;= #{item.value}
+                      	</when>
+                        <when test="item.type == 'IN'">
+                            ${item.fieldAndFunction} IN <foreach item="val" index="iVal" collection="item.values" open="(" separator="," close=")">#{val}</foreach>
+                        </when>
+                        <when test="item.type == 'NOTIN'">
+                          	${item.fieldAndFunction} NOT IN <foreach item="val" index="iVal" collection="item.values" open="(" separator="," close=")">#{val}</foreach>
+                      	</when>
+                      	<when test="item.type == 'LIKE'">
+                          	node.${item.denormalizedFieldName} LIKE #{item.value}  <include refid="alfresco.util.escape"/>
+                      	</when>
+                      	<when test="item.type == 'NOTLIKE'">
+                          	node.${item.denormalizedFieldName} NOT LIKE #{item.value}  <include refid="alfresco.util.escape"/>
+                      	</when>
+                      	<when test="item.type == 'NOTEQUALS'">
+                          	node.${item.denormalizedFieldName} &lt;&gt; #{item.value}
+                      	</when>
+                        <when test="item.type == 'ASPECT'">
+                             1 = 1
+                        </when>
+               		</choose>
+             	</foreach>
+             	<if test="hasOrderBy">
+		          <if test="hasPredicatePartsOrder">
+		            order by
+		            <foreach item="item" index="index" collection="predicateParts" open="" separator="," close="">
+		                 <choose>
+		                     <!--  Only look at ORDER items -->
+		                     <when test="item.type == 'ORDER'">
+		                         node.${item.denormalizedFieldName} ${item.value}
+		                     </when>
+		                 </choose>
+		            </foreach>
+		          </if>
+        		</if> 
+	</sql>
+</mapper>

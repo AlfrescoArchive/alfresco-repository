@@ -7,5 +7,9 @@
   <select id="select_byDynamicQuery" fetchSize="200" parameterType="org.alfresco.repo.search.impl.querymodel.impl.db.DBQuery" resultMap="alfresco.node.result_Node">
       <include refid="sql_select_byDynamicQuery"/>   
   </select>
+  
+  <select id="select_byDynamicQueryFast" fetchSize="200" parameterType="org.alfresco.repo.search.impl.querymodel.impl.db.DBQuery" resultMap="alfresco.node.result_Node">
+		<include refid="sql_select_byDynamicQueryOnDenormTable"/>   
+  </select>
 
 </mapper>

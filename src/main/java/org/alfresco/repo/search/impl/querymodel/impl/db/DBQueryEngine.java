@@ -88,9 +88,7 @@ public class DBQueryEngine implements QueryEngine
     protected static final Log logger = LogFactory.getLog(DBQueryEngine.class);
     
     private static final String SELECT_BY_DYNAMIC_QUERY = "alfresco.metadata.query.select_byDynamicQuery";
-    
-    private static final String LOCALE_USE_STANDARD_SELECTION = "xsl";
-    private static final String LOCALE_CLEAR_NODES_CACHE = "xcl";
+    private static final String SELECT_BY_DYNAMIC_QUERY_FAST = "alfresco.metadata.query.select_byDynamicQueryFast";
     
     private SqlSessionTemplate template;
 
@@ -119,7 +117,7 @@ public class DBQueryEngine implements QueryEngine
     private long maxPermissionCheckTimeMillis;
 
     private SimpleCache<NodeVersionKey, Map<QName, Serializable>> propertiesCache;
-
+    
     public void setMaxPermissionChecks(int maxPermissionChecks)
     {
         this.maxPermissionChecks = maxPermissionChecks;
@@ -279,43 +277,42 @@ public class DBQueryEngine implements QueryEngine
             logger.info("Nodes cache cleared");
             resultSet = new DBResultSet(options.getAsSearchParmeters(), Collections.emptyList(), nodeDAO, nodeService, tenantService, Integer.MAX_VALUE);
         }
-        else if (useStandardQuery(options))
+        else if (resolvePermissionsNow(options))
         {
-            resultSet = standardNodeSelection(options, dbQuery);
-            logger.info("Selected " +resultSet.length()+ " nodes through standard query");
+            resultSet = selectNodesWithPermissions(options, dbQuery);
+            logger.info("Selected " +resultSet.length()+ " nodes with accelerated permission resolution");
         }
         else
         {
-            resultSet = acceleratedNodeSelection(options, dbQuery);
-            logger.info("Selected " +resultSet.length()+ " nodes through accelerated query");
+            resultSet = selectNodesStandard(options, dbQuery);
+            logger.info("Selected " +resultSet.length()+ " nodes with standard permission resolution");
         }
 
         return asQueryEngineResults(new PagingLuceneResultSet(resultSet, options.getAsSearchParmeters(), nodeService));
     }
 
-    private boolean useStandardQuery(QueryOptions options)
+    private ResultSet selectNodesStandard(QueryOptions options, DBQuery dbQuery)
     {
-        return getLocaleLanguage(options).equals(LOCALE_USE_STANDARD_SELECTION);
-    }
-
-    private boolean cleanCacheRequest(QueryOptions options)
-    {
-        return getLocaleLanguage(options).equals(LOCALE_CLEAR_NODES_CACHE);
-    }
-
-    private String getLocaleLanguage(QueryOptions options)
-    {
-        return options.getLocales().size() == 1 ? options.getLocales().get(0).getLanguage() : "";
-    }
-
-    private ResultSet standardNodeSelection(QueryOptions options, DBQuery dbQuery)
-    {
-        List<Node> nodes = template.selectList(SELECT_BY_DYNAMIC_QUERY, dbQuery);
+        List<Node> nodes = template.selectList(pickQueryTemplate(options), dbQuery);
         DBResultSet rs = new DBResultSet(options.getAsSearchParmeters(), nodes, nodeDAO, nodeService, tenantService, Integer.MAX_VALUE);
         return rs;
     }
 
-    private FilteringResultSet acceleratedNodeSelection(QueryOptions options, DBQuery dbQuery)
+    private String pickQueryTemplate(QueryOptions options)
+    {
+        if (useDenormalisedTable(options))
+        {
+            logger.debug("- using denormalised table for the query");
+            return SELECT_BY_DYNAMIC_QUERY_FAST;
+        }
+        else
+        {
+            logger.debug("- using standard table for the query");
+            return SELECT_BY_DYNAMIC_QUERY;
+        }
+    }
+
+    private FilteringResultSet selectNodesWithPermissions(QueryOptions options, DBQuery dbQuery)
     {
         NodePermissionAssessor permissionAssessor = new NodePermissionAssessor();
         permissionAssessor.setMaxPermissionChecks(maxPermissionChecks);
@@ -330,7 +327,7 @@ public class DBQueryEngine implements QueryEngine
         int requiredNodes = computeRequiredNodesCount(options);
         
         logger.debug("- query sent to the database");
-        template.select(SELECT_BY_DYNAMIC_QUERY, dbQuery, new ResultHandler<Node>()
+        template.select(pickQueryTemplate(options), dbQuery, new ResultHandler<Node>()
         {
             @Override
             public void handleResult(ResultContext<? extends Node> context)
@@ -513,7 +510,31 @@ public class DBQueryEngine implements QueryEngine
         return false;
     }
 
-
+    private boolean cleanCacheRequest(QueryOptions options)
+    {
+        return "xxx".equals(getLocaleLanguage(options));
+    }
+    
+    private boolean resolvePermissionsNow(QueryOptions options)
+    {
+        return getMagicCharFromLocale(options, 2) == 'f';
+    }
+    
+    private boolean useDenormalisedTable(QueryOptions options)
+    {
+        return getMagicCharFromLocale(options, 1) == 'f';
+    }
+    private char getMagicCharFromLocale(QueryOptions options, int index)
+    {
+        String lang = getLocaleLanguage(options);
+        return lang.length() > index ? lang.charAt(index) : ' ';
+    }
+    
+    private String getLocaleLanguage(QueryOptions options)
+    {
+        return options.getLocales().size() == 1 ? options.getLocales().get(0).getLanguage() : "";
+    }
+    
     /* 
      * Injection of nodes cache for clean-up when required
      */

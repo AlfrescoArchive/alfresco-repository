@@ -42,6 +42,8 @@ public class DBQueryBuilderPredicatePartCommand
 
     String alias;
     
+    String propertyName;
+    
     private DBQueryBuilderJoinCommandType joinCommandType;
 
     private LuceneFunction function;
@@ -199,4 +201,23 @@ public class DBQueryBuilderPredicatePartCommand
         }
     }
     
+    public void setPropertyName(String propertyName) 
+    {
+        this.propertyName = propertyName;
+    }
+
+    public String getPropertyName() 
+    {
+        return this.propertyName;
+    }
+
+    public String getDenormalizedFieldName() 
+    {
+        return computeDenormalizedColumnName(propertyName);
+    }
+
+    public static String computeDenormalizedColumnName(String name) 
+    {
+        return name.substring(name.indexOf(":")+1);
+    }
 }

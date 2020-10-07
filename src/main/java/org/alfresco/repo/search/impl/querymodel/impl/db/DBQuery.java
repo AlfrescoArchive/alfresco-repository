@@ -751,21 +751,11 @@ public class DBQuery extends BaseQuery implements DBQueryBuilderComponent
      */
     public static String getFieldName(DictionaryService dictionaryService, QName propertyQName, boolean supportBooleanFloatAndDouble)
     {
-        if (propertyQName.equals(ContentModel.PROP_CREATED))
+        String fieldName = getFieldNameIfAudit(propertyQName);
+
+        if (fieldName != null)
         {
-            return "audit_created";
-        }
-        else if (propertyQName.equals(ContentModel.PROP_CREATOR))
-        {
-            return "audit_creator";
-        }
-        else if (propertyQName.equals(ContentModel.PROP_MODIFIED))
-        {
-            return "audit_modified";
-        }
-        else if (propertyQName.equals(ContentModel.PROP_MODIFIER))
-        {
-            return "audit_modifier";
+            return fieldName;
         }
         else
         {
@@ -842,6 +832,27 @@ public class DBQuery extends BaseQuery implements DBQueryBuilderComponent
         }
     }
 
+    public static String getFieldNameIfAudit(QName propertyQName) {
+        String fieldName = null;
+        if (propertyQName.equals(ContentModel.PROP_CREATED))
+        {
+            fieldName = "audit_created";
+        }
+        else if (propertyQName.equals(ContentModel.PROP_CREATOR))
+        {
+            fieldName =  "audit_creator";
+        }
+        else if (propertyQName.equals(ContentModel.PROP_MODIFIED))
+        {
+            fieldName = "audit_modified";
+        }
+        else if (propertyQName.equals(ContentModel.PROP_MODIFIER))
+        {
+            fieldName = "audit_modifier";
+        }
+        return fieldName;
+    }
+    
     public static DataTypeDefinition getDataTypeDefinition(DictionaryService dictionaryService, QName propertyQname)
     {
         if(propertyQname == null)
