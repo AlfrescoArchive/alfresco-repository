@@ -196,7 +196,7 @@ public class PreferenceServiceImpl implements PreferenceService, Extensible
             {
                 if(jsonPrefs.has(preferenceName))
                 {
-                    preferenceValue = String.valueOf(jsonPrefs.getBoolean(preferenceName));
+                    preferenceValue = String.valueOf(jsonPrefs.get(preferenceName));
                 }
             }
         }
