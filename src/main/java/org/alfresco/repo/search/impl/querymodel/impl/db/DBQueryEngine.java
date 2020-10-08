@@ -26,6 +26,7 @@
 package org.alfresco.repo.search.impl.querymodel.impl.db;
 
 import static org.alfresco.repo.domain.node.AbstractNodeDAOImpl.CACHE_REGION_NODES;
+import static org.alfresco.repo.search.impl.querymodel.impl.db.DBStats.resetStopwatch;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -78,6 +79,7 @@ import org.apache.commons.logging.LogFactory;
 import org.apache.ibatis.session.ResultContext;
 import org.apache.ibatis.session.ResultHandler;
 import org.mybatis.spring.SqlSessionTemplate;
+import org.springframework.util.StopWatch;
 
 /**
  * @author Andy
@@ -212,7 +214,8 @@ public class DBQueryEngine implements QueryEngine
     public QueryEngineResults executeQuery(Query query, QueryOptions options, FunctionEvaluationContext functionContext)
     {
         logger.debug("Query request received");
-
+        resetStopwatch();
+        
         Set<String> selectorGroup = null;
         if (query.getSource() != null)
         {
@@ -323,15 +326,23 @@ public class DBQueryEngine implements QueryEngine
 
     FilteringResultSet acceleratedNodeSelection(QueryOptions options, DBQuery dbQuery, NodePermissionAssessor permissionAssessor)
     {
+        StopWatch sw = DBStats.stopwatch();
+        
         List<Node> nodes = new ArrayList<>();
         int requiredNodes = computeRequiredNodesCount(options);
         
         logger.debug("- query sent to the database");
+        sw.start("ttfr");
         template.select(pickQueryTemplate(options), dbQuery, new ResultHandler<Node>()
         {
             @Override
             public void handleResult(ResultContext<? extends Node> context)
             {
+                if (permissionAssessor.isFirstRecord()) {
+                    sw.stop();
+                    sw.start("ttlr");
+                }
+                
                 if (nodes.size() >= requiredNodes)
                 {
                     context.stop();
@@ -340,7 +351,7 @@ public class DBQueryEngine implements QueryEngine
                 
                 Node node = context.getResultObject();
                 nodesCache.setValue(node.getId(), node);
-
+                
                 logger.debug("- selected node "+nodes.size()+": "+node.getUuid()+" "+node.getId());
                 
                 if (permissionAssessor.isIncluded(node))
@@ -356,7 +367,10 @@ public class DBQueryEngine implements QueryEngine
                 
             }
         });
+        sw.stop();
+
         
+        sw.start("pkng");
         DBResultSet rs =  new DBResultSet(options.getAsSearchParmeters(), nodes, nodeDAO, nodeService, tenantService, Integer.MAX_VALUE);
         FilteringResultSet frs = new FilteringResultSet(rs, formInclusionMask(nodes));
         frs.setResultSetMetaData(new SimpleResultSetMetaData(LimitBy.UNLIMITED, PermissionEvaluationMode.EAGER, rs.getResultSetMetaData().getSearchParameters()));
@@ -413,10 +427,10 @@ public class DBQueryEngine implements QueryEngine
            this.maxPermissionChecks = Integer.MAX_VALUE;
            this.maxPermissionCheckTimeMillis = Long.MAX_VALUE;
         }
-
+        
         public boolean isIncluded(Node node)
         { 
-            if (checksPerformed == 0)
+            if (isFirstRecord())
             {
                 this.timeCreated = System.currentTimeMillis();
             }
@@ -428,6 +442,11 @@ public class DBQueryEngine implements QueryEngine
             
             checksPerformed++;
             return isReallyIncluded(node);
+        }
+
+        public boolean isFirstRecord()
+        {
+            return checksPerformed == 0;
         }
 
         boolean isReallyIncluded(Node node)
