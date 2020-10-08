@@ -233,4 +233,12 @@ public interface AuditDAO
      * @return                  a map containing min/max and the associated value
      */
     HashMap<String, Long> getAuditMinMaxByApp(long appId, List<String> extremes);
+
+    /**
+     * Issue an audit query to retrieve count of records for a given application.
+     *
+     * @param applicationId             the database id of the application
+     * @return                  a map containing min/max and the associated value
+     */
+    int getAuditEntriesCountByApp(long applicationId);
 }

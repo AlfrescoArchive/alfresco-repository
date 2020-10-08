@@ -177,4 +177,12 @@ public class AuditServiceImpl implements AuditService
     {
         return auditComponent.getAuditMinMaxByApp(applicationName, extremes);
     }
+
+    /**
+     * {@inheritDoc}
+     */
+    public int getAuditEntriesCountByApp(String applicationName)
+    {
+        return auditComponent.getAuditEntriesCountByApp(applicationName);
+    }
 }

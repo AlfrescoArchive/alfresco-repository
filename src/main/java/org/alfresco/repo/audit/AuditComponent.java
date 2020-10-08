@@ -261,4 +261,12 @@ public interface AuditComponent
      * @return                              a map containing min/max and the associated value
      */
     HashMap<String, Long> getAuditMinMaxByApp(String applicationName, List<String> extremes);
+
+    /**
+     * Issue an audit query to retrieve count of records for a given application.
+     *
+     * @param applicationName             the name of the application
+     * @return                  a map containing min/max and the associated value
+     */
+    int getAuditEntriesCountByApp(String applicationName);
 }

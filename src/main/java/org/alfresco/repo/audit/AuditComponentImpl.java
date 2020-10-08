@@ -941,4 +941,17 @@ public class AuditComponentImpl implements AuditComponent
 
         return auditDAO.getAuditMinMaxByApp(applicationId, extremes);
     }
+
+    public int getAuditEntriesCountByApp(String applicationName)
+    {
+        // Get the id for the application
+        AuditApplication app = auditModelRegistry.getAuditApplicationByName(applicationName);
+        Long applicationId = app.getApplicationId();
+        if (applicationId == null)
+        {
+            throw new AuditException("No persisted instance exists for audit application: " + app);
+        }
+
+        return auditDAO.getAuditEntriesCountByApp(applicationId);
+    }
 }
