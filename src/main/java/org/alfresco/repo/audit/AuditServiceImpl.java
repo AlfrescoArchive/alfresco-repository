@@ -181,6 +181,7 @@ public class AuditServiceImpl implements AuditService
     /**
      * {@inheritDoc}
      */
+    @Override
     public int getAuditEntriesCountByApp(String applicationName)
     {
         return auditComponent.getAuditEntriesCountByApp(applicationName);

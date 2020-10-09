@@ -224,6 +224,7 @@ public class AuditDAOImpl extends AbstractAuditDAOImpl
         return result;
     }
 
+    @Override
     public int getAuditEntriesCountByApp(long applicationId)
     {
         Map<String, Object> params = new HashMap<>();

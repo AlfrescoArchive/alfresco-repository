@@ -248,5 +248,8 @@ public interface AuditService
      * @param applicationName               the name of the application
      * @return                              a map containing min/max and the associated value
      */
-    int getAuditEntriesCountByApp(String applicationName);
+    default int getAuditEntriesCountByApp(String applicationName)
+    {
+        return -1;
+    }
 }

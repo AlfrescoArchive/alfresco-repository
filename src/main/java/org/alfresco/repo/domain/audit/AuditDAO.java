@@ -240,5 +240,8 @@ public interface AuditDAO
      * @param applicationId             the database id of the application
      * @return                  a map containing min/max and the associated value
      */
-    int getAuditEntriesCountByApp(long applicationId);
+    default int getAuditEntriesCountByApp(long applicationId)
+    {
+        return -1;
+    }
 }

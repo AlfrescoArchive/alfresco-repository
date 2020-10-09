@@ -942,6 +942,7 @@ public class AuditComponentImpl implements AuditComponent
         return auditDAO.getAuditMinMaxByApp(applicationId, extremes);
     }
 
+    @Override
     public int getAuditEntriesCountByApp(String applicationName)
     {
         // Get the id for the application
