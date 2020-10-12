@@ -271,6 +271,7 @@ public class CustomModelServiceImpl implements CustomModelService
         return nodeRefs.get(0);
     }
 
+    @Override
     public M2Model getM2Model(final NodeRef modelNodeRef)
     {
         ContentReader reader = contentService.getReader(modelNodeRef, ContentModel.PROP_CONTENT);
