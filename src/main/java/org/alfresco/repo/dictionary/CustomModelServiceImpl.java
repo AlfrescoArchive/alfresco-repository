@@ -271,8 +271,7 @@ public class CustomModelServiceImpl implements CustomModelService
         return nodeRefs.get(0);
     }
 
-    @Override
-    public M2Model getM2Model(final NodeRef modelNodeRef)
+    private M2Model getM2Model(final NodeRef modelNodeRef)
     {
         ContentReader reader = contentService.getReader(modelNodeRef, ContentModel.PROP_CONTENT);
         if (reader == null)
@@ -919,43 +918,6 @@ public class CustomModelServiceImpl implements CustomModelService
     }
 
     @Override
-    public boolean isNamespacePrefixExists(NodeRef modelNodeRef)
-    {
-        ParameterCheck.mandatoryString("modelNodeRef", modelNodeRef.toString());
-
-        M2Model m2Model = getM2Model(modelNodeRef);
-        String modelNamespacePrefix = getModelNamespaceUriPrefix(m2Model).getSecond();
-        String modelNamespaceUri = getModelNamespaceUriPrefix(m2Model).getFirst();
-
-        Collection<String> prefixes = namespaceDAO.getPrefixes();
-        if (prefixes.contains(modelNamespacePrefix))
-        {
-            // Check the uri to ensure the found prefix does not belong to the model being validated
-            Collection<String> uris = namespaceDAO.getURIs();
-            if (!uris.contains(modelNamespaceUri))
-            {
-                return true;
-            }
-        }
-
-        for (CompiledModel model : getAllCustomM2Models(false))
-        {
-            M2Model existingModel = model.getM2Model();
-            String existingPrefix = getModelNamespaceUriPrefix(existingModel).getSecond();
-            if (modelNamespacePrefix.equals(existingPrefix))
-            {
-                // Get the nodeRef for the model which owns this prefix to ensure it is not the same model being validated
-                NodeRef existingModelNodeRef = getModelNodeRef(model.getModelDefinition().getName().getLocalName());
-                if (!modelNodeRef.equals(existingModelNodeRef))
-                {
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
-
-    @Override
     public boolean isModelExists(String modelFileName)
     {
         NodeRef nodeRef = getModelNodeRef(modelFileName);
@@ -975,8 +937,7 @@ public class CustomModelServiceImpl implements CustomModelService
         return false;
     }
 
-    @Override
-    public Pair<String, String> getModelNamespaceUriPrefix(M2Model model)
+    private Pair<String, String> getModelNamespaceUriPrefix(M2Model model)
     {
         ParameterCheck.mandatory("model", model);
 
@@ -1002,22 +963,10 @@ public class CustomModelServiceImpl implements CustomModelService
         }
     }
 
-    @Override
-    public void validateModelNamespacePrefix(String prefix)
+    private void validateModelNamespacePrefix(String prefix)
     {
         if (isNamespacePrefixExists(prefix))
         {
-            throw new CustomModelException.NamespaceConstraintException(MSG_NAMESPACE_PREFIX_ALREADY_IN_USE, new Object[] { prefix });
-        }
-    }
-
-    @Override
-    public void validateModelNamespacePrefix(NodeRef modelNodeRef)
-    {
-        if (isNamespacePrefixExists(modelNodeRef))
-        {
-            M2Model m2Model = getM2Model(modelNodeRef);
-            String prefix = getModelNamespaceUriPrefix(m2Model).getSecond();
             throw new CustomModelException.NamespaceConstraintException(MSG_NAMESPACE_PREFIX_ALREADY_IN_USE, new Object[] { prefix });
         }
     }
