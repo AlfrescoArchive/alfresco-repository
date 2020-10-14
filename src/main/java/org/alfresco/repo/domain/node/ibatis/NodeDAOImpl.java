@@ -427,6 +427,7 @@ public class NodeDAOImpl extends AbstractNodeDAOImpl
         NodeEntity node = new NodeEntity();
         node.setId(id);
         
+        logger.debug("+ Cache miss for node id: "+id);
         return template.selectOne(SELECT_NODE_BY_ID, node);
     }
 
@@ -450,6 +451,7 @@ public class NodeDAOImpl extends AbstractNodeDAOImpl
         }
         node.setUuid(uuid);
         
+        logger.debug("+ Cache miss for node uuid: "+uuid);
         return template.selectOne(SELECT_NODE_BY_NODEREF, node);
     }
 

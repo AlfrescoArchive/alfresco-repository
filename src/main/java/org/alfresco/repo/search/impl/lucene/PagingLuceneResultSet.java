@@ -52,6 +52,8 @@ public class PagingLuceneResultSet implements ResultSet, Serializable
     SearchParameters searchParameters;
     
     NodeService nodeService;
+
+    private boolean trimmedResultSet;
     
     public PagingLuceneResultSet(ResultSet wrapped, SearchParameters searchParameters, NodeService nodeService)
     {
@@ -116,15 +118,21 @@ public class PagingLuceneResultSet implements ResultSet, Serializable
 
         int max = searchParameters.getMaxItems();
         int skip = searchParameters.getSkipCount();
-        if ((max >= 0) && (max < (wrapped.length() - skip)))
+        int length = getWrappedResultSetLength();
+        if ((max >= 0) && (max < (length - skip)))
         {
             return searchParameters.getMaxItems();
         }
         else
         {
-            int lengthAfterSkipping = wrapped.length() - skip;
+            int lengthAfterSkipping = length - skip;
             return lengthAfterSkipping < 0 ? 0 : lengthAfterSkipping;
         }
+    }
+
+    private int getWrappedResultSetLength()
+    {
+        return trimmedResultSet ? Long.valueOf(wrapped.getNumberFound()).intValue() : wrapped.length();
     }
 
     /*
@@ -134,7 +142,14 @@ public class PagingLuceneResultSet implements ResultSet, Serializable
      */
     public int getStart()
     {
-        return searchParameters.getSkipCount();
+        if (trimmedResultSet)
+        {
+            return 0;
+        }
+        else
+        {
+            return searchParameters.getSkipCount();
+        }
     }
 
     /*
@@ -273,5 +288,10 @@ public class PagingLuceneResultSet implements ResultSet, Serializable
     public SpellCheckResult getSpellCheckResult()
     {
         return wrapped.getSpellCheckResult();
+    }
+
+    public void setTrimmedResultSet(boolean b)
+    {
+        this.trimmedResultSet = true;
     }
 }
