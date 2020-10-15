@@ -271,6 +271,7 @@ public class DBQueryEngine implements QueryEngine
         dbQuery.prepare(namespaceService, dictionaryService, qnameDAO, nodeDAO, tenantService, selectorGroup, null, functionContext, metadataIndexCheck2.getPatchApplied());
         
         ResultSet resultSet;
+        // TEMPORARY - this first branch of the if statement simply allows us to easily clear the caches for now; it will be removed afterwards
         if (cleanCacheRequest(options)) {
             nodesCache.clear();
             propertiesCache.clear();
@@ -280,12 +281,12 @@ public class DBQueryEngine implements QueryEngine
         else if (resolvePermissionsNow(options))
         {
             resultSet = selectNodesWithPermissions(options, dbQuery);
-            logger.info("Selected " +resultSet.length()+ " nodes with accelerated permission resolution");
+            logger.debug("Selected " +resultSet.length()+ " nodes with accelerated permission resolution");
         }
         else
         {
             resultSet = selectNodesStandard(options, dbQuery);
-            logger.info("Selected " +resultSet.length()+ " nodes with standard permission resolution");
+            logger.debug("Selected " +resultSet.length()+ " nodes with standard permission resolution");
         }
         
         return asQueryEngineResults(resultSet);
@@ -592,7 +593,7 @@ public class DBQueryEngine implements QueryEngine
     }
     
     /* 
-     * Injection of nodes cache for clean-up when required
+     * Injection of nodes cache for clean-up and warm up when required
      */
     public void setNodesCache(SimpleCache<Serializable, Serializable> cache)
     {

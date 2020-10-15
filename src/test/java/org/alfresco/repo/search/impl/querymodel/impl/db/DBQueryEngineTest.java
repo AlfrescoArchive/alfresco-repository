@@ -58,7 +58,7 @@ public class DBQueryEngineTest
     }
     
     @Test
-    public void shoulGetAFilteringResultSetFromDenormalisedNodeSelection()
+    public void shoulGetAFilteringResultSetFromAcceleratedNodeSelection()
     {
         withMaxItems(10);
 
@@ -116,7 +116,7 @@ public class DBQueryEngineTest
     }
     
     @Test
-    public void shouldResultSetHaveCorrectAmountOfRequiredNodesWhenSomeAreExcludedDueToDeclinedPermission()
+    public void shouldNotConsiderInaccessibleNodesInResultSet()
     {
         withMaxItems(5);
         List<Node> nodes = createNodes(20);
@@ -137,7 +137,7 @@ public class DBQueryEngineTest
     }
     
     @Test
-    public void shouldAccessibleNodesBeSkippedWhenSkipCountIsUsed()
+    public void shouldNotConsiderInaccessibleNodesInResultSetWhenSkippingNodes()
     {
         withMaxItems(2);
         withSkipCount(2);

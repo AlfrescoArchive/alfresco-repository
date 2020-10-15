@@ -357,7 +357,7 @@ public class FilteringResultSet extends ACLEntryAfterInvocationProvider implemen
     @Override
     public long getNumberFound()
     {
-        return this.unfiltered.getNumberFound();
+        return inclusionMask.cardinality();
     }
     
     @Override

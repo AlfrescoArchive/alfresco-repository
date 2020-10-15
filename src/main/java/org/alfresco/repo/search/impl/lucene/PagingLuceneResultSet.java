@@ -31,6 +31,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import org.alfresco.repo.security.permissions.impl.acegi.FilteringResultSet;
 import org.alfresco.service.cmr.repository.ChildAssociationRef;
 import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.cmr.repository.NodeService;
@@ -132,7 +133,7 @@ public class PagingLuceneResultSet implements ResultSet, Serializable
 
     private int getWrappedResultSetLength()
     {
-        return trimmedResultSet ? Long.valueOf(wrapped.getNumberFound()).intValue() : wrapped.length();
+        return trimmedResultSet ? wrapped.length() + searchParameters.getSkipCount() : wrapped.length();
     }
 
     /*
@@ -269,7 +270,14 @@ public class PagingLuceneResultSet implements ResultSet, Serializable
     @Override
     public long getNumberFound()
     {
-       return wrapped.getNumberFound();
+        if (trimmedResultSet && wrapped instanceof FilteringResultSet)
+        {
+            return ((FilteringResultSet) wrapped).getUnFilteredResultSet().getNumberFound();
+        }
+        else
+        {
+            return wrapped.getNumberFound();
+        }
     }
 
     @Override
