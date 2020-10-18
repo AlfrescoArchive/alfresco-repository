@@ -22,8 +22,6 @@
                 <value>manager</value>
             </list>
         </property>
-        <property name="unencryptedContentStoreBeanName" value="unencryptedContentStore"/>
-        <property name="encryptedContentStoreBeanName" value="encryptedContentStore"/>
     </bean>
 
     <!-- Default ContentStore subsystem, that does not use encryption -->

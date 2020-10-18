@@ -2,7 +2,7 @@
  * #%L
  * Alfresco Repository
  * %%
- * Copyright (C) 2005 - 2016 Alfresco Software Limited
+ * Copyright (C) 2005 - 2020 Alfresco Software Limited
  * %%
  * This file is part of the Alfresco software. 
  * If the software was purchased under a paid Alfresco license, the terms of 
@@ -40,6 +40,8 @@ import org.apache.tika.parser.AutoDetectParser;
 import org.apache.tika.parser.Parser;
 
 /**
+ * @deprecated OOTB extractors are being moved to T-Engines.
+ *
  * A Metadata Extractor which makes use of the Apache
  *  Tika auto-detection to select the best parser
  *  to extract the metadata from your document.
@@ -60,16 +62,16 @@ import org.apache.tika.parser.Parser;
  * @since 3.4
  * @author Nick Burch
  */
+@Deprecated
 public class TikaAutoMetadataExtracter extends TikaPoweredMetadataExtracter
 {
     protected static Log logger = LogFactory.getLog(TikaAutoMetadataExtracter.class);
     private static AutoDetectParser parser;
     private static TikaConfig config;
-    private static String EXIF_IMAGE_HEIGHT_TAG = "Exif Image Height";
-    private static String EXIF_IMAGE_WIDTH_TAG = "Exif Image Width";
+    private static String EXIF_IMAGE_HEIGHT_TAG = "Exif SubIFD:Exif Image Height";
+    private static String EXIF_IMAGE_WIDTH_TAG = "Exif SubIFD:Exif Image Width";
     private static String JPEG_IMAGE_HEIGHT_TAG = "Image Height";
     private static String JPEG_IMAGE_WIDTH_TAG = "Image Width";
-    private static String COMPRESSION_TAG = "Compression";
 
     public static ArrayList<String> SUPPORTED_MIMETYPES;
     private static ArrayList<String> buildMimeTypes(TikaConfig tikaConfig)
@@ -119,24 +121,19 @@ public class TikaAutoMetadataExtracter extends TikaPoweredMetadataExtracter
      */
     @Override
     protected Map<String, Serializable> extractSpecific(Metadata metadata,
-         Map<String, Serializable> properties, Map<String,String> headers) 
+         Map<String, Serializable> properties, Map<String, String> headers)
     {
-        if(MimetypeMap.MIMETYPE_IMAGE_JPEG.equals(metadata.get(Metadata.CONTENT_TYPE)))
+        if (MimetypeMap.MIMETYPE_IMAGE_JPEG.equals(metadata.get(Metadata.CONTENT_TYPE)))
         {
             //check if the image has exif information
-            if(metadata.get(EXIF_IMAGE_WIDTH_TAG) != null
-                    && metadata.get(EXIF_IMAGE_HEIGHT_TAG) != null
-                    && metadata.get(COMPRESSION_TAG) != null)
+            if (metadata.get(EXIF_IMAGE_WIDTH_TAG) != null && metadata.get(EXIF_IMAGE_HEIGHT_TAG) != null)
             {
                 //replace the exif size properties that will be embedded in the node with
                 //the guessed dimensions from Tika
-                putRawValue(TIFF.IMAGE_LENGTH.getName(), extractSize(metadata.get(EXIF_IMAGE_HEIGHT_TAG)), properties);
-                putRawValue(TIFF.IMAGE_WIDTH.getName(), extractSize(metadata.get(EXIF_IMAGE_WIDTH_TAG)), properties);
-                putRawValue(JPEG_IMAGE_HEIGHT_TAG, metadata.get(EXIF_IMAGE_HEIGHT_TAG), properties);
-                putRawValue(JPEG_IMAGE_WIDTH_TAG, metadata.get(EXIF_IMAGE_WIDTH_TAG), properties);
+                putRawValue(TIFF.IMAGE_LENGTH.getName(), extractSize(metadata.get(JPEG_IMAGE_HEIGHT_TAG)), properties);
+                putRawValue(TIFF.IMAGE_WIDTH.getName(), extractSize(metadata.get(JPEG_IMAGE_WIDTH_TAG)), properties);
             }
         }
         return properties;
     }
-    
 }

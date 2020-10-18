@@ -23,46 +23,62 @@
  * along with Alfresco. If not, see <http://www.gnu.org/licenses/>.
  * #L%
  */
+
 package org.alfresco.repo.event2;
 
+import static org.junit.Assert.fail;
+
+import org.alfresco.error.AlfrescoRuntimeException;
+import org.alfresco.repo.event.v1.model.EventType;
+import org.junit.Test;
+
 /**
- * List of supported event types.
+ * Test event JSON schema mapping.
  *
  * @author Jamal Kaabi-Mofrad
  */
-public enum EventType
+public class EventJSONSchemaUnitTest
 {
-    NODE_CREATED("Created"), NODE_UPDATED("Updated"), NODE_DELETED("Deleted");
 
-    private static final String PREFIX = "org.alfresco.event.";
-    private static final String CONTEXT = "node.";
-    private String type;
-
-    EventType(String type)
+    @Test
+    public void testEventJsonSchema()
     {
-        this.type = type;
+        for (EventType type : EventType.values())
+        {
+            try
+            {
+                EventJSONSchema.getSchema(type, 1);
+            }
+            catch (Exception ex)
+            {
+                fail(ex.getMessage());
+            }
+        }
     }
 
-    // Should be overridden if a type requires different context. E.g. auth
-    /* package*/ String getContext()
+    @Test(expected = AlfrescoRuntimeException.class)
+    public void testEventJsonSchemaInvalid()
     {
-        return CONTEXT;
+        // Invalid version
+        for (EventType type : EventType.values())
+        {
+            EventJSONSchema.getSchema(type, 5);
+        }
     }
 
-    @Override
-    public String toString()
+    @Test
+    public void testEventJsonSchemaV1()
     {
-        return PREFIX + getContext() + type;
-    }
-
-    /**
-     * Gets the type of an event prefixed with a reverse-DNS name.
-     * <p>
-     * See <a href="https://github.com/cloudevents/spec/blob/v1.0/spec.md#type">v1.0 spec#type</a>
-     */
-    public String getType()
-    {
-        return toString();
+        for (EventType type : EventType.values())
+        {
+            try
+            {
+                EventJSONSchema.getSchemaV1(type);
+            }
+            catch (Exception ex)
+            {
+                fail(ex.getMessage());
+            }
+        }
     }
 }
-

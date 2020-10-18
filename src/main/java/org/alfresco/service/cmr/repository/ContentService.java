@@ -30,6 +30,8 @@ import org.alfresco.service.Auditable;
 import org.alfresco.service.cmr.dictionary.InvalidTypeException;
 import org.alfresco.service.namespace.QName;
 
+import java.util.Date;
+
 /**
  * Provides methods for accessing and transforming content.
  * <p>
@@ -152,4 +154,20 @@ public interface ContentService
      */
     @Auditable
     public ContentWriter getTempWriter();
+
+    /**
+     * Gets a presigned URL to directly access a binary content. It is up to the
+     * content store if it can fulfil this request with an expiry time (in
+     * milliseconds) or not.
+     *
+     * @param nodeRef
+     *            a reference to a node having a content property
+     * @param expiresAt
+     *            an optional expiry date, so the direct access url would become
+     *            invalid when the expiry date is reached
+     * @return A direct access URL object for a binary content or returns null if not supported
+     * @throws IllegalArgumentException if there is no binary content for the node
+     */
+    @Auditable(parameters = {"nodeRef", "expiresAt"})
+    public DirectAccessUrl getDirectAccessUrl(NodeRef nodeRef, Date expiresAt);
 }

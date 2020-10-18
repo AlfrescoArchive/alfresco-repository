@@ -28,9 +28,11 @@ package org.alfresco.repo.event2;
 import java.io.Serializable;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
+import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -55,35 +57,67 @@ import org.alfresco.service.namespace.NamespaceException;
 import org.alfresco.service.namespace.NamespaceService;
 import org.alfresco.service.namespace.QName;
 import org.alfresco.util.PathUtil;
+import org.alfresco.util.PropertyCheck;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.beans.factory.InitializingBean;
 
 /**
  * Helper for {@link NodeResource} objects.
  *
  * @author Jamal Kaabi-Mofrad
  */
-public class NodeResourceHelper
+public class NodeResourceHelper implements InitializingBean
 {
     private static final Log LOGGER = LogFactory.getLog(NodeResourceHelper.class);
 
-    private final NodeService nodeService;
-    private final NamespaceService namespaceService;
-    private final DictionaryService dictionaryService;
-    private final PersonService personService;
-    private final NodeAspectFilter nodeAspectFilter;
-    private final NodePropertyFilter nodePropertyFilter;
+    protected NodeService         nodeService;
+    protected DictionaryService   dictionaryService;
+    protected PersonService       personService;
+    protected EventFilterRegistry eventFilterRegistry;
+    protected NamespaceService    namespaceService;
 
-    public NodeResourceHelper(NodeService nodeService, NamespaceService namespaceService,
-                              DictionaryService dictionaryService, PersonService personService,
-                              EventFilterRegistry eventFilterRegistry)
+    private NodeAspectFilter   nodeAspectFilter;
+    private NodePropertyFilter nodePropertyFilter;
+
+    @Override
+    public void afterPropertiesSet() throws Exception
     {
-        this.nodeService = nodeService;
-        this.namespaceService = namespaceService;
-        this.dictionaryService = dictionaryService;
-        this.personService = personService;
+        PropertyCheck.mandatory(this, "nodeService", nodeService);
+        PropertyCheck.mandatory(this, "dictionaryService", dictionaryService);
+        PropertyCheck.mandatory(this, "personService", personService);
+        PropertyCheck.mandatory(this, "eventFilterRegistry", eventFilterRegistry);
+        PropertyCheck.mandatory(this, "namespaceService", namespaceService);
+
         this.nodeAspectFilter = eventFilterRegistry.getNodeAspectFilter();
         this.nodePropertyFilter = eventFilterRegistry.getNodePropertyFilter();
+    }
+
+    public void setNodeService(NodeService nodeService)
+    {
+        this.nodeService = nodeService;
+    }
+
+    public void setDictionaryService(DictionaryService dictionaryService)
+    {
+        this.dictionaryService = dictionaryService;
+    }
+
+    public void setPersonService(PersonService personService)
+    {
+        this.personService = personService;
+    }
+
+    // To make IntelliJ stop complaining about unused method!
+    @SuppressWarnings("unused")
+    public void setEventFilterRegistry(EventFilterRegistry eventFilterRegistry)
+    {
+        this.eventFilterRegistry = eventFilterRegistry;
+    }
+
+    public void setNamespaceService(NamespaceService namespaceService)
+    {
+        this.namespaceService = namespaceService;
     }
 
     public NodeResource.Builder createNodeResourceBuilder(NodeRef nodeRef)
@@ -98,7 +132,7 @@ public class NodeResourceHelper
 
         return NodeResource.builder().setId(nodeRef.getId())
                            .setName((String) properties.get(ContentModel.PROP_NAME))
-                           .setNodeType(toString(type))
+                           .setNodeType(getQNamePrefixString(type))
                            .setIsFile(isSubClass(type, ContentModel.TYPE_CONTENT))
                            .setIsFolder(isSubClass(type, ContentModel.TYPE_FOLDER))
                            .setCreatedByUser(getUserInfo((String) properties.get(ContentModel.PROP_CREATOR), mapUserCache))
@@ -147,7 +181,7 @@ public class NodeResourceHelper
 
                 if (isNotEmptyString(v))
                 {
-                    filteredProps.put(toString(k), v);
+                    filteredProps.put(getQNamePrefixString(k), v);
                 }
             }
         });
@@ -220,9 +254,14 @@ public class NodeResourceHelper
         return ZonedDateTime.ofInstant(date.toInstant(), ZoneId.systemDefault());
     }
 
-    // Returns the QName in the format prefix:local, but in the exceptional case were there is no registered prefix
-    // returns it in the form {uri}local.
-    private String toString(QName k)
+    /**
+     * Returns the QName in the format prefix:local, but in the exceptional case where there is no registered prefix
+     * returns it in the form {uri}local.
+     *
+     * @param   k QName
+     * @return  a String representing the QName in the format prefix:local or {uri}local.
+     */
+    public String getQNamePrefixString(QName k)
     {
         String key;
         try
@@ -236,14 +275,14 @@ public class NodeResourceHelper
         return key;
     }
 
-    public Set<String> mapToNodeAspects(Set<QName> aspects)
+    public Set<String> mapToNodeAspects(Collection<QName> aspects)
     {
         Set<String> filteredAspects = new HashSet<>(aspects.size());
 
         aspects.forEach(q -> {
             if (!nodeAspectFilter.isExcluded(q))
             {
-                filteredAspects.add(toString(q));
+                filteredAspects.add(getQNamePrefixString(q));
             }
         });
 
@@ -273,5 +312,11 @@ public class NodeResourceHelper
     public Set<String> getMappedAspects(NodeRef nodeRef)
     {
         return mapToNodeAspects(nodeService.getAspects(nodeRef));
+    }
+    
+    public List<String> getPrimaryHierarchy(NodeRef nodeRef, boolean showLeaf)
+    {
+        final Path path = nodeService.getPath(nodeRef);
+        return PathUtil.getNodeIdsInReverse(path, showLeaf);
     }
 }

@@ -27,6 +27,7 @@ package org.alfresco.repo.version;
 
 import org.alfresco.error.AlfrescoRuntimeException;
 import org.alfresco.model.ContentModel;
+import org.alfresco.repo.content.ContentStore;
 import org.alfresco.repo.content.EmptyContentReader;
 import org.alfresco.repo.content.MimetypeMap;
 import org.alfresco.repo.content.MimetypeMapTest;
@@ -37,12 +38,16 @@ import org.alfresco.service.cmr.repository.NoTransformerException;
 import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.cmr.repository.TransformationOptions;
 import org.alfresco.service.cmr.version.Version;
+import org.alfresco.service.namespace.QName;
 import org.alfresco.test_category.OwnJVMTestsCategory;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 
+import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Date;
 
 /**
  * Tests for getting content readers and writers.
@@ -62,6 +67,7 @@ public class ContentServiceImplTest extends BaseVersionStoreTest
      * The version content store
      */
     private ContentService contentService;
+    private ContentStore contentStore;
 
     @Before
     public void before() throws Exception
@@ -70,6 +76,7 @@ public class ContentServiceImplTest extends BaseVersionStoreTest
         
         // Get the instance of the required content service
         this.contentService = (ContentService)this.applicationContext.getBean("contentService");
+        this.contentStore = (ContentStore) ReflectionTestUtils.getField(contentService, "store");
     }
     
     /**
@@ -130,4 +137,82 @@ public class ContentServiceImplTest extends BaseVersionStoreTest
             // An exception should be raised
         }
     }
+
+    @Test
+    public void testWhenGetDirectAccessUrlIsNotSupported()
+    {
+        assertFalse(contentStore.isDirectAccessSupported());
+
+        // Set the presigned URL to expire after one minute.
+        Date expiresAt = new Date();
+        long expTimeMillis = expiresAt.getTime();
+        expTimeMillis += 1000 * 60;
+        expiresAt.setTime(expTimeMillis);
+
+        try
+        {
+            // Create a node without content
+            NodeRef nodeRef = this.dbNodeService
+                    .createNode(rootNodeRef, ContentModel.ASSOC_CHILDREN, QName.createQName("{test}MyNoContentNode"), TEST_TYPE_QNAME, this.nodeProperties).getChildRef();
+
+            assertEquals(null, contentService.getDirectAccessUrl(nodeRef, expiresAt));
+            fail("nodeRef has no content");
+        }
+        catch (IllegalArgumentException e)
+        {
+            // Expected exception
+        }
+
+        try
+        {
+            assertEquals(null, contentService.getDirectAccessUrl(null, null));
+            fail("nodeRef is null");
+        }
+        catch (IllegalArgumentException e)
+        {
+            // Expected exception
+        }
+
+        // Create a node with content
+        NodeRef nodeRef = createNewVersionableNode();
+
+        assertEquals(null, contentService.getDirectAccessUrl(nodeRef, null));
+        assertEquals(null, contentService.getDirectAccessUrl(nodeRef, expiresAt));
+    }
+
+//  Commented out as OpenOffice is not on the build machines.
+//    public void testGetTransformer0()
+//    {
+//        ContentTransformer transformer = contentService.getTransformer("test", "application/vnd.ms-excel", 0,
+//                "application/x-shockwave-flash", new TransformationOptions());
+//        assertTrue("Should have found a transformer for 0 bytes", transformer != null);
+//    }
+//
+//    public void testGetTransformer10K()
+//    {
+//        ContentTransformer transformer = contentService.getTransformer("test", "application/vnd.ms-excel", 1024*10,
+//                "application/x-shockwave-flash", new TransformationOptions());
+//        assertTrue("Should have found a transformer for 10 K", transformer != null);
+//    }
+//    
+//    public void testGetTransformer1M()
+//    {
+//        ContentTransformer transformer = contentService.getTransformer("test", "application/vnd.ms-excel", 1024*1024,
+//                "application/x-shockwave-flash", new TransformationOptions());
+//        assertTrue("Should have found a transformer for 1M", transformer != null);
+//    }
+//    
+//    public void testGetTransformer10M()
+//    {
+//        ContentTransformer transformer = contentService.getTransformer("test", "application/vnd.ms-excel", 1024*1024*10,
+//                "application/x-shockwave-flash", new TransformationOptions());
+//        assertTrue("Should NOT have found a transformer for 10M as the is a 1M limit on xsl mimetype", transformer == null);
+//    }
+//    
+//    public void testGetMaxSourceSizeByes()
+//    {
+//        long maxSourceSizeBytes = contentService.getMaxSourceSizeBytes("application/vnd.ms-excel",
+//                "application/x-shockwave-flash", new TransformationOptions());
+//        assertEquals("Should have found a transformer that can handle 1M", 1024*1024, maxSourceSizeBytes);
+//    }
 }

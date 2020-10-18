@@ -1815,8 +1815,6 @@ public class CMISConnector implements ApplicationContextAware, ApplicationListen
                 }
             }
         });
-
-
     }
 
     public void appendContent(CMISNodeInfo nodeInfo, ContentStream contentStream, boolean isLastChunk) throws IOException
