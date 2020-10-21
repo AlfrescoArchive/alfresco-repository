@@ -2,7 +2,7 @@
     <modelVersion>4.0.0</modelVersion>
     <artifactId>alfresco-repository</artifactId>
     <name>Alfresco Repository</name>
-    <version>8.274-SNAPSHOT</version>
+    <version>8.288-SNAPSHOT</version>
     <packaging>jar</packaging>
     <parent>
         <groupId>org.alfresco</groupId>
@@ -36,8 +36,8 @@
 
         <maven.build.sourceVersion>11</maven.build.sourceVersion>
 
-        <dependency.alfresco-data-model.version>8.147</dependency.alfresco-data-model.version>
-        <dependency.alfresco-core.version>8.45</dependency.alfresco-core.version>
+        <dependency.alfresco-data-model.version>8.158</dependency.alfresco-data-model.version>
+        <dependency.alfresco-core.version>8.50</dependency.alfresco-core.version>
 
         <dependency.alfresco-legacy-lucene.version>6.2</dependency.alfresco-legacy-lucene.version>
         <dependency.alfresco-greenmail.version>6.2</dependency.alfresco-greenmail.version>
@@ -46,14 +46,14 @@
         <dependency.alfresco-hb-data-sender.version>1.0.12</dependency.alfresco-hb-data-sender.version>
         <dependency.transform.model.version>1.0.2.11</dependency.transform.model.version>
 
-        <dependency.spring.version>5.2.8.RELEASE</dependency.spring.version>
+        <dependency.spring.version>5.2.9.RELEASE</dependency.spring.version>
         <dependency.spring-security.version>5.3.4.RELEASE</dependency.spring-security.version>
         <dependency.httpcomponents.version>4.5.10</dependency.httpcomponents.version>
         <dependency.truezip.version>7.7.10</dependency.truezip.version>
         <dependency.poi.version>4.1.2</dependency.poi.version>
         <dependency.ooxml-schemas.version>1.4</dependency.ooxml-schemas.version>
-        <dependency.webscripts.version>8.8</dependency.webscripts.version>
-        <dependency.opencmis.version>1.1.0</dependency.opencmis.version>
+        <dependency.webscripts.version>8.10</dependency.webscripts.version>
+        <dependency.opencmis.version>1.0.0</dependency.opencmis.version>
         <dependency.activiti-engine.version>5.23.0</dependency.activiti-engine.version>
         <dependency.activiti.version>5.23.0</dependency.activiti.version>
         <dependency.postgresql.version>42.2.16</dependency.postgresql.version>
@@ -68,9 +68,9 @@
         <dependency.pdfbox.version>2.0.21</dependency.pdfbox.version>
         <dependency.cxf.version>3.4.0</dependency.cxf.version>
         <dependency.jackson.version>2.11.2</dependency.jackson.version>
-        <dependency.jackson-databind.version>2.10.2</dependency.jackson-databind.version>
+        <dependency.jackson-databind.version>2.10.1</dependency.jackson-databind.version>
         <dependency.apache.taglibs.version>1.2.5</dependency.apache.taglibs.version>
-        <dependency.acs-event-model.version>0.0.8</dependency.acs-event-model.version>
+        <dependency.acs-event-model.version>0.0.9</dependency.acs-event-model.version>
         <dependency.awaitility.version>4.0.3</dependency.awaitility.version>
     </properties>
 
@@ -1042,7 +1042,7 @@
         <dependency>
             <groupId>org.mockito</groupId>
             <artifactId>mockito-core</artifactId>
-            <version>3.5.10</version>
+            <version>3.5.11</version>
             <scope>test</scope>
         </dependency>
         <dependency>
