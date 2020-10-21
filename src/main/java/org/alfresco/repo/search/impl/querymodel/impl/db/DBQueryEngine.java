@@ -143,7 +143,6 @@ public class DBQueryEngine implements QueryEngine
         this.permissionService = permissionService;
     }
     
-    
     public void setMetadataIndexCheck2(OptionalPatchApplicationCheckBootstrapBean metadataIndexCheck2)
     {
         this.metadataIndexCheck2 = metadataIndexCheck2;
@@ -302,8 +301,7 @@ public class DBQueryEngine implements QueryEngine
     {
         List<Node> nodes = removeDuplicates(template.selectList(pickQueryTemplate(options, dbQuery), dbQuery));
         DBResultSet rs = new DBResultSet(options.getAsSearchParmeters(), nodes, nodeDAO, nodeService, tenantService, Integer.MAX_VALUE);
-        PagingLuceneResultSet plrs = new PagingLuceneResultSet(rs, options.getAsSearchParmeters(), nodeService);
-        return plrs;
+        return new PagingLuceneResultSet(rs, options.getAsSearchParmeters(), nodeService);
     }
     
     private ResultSet selectNodesWithPermissions(QueryOptions options, DBQuery dbQuery)
@@ -365,7 +363,6 @@ public class DBQueryEngine implements QueryEngine
                 if (permissionAssessor.shouldQuitChecks())
                 {
                     context.stop();
-                    return;
                 }
             }
         });
@@ -411,9 +408,9 @@ public class DBQueryEngine implements QueryEngine
     
     private QueryEngineResults asQueryEngineResults(ResultSet paged)
     {
-        HashSet<String> key = new HashSet<String>();
+        HashSet<String> key = new HashSet<>();
         key.add("");
-        Map<Set<String>, ResultSet> answer = new HashMap<Set<String>, ResultSet>();
+        Map<Set<String>, ResultSet> answer = new HashMap<>();
         answer.put(key, paged);
 
         return new QueryEngineResults(answer);
@@ -528,16 +525,8 @@ public class DBQueryEngine implements QueryEngine
     private boolean ownerRead(NodeRef nodeRef)
     {
         String username = AuthenticationUtil.getRunAsUser();
-
         String owner = ownableService.getOwner(nodeRef);
-        if (EqualsHelper.nullSafeEquals(username, owner))
-        {
-            return true;
-        } 
-        else 
-        {
-            return false;
-        }
+        return EqualsHelper.nullSafeEquals(username, owner);
     }
 
     private boolean adminRead()
@@ -592,12 +581,13 @@ public class DBQueryEngine implements QueryEngine
         return options.getLocales().size() == 1 ? options.getLocales().get(0).getLanguage() : "";
     }
     
-    /* 
+    /**
      * Injection of nodes cache for clean-up and warm up when required
+     * @param cache The node cache to set
      */
     public void setNodesCache(SimpleCache<Serializable, Serializable> cache)
     {
-        this.nodesCache = new EntityLookupCache<Long, Node, NodeRef>(
+        this.nodesCache = new EntityLookupCache<>(
                 cache,
                 CACHE_REGION_NODES,
                 new ReadonlyLocalCallbackDAO());

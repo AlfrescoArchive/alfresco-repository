@@ -83,7 +83,7 @@ public class DBQueryEngineTest
     }
     
     @Test
-    public void shoulGetAFilteringResultSetFromAcceleratedNodeSelection()
+    public void shouldGetAFilteringResultSetFromAcceleratedNodeSelection()
     {
         withMaxItems(10);
 

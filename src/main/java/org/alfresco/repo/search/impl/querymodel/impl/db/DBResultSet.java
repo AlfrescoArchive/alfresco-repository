@@ -25,14 +25,12 @@
  */
 package org.alfresco.repo.search.impl.querymodel.impl.db;
 
-import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.Iterator;
 import java.util.List;
 
 import org.alfresco.repo.domain.node.Node;
 import org.alfresco.repo.domain.node.NodeDAO;
-import org.alfresco.repo.domain.node.NodeIdAndAclId;
 import org.alfresco.repo.search.AbstractResultSet;
 import org.alfresco.repo.search.SimpleResultSetMetaData;
 import org.alfresco.repo.tenant.TenantService;
@@ -44,7 +42,6 @@ import org.alfresco.service.cmr.search.PermissionEvaluationMode;
 import org.alfresco.service.cmr.search.ResultSetMetaData;
 import org.alfresco.service.cmr.search.ResultSetRow;
 import org.alfresco.service.cmr.search.SearchParameters;
-import org.alfresco.util.Pair;
 
 /**
  * @author Andy
