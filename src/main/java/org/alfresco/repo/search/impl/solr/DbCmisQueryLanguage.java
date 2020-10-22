@@ -123,7 +123,7 @@ public class DbCmisQueryLanguage extends AbstractLuceneQueryLanguage
         functionContext.setValidScopes(validScopes);
 
         CMISQueryParser parser = new CMISQueryParser(options, cmisDictionaryService, joinSupport);
-        org.alfresco.repo.search.impl.querymodel.Query queryModelQuery = parser.parse(new DBQueryModelFactory(), functionContext);
+        org.alfresco.repo.search.impl.querymodel.Query queryModelQuery = parser.parse(queryEngine.getQueryModelFactory(), functionContext);
 
 // TODO: Remove as this appears to be dead code
 //        // build lucene query
