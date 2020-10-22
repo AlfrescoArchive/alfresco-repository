@@ -46,6 +46,7 @@ import org.alfresco.service.cmr.repository.ContentIOException;
 import org.alfresco.service.cmr.repository.ContentReader;
 import org.alfresco.service.cmr.repository.ContentService;
 import org.alfresco.service.cmr.repository.ContentWriter;
+import org.alfresco.service.cmr.repository.DirectAccessUrl;
 import org.alfresco.service.cmr.repository.MimetypeService;
 import org.alfresco.service.cmr.repository.MimetypeServiceAware;
 import org.alfresco.service.cmr.repository.NodeRef;
@@ -63,6 +64,7 @@ import org.springframework.extensions.surf.util.I18NUtil;
 
 import java.io.Serializable;
 import java.util.Collection;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -509,22 +511,22 @@ public class ContentServiceImpl extends ContentTransformServiceAdaptor implement
     }
 
     @Override
-    public String getDirectAccessUrl(NodeRef nodeRef, long expiryTime)
+    public DirectAccessUrl getDirectAccessUrl(NodeRef nodeRef, Date expiresAt)
     {
         ContentData contentData = getContentData(nodeRef, ContentModel.PROP_CONTENT);
 
         // check that the URL is available
         if (contentData == null || contentData.getContentUrl() == null)
         {
-            // there is no URL - the interface specifies that this is not an error condition
-            return null;
+            throw new IllegalArgumentException("The supplied nodeRef " + nodeRef + " has no content.");
         }
 
         if (store.isDirectAccessSupported())
         {
-            return store.getDirectAccessUrl(contentData.getContentUrl(), expiryTime);
+            return store.getDirectAccessUrl(contentData.getContentUrl(), expiresAt);
         }
-        return "";
+
+        return null;
     }
 
     /**

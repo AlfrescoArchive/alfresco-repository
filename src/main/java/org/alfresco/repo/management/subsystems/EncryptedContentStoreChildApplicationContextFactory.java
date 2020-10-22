@@ -23,19 +23,23 @@
  * along with Alfresco. If not, see <http://www.gnu.org/licenses/>.
  * #L%
  */
-package org.alfresco.repo.event2;
+package org.alfresco.repo.management.subsystems;
 
-import org.junit.runner.RunWith;
-import org.junit.runners.Suite;
-import org.junit.runners.Suite.SuiteClasses;
-
-@RunWith(Suite.class)
-@SuiteClasses({ CreateRepoEventIT.class,
-                UpdateRepoEventIT.class,
-                DeleteRepoEventIT.class,
-                ChildAssociationRepoEventIT.class,
-                PeerAssociationRepoEventIT.class
-})
-public class RepoEvent2ITSuite
+/**
+ * ChildApplicationContextFactory extension used to identify the type of the content store subsystem, encrypted or unecrypted.
+ * See {@link CryptodocSwitchableApplicationContextFactory} for how is used.
+ */
+public class EncryptedContentStoreChildApplicationContextFactory extends ChildApplicationContextFactory
 {
+    private boolean encryptedContent;
+    
+    public boolean isEncryptedContent()
+    {
+        return encryptedContent;
+    }
+
+    public void setEncryptedContent(boolean encryptedContent)
+    {
+        this.encryptedContent = encryptedContent;
+    }
 }

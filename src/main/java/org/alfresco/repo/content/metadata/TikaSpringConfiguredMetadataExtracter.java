@@ -37,7 +37,7 @@ import org.apache.tika.parser.ParseContext;
 import org.apache.tika.parser.Parser;
 
 /**
- * @deprecated Tika extractors have been moved to a T-Engine.
+ * @deprecated OOTB extractors are being moved to T-Engines.
  *
  * A Metadata Extractor which makes use of Apache Tika,
  *  and allows the selection of the Tika parser to be

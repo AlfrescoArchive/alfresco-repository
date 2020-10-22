@@ -34,7 +34,7 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * @deprecated The JodConverterMetadataExtracter has not been in use since 6.0.1
+ * @deprecated OOTB extractors are being moved to T-Engines.
  *
  * Extracts values from Open Office documents into the following:
  * <pre>

@@ -36,7 +36,7 @@ import org.apache.tika.parser.dwg.DWGParser;
 
 
 /**
- * @deprecated extractor has been moved to a T-Engine.
+ * @deprecated OOTB extractors are being moved to T-Engines.
  *
  * Metadata extractor for the
  * {@link org.alfresco.repo.content.MimetypeMap#MIMETYPE_APP_DWG MIMETYPE_APP_DWG}

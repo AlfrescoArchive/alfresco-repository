@@ -38,7 +38,7 @@ import org.alfresco.service.namespace.QName;
 
 
 /**
- * @deprecated extractor has been moved to a T-Engine.
+ * @deprecated OOTB extractors are being moved to T-Engines.
  *
  * @see OfficeMetadataExtracter
  * 

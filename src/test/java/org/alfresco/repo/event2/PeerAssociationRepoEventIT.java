@@ -30,12 +30,12 @@ import java.util.List;
 
 import org.alfresco.model.ContentModel;
 import org.alfresco.repo.event.v1.model.EventData;
+import org.alfresco.repo.event.v1.model.EventType;
 import org.alfresco.repo.event.v1.model.NodeResource;
 import org.alfresco.repo.event.v1.model.PeerAssociationResource;
 import org.alfresco.repo.event.v1.model.RepoEvent;
 import org.alfresco.service.cmr.repository.AssociationRef;
 import org.alfresco.service.cmr.repository.NodeRef;
-import org.junit.Before;
 import org.junit.Test;
 
 /**
@@ -43,15 +43,7 @@ import org.junit.Test;
  */
 public class PeerAssociationRepoEventIT extends AbstractContextAwareRepoEvent
 {
-    private RepoEventContainer repoEventsContainer;
 
-    @Before
-    public void initContainer()
-    {
-        repoEventsContainer = getRepoEventsContainer();
-        repoEventsContainer.reset();
-    }
-    
     @Test
     public void testAddPeerAssociation()
     {
@@ -60,10 +52,10 @@ public class PeerAssociationRepoEventIT extends AbstractContextAwareRepoEvent
 
         checkNumOfEvents(2);
 
-        RepoEvent<NodeResource> resultRepoEvent = repoEventsContainer.getEvent(1);
+        RepoEvent<EventData<NodeResource>> resultRepoEvent = getRepoEventWithoutWait(1);
         assertEquals("Wrong repo event type.", EventType.NODE_CREATED.getType(), resultRepoEvent.getType());
 
-        resultRepoEvent = repoEventsContainer.getEvent(2);
+        resultRepoEvent = getRepoEventWithoutWait(2);
         assertEquals("Wrong repo event type.", EventType.NODE_CREATED.getType(), resultRepoEvent.getType());
         
         retryingTransactionHelper.doInTransaction(() ->
@@ -79,8 +71,7 @@ public class PeerAssociationRepoEventIT extends AbstractContextAwareRepoEvent
 
         checkNumOfEvents(4);
 
-        final RepoEvent<NodeResource> peerAssocRepoEvent = getChildAssocEvents(repoEventsContainer,
-                EventType.PEER_ASSOC_CREATED).get(0);
+        final RepoEvent<EventData<PeerAssociationResource>> peerAssocRepoEvent = getFilteredEvent(EventType.PEER_ASSOC_CREATED,0);
 
         assertEquals("Wrong repo event type.",
                 EventType.PEER_ASSOC_CREATED.getType(),
@@ -93,9 +84,10 @@ public class PeerAssociationRepoEventIT extends AbstractContextAwareRepoEvent
         assertNotNull("Repo event creation time is not available. ", peerAssocRepoEvent.getTime());
         assertEquals("Repo event datacontenttype", "application/json",
                 peerAssocRepoEvent.getDatacontenttype());
-        assertEquals(EventData.JSON_SCHEMA, peerAssocRepoEvent.getDataschema());
+        assertNotNull(peerAssocRepoEvent.getDataschema());
+        assertEquals(EventJSONSchema.PEER_ASSOC_CREATED_V1.getSchema(), peerAssocRepoEvent.getDataschema());
 
-        final EventData<NodeResource> nodeResourceEventData = getEventData(peerAssocRepoEvent);
+        final EventData<PeerAssociationResource> nodeResourceEventData = getEventData(peerAssocRepoEvent);
         // EventData attributes
         assertNotNull("Event data group ID is not available. ", nodeResourceEventData.getEventGroupId());
         assertNull("resourceBefore property is not available", nodeResourceEventData.getResourceBefore());
@@ -115,13 +107,13 @@ public class PeerAssociationRepoEventIT extends AbstractContextAwareRepoEvent
 
         checkNumOfEvents(3);
 
-        RepoEvent<NodeResource> resultRepoEvent = repoEventsContainer.getEvent(1);
+        RepoEvent<EventData<NodeResource>> resultRepoEvent = getRepoEventWithoutWait(1);
         assertEquals("Wrong repo event type.", EventType.NODE_CREATED.getType(), resultRepoEvent.getType());
 
-        resultRepoEvent = repoEventsContainer.getEvent(2);
+        resultRepoEvent = getRepoEventWithoutWait(2);
         assertEquals("Wrong repo event type.", EventType.NODE_CREATED.getType(), resultRepoEvent.getType());
 
-        resultRepoEvent = repoEventsContainer.getEvent(3);
+        resultRepoEvent = getRepoEventWithoutWait(3);
         assertEquals("Wrong repo event type.", EventType.NODE_CREATED.getType(), resultRepoEvent.getType());
 
         retryingTransactionHelper.doInTransaction(() -> {
@@ -145,7 +137,7 @@ public class PeerAssociationRepoEventIT extends AbstractContextAwareRepoEvent
 
         checkNumOfEvents(7);
 
-        List<RepoEvent<NodeResource>> peerAssocRepoEvent = getChildAssocEvents(repoEventsContainer, EventType.PEER_ASSOC_CREATED);
+        List<RepoEvent<EventData<PeerAssociationResource>>> peerAssocRepoEvent = getFilteredEvents(EventType.PEER_ASSOC_CREATED);
 
         // we should have 2 assoc.peer.Created events
         assertEquals("Wrong association events number",2, peerAssocRepoEvent.size());
@@ -160,13 +152,13 @@ public class PeerAssociationRepoEventIT extends AbstractContextAwareRepoEvent
 
         checkNumOfEvents(3);
 
-        RepoEvent<NodeResource> resultRepoEvent = repoEventsContainer.getEvent(1);
+        RepoEvent<EventData<NodeResource>> resultRepoEvent = getRepoEventWithoutWait(1);
         assertEquals("Wrong repo event type.", EventType.NODE_CREATED.getType(), resultRepoEvent.getType());
 
-        resultRepoEvent = repoEventsContainer.getEvent(2);
+        resultRepoEvent = getRepoEventWithoutWait(2);
         assertEquals("Wrong repo event type.", EventType.NODE_CREATED.getType(), resultRepoEvent.getType());
 
-        resultRepoEvent = repoEventsContainer.getEvent(3);
+        resultRepoEvent = getRepoEventWithoutWait(3);
         assertEquals("Wrong repo event type.", EventType.NODE_CREATED.getType(), resultRepoEvent.getType());
 
         retryingTransactionHelper.doInTransaction(() -> {
@@ -192,7 +184,7 @@ public class PeerAssociationRepoEventIT extends AbstractContextAwareRepoEvent
 
         checkNumOfEvents(7);
 
-        List<RepoEvent<NodeResource>> peerAssocRepoEvent = getChildAssocEvents(repoEventsContainer, EventType.PEER_ASSOC_CREATED);
+        List<RepoEvent<EventData<PeerAssociationResource>>> peerAssocRepoEvent = getFilteredEvents(EventType.PEER_ASSOC_CREATED);
 
         // we should have 2 assoc.peer.Created events
         assertEquals("Wrong association events number",2, peerAssocRepoEvent.size());
@@ -227,10 +219,10 @@ public class PeerAssociationRepoEventIT extends AbstractContextAwareRepoEvent
 
         checkNumOfEvents(2);
 
-        RepoEvent<NodeResource> resultRepoEvent = repoEventsContainer.getEvent(1);
+        RepoEvent<EventData<NodeResource>> resultRepoEvent = getRepoEventWithoutWait(1);
         assertEquals("Wrong repo event type.", EventType.NODE_CREATED.getType(), resultRepoEvent.getType());
 
-        resultRepoEvent = repoEventsContainer.getEvent(2);
+        resultRepoEvent = getRepoEventWithoutWait(2);
         assertEquals("Wrong repo event type.", EventType.NODE_CREATED.getType(), resultRepoEvent.getType());
 
         // Create peer association
@@ -265,8 +257,7 @@ public class PeerAssociationRepoEventIT extends AbstractContextAwareRepoEvent
         checkNumOfEvents(6);
         
         // Check the peer assoc created event
-        final RepoEvent<NodeResource> peerAssocRepoEvent = getChildAssocEvents(repoEventsContainer,
-                EventType.PEER_ASSOC_CREATED).get(0);
+        final RepoEvent<EventData<PeerAssociationResource>> peerAssocRepoEvent = getFilteredEvent(EventType.PEER_ASSOC_CREATED, 0);
 
         assertEquals("Wrong repo event type.",
                 EventType.PEER_ASSOC_CREATED.getType(),
@@ -279,9 +270,10 @@ public class PeerAssociationRepoEventIT extends AbstractContextAwareRepoEvent
         assertNotNull("Repo event creation time is not available. ", peerAssocRepoEvent.getTime());
         assertEquals("Repo event datacontenttype", "application/json",
                 peerAssocRepoEvent.getDatacontenttype());
-        assertEquals(EventData.JSON_SCHEMA, peerAssocRepoEvent.getDataschema());
+        assertNotNull(peerAssocRepoEvent.getDataschema());
+        assertEquals(EventJSONSchema.PEER_ASSOC_CREATED_V1.getSchema(), peerAssocRepoEvent.getDataschema());
 
-        final EventData nodeResourceEventData = getEventData(peerAssocRepoEvent);
+        final EventData<PeerAssociationResource> nodeResourceEventData = getEventData(peerAssocRepoEvent);
         // EventData attributes
         assertNotNull("Event data group ID is not available. ",
                 nodeResourceEventData.getEventGroupId());
@@ -298,8 +290,7 @@ public class PeerAssociationRepoEventIT extends AbstractContextAwareRepoEvent
                 peerAssociationResource.getAssocType());
 
         // Check the peer assoc deleted event
-        final RepoEvent<NodeResource> peerAssocRepoEvent2 = getChildAssocEvents(repoEventsContainer,
-                EventType.PEER_ASSOC_DELETED).get(0);
+        final RepoEvent<EventData<PeerAssociationResource>> peerAssocRepoEvent2 = getFilteredEvent(EventType.PEER_ASSOC_DELETED, 0);
 
         assertEquals("Wrong repo event type.",
                 EventType.PEER_ASSOC_DELETED.getType(),
@@ -312,9 +303,10 @@ public class PeerAssociationRepoEventIT extends AbstractContextAwareRepoEvent
         assertNotNull("Repo event creation time is not available. ", peerAssocRepoEvent2.getTime());
         assertEquals("Repo event datacontenttype", "application/json",
                 peerAssocRepoEvent2.getDatacontenttype());
-        assertEquals(EventData.JSON_SCHEMA, peerAssocRepoEvent2.getDataschema());
+        assertNotNull(peerAssocRepoEvent2.getDataschema());
+        assertEquals(EventJSONSchema.PEER_ASSOC_DELETED_V1.getSchema(), peerAssocRepoEvent2.getDataschema());
 
-        final EventData nodeResourceEventData2 = getEventData(peerAssocRepoEvent2);
+        final EventData<PeerAssociationResource> nodeResourceEventData2 = getEventData(peerAssocRepoEvent2);
         // EventData attributes
         assertNotNull("Event data group ID is not available. ",
                 nodeResourceEventData2.getEventGroupId());
@@ -340,11 +332,11 @@ public class PeerAssociationRepoEventIT extends AbstractContextAwareRepoEvent
 
         checkNumOfEvents(2);
 
-        RepoEvent<NodeResource> resultRepoEvent = repoEventsContainer.getEvent(1);
+        RepoEvent<EventData<NodeResource>> resultRepoEvent = getRepoEventWithoutWait(1);
         assertEquals("Wrong repo event type.", EventType.NODE_CREATED.getType(),
                 resultRepoEvent.getType());
 
-        resultRepoEvent = repoEventsContainer.getEvent(2);
+        resultRepoEvent = getRepoEventWithoutWait(2);
         assertEquals("Wrong repo event type.", EventType.NODE_CREATED.getType(),
                 resultRepoEvent.getType());
 

@@ -2,7 +2,7 @@
  * #%L
  * Alfresco Repository
  * %%
- * Copyright (C) 2005 - 2016 Alfresco Software Limited
+ * Copyright (C) 2005 - 2020 Alfresco Software Limited
  * %%
  * This file is part of the Alfresco software. 
  * If the software was purchased under a paid Alfresco license, the terms of 
@@ -24,7 +24,7 @@
  * #L%
  */
 /*
- * Copyright (C) 2005 Jesper Steen Møller
+ * Copyright (C) 2005 - 2020 Jesper Steen Møller
  *
  * This file is part of Alfresco
  *
@@ -53,7 +53,7 @@ import org.apache.tika.parser.Parser;
 import org.apache.tika.parser.microsoft.OfficeParser;
 
 /**
- * @deprecated extractor has been moved to a T-Engine.
+ * @deprecated OOTB extractors are being moved to T-Engines.
  *
  * Office file format Metadata Extracter.  This extracter uses the POI library to extract
  * the following:

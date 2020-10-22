@@ -40,7 +40,7 @@ import org.alfresco.service.namespace.QName;
 import org.apache.pdfbox.util.DateConverter;
 
 /**
- * @deprecated extractor has been moved to a T-Engine.
+ * @deprecated OOTB extractors are being moved to T-Engines.
  *
  * @see org.alfresco.repo.content.metadata.PdfBoxMetadataExtracter
  * 

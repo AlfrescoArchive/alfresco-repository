@@ -30,6 +30,7 @@ import java.util.List;
 
 import org.alfresco.model.ContentModel;
 import org.alfresco.repo.event.v1.model.EventData;
+import org.alfresco.repo.event.v1.model.EventType;
 import org.alfresco.repo.event.v1.model.NodeResource;
 import org.alfresco.repo.event.v1.model.RepoEvent;
 import org.alfresco.service.cmr.repository.NodeRef;
@@ -54,7 +55,7 @@ public class CreateRepoEventIT extends AbstractContextAwareRepoEvent
         propertyMap.put(ContentModel.PROP_NAME, name);
         final NodeRef nodeRef = createNode(ContentModel.TYPE_CONTENT, propertyMap);
 
-        final RepoEvent<NodeResource> resultRepoEvent = getRepoEvent(1);
+        final RepoEvent<EventData<NodeResource>> resultRepoEvent = getRepoEvent(1);
         // Repo event attributes
         assertEquals("Repo event type", EventType.NODE_CREATED.getType(), resultRepoEvent.getType());
         assertNotNull("Repo event ID is not available. ", resultRepoEvent.getId());
@@ -64,7 +65,8 @@ public class CreateRepoEventIT extends AbstractContextAwareRepoEvent
             resultRepoEvent.getSource().toString());
         assertNotNull("Repo event creation time is not available. ", resultRepoEvent.getTime());
         assertEquals("Repo event datacontenttype", "application/json", resultRepoEvent.getDatacontenttype());
-        assertEquals(EventData.JSON_SCHEMA, resultRepoEvent.getDataschema());
+        assertNotNull(resultRepoEvent.getDataschema());
+        assertEquals(EventJSONSchema.NODE_CREATED_V1.getSchema(), resultRepoEvent.getDataschema());
 
         final EventData<NodeResource> nodeResourceEventData = getEventData(resultRepoEvent);
         // EventData attributes

@@ -67,6 +67,7 @@ import com.sun.star.util.XRefreshable;
  * </pre>
  *
  * @deprecated The JodConverterMetadataExtracter has not been in use since 6.0.1
+ * @deprecated OOTB extractors are being moved to T-Engines.
  *
  * @author Neil McErlean
  */
@@ -132,6 +133,7 @@ public class JodConverterMetadataExtracterWorker implements
     }
 }
 
+@Deprecated
 class ExtractMetadataOfficeTask implements OfficeTask
 {
     /*
@@ -271,6 +273,7 @@ class ExtractMetadataOfficeTask implements OfficeTask
     }
 }
 
+@Deprecated
 class ResultsCallback
 {
     private Map<String, Serializable> results = new HashMap<String, Serializable>();

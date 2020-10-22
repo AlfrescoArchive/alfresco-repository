@@ -28,6 +28,7 @@ package org.alfresco.repo.event2;
 
 import org.alfresco.model.ContentModel;
 import org.alfresco.repo.event.v1.model.EventData;
+import org.alfresco.repo.event.v1.model.EventType;
 import org.alfresco.repo.event.v1.model.NodeResource;
 import org.alfresco.repo.event.v1.model.RepoEvent;
 import org.alfresco.service.cmr.repository.NodeRef;
@@ -59,7 +60,7 @@ public class DeleteRepoEventIT extends AbstractContextAwareRepoEvent
         assertNotNull("Missing node resource properties", createdResource.getProperties());
 
         deleteNode(nodeRef);
-        final RepoEvent<NodeResource> resultRepoEvent = getRepoEvent(2);
+        final RepoEvent<EventData<NodeResource>> resultRepoEvent = getRepoEvent(2);
 
         assertEquals("Repo event type:", EventType.NODE_DELETED.getType(), resultRepoEvent.getType());
         assertEquals(createdResource.getId(), getNodeResource(resultRepoEvent).getId());

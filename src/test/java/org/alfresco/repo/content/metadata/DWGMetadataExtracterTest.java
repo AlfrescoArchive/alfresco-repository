@@ -42,7 +42,7 @@ import org.apache.tika.metadata.Metadata;
 
 
 /**
- * @deprecated extractor has been moved to a T-Engine.
+ * @deprecated OOTB extractors are being moved to T-Engines.
  *
  * @see DWGMetadataExtracter
  * 
