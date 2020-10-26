@@ -1,3 +1,7 @@
+## This project has now been Archived
+
+The alfresco-core, alfresco-data-model, alfresco-repository and alfresco-remote-api projects have been archived with their code incorporated into [alfresco-community-repo]( https://github.com/Alfresco/alfresco-community-repo) to simply ongoing development. The same artifacts are still produced by the new project. It also has a branch used as the basis of each of ACS 6 Enterprise release. For more information, set the new project’s README.md file.
+
 ### Alfresco Repository
 [![Build Status](https://travis-ci.com/Alfresco/alfresco-repository.svg?branch=master)](https://travis-ci.com/Alfresco/alfresco-repository)
 
