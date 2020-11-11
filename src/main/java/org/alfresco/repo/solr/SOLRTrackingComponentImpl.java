@@ -74,6 +74,7 @@ import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.cmr.repository.NodeRef.Status;
 import org.alfresco.service.cmr.repository.Path;
 import org.alfresco.service.cmr.repository.Path.ChildAssocElement;
+import org.alfresco.service.cmr.repository.StoreRef;
 import org.alfresco.service.cmr.repository.datatype.DefaultTypeConverter;
 import org.alfresco.service.cmr.security.OwnableService;
 import org.alfresco.service.cmr.security.PermissionService;
@@ -398,7 +399,7 @@ public class SOLRTrackingComponentImpl implements SOLRTrackingComponent
 	        {
                 if (shardRegistry != null){
                     shardRegistry.getShardInstanceByTransactionTimestamp(
-                            nodeParameters.getCoreName(),
+                            new StoreRef(nodeParameters.getStoreProtocol(), nodeParameters.getStoreIdentifier()).toString(),
                             node.getTransaction().getCommitTimeMs()).ifPresent(
                                     shardId -> ((NodeEntity) node).setExplicitShardId(shardId));
 
